@@ -285,6 +285,7 @@ class ToolRegistry:
                 "dependencies": info.get("dependencies", []),
                 "install_instructions": tool.install_instructions,
                 "status": status.value,
+                "cost_policy_block_reason": info.get("cost_policy_block_reason"),
             }
             for extra_key in (
                 "source_provider_menu",
@@ -403,6 +404,8 @@ class ToolRegistry:
         setup_offers: list[dict[str, Any]] = []
         for cap, bucket in menu.items():
             for entry in bucket.get("unavailable", []):
+                if entry.get("cost_policy_block_reason"):
+                    continue
                 offer = entry.get("setup_offer")
                 if offer:
                     setup_offers.append(
