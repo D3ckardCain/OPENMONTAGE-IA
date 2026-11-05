@@ -43,7 +43,8 @@ class ComfyUIClient:
     """
 
     def __init__(
-        self, server_url: str | None = None, capability: str | None = None
+        self, server_url: str | None = None, capability: str | None = None,
+        *, local_wan_only: bool = False,
     ) -> None:
         """*capability*, if given (e.g. ``"image"``, ``"video"``), lets a
         per-capability env var (``COMFYUI_{CAPABILITY}_SERVER_URL``) point
@@ -60,9 +61,44 @@ class ComfyUIClient:
             server_url or self._capability_url() or os.environ.get("COMFYUI_SERVER_URL")
         )
         self.server_url = (resolved or "http://localhost:8188").rstrip("/")
+        self._local_wan_only = local_wan_only
+        self._local_policy_error: str | None = None
+        self._local_session = None
+        if local_wan_only:
+            from tools._comfyui.zero_cost import local_server_url, LocalWorkflowPolicyError
+            try:
+                self.server_url = local_server_url(self.server_url)
+            except LocalWorkflowPolicyError as exc:
+                self._local_policy_error = str(exc)
         # Scopes websocket execution events to this client (see wait_ws) and
         # is echoed back on /prompt so the server targets messages to us.
         self.client_id = str(uuid.uuid4())
+
+    def _local_request(self, method: str, url: str, **kwargs):
+        """Use only the loopback server, without proxies or redirects."""
+        from tools._comfyui.zero_cost import local_server_url
+        base = local_server_url(self.server_url)
+        if not url.startswith(base + "/"):
+            raise ComfyUIError("ZERO_COST_POLICY: remote ComfyUI endpoint blocked.")
+        if self._local_session is None:
+            self._local_session = requests.Session()
+            self._local_session.trust_env = False
+        response = self._local_session.request(
+            method, url, allow_redirects=False, **kwargs
+        )
+        if 300 <= response.status_code < 400:
+            raise ComfyUIError("ZERO_COST_POLICY: ComfyUI redirects are blocked.")
+        return response
+
+    def _get(self, url: str, **kwargs):
+        if self._local_wan_only:
+            return self._local_request("GET", url, **kwargs)
+        return requests.get(url, **kwargs)
+
+    def _post(self, url: str, **kwargs):
+        if self._local_wan_only:
+            return self._local_request("POST", url, **kwargs)
+        return requests.post(url, **kwargs)
 
     def _capability_url(self) -> str | None:
         if self._capability_env_var:
@@ -80,6 +116,8 @@ class ComfyUIClient:
 
     def unavailable_reason(self) -> str:
         """Human-readable explanation of why the server can't be reached."""
+        if self._local_policy_error:
+            return f"ZERO_COST_POLICY: {self._local_policy_error}"
         env_var_hint = self._capability_env_var or "COMFYUI_SERVER_URL"
         if self._capability_env_var:
             env_var_hint += " (or the shared COMFYUI_SERVER_URL)"
@@ -98,7 +136,7 @@ class ComfyUIClient:
     def is_available(self) -> bool:
         """Return True if the ComfyUI server is reachable."""
         try:
-            resp = requests.get(f"{self.server_url}/system_stats", timeout=5)
+            resp = self._get(f"{self.server_url}/system_stats", timeout=5)
             return resp.status_code == 200
         except Exception:
             return False
@@ -130,7 +168,7 @@ class ComfyUIClient:
         result: dict[str, list[str]] = {}
         for node_class, (field, group) in node_to_key.items():
             try:
-                resp = requests.get(
+                resp = self._get(
                     f"{self.server_url}/object_info/{node_class}", timeout=10
                 )
                 resp.raise_for_status()
@@ -163,7 +201,7 @@ class ComfyUIClient:
     def has_node(self, node_class: str) -> bool:
         """Return whether the connected server exposes a node class."""
         try:
-            response = requests.get(
+            response = self._get(
                 f"{self.server_url}/object_info/{node_class}", timeout=10
             )
             response.raise_for_status()
@@ -177,7 +215,10 @@ class ComfyUIClient:
 
     def submit(self, workflow: dict) -> str:
         """Queue a workflow for execution.  Returns the ``prompt_id``."""
-        resp = requests.post(
+        if self._local_wan_only:
+            from tools._comfyui.zero_cost import validate_wan_workflow
+            validate_wan_workflow(workflow)
+        resp = self._post(
             f"{self.server_url}/prompt",
             json={"prompt": workflow, "client_id": self.client_id},
             timeout=30,
@@ -223,7 +264,7 @@ class ComfyUIClient:
 
     def _history_entry(self, prompt_id: str) -> dict | None:
         """Return a completed history entry, or ``None`` while it is absent."""
-        resp = requests.get(f"{self.server_url}/history/{prompt_id}", timeout=10)
+        resp = self._get(f"{self.server_url}/history/{prompt_id}", timeout=10)
         resp.raise_for_status()
         entry = resp.json().get(prompt_id)
         if entry is None:
@@ -357,6 +398,10 @@ class ComfyUIClient:
         fallback gets whatever's left of *timeout*, not a fresh budget, so a
         mid-wait websocket drop can't double the caller's worst-case wait.
         """
+        if self._local_wan_only:
+            # Keep the reviewed path on the guarded HTTP transport, avoiding
+            # a separate websocket transport with its own proxy/redirect rules.
+            return self.poll(prompt_id, timeout=timeout, interval=interval)
         started = time.time()
         try:
             return self.wait_ws(
@@ -376,7 +421,7 @@ class ComfyUIClient:
         folder_type: str = "output",
     ) -> Path:
         """Download an output artifact from the ComfyUI server."""
-        resp = requests.get(
+        resp = self._get(
             f"{self.server_url}/view",
             params={
                 "filename": filename,
@@ -396,7 +441,7 @@ class ComfyUIClient:
         Returns the server-side filename.
         """
         with open(local_path, "rb") as f:
-            resp = requests.post(
+            resp = self._post(
                 f"{self.server_url}/upload/image",
                 files={"image": (name, f, "image/png")},
                 timeout=30,
@@ -430,6 +475,13 @@ class ComfyUIClient:
         falls back to REST polling if ``websocket-client`` isn't installed or
         the connection can't be used. See :meth:`_wait`.
         """
+        if self._local_wan_only:
+            from tools._comfyui.zero_cost import validate_wan_workflow
+            validate_wan_workflow(workflow, output_node)
+            if resume_prompt_id:
+                raise ComfyUIError(
+                    "ZERO_COST_POLICY: resuming unverified jobs is not enabled for Wan local."
+                )
         prompt_id = resume_prompt_id or self.submit(workflow)
         if resume_prompt_id:
             # A prompt resumed by a new client instance was submitted with the

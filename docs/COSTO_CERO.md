@@ -19,9 +19,12 @@ esta protección de costos no demuestra todavía esa equivalencia.
   Una estimación desconocida o fallida bloquea la ejecución.
 - Los proveedores bloqueados aparecen como no disponibles, con motivo visible,
   y no se ofrecen como opciones de configuración mediante claves de API.
-- ComfyUI queda bloqueado provisionalmente: un servidor local puede ejecutar
-  Partner Nodes que consumen créditos. Hay que validar flujos y nodos locales
-  antes de habilitarlo. Esto también bloquea sus flujos locales por ahora.
+- Los adaptadores genéricos ComfyUI quedan bloqueados: pueden ejecutar Partner
+  Nodes que consumen créditos. Como sustituto específico se añade
+  `comfyui_wan_local`, limitado a los flujos incluidos de Wan 2.2 texto/video e
+  imagen/video. El grafo completo se compara con plantillas revisadas antes de
+  enviarlo. No se aceptan grafos arbitrarios, modelos alternativos ni nodos con
+  créditos. Véase [manual y estado de pruebas](COMFYUI_WAN_LOCAL.md).
 - La política no se desactiva al añadir credenciales ni al aumentar el presupuesto.
 
 Se bloquean también APIs gratuitas en esta primera fase: aún no se han validado
@@ -51,7 +54,7 @@ ajenos a BaseTool, SDKs invocados directamente, procesos externos, código de un
 agente ni todas las extensiones futuras. No equivale aún a una garantía de
 aislamiento de todo el sistema.
 
-Pendiente: auditar rutas locales y procesos externos, validar flujos ComfyUI,
+Pendiente: auditar rutas locales y procesos externos, probar inferencia real de Wan,
 integrar dirección mediante un agente local y revisar licencias individuales de
 motores, modelos, voces y material. Cambiar la configuración `llm.provider` por
 sí solo no implementa ese agente.
