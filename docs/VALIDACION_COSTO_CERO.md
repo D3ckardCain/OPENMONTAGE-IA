@@ -2,8 +2,8 @@
 
 ## Resultado verificable
 
-Comprobación ampliada del fork: **565 tests aprobados, 1 omitido y 14 subtests
-aprobados**, en 11.18 segundos en el entorno de desarrollo. El omitido corresponde
+Comprobación ampliada del fork: **614 tests aprobados, 1 omitido y 14 subtests
+aprobados**, en 12.38 segundos en el entorno de desarrollo. El omitido corresponde
 al grupo de UI que requiere Playwright, no instalado. No es una medición de
 generación de IA ni de rendimiento de la PC del propietario.
 
@@ -28,6 +28,16 @@ El Makefile enumera los directorios y archivos exactos. El resultado no se
 presenta como aprobación de `make test` ni de todos los contratos upstream.
 
 ## Correcciones comprobadas
+
+- Los selectores excluyen adaptadores bloqueados antes de sondear sus operaciones
+  o puntuarlos, y no los anuncian como alternativas.
+- El selector video conecta con Wan T2V/I2V, adapta duración/proporción y conserva
+  la semilla cero. Los controles de selección no llegan a contratos estrictos.
+- Una operación de movimiento sin proveedor compatible se bloquea. Ni el selector
+  ni el registro proponen imágenes estáticas como alternativa automática al video.
+- Las referencias locales no se suben automáticamente a fal.ai. El proveedor local
+  fallido no provoca un reintento comercial ni un cambio silencioso de proveedor.
+- Véanse el alcance y las conversiones exactas en [Selección local](SELECCION_LOCAL.md).
 
 - Las sobreescrituras de `get_info()` y `dry_run()` de proveedores bloqueados
   pasan por la política; no pueden iniciar sus propios sondeos remotos.

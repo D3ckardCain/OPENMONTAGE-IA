@@ -6,6 +6,7 @@ a transport that validates the complete graph before queueing it.
 from __future__ import annotations
 
 from pathlib import Path
+import math
 from typing import Any
 
 from tools.base_tool import BaseTool, ResourceProfile, ToolResult, ToolRuntime
@@ -42,6 +43,7 @@ class ComfyUIWanLocal(ComfyUIVideo):
     supports = {
         "seed": True, "reference_image": True, "offline": True,
         "custom_workflow": False, "native_audio": False,
+        "text_to_video": True, "image_to_video": True,
     }
     best_for = ["local Wan generation without ComfyUI credits"]
     not_good_for = ["hosted Partner Nodes", "custom workflows", "CPU-only machines"]
@@ -66,6 +68,57 @@ class ComfyUIWanLocal(ComfyUIVideo):
     def __init__(self) -> None:
         self._client = ComfyUIClient(capability="video", local_wan_only=True)
         self._last_progress_log = 0.0
+
+    def estimate_cost(self, inputs: dict[str, Any]) -> float:
+        # This adapter cannot select any paid family. Creative controls are
+        # validated during adaptation/execution, not parsed by a cloud estimator.
+        return 0.0
+
+    @staticmethod
+    def adapt_selector_inputs(inputs: dict[str, Any]) -> dict[str, Any]:
+        """Translate shared duration/ratio controls into the reviewed Wan graph.
+
+        Wan uses 16 FPS with 4n+1 frames. Composition can trim that native clip
+        to the requested final duration; the provider reports the actual frames.
+        """
+        adapted = dict(inputs)
+        duration = adapted.pop("duration", None)
+        if duration is not None:
+            if isinstance(duration, bool):
+                raise ValueError("Wan duration must be a finite number of seconds.")
+            try:
+                seconds = float(str(duration).strip().lower().removesuffix("s"))
+            except (ValueError, TypeError):
+                raise ValueError("Wan duration must be a finite number of seconds.") from None
+            if not math.isfinite(seconds) or not 0.25 <= seconds <= 256:
+                raise ValueError("Wan duration must be between 0.25 and 256 seconds.")
+            frames = 4 * round(seconds * 16 / 4) + 1
+            if "num_frames" in adapted and adapted["num_frames"] != frames:
+                raise ValueError("duration conflicts with num_frames for Wan at 16 FPS.")
+            adapted["num_frames"] = frames
+
+        ratio = adapted.pop("aspect_ratio", None)
+        if ratio is not None:
+            ratios = {"16:9": (832, 480), "9:16": (480, 832), "1:1": (640, 640)}
+            if ratio not in ratios:
+                raise ValueError("Wan aspect_ratio must be 16:9, 9:16 or 1:1.")
+            width = adapted.get("width")
+            height = adapted.get("height")
+            for value in (width, height):
+                if value is not None and (type(value) is not int or value <= 0 or value % 16):
+                    raise ValueError("Wan dimensions must be positive integer multiples of 16.")
+            numerator, denominator = map(int, ratio.split(":"))
+            factor = numerator / denominator
+            if width is None and height is None:
+                width, height = ratios[ratio]
+            elif height is None:
+                height = max(16, 16 * round(width / factor / 16))
+            elif width is None:
+                width = max(16, 16 * round(height * factor / 16))
+            if not math.isclose(width / height, factor, rel_tol=0.03):
+                raise ValueError("aspect_ratio conflicts with width/height for Wan.")
+            adapted.update(width=width, height=height)
+        return adapted
 
     def get_info(self) -> dict[str, Any]:
         info = BaseTool.get_info(self)

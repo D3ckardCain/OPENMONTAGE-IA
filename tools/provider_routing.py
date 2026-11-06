@@ -3,6 +3,23 @@
 from __future__ import annotations
 
 
+SELECTOR_CONTROL_KEYS = frozenset({
+    "preferred_tool", "preferred_provider", "preferred_provider_gap",
+    "hosting_provider", "allowed_providers", "task_context",
+})
+
+
+def provider_inputs(inputs):
+    """Remove routing/scoring controls; preserve creative inputs and provenance."""
+    return {key: value for key, value in inputs.items() if key not in SELECTOR_CONTROL_KEYS}
+
+
+def zero_cost_candidates(candidates):
+    """Exclude blocked adapters before readiness probes, ranking or fallbacks."""
+    from tools.base_tool import zero_cost_block_reason
+    return [tool for tool in candidates if zero_cost_block_reason(tool) is None]
+
+
 def filter_explicit_route(inputs, candidates):
     tool_name = inputs.get("preferred_tool")
     host = inputs.get("hosting_provider")

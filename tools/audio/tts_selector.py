@@ -176,9 +176,12 @@ class TTSSelector(BaseTool):
     def _providers(self) -> list[BaseTool]:
         """Auto-discover TTS providers from the registry."""
         from tools.tool_registry import registry
+        from tools.provider_routing import zero_cost_candidates
 
         registry.ensure_discovered()
-        return [t for t in registry.get_by_capability("tts") if t.name != self.name]
+        return zero_cost_candidates([
+            t for t in registry.get_by_capability("tts") if t.name != self.name
+        ])
 
     @property
     def fallback_tools(self) -> list[str]:
@@ -257,7 +260,8 @@ class TTSSelector(BaseTool):
     @staticmethod
     def _adapt_inputs(tool: BaseTool, inputs: dict[str, Any]) -> dict[str, Any]:
         """Translate capability-level controls to provider-native inputs."""
-        adapted = dict(inputs)
+        from tools.provider_routing import provider_inputs
+        adapted = provider_inputs(inputs)
         props = tool.input_schema.get("properties", {})
         if inputs.get("model") and "model_id" in props and "model" not in props:
             if inputs.get("model_id") and inputs["model_id"] != inputs["model"]:

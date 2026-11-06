@@ -59,6 +59,10 @@ La herramienta se descubre mediante el registro normal. Las producciones reales
 deben seguir un manifiesto de `pipeline_defs/`, sus etapas y sus aprobaciones;
 estas pruebas no constituyen una producción ni autorización para omitirlas.
 
+La conexión mediante `video_selector`, incluida la adaptación de duración,
+proporción y controles de selección, se describe en
+[Selección de proveedores locales](SELECCION_LOCAL.md).
+
 ## Pruebas reproducibles
 
 ```bash

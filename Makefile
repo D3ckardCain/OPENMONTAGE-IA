@@ -102,6 +102,9 @@ test-zero-cost: ensure-venv
 		tests/contracts/test_phase3_contracts.py \
 		tests/contracts/test_zero_cost_provider_catalog.py \
 		tests/tools/test_3d_asset_generation.py \
+		tests/tools/test_zero_cost_selector_routes.py \
+		tests/tools/test_video_selector_routing.py \
+		tests/tools/test_scoring.py \
 		tests/tools/test_offline_test_guard.py \
 		tests/tools/test_zero_cost_policy.py \
 		tests/tools/test_comfyui_wan_local.py \

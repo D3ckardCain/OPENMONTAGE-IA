@@ -35,8 +35,8 @@ class VideoSelector(BaseTool):
         "atlas-cloud",
     ]
 
-    # Operations that REQUIRE motion: an image-only tool (image_selector) is not
-    # an acceptable last-resort fallback for these, so fallback_tools_for() drops it.
+    # Operations that explicitly require motion. The fork's fallback catalog
+    # excludes image-only tools for every video operation.
     MOTION_REQUIRED_OPERATIONS = frozenset(
         {"image_to_video", "reference_to_video", "video_edit"}
     )
@@ -123,15 +123,19 @@ class VideoSelector(BaseTool):
                 "type": "string",
                 "enum": ["16:9", "9:16", "1:1"],
                 "default": "16:9",
-                "description": "Video aspect ratio. Passed through to the selected provider.",
+                "description": "Requested aspect ratio; adapted to native dimensions by local providers that expose an input adapter.",
             },
             "duration": {
                 "type": "string",
-                "description": "Duration hint (e.g., '5', '10'). Passed through to the selected provider.",
+                "description": "Duration in seconds (e.g., '5', '10'); Wan local also accepts '5s' and maps it to 4n+1 frames at 16 FPS.",
             },
+            "width": {"type": "integer", "minimum": 1, "description": "Native frame width when supported by the selected local provider."},
+            "height": {"type": "integer", "minimum": 1, "description": "Native frame height when supported by the selected local provider."},
+            "num_frames": {"type": "integer", "minimum": 1, "description": "Native frame count; must agree with duration when both are supplied to Wan."},
+            "seed": {"type": "integer", "minimum": 0, "description": "Reproducible seed, including zero, when supported by the provider."},
             "reference_image_path": {
                 "type": "string",
-                "description": "Local path to a reference image for image_to_video. Auto-uploaded if the provider requires a URL.",
+                "description": "Local reference for image_to_video. No automatic upload to a cloud service is performed.",
             },
             "reference_image_url": {
                 "type": "string",
@@ -300,38 +304,26 @@ class VideoSelector(BaseTool):
     def _providers(self) -> list[BaseTool]:
         """Auto-discover video generation providers from the registry."""
         from tools.tool_registry import registry
+        from tools.provider_routing import zero_cost_candidates
 
         registry.ensure_discovered()
-        return [
+        return zero_cost_candidates([
             t
             for t in registry.get_by_capability("video_generation")
             if t.name != self.name
-        ]
+        ])
 
     @property
     def fallback_tools(self) -> list[str]:
-        """Static (input-agnostic) fallback list for external consumers / contracts.
-
-        See :meth:`fallback_tools_for` for the input-aware form used during
-        routing, which drops ``image_selector`` for motion-required briefs.
-        """
-        return [t.name for t in self._providers()] + ["image_selector"]
+        """Policy-eligible video alternatives for external consumers."""
+        return [t.name for t in self._providers()]
 
     def fallback_tools_for(self, inputs: dict[str, object]) -> list[str]:
-        """Input-aware fallback list used during routing.
+        """List only policy-eligible video tools; never propose a still downgrade.
 
-        ``image_selector`` is a legitimate degraded last-resort for a still-image
-        brief (text_to_video with no motion requirement), but for motion-required
-        operations (image_to_video / reference_to_video) an image-only fallback
-        silently defeats the brief. Gate it here at the selector layer so a direct
-        caller — with no director skill enforcing the prohibition — still cannot
-        fall back to an image tool when motion was requested.
+        These are alternatives to review, not authorization to auto-switch.
         """
-        tools = [t.name for t in self._providers()]
-        operation = inputs.get("operation", "text_to_video")
-        if operation in self.MOTION_REQUIRED_OPERATIONS:
-            return tools
-        return tools + ["image_selector"]
+        return [t.name for t in self._filter_candidates(inputs, self._providers())]
 
     @property
     def provider_matrix(self) -> dict[str, dict[str, str]]:
@@ -394,29 +386,32 @@ class VideoSelector(BaseTool):
             )
 
         # Adapt input keys: stock tools use 'query' while generators use 'prompt'
-        adapted = dict(inputs)
+        from tools.provider_routing import provider_inputs
+        adapted = provider_inputs(inputs)
+        adapter = getattr(tool, "adapt_selector_inputs", None)
+        if callable(adapter):
+            try:
+                adapted = adapter(adapted)
+            except (ValueError, TypeError) as exc:
+                return ToolResult(success=False, error=str(exc))
         if hasattr(tool, "input_schema"):
             required = tool.input_schema.get("properties", {})
             if "query" in required and "query" not in adapted:
                 adapted["query"] = adapted.get("prompt", "")
 
-        # Auto-resolve reference_image_path to a URL for providers that need it
+        # Local references stay local. A URL-only adapter is not permission to
+        # publish a user's image through a separate commercial upload service.
         if adapted.get("operation") == "image_to_video" and adapted.get(
             "reference_image_path"
         ):
             tool_props = getattr(tool, "input_schema", {}).get("properties", {})
-            # If the provider uses image_url (not reference_image_path), upload and convert
-            if "image_url" in tool_props and "image_url" not in adapted:
-                try:
-                    from tools.video._shared import upload_image_fal
-
-                    adapted["image_url"] = upload_image_fal(
-                        adapted["reference_image_path"]
-                    )
-                except Exception as e:
-                    return ToolResult(
-                        success=False, error=f"Failed to upload reference image: {e}"
-                    )
+            if ("image_url" in tool_props and "reference_image_path" not in tool_props
+                    and "image_url" not in adapted):
+                return ToolResult(
+                    success=False,
+                    error="ZERO_COST_POLICY: the selected provider cannot consume a local reference; automatic cloud upload is disabled.",
+                    data={"blocked_by": "zero_cost_policy", "tool": tool.name},
+                )
 
         result = tool.execute(adapted)
         if result.success:
@@ -433,7 +428,7 @@ class VideoSelector(BaseTool):
                 for t in candidates
                 if t.name != tool.name and t.get_status().value == "available"
             ]
-            # Input-aware fallback list (drops image_selector for motion-required briefs).
+            # Video alternatives only; never advertise an automatic still downgrade.
             result.data.setdefault("fallback_tools", self.fallback_tools_for(inputs))
         return result
 
@@ -599,7 +594,6 @@ class VideoSelector(BaseTool):
             operation = inputs.get("target_operation", "text_to_video")
 
         filtered: list[BaseTool] = []
-        matched_operation = False
         for tool in candidates:
             supports = getattr(tool, "supports", {})
             props = getattr(tool, "input_schema", {}).get("properties", {})
@@ -610,7 +604,6 @@ class VideoSelector(BaseTool):
                     or "image_url" in props
                     or "reference_image_url" in props
                 ):
-                    matched_operation = True
                     if self._operation_ready(tool, "image_to_video"):
                         filtered.append(tool)
                 continue
@@ -620,15 +613,15 @@ class VideoSelector(BaseTool):
                     supports.get("reference_to_video")
                     or "reference_image_urls" in props
                 ):
-                    matched_operation = True
                     filtered.append(tool)
                 continue
 
-            matched_operation = True
             if self._operation_ready(tool, str(operation)):
                 filtered.append(tool)
 
-        return filtered if matched_operation else candidates
+        # No capability match is a blocker, not permission to send an I2V or
+        # reference request to a text-only generator.
+        return filtered
 
     @staticmethod
     def _operation_ready(tool: BaseTool, operation: str) -> bool:
