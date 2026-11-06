@@ -109,6 +109,7 @@ test-zero-cost: ensure-venv
 		tests/tools/test_zero_cost_policy.py \
 		tests/tools/test_comfyui_wan_local.py \
 		tests/tools/test_local_model_downloads.py \
+		tests/tools/test_verify_model_downloads.py \
 		tests/tools/test_base_tool_dependencies.py \
 		tests/tools/test_base_tool_cache.py \
 		tests/tools/test_base_tool_cache_formats.py \
