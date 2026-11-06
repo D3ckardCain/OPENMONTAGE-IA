@@ -96,6 +96,12 @@ test: ensure-venv
 # The upstream suite still contains expectations for disabled paid providers.
 test-zero-cost: ensure-venv
 	$(RUN_PYTHON) -m pytest tests/lib tests/backlot \
+		tests/contracts/test_phase0_contracts.py \
+		tests/contracts/test_phase1_contracts.py \
+		tests/contracts/test_phase2_contracts.py \
+		tests/contracts/test_phase3_contracts.py \
+		tests/contracts/test_zero_cost_provider_catalog.py \
+		tests/tools/test_3d_asset_generation.py \
 		tests/tools/test_offline_test_guard.py \
 		tests/tools/test_zero_cost_policy.py \
 		tests/tools/test_comfyui_wan_local.py \

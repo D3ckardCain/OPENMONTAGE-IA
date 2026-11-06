@@ -2,8 +2,8 @@
 
 ## Resultado verificable
 
-Comprobación enfocada del fork: **213 tests aprobados, 1 omitido y 14 subtests
-aprobados**, en 8.30 segundos en el entorno de desarrollo. El omitido corresponde
+Comprobación ampliada del fork: **565 tests aprobados, 1 omitido y 14 subtests
+aprobados**, en 11.18 segundos en el entorno de desarrollo. El omitido corresponde
 al grupo de UI que requiere Playwright, no instalado. No es una medición de
 generación de IA ni de rendimiento de la PC del propietario.
 
@@ -11,6 +11,12 @@ Incluye biblioteca/núcleo, endpoints y estado del panel Backlot, bloqueo de
 proveedores de pago, preflights, metadata, flujo Wan local contra servidor HTTP
 emulado, caché y regresiones con clips sintéticos FFmpeg. No usa modelos de IA,
 GPU ni servicios comerciales.
+
+La ampliación incluye 248 contratos de las fases 0–3 y nueve comprobaciones de
+recursos 3D/Blender. Además comprueba 95 adaptadores reales deshabilitados del
+catálogo: estado, metadata, simulación y ejecución quedan bloqueados antes de
+alcanzar el estimador de precios, la caché o el transporte HTTP, incluso con
+credenciales ficticias configuradas. No certifica el funcionamiento de sus APIs.
 
 Comando reproducible con las dependencias de desarrollo y FFmpeg instalados:
 
@@ -50,12 +56,22 @@ su importación. Se conservan, pero quedan fuera de la recolección automatizada
 no se ejecutaron completos ni se consideran aprobados. Su ejecución manual
 requiere revisar sus efectos y dependencias por separado.
 
-También quedan expectativas upstream incompatibles con el fork. Por ejemplo,
-`tests/tools/test_3d_asset_generation.py::test_atlas_cost_matrix_and_missing_key`
-espera pedir una clave comercial; ahora recibe `ZERO_COST_POLICY`. Una pasada
-de diagnóstico con parada en el primer fallo obtuvo 115 aprobados, 1 omitido y
-ese fallo. No se han omitido automáticamente esos contratos ni se ha desactivado
-la política para conseguir una suite verde. Requieren adaptación explícita.
+Se corrigió el primer grupo de expectativas incompatibles:
+
+- La configuración se comprueba como presupuesto USD 0, modo `cap` y umbral 0.
+- Atlas/Fal 3D deben devolver `ZERO_COST_POLICY` sin GLB ni archivo de procedencia;
+  añadir claves ficticias no habilita el transporte. Las pruebas de Blender y
+  los contratos de recursos se conservan.
+- En la fase 3, las expectativas de ejecución comercial de Google Music/Veo se
+  sustituyeron por casos que exigen bloqueo antes del SDK y la preparación de
+  imágenes, incluyendo duraciones extremas, referencias ausentes y alternativas
+  de backend. No se certifican las antiguas coerciones/extracciones de sus APIs.
+- Las pruebas puras de identidad, capacidades, registro, estilos y manifiestos
+  siguen activas. No se desactiva la política ni se omiten estos contratos para
+  presentar la ampliación como aprobada.
+
+Otros módulos heredados todavía esperan rutas comerciales y necesitan revisión
+explícita. No se ha vuelto a ejecutar ni aprobado la totalidad de `make test`.
 
 La pasada amplia de pruebas locales fue interrumpida antes de finalizar; no
 existe un resultado completo aprobado de esa pasada. El PR sigue en borrador.
