@@ -19,6 +19,10 @@ esta protección de costos no demuestra todavía esa equivalencia.
   Una estimación desconocida o fallida bloquea la ejecución.
 - Los proveedores bloqueados aparecen como no disponibles, con motivo visible,
   y no se ofrecen como opciones de configuración mediante claves de API.
+- También se bloquean los sondeos personalizados de `get_info()` y `dry_run()`
+  de esos proveedores; consultar sus datos no ejecuta comprobaciones remotas.
+- Un preflight local no ofrece ejecución si su costo es positivo, inválido,
+  desconocido o si falla la estimación.
 - Los adaptadores genéricos ComfyUI quedan bloqueados: pueden ejecutar Partner
   Nodes que consumen créditos. Como sustituto específico se añade
   `comfyui_wan_local`, limitado a los flujos incluidos de Wan 2.2 texto/video e
@@ -45,6 +49,10 @@ python -m unittest discover -s tests/tools -p test_zero_cost_policy.py -v
 ```
 
 Requiere las dependencias habituales de configuración (`pydantic` y `pyyaml`).
+
+La comprobación ampliada de este fork es `make test-zero-cost`. Incluye núcleo,
+panel, política, transporte ComfyUI y regresiones locales. No sustituye a toda
+la suite heredada: véase [estado de validación](VALIDACION_COSTO_CERO.md).
 
 ## Alcance y pendientes
 

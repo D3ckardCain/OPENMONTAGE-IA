@@ -196,6 +196,26 @@ def _zero_cost_status(fn: Callable) -> Callable:
     return wrapper
 
 
+def _zero_cost_info(fn: Callable) -> Callable:
+    @functools.wraps(fn)
+    def wrapper(self, *args: Any, **kwargs: Any):
+        if zero_cost_block_reason(self) is not None:
+            # Some overrides probe endpoints while enriching metadata. A blocked
+            # provider must remain inspectable without running those probes.
+            return BaseTool.get_info(self)
+        return fn(self, *args, **kwargs)
+    return wrapper
+
+
+def _zero_cost_dry_run(fn: Callable) -> Callable:
+    @functools.wraps(fn)
+    def wrapper(self, inputs: Any, *args: Any, **kwargs: Any):
+        if zero_cost_block_reason(self) is not None:
+            return BaseTool.dry_run(self, inputs)
+        return fn(self, inputs, *args, **kwargs)
+    return wrapper
+
+
 import threading as _threading
 
 # Shared nesting counter for instrumented execute() calls (thread-local so
@@ -472,6 +492,12 @@ class BaseTool(ABC):
         status_impl = cls.__dict__.get("get_status")
         if status_impl is not None:
             cls.get_status = _zero_cost_status(status_impl)
+        info_impl = cls.__dict__.get("get_info")
+        if info_impl is not None:
+            cls.get_info = _zero_cost_info(info_impl)
+        dry_run_impl = cls.__dict__.get("dry_run")
+        if dry_run_impl is not None:
+            cls.dry_run = _zero_cost_dry_run(dry_run_impl)
 
     # --- Identity (override in subclasses) ---
     name: str = ""
@@ -582,7 +608,7 @@ class BaseTool(ABC):
             "cost_policy_block_reason": zero_cost_block_reason(self),
             "execution_mode": self.execution_mode.value,
             "determinism": self.determinism.value,
-            "runtime": self.runtime.value,
+            "runtime": getattr(self.runtime, "value", str(self.runtime)),
             "module_path": self.__class__.__module__,
             "usage_location": usage_location,
             "dependencies": self.dependencies,
@@ -687,6 +713,15 @@ class BaseTool(ABC):
         except PriceQuoteRequired as exc:
             estimated_cost = None
             quote_error = str(exc)
+        except Exception:
+            estimated_cost = None
+            quote_error = "Unable to verify a zero-cost estimate."
+        zero_estimate = (
+            not isinstance(estimated_cost, bool)
+            and isinstance(estimated_cost, (int, float))
+            and math.isfinite(estimated_cost)
+            and estimated_cost == 0
+        )
         return {
             "tool": self.name,
             "estimated_cost_usd": estimated_cost,
@@ -694,7 +729,7 @@ class BaseTool(ABC):
             "quote_reason": quote_error,
             "estimated_runtime_seconds": self.estimate_runtime(inputs),
             "status": self.get_status().value,
-            "would_execute": True,
+            "would_execute": zero_estimate,
         }
 
     # ---- CLI helper ----

@@ -6,7 +6,7 @@ PIP = $(RUN_PYTHON) -m pip
 
 .DEFAULT_GOAL := setup
 
-.PHONY: setup install install-dev install-gpu test test-contracts lint clean preflight demo demo-list hyperframes-doctor hyperframes-warm venv ensure-venv
+.PHONY: setup install install-dev install-gpu test test-zero-cost test-contracts lint clean preflight demo demo-list hyperframes-doctor hyperframes-warm venv ensure-venv
 
 # ---- Virtual environment ----
 
@@ -91,6 +91,19 @@ install-gpu: ensure-venv
 
 test: ensure-venv
 	$(RUN_PYTHON) -m pytest tests/ -v
+
+# Focused fork checks: local core + cost policy + guarded ComfyUI + cache.
+# The upstream suite still contains expectations for disabled paid providers.
+test-zero-cost: ensure-venv
+	$(RUN_PYTHON) -m pytest tests/lib tests/backlot \
+		tests/tools/test_offline_test_guard.py \
+		tests/tools/test_zero_cost_policy.py \
+		tests/tools/test_comfyui_wan_local.py \
+		tests/tools/test_base_tool_dependencies.py \
+		tests/tools/test_base_tool_cache.py \
+		tests/tools/test_base_tool_cache_formats.py \
+		tests/tools/test_asset_cache_dry_run.py \
+		tests/tools/test_asset_cache_output_references.py -q
 
 test-contracts: ensure-venv
 	$(RUN_PYTHON) -m pytest tests/contracts/ -v

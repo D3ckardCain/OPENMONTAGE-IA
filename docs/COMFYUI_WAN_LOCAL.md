@@ -6,9 +6,24 @@ Objetivo activo: sustituir la generación de video mediante nodos ComfyUI con
 créditos por ejecución local, sin perder la meta de calidad y velocidad.
 No se considera terminado hasta producir y evaluar video real en GPU.
 
-Equipo indicado por el propietario: Intel Core i7 de 12.ª generación y NVIDIA
-RTX 4080. Pendientes de comprobar: modelo exacto, VRAM, controlador, RAM y sistema
-operativo. No se reutilizan especificaciones de otros proyectos.
+Equipo comprobado mediante salidas de Windows del propietario:
+
+| Componente | Confirmado |
+|---|---|
+| CPU | Intel Core i7-12650H, 12.ª generación |
+| GPU | NVIDIA GeForce RTX 4060 Laptop GPU |
+| VRAM | 8188 MiB |
+| RAM | 16 GB |
+| Controlador NVIDIA | 610.78 |
+| ComfyUI | 0.44.0, portable para Windows |
+| PyTorch | 2.14.1+cu130 |
+| Python embebido | 3.13.14 |
+
+La mención inicial de RTX 4080 quedó corregida por el diagnóstico real. ComfyUI
+arranca y reconoce CUDA. Los seis pesos del flujo Wan 2.2 14B (35.42 GB en el
+gestor de modelos) están en proceso de descarga; aún no se ha generado video.
+Ruta indicada: `C:\OPENMONTAJE-IA\ComfyUI_windows_portable`.
+No se reutilizan especificaciones de otros proyectos.
 
 ## Sustituto incorporado
 
@@ -58,7 +73,7 @@ modelos alterados, servidores externos, redirecciones y entradas no permitidas.
 
 ## Qué falta para cerrar este objetivo
 
-1. Comprobar GPU y controlador en la PC indicada.
+1. Completar la descarga de los modelos en la PC comprobada.
 2. Instalar y verificar las versiones de ComfyUI, modelos y LoRAs locales.
 3. Producir muestras reales T2V e I2V a través del pipeline, registrando semilla,
    dimensiones, fotogramas, duración, pico de VRAM y tiempo de extremo a extremo.
@@ -67,7 +82,7 @@ modelos alterados, servidores externos, redirecciones y entradas no permitidas.
    pendientes de medición; los tests HTTP no prueban esas propiedades.
 
 El perfil de recursos procede de los flujos originales y es orientativo, no
-una medición en la RTX 4080 del propietario. El cliente no puede garantizar que
+una medición en la RTX 4060 Laptop del propietario. El cliente no puede garantizar que
 un servidor ComfyUI modificado maliciosamente ejecute lo que declara: se requiere
 una instalación local confiable. Esta barrera tampoco aísla código externo al
 adaptador ni supervisa el tráfico del proceso ComfyUI en el sistema operativo.

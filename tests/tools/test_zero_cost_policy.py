@@ -73,6 +73,54 @@ class ZeroCostPolicyTests(unittest.TestCase):
         self.assertFalse(report["would_execute"])
         self.assertEqual(report["cost_status"], "blocked_by_policy")
 
+    def test_overridden_dry_run_cannot_probe_blocked_provider(self):
+        class CustomRemote(RemoteTool):
+            def dry_run(self, inputs):
+                raise AssertionError("blocked custom preflight was called")
+
+        report = CustomRemote().dry_run({})
+        self.assertFalse(report["would_execute"])
+        self.assertEqual(report["cost_status"], "blocked_by_policy")
+
+    def test_overridden_info_cannot_probe_blocked_provider(self):
+        class CustomRemote(RemoteTool):
+            def get_info(self):
+                raise AssertionError("blocked metadata probe was called")
+
+        info = CustomRemote().get_info()
+        self.assertEqual(info["status"], "unavailable")
+        self.assertTrue(info["cost_policy_block_reason"])
+
+    def test_local_custom_metadata_and_preflight_still_work(self):
+        class CustomLocal(LocalTool):
+            def get_info(self):
+                return {**super().get_info(), "local_metadata": True}
+
+            def dry_run(self, inputs):
+                return {"local_preflight": True}
+
+        self.assertTrue(CustomLocal().get_info()["local_metadata"])
+        self.assertTrue(CustomLocal().dry_run({})["local_preflight"])
+
+    def test_local_preflight_does_not_offer_positive_or_unknown_cost(self):
+        for value in (0.01, -1, float("nan"), float("inf"), None, "0", True):
+            with self.subTest(value=value):
+                tool = LocalTool()
+                tool.estimate_cost = lambda inputs: value
+                self.assertFalse(tool.dry_run({})["would_execute"])
+
+    def test_failed_local_estimate_does_not_crash_preflight(self):
+        tool = LocalTool()
+        tool.estimate_cost = lambda inputs: 1 / 0
+        self.assertFalse(tool.dry_run({})["would_execute"])
+
+    def test_unknown_runtime_is_inspectable_but_blocked(self):
+        tool = LocalTool()
+        tool.runtime = "unknown_backend"
+        info = tool.get_info()
+        self.assertEqual(info["runtime"], "unknown_backend")
+        self.assertEqual(info["status"], "unavailable")
+
     def test_positive_invalid_and_unknown_costs_blocked(self):
         for value in (0.01, -1, float("nan"), float("inf"), None, "0", True):
             with self.subTest(value=value):
