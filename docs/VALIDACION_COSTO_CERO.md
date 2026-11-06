@@ -96,3 +96,19 @@ autorización para ejecutar pruebas con credenciales comerciales.
 Pendiente por separado: finalizar descarga y medir inferencia real en la PC
 Windows confirmada (i7-12650H, 16 GB RAM, RTX 4060 Laptop 8188 MiB), utilizando el
 flujo local previsto. La calidad y velocidad comerciales siguen sin demostrar.
+
+## Revisión de descargas — 6 de noviembre de 2026
+
+Se añadió `scripts/check_local_models.py`, un comprobador offline de solo lectura
+con biblioteca estándar, compatible con el Python embebido de ComfyUI. Usa los
+nombres de las plantillas T2V e I2V revisadas: seis archivos por flujo, diez
+archivos distintos en conjunto. Detecta HTML, punteros Git LFS, cabeceras y
+payloads truncados, offsets inválidos y archivos ausentes. No verifica identidad
+ni checksum de los pesos y no demuestra calidad o rendimiento de inferencia.
+
+La misma batería enfocada de `make test-zero-cost`, ampliada con
+`tests/tools/test_local_model_downloads.py`, terminó con **632 passed, 1 skipped,
+14 subtests passed**, en 13.50 s. Los 18 casos nuevos también pasaron de forma
+independiente. Esto no equivale a aprobar toda la suite heredada ni a probar
+modelos reales. Se corrigieron mensajes de `make setup` que sugerían API keys o
+sustitución por TTS de nube cuando Piper no estuviera instalado.

@@ -20,8 +20,9 @@ Equipo comprobado mediante salidas de Windows del propietario:
 | Python embebido | 3.13.14 |
 
 La mención inicial de RTX 4080 quedó corregida por el diagnóstico real. ComfyUI
-arranca y reconoce CUDA. Los seis pesos del flujo Wan 2.2 14B (35.42 GB en el
-gestor de modelos) están en proceso de descarga; aún no se ha generado video.
+arranca y reconoce CUDA. Los pesos están en proceso de descarga; aún no se ha generado video.
+Cada flujo revisado requiere seis archivos: T2V e I2V comparten codificador y
+VAE, pero usan modelos de difusión y LoRAs distintos (diez archivos en total).
 Ruta indicada: `C:\OPENMONTAJE-IA\ComfyUI_windows_portable`.
 No se reutilizan especificaciones de otros proyectos.
 
@@ -90,3 +91,32 @@ una medición en la RTX 4060 Laptop del propietario. El cliente no puede garanti
 un servidor ComfyUI modificado maliciosamente ejecute lo que declara: se requiere
 una instalación local confiable. Esta barrera tampoco aísla código externo al
 adaptador ni supervisa el tráfico del proceso ComfyUI en el sistema operativo.
+
+## Comprobación de descargas antes de generar
+
+Desde la raíz de este repositorio, con Python 3.10+ (sin dependencias externas):
+
+```powershell
+& "C:\OPENMONTAJE-IA\ComfyUI_windows_portable\python_embeded\python.exe" scripts/check_local_models.py --models-dir "C:\OPENMONTAJE-IA\ComfyUI_windows_portable\ComfyUI\models" --operation all
+```
+
+Este comando se prepara para cuando el código del fork esté descargado en la PC;
+instalar ComfyUI por sí solo no instala este script. Puede usarse `--operation
+t2v` o `--operation i2v` para revisar solo el flujo que se probará primero.
+
+- Lee nombres y carpetas directamente de las dos plantillas revisadas.
+- Detecta archivos ausentes, HTML disfrazado de `.safetensors`, punteros Git LFS,
+  cabeceras inválidas, datos truncados y offsets inconsistentes.
+- `HEADER_OK` significa estructura legible, no identidad ni integridad
+  criptográfica verificadas. Un modelo equivocado renombrado o una alteración de
+  los datos puede superar esta comprobación; faltan hashes oficiales para ello.
+- No usa GPU, no descarga y no cambia archivos. Salida 1 si falta un archivo o
+  falla la comprobación; 0 si todas las estructuras son legibles. Mientras una
+  descarga siga activa puede aparecer truncada; revisar otra vez al terminar.
+- Las LoRAs I2V del flujo son `wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors`
+  y `wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors`. Las T2V v1.1 no las
+  reemplazan; tampoco deben renombrarse para aparentar que son I2V.
+
+LTX, Cosmos y Wan 5B son candidatos descargables pendientes de integración y
+prueba; el adaptador `comfyui_wan_local` actual solo ejecuta los dos flujos Wan
+14B revisados. Tener sus pesos descargados no los habilita automáticamente aquí.
