@@ -18,7 +18,13 @@ from tools._comfyui.zero_cost import (
 from tools.video.comfyui_video import _REQUIRED_MODELS_T2V, _REQUIRED_MODELS_I2V
 from tools.video.comfyui_wan_local import ComfyUIWanLocal
 
-_FIXTURE = b"HTTP contract fixture, not an AI-generated MP4"
+def _box(kind, payload):
+    return (8 + len(payload)).to_bytes(4, "big") + kind + payload
+
+
+# Structural container fixture only; moov/mdat payloads are not decodable video.
+_FIXTURE = (_box(b"ftyp", b"isom\x00\x00\x00\x00")
+            + _box(b"moov", b"synthetic") + _box(b"mdat", b"not-video"))
 
 
 @pytest.fixture
@@ -333,4 +339,18 @@ def test_successful_download_atomically_replaces_previous_result(server, tmp_pat
     result = ComfyUIWanLocal().execute({"prompt": "A moving ball", "output_path": str(target)})
     assert result.success
     assert target.read_bytes() == _FIXTURE
+    assert list(tmp_path.glob("*.part")) == []
+
+
+@pytest.mark.parametrize("payload", [b"", b"<!doctype html><html>Error</html>", _FIXTURE[:-1]])
+def test_invalid_download_does_not_replace_previous_video(server, tmp_path, payload):
+    from tools._comfyui.client import ComfyUIError
+    target = tmp_path / "previous.mp4"
+    target.write_bytes(b"previous-result")
+    tool = ComfyUIWanLocal()
+    response = Mock(content=payload)
+    with patch.object(tool._client, "_get", return_value=response):
+        with pytest.raises(ComfyUIError, match="Invalid Wan MP4 download"):
+            tool._client.download("result.mp4", "", target)
+    assert target.read_bytes() == b"previous-result"
     assert list(tmp_path.glob("*.part")) == []

@@ -160,3 +160,12 @@ Actualización del 7 de noviembre de 2026: una vez que ComfyUI devuelve el ident
 La descarga local escribe primero un archivo temporal en la carpeta de destino y solo reemplaza el vídeo anterior al terminar la escritura. Si el reemplazo falla (por ejemplo, archivo bloqueado), conserva el destino anterior y elimina el temporal. Esto protege frente a los fallos de escritura comprobados; no certifica que los bytes descargados constituyan un MP4 válido ni garantiza durabilidad ante corte eléctrico. La validación real del vídeo sigue pendiente.
 
 Tres pruebas nuevas cubren desconexión al descargar, reemplazo fallido y reemplazo correcto. La batería enfocada termina con **679 pruebas aprobadas, 1 omitida y 14 subpruebas aprobadas**. Usa resultados sintéticos; no mide calidad ni rendimiento de inferencia.
+
+
+### Comprobación estructural de la descarga MP4
+
+Antes de escribir o reemplazar un resultado Wan local, se revisan las cajas superiores del contenedor MP4: tamaños dentro del archivo y presencia de `ftyp`, `moov` y `mdat`, con datos de película y medios no vacíos. Se admiten tamaños extendidos y una caja final de tamaño cero. Los archivos vacíos, HTML, cabeceras incompletas y cajas truncadas se rechazan conservando el destino anterior. El fallo mantiene el identificador del trabajo para inspeccionar su resultado en ComfyUI.
+
+Es una comprobación estructural mínima: no interpreta las cajas internas ni decodifica fotogramas. Un archivo que la supera todavía puede tener pistas o códecs inválidos. No certifica duración, resolución, calidad ni correspondencia con el prompt. El flujo revisado produce MP4 autocontenido; las salidas fragmentadas sin `moov`/`mdat` no forman parte de este contrato.
+
+Validación de esta actualización: **98 pruebas aprobadas** en los módulos Wan, contenedores y selección local. Incluye un clip sintético de dos fotogramas creado con FFmpeg, además de casos de tamaño normal, extendido, final abierto, HTML y truncación. Los contenedores sintéticos de transporte están identificados como no decodificables. La nueva batería de contenedores se incluye en `make test-zero-cost`. No se ha ejecutado inferencia con modelos ni se ha probado la GPU del usuario.

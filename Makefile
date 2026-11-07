@@ -108,6 +108,7 @@ test-zero-cost: ensure-venv
 		tests/tools/test_offline_test_guard.py \
 		tests/tools/test_zero_cost_policy.py \
 		tests/tools/test_comfyui_wan_local.py \
+		tests/tools/test_comfyui_artifacts.py \
 		tests/tools/test_local_model_downloads.py \
 		tests/tools/test_verify_model_downloads.py \
 		tests/tools/test_base_tool_dependencies.py \

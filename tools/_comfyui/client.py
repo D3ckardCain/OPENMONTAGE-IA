@@ -432,6 +432,12 @@ class ComfyUIClient:
             timeout=120,
         )
         resp.raise_for_status()
+        if self._local_wan_only:
+            from tools._comfyui.artifacts import validate_mp4_container
+            try:
+                validate_mp4_container(resp.content)
+            except ValueError as exc:
+                raise ComfyUIError(f"Invalid Wan MP4 download: {exc}") from exc
         dest.parent.mkdir(parents=True, exist_ok=True)
         if self._local_wan_only:
             # Keep an existing result intact if writing the replacement fails.
