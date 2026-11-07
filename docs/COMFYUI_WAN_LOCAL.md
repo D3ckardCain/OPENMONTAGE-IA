@@ -178,3 +178,12 @@ Actualización del 7 de noviembre de 2026: la disponibilidad del adaptador Wan l
 ComfyUI puede tener rutas adicionales configuradas: se comprueba la lista visible del cargador, no se obliga a almacenar todo en una única carpeta física. Los nombres deben coincidir exactamente con los seleccionados en los grafos. El nombre visible todavía no demuestra que el archivo tenga el contenido correcto: eso requiere la comprobación de tamaño y SHA256 del inventario de descargas. La corrección no mueve ni borra modelos.
 
 Seis casos nuevos cubren las cuatro categorías mal ubicadas, las categorías correctas y un modelo ajeno al conjunto revisado. **104 pruebas aprobadas** en Wan, contenedores y selección local, sin inferencia ni acceso a los modelos del usuario.
+
+
+### Enlaces exactos en los avisos de modelos faltantes
+
+Actualización del 7 de noviembre de 2026: los seis componentes de cada flujo Wan14B muestran enlaces de descarga directa `resolve` fijados a la misma revisión del manifiesto, en lugar de páginas HTML `tree` o `blob`. Se incluyen tamaño esperado en bytes, SHA256 y revisión, conservando la carpeta de destino y la separación de T2V e I2V. Son diez archivos únicos entre ambos flujos porque comparten VAE y codificador de texto. Las pruebas comparan todos estos campos con el inventario revisado para detectar diferencias futuras.
+
+Los avisos del adaptador `comfyui_wan_local` identifican ahora ese proveedor y ofrecen su configuración local restringida. Ya no heredan la sugerencia genérica de ejecutar grafos personalizados, que este adaptador no admite.
+
+Validación: **140 pruebas aprobadas** entre Wan, selección local y ambos comprobadores de descargas. Estos ensayos verifican consistencia de metadatos y comportamiento local simulado; no descargan pesos ni garantizan disponibilidad remota futura. Se mantiene pendiente la comprobación de los archivos reales del usuario y la inferencia en su GPU.

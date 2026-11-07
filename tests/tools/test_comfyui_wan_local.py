@@ -395,3 +395,35 @@ def test_unknown_model_cannot_pass_local_wan_preflight(server):
     tool = ComfyUIWanLocal()
     with patch.object(tool._client, "list_models", return_value={"diffusion_models": ["other.safetensors"]}):
         assert tool._client.check_models(["other.safetensors"]) == ([], ["other.safetensors"])
+
+
+def test_missing_models_payload_keeps_local_setup_scope(server):
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, "list_models", return_value={}):
+        result = tool.execute({"prompt": "A moving ball"})
+    assert not result.success
+    assert result.data["provider"] == "comfyui_wan_local"
+    assert result.data["setup_offer"] == tool.setup_offer
+    assert "workflow_json" not in str(result.data["setup_offer"])
+    assert {item["name"] for item in result.data["missing_models"]} == set(_REQUIRED_MODELS_T2V)
+    assert all('/resolve/' in item['download_url'] for item in result.data['missing_models'])
+    assert not any(method == "POST" for method, _ in server.calls)
+
+
+@pytest.mark.parametrize("variant,required", [
+    ("t2v", _REQUIRED_MODELS_T2V), ("i2v", _REQUIRED_MODELS_I2V),
+])
+def test_wan_download_guidance_matches_pinned_manifest(variant, required):
+    from tools._comfyui.metadata import BUNDLED_MODEL_STACKS
+    manifest = json.loads((Path(__file__).parents[2] / "docs/model_download_manifest.json").read_text())
+    entries = {Path(e["destination"]).name: e for e in manifest["files"]
+               if "/ComfyUI/models/" in e["destination"]}
+    stack = BUNDLED_MODEL_STACKS[f"wan22-{variant}-4step"]
+    assert {item["name"] for item in stack} == set(required)
+    for item in stack:
+        entry = entries[item["name"]]
+        assert item["download_url"] == entry["url"]
+        assert item["download_revision"] == entry["revision"]
+        assert item["expected_size_bytes"] == entry["size_bytes"]
+        assert item["sha256"] == entry["sha256"]
+        assert entry["destination"].endswith(item["destination_hint"] + item["name"])

@@ -94,60 +94,59 @@ BUNDLED_MODEL_STACKS: dict[str, list[dict[str, Any]]] = {
             "name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
             "quantization": "FP8",
             "destination_hint": "ComfyUI/models/text_encoders/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/text_encoders"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 6735906897,
+            "sha256": 'c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68'
         },
         {
             "role": "diffusion_model_high_noise",
             "name": "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
             "quantization": "FP8",
             "destination_hint": "ComfyUI/models/diffusion_models/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "blob/main/split_files/diffusion_models/"
-                "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 14293923632,
+            "sha256": 'cad711ae211c8b23455ec68cd6a190a33a3d874234a77eb57266d73f8f0e6c9f'
         },
         {
             "role": "diffusion_model_low_noise",
             "name": "wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors",
             "quantization": "FP8",
             "destination_hint": "ComfyUI/models/diffusion_models/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/diffusion_models"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 14293923632,
+            "sha256": 'e71b96d7c82e638694c5e7fb98fac4bfb0e4ddc5fbbb4b1df40da8f0f1278a97'
         },
         {
             "role": "vae",
             "name": "wan_2.1_vae.safetensors",
             "destination_hint": "ComfyUI/models/vae/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/"
-                "tree/main/split_files/vae"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/vae/wan_2.1_vae.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 253815318,
+            "sha256": '2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b'
         },
         {
             "role": "lora",
             "name": "wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors",
             "strength_model": 1.0,
             "destination_hint": "ComfyUI/models/loras/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/loras"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 1226977424,
+            "sha256": '698321cb86bd30c4af06c9b84e656a1048c8cb54e06d50694536fb5de37fde41'
         },
         {
             "role": "lora",
             "name": "wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors",
             "strength_model": 1.0,
             "destination_hint": "ComfyUI/models/loras/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/loras"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 1226977424,
+            "sha256": 'ec95216e614b3c132c11bfb387b11feedf62163150ccc9068bca8a189771e75a'
         },
     ],
     "wan22-i2v-4step": [
@@ -156,60 +155,59 @@ BUNDLED_MODEL_STACKS: dict[str, list[dict[str, Any]]] = {
             "name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
             "quantization": "FP8",
             "destination_hint": "ComfyUI/models/text_encoders/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/text_encoders"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 6735906897,
+            "sha256": 'c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68'
         },
         {
             "role": "diffusion_model_high_noise",
             "name": "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
             "quantization": "FP8",
             "destination_hint": "ComfyUI/models/diffusion_models/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "blob/main/split_files/diffusion_models/"
-                "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 14294742832,
+            "sha256": '6122e79d55e0f235698d11d657f3b196c5273c830da00b2b013c5a048d5e6a42'
         },
         {
             "role": "diffusion_model_low_noise",
             "name": "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors",
             "quantization": "FP8",
             "destination_hint": "ComfyUI/models/diffusion_models/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/diffusion_models"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 14294742832,
+            "sha256": '5471a457b6ac404202a5fbe6c11595a3d5641fc766b00f38763f72303fffc21e'
         },
         {
             "role": "vae",
             "name": "wan_2.1_vae.safetensors",
             "destination_hint": "ComfyUI/models/vae/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/"
-                "tree/main/split_files/vae"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/vae/wan_2.1_vae.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 253815318,
+            "sha256": '2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b'
         },
         {
             "role": "lora",
             "name": "wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors",
             "strength_model": 1.0,
             "destination_hint": "ComfyUI/models/loras/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/loras"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 1226977424,
+            "sha256": 'd176c808d6fc461999b68e321efcb7501b20b8c3797523ed0df14f7d1deff11e'
         },
         {
             "role": "lora",
             "name": "wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors",
             "strength_model": 1.0,
             "destination_hint": "ComfyUI/models/loras/",
-            "download_url": (
-                "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/"
-                "tree/main/split_files/loras"
-            ),
+            "download_url": 'https://huggingface.co/Comfy-Org/Wan-2.2/resolve/ee6f4a40737a995bf5818954cfce6d59443b0f04/split_files/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors?download=true',
+            "download_revision": 'ee6f4a40737a995bf5818954cfce6d59443b0f04',
+            "expected_size_bytes": 1226977424,
+            "sha256": '024f21de095bc8fad9809ded3e9e49a2e170dcf27075da8145ba7d60d8aab7f9'
         },
     ],
     "ace-step-1-t2a": [

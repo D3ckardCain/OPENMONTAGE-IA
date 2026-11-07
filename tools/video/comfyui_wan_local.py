@@ -213,6 +213,9 @@ class ComfyUIWanLocal(ComfyUIVideo):
         result = super().execute(inputs)
         if result.success:
             result.data["provider"] = self.provider
+        elif result.data.get("missing_models"):
+            result.data["provider"] = self.provider
+            result.data["setup_offer"] = dict(self.setup_offer)
         elif result.data.get("prompt_id"):
             # The generic adapter recommends resume_prompt_id, but this
             # reviewed local-only adapter deliberately rejects unverified jobs.
