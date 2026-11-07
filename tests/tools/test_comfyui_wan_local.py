@@ -40,14 +40,16 @@ def server(monkeypatch):
                 self.reply({"devices": []})
             elif self.path.startswith("/object_info/"):
                 node = self.path.rsplit("/", 1)[-1]
+                if node in self.server.missing_nodes:
+                    self.reply({})
+                    return
                 field = {
                     "CheckpointLoaderSimple": "ckpt_name", "UNETLoader": "unet_name",
                     "VAELoader": "vae_name", "CLIPLoader": "clip_name",
                     "LoraLoaderModelOnly": "lora_name",
-                }[node]
-                self.reply({node: {"input": {"required": {field: [list(set(
-                    _REQUIRED_MODELS_T2V + _REQUIRED_MODELS_I2V
-                ))]}}}})
+                }.get(node)
+                required = {field: [list(set(_REQUIRED_MODELS_T2V + _REQUIRED_MODELS_I2V))]} if field else {}
+                self.reply({node: {"input": {"required": required}}})
             elif self.path.startswith("/history/"):
                 output = "108" if "108" in self.server.graph else "16"
                 self.reply({"test-job": {
@@ -72,6 +74,7 @@ def server(monkeypatch):
 
     http = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     http.calls = []
+    http.missing_nodes = set()
     http.graph = {}
     thread = Thread(target=http.serve_forever, daemon=True)
     thread.start()
@@ -237,3 +240,63 @@ def test_queued_job_failure_does_not_recommend_unsupported_resume(server, tmp_pa
     assert 'resume_prompt_id=' not in result.error
     assert 'queue/history' in result.error
     assert not (tmp_path / 'out.mp4').exists()
+
+
+def test_dry_run_offline_is_not_ready():
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, "is_available", return_value=False):
+        result = tool.dry_run({"prompt": "A moving ball"})
+    assert result["would_execute"] is False
+    assert result["status"] == "unavailable"
+    assert result["estimated_runtime_seconds"] is None
+
+
+@pytest.mark.parametrize("inputs", [
+    {"prompt": "   "},
+    {"prompt": "A ball", "num_frames": 18},
+    {"prompt": "A ball", "reference_image_path": "ignored.png"},
+])
+def test_invalid_dry_run_does_not_contact_server(inputs):
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, "is_available") as available:
+        result = tool.dry_run(inputs)
+    assert result["would_execute"] is False
+    assert result["input_error"]
+    available.assert_not_called()
+
+
+def test_missing_node_blocks_submission_and_dry_run(server):
+    server.missing_nodes.add("EmptyHunyuanLatentVideo")
+    tool = ComfyUIWanLocal()
+    inputs = {"prompt": "A moving ball"}
+    preview = tool.dry_run(inputs)
+    assert preview["status"] == "degraded"
+    assert preview["would_execute"] is False
+    result = tool.execute(inputs)
+    assert not result.success
+    assert result.data["missing_nodes"] == ["EmptyHunyuanLatentVideo"]
+    assert not any(method == "POST" for method, _ in server.calls)
+
+
+def test_node_readiness_is_operation_specific(server):
+    server.missing_nodes.add("WanImageToVideo")
+    statuses = ComfyUIWanLocal().operation_statuses()
+    assert statuses == {"text_to_video": "available", "image_to_video": "degraded"}
+
+
+def test_dry_run_missing_models_is_not_ready(server):
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, "check_models", return_value=([], ["missing.safetensors"])):
+        result = tool.dry_run({"prompt": "A moving ball"})
+    assert result["would_execute"] is False
+    assert result["status"] == "degraded"
+
+
+def test_ready_dry_run_does_not_submit_or_write(server, tmp_path):
+    target = tmp_path / "preview.mp4"
+    result = ComfyUIWanLocal().dry_run({"prompt": "A moving ball", "output_path": str(target)})
+    assert result["would_execute"] is True
+    assert result["estimated_runtime_seconds"] is None
+    assert result["runtime_status"] == "unmeasured_on_target_gpu"
+    assert not target.exists()
+    assert not any(method == "POST" for method, _ in server.calls)

@@ -142,3 +142,12 @@ se han generado vídeos ni medido rendimiento en GPU con estas pruebas.
 Validación de esta revisión: **655 pruebas aprobadas, 1 omitida y 14 subpruebas
 aprobadas** en la batería enfocada (12,57 s). El grupo específico Wan/selectores
 pasó 68 pruebas. No se declara aprobada toda la suite heredada.
+
+
+### Comprobación previa sin generación
+
+El adaptador local valida los mismos parámetros en `dry_run` y en `execute`. El modo de prueba solo indica `would_execute=true` si el servidor responde y aparecen los modelos y las clases de nodos del flujo correspondiente. Un servidor desconectado se informa como `unavailable`; modelos o nodos ausentes, como `degraded`. Los requisitos de texto a vídeo e imagen a vídeo se comprueban por separado. La ejecución también rechaza nodos ausentes antes de subir imágenes o encolar trabajos.
+
+Esta comprobación consulta metadatos locales: no genera, no sube imágenes ni escribe vídeos. La presencia de nombres no certifica integridad de pesos, compatibilidad completa de las firmas de nodos, memoria suficiente ni calidad. Para integridad se usa el verificador de descargas; para rendimiento hace falta una generación real. `estimated_runtime_seconds=null` y `runtime_status=unmeasured_on_target_gpu` evitan presentar como medición un tiempo heredado.
+
+Validación: pruebas con servidor HTTP local simulado cubren servidor desconectado, entradas inválidas, modelos y nodos ausentes, diferencias entre operaciones y modo de prueba disponible sin envíos ni archivos. Estos ensayos no son inferencia de IA.

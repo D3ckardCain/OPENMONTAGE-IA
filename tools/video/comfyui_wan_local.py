@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import math
+import json
 from typing import Any
 
 from tools.base_tool import BaseTool, ResourceProfile, ToolResult, ToolRuntime
@@ -120,6 +121,37 @@ class ComfyUIWanLocal(ComfyUIVideo):
             adapted.update(width=width, height=height)
         return adapted
 
+    def _missing_nodes(self, operation: str) -> list[str]:
+        variant = "i2v" if operation == "image_to_video" else "t2v"
+        path = Path(__file__).parents[1] / "_comfyui" / "workflows" / f"wan22-{variant}-4step.json"
+        graph = json.loads(path.read_text(encoding="utf-8"))
+        return [name for name in sorted({node["class_type"] for node in graph.values()})
+                if not self._client.has_node(name)]
+
+    def operation_statuses(self) -> dict[str, str]:
+        statuses = super().operation_statuses()
+        for operation, status in statuses.items():
+            if status == "available" and self._missing_nodes(operation):
+                statuses[operation] = "degraded"
+        return statuses
+
+    def dry_run(self, inputs: dict[str, Any]) -> dict[str, Any]:
+        # Reuse the same contract as execute; no queueing, uploads or output files.
+        from jsonschema import ValidationError
+        try:
+            self._validate_inputs(inputs)
+        except (ValidationError, ValueError, TypeError) as exc:
+            message = exc.message if isinstance(exc, ValidationError) else str(exc)
+            return {"tool": self.name, "estimated_cost_usd": 0,
+                    "would_execute": False, "status": "unavailable",
+                    "input_error": message}
+        operation = inputs.get("operation", "text_to_video")
+        status = self.operation_statuses()[operation]
+        return {"tool": self.name, "operation": operation,
+                "estimated_cost_usd": 0, "estimated_runtime_seconds": None,
+                "runtime_status": "unmeasured_on_target_gpu",
+                "status": status, "would_execute": status == "available"}
+
     def get_info(self) -> dict[str, Any]:
         info = BaseTool.get_info(self)
         info["operation_statuses"] = self.operation_statuses()
@@ -138,34 +170,46 @@ class ComfyUIWanLocal(ComfyUIVideo):
         info["execution_modes"] = {"wan2.2": {"hosted": False, "api_cost_usd": 0}}
         return info
 
+    def _validate_inputs(self, inputs: dict[str, Any]) -> None:
+        from jsonschema import validate
+
+        validate(inputs, self.input_schema)
+        if not inputs["prompt"].strip():
+            raise ValueError("Wan prompt must contain non-whitespace text.")
+        operation = inputs.get("operation", "text_to_video")
+        if "reference_image_path" in inputs and operation != "image_to_video":
+            raise ValueError(
+                "A reference image requires operation=image_to_video; "
+                "text_to_video cannot silently ignore it."
+            )
+        if inputs.get("num_frames", 81) % 4 != 1:
+            raise ValueError("Wan frame count must be 4n+1.")
+        if inputs.get("operation", "text_to_video") == "image_to_video":
+            reference = inputs.get("reference_image_path")
+            if not reference or not Path(reference).is_file():
+                raise ValueError("image_to_video requires an existing local image file.")
+        output = Path(inputs.get("output_path", "wan_local.mp4"))
+        if output.suffix.lower() != ".mp4":
+            raise ValueError("Wan local output must use the .mp4 extension.")
+
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
-        from jsonschema import ValidationError, validate
+        from jsonschema import ValidationError
 
         try:
-            validate(inputs, self.input_schema)
-            if not inputs["prompt"].strip():
-                raise ValueError("Wan prompt must contain non-whitespace text.")
-            operation = inputs.get("operation", "text_to_video")
-            if "reference_image_path" in inputs and operation != "image_to_video":
-                raise ValueError(
-                    "A reference image requires operation=image_to_video; "
-                    "text_to_video cannot silently ignore it."
-                )
-            if inputs.get("num_frames", 81) % 4 != 1:
-                raise ValueError("Wan frame count must be 4n+1.")
-            if inputs.get("operation", "text_to_video") == "image_to_video":
-                reference = inputs.get("reference_image_path")
-                if not reference or not Path(reference).is_file():
-                    raise ValueError("image_to_video requires an existing local image file.")
-            output = Path(inputs.get("output_path", "wan_local.mp4"))
-            if output.suffix.lower() != ".mp4":
-                raise ValueError("Wan local output must use the .mp4 extension.")
+            self._validate_inputs(inputs)
         except (ValidationError, ValueError, TypeError) as exc:
             message = exc.message if isinstance(exc, ValidationError) else str(exc)
             return ToolResult(
                 success=False, error=f"ZERO_COST_POLICY: {message}",
                 data={"blocked_by": "zero_cost_policy", "tool": self.name},
             )
+        if self._client.is_available():
+            missing_nodes = self._missing_nodes(inputs.get("operation", "text_to_video"))
+            if missing_nodes:
+                return ToolResult(
+                    success=False, error="ComfyUI is missing required Wan nodes: " + ", ".join(missing_nodes),
+                    data={"missing_nodes": missing_nodes, "setup_required": True},
+                )
         result = super().execute(inputs)
         if result.success:
             result.data["provider"] = self.provider
