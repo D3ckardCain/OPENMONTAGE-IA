@@ -30,11 +30,22 @@ def relative_destination(destination: str) -> Path:
 
 
 def select_entries(manifest: dict, groups: list[str]) -> list[dict]:
+    if not isinstance(manifest, dict):
+        raise ValueError('Manifest must be an object')
+    if not isinstance(manifest.get('files'), list) or not manifest['files']:
+        raise ValueError('Manifest must contain a non-empty files list')
+    if not isinstance(manifest.get('groups'), list) or not manifest['groups']:
+        raise ValueError('Manifest must contain a non-empty groups list')
+    if not groups:
+        raise ValueError('Select at least one group')
     entries = {}
+    canonical_destinations = set()
     for entry in manifest['files']:
+        if not isinstance(entry, dict):
+            raise ValueError('File entries must be objects')
         destination = entry['destination']
-        relative_destination(destination)
-        if destination in entries:
+        canonical = relative_destination(destination).as_posix().casefold()
+        if canonical in canonical_destinations:
             raise ValueError('Duplicate destination in manifest')
         if type(entry['size_bytes']) is not int or entry['size_bytes'] < 0:
             raise ValueError('Invalid expected size')
@@ -42,7 +53,23 @@ def select_entries(manifest: dict, groups: list[str]) -> list[dict]:
         if digest is not None and not re.fullmatch(r'[0-9a-f]{64}', digest):
             raise ValueError('Invalid expected SHA256')
         entries[destination] = entry
-    group_map = {group['id']: group for group in manifest['groups']}
+        canonical_destinations.add(canonical)
+    group_map = {}
+    for group in manifest['groups']:
+        if not isinstance(group, dict):
+            raise ValueError('Group entries must be objects')
+        name = group.get('id')
+        if not isinstance(name, str) or not name.strip() or name == 'all':
+            raise ValueError('Invalid or reserved group ID')
+        if name in group_map:
+            raise ValueError('Duplicate group ID in manifest')
+        destinations = group.get('files')
+        if not isinstance(destinations, list) or not destinations:
+            raise ValueError('Each group must contain a non-empty files list')
+        for destination in destinations:
+            if not isinstance(destination, str) or destination not in entries:
+                raise ValueError('Group references an unknown destination')
+        group_map[name] = group
     unknown = set(groups) - group_map.keys() - {'all'}
     if unknown:
         raise ValueError('Unknown groups: ' + ', '.join(sorted(unknown)))

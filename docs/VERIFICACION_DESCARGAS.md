@@ -88,3 +88,12 @@ propietario ni se han probado en su PC.
 La batería enfocada ampliada terminó con **650 pruebas aprobadas, 1 omitida y
 14 subpruebas aprobadas** en 12,84 s. Son comprobaciones locales sintéticas, no
 inferencia con pesos reales ni aprobación de toda la suite heredada.
+
+
+## Validación del manifiesto antes de revisar archivos
+
+Actualización del 7 de noviembre de 2026: el comprobador rechaza inventarios o grupos vacíos, IDs de grupo repetidos o reservados, referencias a destinos inexistentes (incluso en grupos no seleccionados) y entradas con estructura inválida. También rechaza destinos duplicados que solo difieren en mayúsculas o barras, para no tratar como distintos dos nombres del mismo archivo en Windows. Los archivos compartidos por grupos válidos siguen comprobándose una sola vez.
+
+Un manifiesto vacío o ambiguo termina con código 2; no puede producir una aprobación de cero archivos. Esto valida la estructura del inventario, no demuestra que una lista editada conserve todos los componentes del motor: debe mantenerse el manifiesto revisado del repositorio.
+
+Validación de esta actualización: **49 pruebas aprobadas** entre ambos comprobadores, incluyendo 13 casos nuevos. Se usaron archivos sintéticos pequeños y el inventario real de 375 destinos; no se han inspeccionado los pesos de tu PC ni realizado inferencia.

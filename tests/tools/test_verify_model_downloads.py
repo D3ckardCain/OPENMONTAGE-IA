@@ -101,3 +101,42 @@ def test_file_changed_while_hashing_is_not_certified(tmp_path, monkeypatch):
         def hexdigest(self): return self.digest.hexdigest()
     monkeypatch.setattr('scripts.verify_model_downloads.hashlib.sha256', ChangingHash)
     assert verify_file(p, expected, True)[0] == 'CHANGED'
+
+
+@pytest.mark.parametrize('mutation', [
+    'empty_files', 'empty_groups', 'empty_group', 'duplicate_group',
+    'reserved_group', 'bad_file', 'bad_group', 'bad_reference', 'unselected_reference',
+    'windows_alias', 'not_object',
+])
+def test_incomplete_or_ambiguous_manifest_is_rejected(mutation):
+    e = entry(); m = manifest(e)
+    if mutation == 'empty_files': m['files'] = []
+    elif mutation == 'empty_groups': m['groups'] = []
+    elif mutation == 'empty_group': m['groups'][0]['files'] = []
+    elif mutation == 'duplicate_group': m['groups'].append({'id': 'wan', 'files': []})
+    elif mutation == 'reserved_group': m['groups'][0]['id'] = 'all'
+    elif mutation == 'bad_file': m['files'] = [None]
+    elif mutation == 'bad_group': m['groups'] = [None]
+    elif mutation == 'bad_reference': m['groups'][0]['files'] = [None]
+    elif mutation == 'unselected_reference': m['groups'][1]['files'] = ['unknown']
+    elif mutation == 'windows_alias':
+        alias = dict(e)
+        alias['destination'] = e['destination'].replace('test.safetensors', 'TEST.safetensors').replace('/', '\\')
+        m['files'].append(alias)
+    elif mutation == 'not_object': m = []
+    with pytest.raises(ValueError): select_entries(m, ['wan'])
+
+
+def test_empty_selection_is_not_a_successful_check():
+    with pytest.raises(ValueError): select_entries(manifest(entry()), [])
+
+
+def test_cli_empty_group_exits_with_manifest_error(tmp_path, capsys):
+    m = manifest(entry()); m['groups'][0]['files'] = []
+    index = tmp_path / 'manifest.json'; index.write_text(json.dumps(m))
+    with pytest.raises(SystemExit) as error:
+        main(['--manifest', str(index), '--root', str(tmp_path)])
+    assert error.value.code == 2
+    output = capsys.readouterr()
+    assert 'non-empty files list' in output.err
+    assert '0 failures' not in output.out
