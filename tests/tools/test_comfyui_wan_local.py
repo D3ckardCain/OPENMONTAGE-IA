@@ -200,3 +200,40 @@ def test_generic_comfyui_adapter_remains_blocked():
     result = ComfyUIVideo().execute({"prompt": "test"})
     assert not result.success
     assert result.data["blocked_by"] == "zero_cost_policy"
+
+
+@pytest.mark.parametrize('operation', [None, 'text_to_video'])
+def test_reference_never_silently_ignored_in_text_mode(operation, tmp_path):
+    tool = ComfyUIWanLocal()
+    image = tmp_path / 'reference.png'
+    image.write_bytes(b'local reference fixture')
+    inputs = {'prompt': 'Move this product', 'reference_image_path': str(image)}
+    if operation is not None:
+        inputs['operation'] = operation
+    with patch.object(tool._client, 'is_available', side_effect=AssertionError('transport reached')):
+        result = tool.execute(inputs)
+    assert not result.success
+    assert 'operation=image_to_video' in result.error
+
+
+@pytest.mark.parametrize('prompt', [' ', '\n\t'])
+def test_blank_prompt_rejected_before_transport(prompt):
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, 'is_available', side_effect=AssertionError('transport reached')):
+        result = tool.execute({'prompt': prompt})
+    assert not result.success
+    assert 'non-whitespace' in result.error
+
+
+def test_queued_job_failure_does_not_recommend_unsupported_resume(server, tmp_path):
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, 'generate', side_effect=ComfyUIError('Timed out', prompt_id='queued-wan-job')) as generate:
+        result = tool.execute({'prompt': 'A ball rolling', 'output_path': str(tmp_path / 'out.mp4')})
+    assert not result.success
+    assert generate.call_count == 1
+    assert result.data['prompt_id'] == 'queued-wan-job'
+    assert result.data['resume_supported'] is False
+    assert result.data['resubmit_requires_job_check'] is True
+    assert 'resume_prompt_id=' not in result.error
+    assert 'queue/history' in result.error
+    assert not (tmp_path / 'out.mp4').exists()

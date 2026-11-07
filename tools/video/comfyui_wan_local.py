@@ -143,6 +143,14 @@ class ComfyUIWanLocal(ComfyUIVideo):
 
         try:
             validate(inputs, self.input_schema)
+            if not inputs["prompt"].strip():
+                raise ValueError("Wan prompt must contain non-whitespace text.")
+            operation = inputs.get("operation", "text_to_video")
+            if "reference_image_path" in inputs and operation != "image_to_video":
+                raise ValueError(
+                    "A reference image requires operation=image_to_video; "
+                    "text_to_video cannot silently ignore it."
+                )
             if inputs.get("num_frames", 81) % 4 != 1:
                 raise ValueError("Wan frame count must be 4n+1.")
             if inputs.get("operation", "text_to_video") == "image_to_video":
@@ -161,4 +169,21 @@ class ComfyUIWanLocal(ComfyUIVideo):
         result = super().execute(inputs)
         if result.success:
             result.data["provider"] = self.provider
+        elif result.data.get("prompt_id"):
+            # The generic adapter recommends resume_prompt_id, but this
+            # reviewed local-only adapter deliberately rejects unverified jobs.
+            # Preserve the ID for inspection without telling users to resubmit.
+            message = (result.error or "ComfyUI job failed").partition(
+                "\n\nThis job was NOT cancelled"
+            )[0]
+            result.error = (
+                message + "\n\nInspect this job in the local ComfyUI queue/history "
+                "before submitting again; it may still be running. This adapter "
+                "does not support resuming jobs."
+            )
+            result.data.update(
+                job_state="unknown_check_local_queue",
+                resume_supported=False,
+                resubmit_requires_job_check=True,
+            )
         return result

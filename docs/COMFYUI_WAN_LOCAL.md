@@ -120,3 +120,25 @@ t2v` o `--operation i2v` para revisar solo el flujo que se probará primero.
 LTX, Cosmos y Wan 5B son candidatos descargables pendientes de integración y
 prueba; el adaptador `comfyui_wan_local` actual solo ejecuta los dos flujos Wan
 14B revisados. Tener sus pesos descargados no los habilita automáticamente aquí.
+
+## Referencias de imagen y recuperación de trabajos
+
+La llamada directa debe indicar `operation=image_to_video` cuando se envía
+`reference_image_path`. Si se omite la operación o se elige `text_to_video`,
+la herramienta devuelve un error antes de conectarse. No descarta silenciosamente
+la imagen ni cambia de operación. I2V sigue exigiendo un archivo local existente.
+Los prompts formados solo por espacios o saltos de línea también se rechazan.
+
+Si falla la espera después de recibir un `prompt_id`, se conserva ese identificador
+para revisar la cola/historial local. El error no recomienda `resume_prompt_id`:
+este adaptador no admite reanudar trabajos cuya procedencia no ha verificado.
+Devuelve `resume_supported=false`, `resubmit_requires_job_check=true` y
+`job_state=unknown_check_local_queue`. Ese estado no prueba si el trabajo terminó,
+falló o sigue en curso. No se reenvía automáticamente ni se cambia de proveedor.
+
+La revisión se comprueba con archivos sintéticos y servidor HTTP emulado. No
+se han generado vídeos ni medido rendimiento en GPU con estas pruebas.
+
+Validación de esta revisión: **655 pruebas aprobadas, 1 omitida y 14 subpruebas
+aprobadas** en la batería enfocada (12,57 s). El grupo específico Wan/selectores
+pasó 68 pruebas. No se declara aprobada toda la suite heredada.
