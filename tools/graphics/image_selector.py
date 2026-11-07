@@ -216,13 +216,14 @@ class ImageSelector(BaseTool):
     def _providers(self) -> list[BaseTool]:
         """Auto-discover image generation providers from the registry."""
         from tools.tool_registry import registry
+        from tools.provider_routing import zero_cost_candidates
 
         registry.ensure_discovered()
-        return [
+        return zero_cost_candidates([
             t
             for t in registry.get_by_capability("image_generation")
             if t.name != self.name
-        ]
+        ])
 
     @property
     def fallback_tools(self) -> list[str]:
@@ -278,7 +279,8 @@ class ImageSelector(BaseTool):
             return ToolResult(success=False, error="No image provider available.")
 
         # Adapt input keys: stock tools use 'query' while generators use 'prompt'
-        adapted = dict(inputs)
+        from tools.provider_routing import provider_inputs
+        adapted = provider_inputs(inputs)
         if hasattr(tool, "input_schema"):
             props = tool.input_schema.get("properties", {})
             if "query" in props and "query" not in adapted:
