@@ -191,10 +191,33 @@ class ComfyUIClient:
 
         Returns ``(found, missing)`` — two lists of filenames.
         """
-        all_models: set[str] = set()
-        for names in self.list_models().values():
-            all_models.update(names)
+        available = self.list_models()
+        if self._local_wan_only:
+            # Match the exact loader category used by the reviewed graphs.
+            # A VAE filename listed under checkpoints cannot satisfy VAELoader.
+            loader_fields = {
+                "UNETLoader": ("unet_name", "diffusion_models"),
+                "VAELoader": ("vae_name", "vae"),
+                "CLIPLoader": ("clip_name", "clip"),
+                "LoraLoaderModelOnly": ("lora_name", "loras"),
+            }
+            categories: dict[str, str] = {}
+            for variant in ("t2v", "i2v"):
+                workflow = self.load_workflow(
+                    Path(__file__).parent / "workflows" / f"wan22-{variant}-4step.json"
+                )
+                for node in workflow.values():
+                    loader = loader_fields.get(node["class_type"])
+                    if loader:
+                        field, category = loader
+                        categories[node["inputs"][field]] = category
+            found = [name for name in required
+                     if name in categories and name in available.get(categories[name], [])]
+            return found, [name for name in required if name not in found]
 
+        all_models: set[str] = set()
+        for names in available.values():
+            all_models.update(names)
         found = [m for m in required if m in all_models]
         missing = [m for m in required if m not in all_models]
         return found, missing

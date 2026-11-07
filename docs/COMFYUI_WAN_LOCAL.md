@@ -169,3 +169,12 @@ Antes de escribir o reemplazar un resultado Wan local, se revisan las cajas supe
 Es una comprobación estructural mínima: no interpreta las cajas internas ni decodifica fotogramas. Un archivo que la supera todavía puede tener pistas o códecs inválidos. No certifica duración, resolución, calidad ni correspondencia con el prompt. El flujo revisado produce MP4 autocontenido; las salidas fragmentadas sin `moov`/`mdat` no forman parte de este contrato.
 
 Validación de esta actualización: **98 pruebas aprobadas** en los módulos Wan, contenedores y selección local. Incluye un clip sintético de dos fotogramas creado con FFmpeg, además de casos de tamaño normal, extendido, final abierto, HTML y truncación. Los contenedores sintéticos de transporte están identificados como no decodificables. La nueva batería de contenedores se incluye en `make test-zero-cost`. No se ha ejecutado inferencia con modelos ni se ha probado la GPU del usuario.
+
+
+### Modelos disponibles en el cargador correcto
+
+Actualización del 7 de noviembre de 2026: la disponibilidad del adaptador Wan local ya no se decide juntando nombres de todas las categorías de ComfyUI. Cada nombre debe aparecer en el cargador usado por el grafo revisado: `UNETLoader` para modelos de difusión, `LoraLoaderModelOnly` para LoRAs, `VAELoader` para el VAE y `CLIPLoader` para el codificador de texto. Los requisitos se leen de los dos grafos incluidos para evitar mantener otra lista independiente. Un archivo conocido solo por otro cargador se informa como ausente para esta operación; tanto el modo de prueba como la ejecución lo detectan antes de enviar un trabajo.
+
+ComfyUI puede tener rutas adicionales configuradas: se comprueba la lista visible del cargador, no se obliga a almacenar todo en una única carpeta física. Los nombres deben coincidir exactamente con los seleccionados en los grafos. El nombre visible todavía no demuestra que el archivo tenga el contenido correcto: eso requiere la comprobación de tamaño y SHA256 del inventario de descargas. La corrección no mueve ni borra modelos.
+
+Seis casos nuevos cubren las cuatro categorías mal ubicadas, las categorías correctas y un modelo ajeno al conjunto revisado. **104 pruebas aprobadas** en Wan, contenedores y selección local, sin inferencia ni acceso a los modelos del usuario.

@@ -354,3 +354,44 @@ def test_invalid_download_does_not_replace_previous_video(server, tmp_path, payl
             tool._client.download("result.mp4", "", target)
     assert target.read_bytes() == b"previous-result"
     assert list(tmp_path.glob("*.part")) == []
+
+
+def _categorized_wan_models():
+    names = set(_REQUIRED_MODELS_T2V + _REQUIRED_MODELS_I2V)
+    return {
+        "diffusion_models": sorted(name for name in names if "noise_14B" in name),
+        "loras": sorted(name for name in names if "lora" in name),
+        "vae": ["wan_2.1_vae.safetensors"],
+        "clip": ["umt5_xxl_fp8_e4m3fn_scaled.safetensors"],
+    }
+
+
+@pytest.mark.parametrize("category", ["diffusion_models", "loras", "vae", "clip"])
+def test_wan_models_in_wrong_loader_category_are_not_ready(server, category):
+    tool = ComfyUIWanLocal()
+    available = _categorized_wan_models()
+    misplaced = available.pop(category)
+    available["checkpoints"] = misplaced
+    with patch.object(tool._client, "list_models", return_value=available):
+        preview = tool.dry_run({"prompt": "A moving ball"})
+        result = tool.execute({"prompt": "A moving ball"})
+    assert preview["would_execute"] is False
+    assert preview["status"] == "degraded"
+    assert not result.success
+    assert not any(method == "POST" for method, _ in server.calls)
+
+
+def test_wan_models_in_expected_categories_are_available(server):
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, "list_models", return_value=_categorized_wan_models()):
+        found, missing = tool._client.check_models(_REQUIRED_MODELS_T2V)
+        statuses = tool.operation_statuses()
+    assert found == _REQUIRED_MODELS_T2V
+    assert not missing
+    assert set(statuses.values()) == {"available"}
+
+
+def test_unknown_model_cannot_pass_local_wan_preflight(server):
+    tool = ComfyUIWanLocal()
+    with patch.object(tool._client, "list_models", return_value={"diffusion_models": ["other.safetensors"]}):
+        assert tool._client.check_models(["other.safetensors"]) == ([], ["other.safetensors"])
