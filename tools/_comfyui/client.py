@@ -11,6 +11,7 @@ import json
 import os
 import random
 import time
+import tempfile
 import uuid
 from pathlib import Path
 from typing import Any, Callable
@@ -432,7 +433,19 @@ class ComfyUIClient:
         )
         resp.raise_for_status()
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(resp.content)
+        if self._local_wan_only:
+            # Keep an existing result intact if writing the replacement fails.
+            temporary = None
+            try:
+                with tempfile.NamedTemporaryFile(dir=dest.parent, suffix=".part", delete=False) as stream:
+                    temporary = Path(stream.name)
+                    stream.write(resp.content)
+                os.replace(temporary, dest)
+            finally:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
+        else:
+            dest.write_bytes(resp.content)
         return dest
 
     def upload_image(self, local_path: Path, name: str) -> str:
@@ -483,48 +496,57 @@ class ComfyUIClient:
                     "ZERO_COST_POLICY: resuming unverified jobs is not enabled for Wan local."
                 )
         prompt_id = resume_prompt_id or self.submit(workflow)
-        if resume_prompt_id:
-            # A prompt resumed by a new client instance was submitted with the
-            # original instance's client_id, so its websocket events are not
-            # guaranteed to reach this socket. Poll authoritative history.
-            entry = self.poll(prompt_id, timeout=timeout, interval=interval)
-        else:
-            entry = self._wait(
-                prompt_id, timeout=timeout, interval=interval, on_progress=on_progress
-            )
-
-        outputs = entry.get("outputs", {})
-        node_output = outputs.get(output_node, {})
-
-        # ComfyUI stores images/video frames under "images", legacy GIFs
-        # under "gifs", and the native SaveAudio node's output under "audio".
-        items = (
-            node_output.get("images", [])
-            or node_output.get("gifs", [])
-            or node_output.get("audio", [])
-            or node_output.get("video", [])
-        )
-        if not items:
-            raise ComfyUIError(
-                f"No output artifacts on node {output_node}. "
-                f"Available nodes: {list(outputs.keys())}"
-            )
-
-        paths: list[Path] = []
-        for i, item in enumerate(items):
-            suffix = Path(item["filename"]).suffix
-            if len(items) == 1:
-                target = dest
+        try:
+            if resume_prompt_id:
+                # A prompt resumed by a new client instance was submitted with the
+                # original instance's client_id, so its websocket events are not
+                # guaranteed to reach this socket. Poll authoritative history.
+                entry = self.poll(prompt_id, timeout=timeout, interval=interval)
             else:
-                target = dest.with_stem(f"{dest.stem}_{i:03d}").with_suffix(suffix)
-            self.download(
-                item["filename"],
-                item.get("subfolder", ""),
-                target,
-                item.get("type", "output"),
+                entry = self._wait(
+                    prompt_id, timeout=timeout, interval=interval, on_progress=on_progress
+                )
+
+            outputs = entry.get("outputs", {})
+            node_output = outputs.get(output_node, {})
+
+            # ComfyUI stores images/video frames under "images", legacy GIFs
+            # under "gifs", and the native SaveAudio node's output under "audio".
+            items = (
+                node_output.get("images", [])
+                or node_output.get("gifs", [])
+                or node_output.get("audio", [])
+                or node_output.get("video", [])
             )
-            paths.append(target)
-        return paths
+            if not items:
+                raise ComfyUIError(
+                    f"No output artifacts on node {output_node}. "
+                    f"Available nodes: {list(outputs.keys())}"
+                )
+
+            paths: list[Path] = []
+            for i, item in enumerate(items):
+                suffix = Path(item["filename"]).suffix
+                if len(items) == 1:
+                    target = dest
+                else:
+                    target = dest.with_stem(f"{dest.stem}_{i:03d}").with_suffix(suffix)
+                self.download(
+                    item["filename"],
+                    item.get("subfolder", ""),
+                    target,
+                    item.get("type", "output"),
+                )
+                paths.append(target)
+            return paths
+        except Exception as exc:
+            if not self._local_wan_only:
+                raise
+            # A completed generation can still fail during artifact retrieval.
+            # Keep its ID so callers inspect history instead of generating again.
+            if isinstance(exc, ComfyUIError) and exc.prompt_id:
+                raise
+            raise ComfyUIError(str(exc), prompt_id=prompt_id) from exc
 
     # ------------------------------------------------------------------
     # Workflow helpers

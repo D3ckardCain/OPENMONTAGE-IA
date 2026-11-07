@@ -300,3 +300,37 @@ def test_ready_dry_run_does_not_submit_or_write(server, tmp_path):
     assert result["runtime_status"] == "unmeasured_on_target_gpu"
     assert not target.exists()
     assert not any(method == "POST" for method, _ in server.calls)
+
+
+def test_failed_artifact_download_preserves_job_identity(server, tmp_path):
+    import requests
+    tool = ComfyUIWanLocal()
+    target = tmp_path / "existing.mp4"
+    target.write_bytes(b"previous-result")
+    with patch.object(tool._client, "download", side_effect=requests.ConnectionError("download disconnected")):
+        result = tool.execute({"prompt": "A moving ball", "output_path": str(target)})
+    assert not result.success
+    assert result.data["prompt_id"] == "test-job"
+    assert result.data["resubmit_requires_job_check"] is True
+    assert target.read_bytes() == b"previous-result"
+    assert server.calls.count(("POST", "/prompt")) == 1
+
+
+def test_atomic_download_keeps_previous_result_if_replace_fails(server, tmp_path):
+    target = tmp_path / "existing.mp4"
+    target.write_bytes(b"previous-result")
+    with patch("tools._comfyui.client.os.replace", side_effect=PermissionError("target locked")):
+        result = ComfyUIWanLocal().execute({"prompt": "A moving ball", "output_path": str(target)})
+    assert not result.success
+    assert result.data["prompt_id"] == "test-job"
+    assert target.read_bytes() == b"previous-result"
+    assert list(tmp_path.glob("*.part")) == []
+
+
+def test_successful_download_atomically_replaces_previous_result(server, tmp_path):
+    target = tmp_path / "existing.mp4"
+    target.write_bytes(b"previous-result")
+    result = ComfyUIWanLocal().execute({"prompt": "A moving ball", "output_path": str(target)})
+    assert result.success
+    assert target.read_bytes() == _FIXTURE
+    assert list(tmp_path.glob("*.part")) == []

@@ -151,3 +151,12 @@ El adaptador local valida los mismos parámetros en `dry_run` y en `execute`. El
 Esta comprobación consulta metadatos locales: no genera, no sube imágenes ni escribe vídeos. La presencia de nombres no certifica integridad de pesos, compatibilidad completa de las firmas de nodos, memoria suficiente ni calidad. Para integridad se usa el verificador de descargas; para rendimiento hace falta una generación real. `estimated_runtime_seconds=null` y `runtime_status=unmeasured_on_target_gpu` evitan presentar como medición un tiempo heredado.
 
 Validación: pruebas con servidor HTTP local simulado cubren servidor desconectado, entradas inválidas, modelos y nodos ausentes, diferencias entre operaciones y modo de prueba disponible sin envíos ni archivos. Estos ensayos no son inferencia de IA.
+
+
+### Recuperación de resultados y escritura del vídeo
+
+Actualización del 7 de noviembre de 2026: una vez que ComfyUI devuelve el identificador de un trabajo Wan local, los fallos posteriores al esperar, buscar resultados o descargar/guardar el archivo conservan ese identificador en el error. El adaptador indica revisar la cola e historial locales antes de volver a enviar; no reintenta la generación automáticamente ni habilita la reanudación de trabajos no verificados. Así también se puede localizar un vídeo ya generado cuando lo que falló fue su recuperación.
+
+La descarga local escribe primero un archivo temporal en la carpeta de destino y solo reemplaza el vídeo anterior al terminar la escritura. Si el reemplazo falla (por ejemplo, archivo bloqueado), conserva el destino anterior y elimina el temporal. Esto protege frente a los fallos de escritura comprobados; no certifica que los bytes descargados constituyan un MP4 válido ni garantiza durabilidad ante corte eléctrico. La validación real del vídeo sigue pendiente.
+
+Tres pruebas nuevas cubren desconexión al descargar, reemplazo fallido y reemplazo correcto. La batería enfocada termina con **679 pruebas aprobadas, 1 omitida y 14 subpruebas aprobadas**. Usa resultados sintéticos; no mide calidad ni rendimiento de inferencia.
