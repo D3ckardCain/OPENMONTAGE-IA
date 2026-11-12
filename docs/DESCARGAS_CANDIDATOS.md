@@ -1,5 +1,7 @@
 # Lista verificada de descargas para candidatos locales
 
+> **Actualización 12/11/2026:** esta es la referencia original de 375 archivos, no el catálogo completo actual. Consultar [ampliación y reutilizaciones](DESCARGAS_ADICIONALES.md), [manifiesto adicional](model_download_manifest_additional.json) y [estado de los dos discos](ESTADO_PROYECTO.md). No repetir descargas ya comunicadas. Los conteos originales no incluyen los candidatos añadidos después.
+
 Verificada: 6 de noviembre de2026. Enlaces fijados a la revisión consultada,
 tamaños en GB decimales y SHA256 de archivos grandes registrados en el manifiesto.
 Se consultó el inventario remoto; no se descargaron pesos ni se aceptaron licencias.

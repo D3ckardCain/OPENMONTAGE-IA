@@ -1,5 +1,7 @@
 # Validación local del modo de costo cero
 
+> **Estado 12/11/2026:** las comprobaciones de código descritas aquí no equivalen a inferencia física. Continúa la fase de descargas y documentación. Ver [estado consolidado](ESTADO_PROYECTO.md) y [ampliación del catálogo](DESCARGAS_ADICIONALES.md).
+
 ## Resultado verificable
 
 Comprobación ampliada del fork: **614 tests aprobados, 1 omitido y 14 subtests
@@ -112,3 +114,14 @@ La misma batería enfocada de `make test-zero-cost`, ampliada con
 independiente. Esto no equivale a aprobar toda la suite heredada ni a probar
 modelos reales. Se corrigieron mensajes de `make setup` que sugerían API keys o
 sustitución por TTS de nube cuando Piper no estuviera instalado.
+
+## Validación documental del 12 de noviembre de 2026
+
+Se consultaron metadatos de 26 repositorios HF fijados a revisiones concretas y se
+registraron cuatro grupos externos adicionales. El manifiesto adicional contiene
+189 destinos canónicos, 26 grupos y siete reutilizaciones identificadas. Se validó
+con `select_entries(manifest, ['all'])` del comprobador existente: referencias de
+grupo, destinos únicos, tamaños, formato de hashes y revisiones. Se comprobaron
+los enlaces internos de los documentos nuevos. No se descargaron pesos para esta
+actualización, no se inspeccionaron de nuevo los discos Windows y no se realizó
+inferencia, publicación ni una nueva ejecución de la suite de código.

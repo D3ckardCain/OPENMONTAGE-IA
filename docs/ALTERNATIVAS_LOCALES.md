@@ -1,5 +1,7 @@
 # Alternativas locales para OPENMONTAGE-IA
 
+> **Ampliación 12/11/2026:** ver [registro adicional de 30 grupos](DESCARGAS_ADICIONALES.md), [estado real](ESTADO_PROYECTO.md) y [diseño de agentes/campañas](AUTOMATIZACION_AGENTES.md). Prioridad español, después inglés; todas las redes objetivo. Continúa la fase de descarga/documentación, sin inferencia ni integración certificada de estos nuevos candidatos.
+
 Revisión de fuentes: 6 de noviembre de 2026. Complementa
 [Licencias y pagos](LICENCIAS_Y_PAGOS.md). Alcance: panorama amplio de familias
 relevantes para producción audiovisual local, no inventario exhaustivo de cada

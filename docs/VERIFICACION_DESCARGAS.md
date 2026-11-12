@@ -1,5 +1,7 @@
 # Comprobar las descargas locales
 
+> **Actualización 12/11/2026:** [estado e inventario histórico de ADATA y Seagate](ESTADO_PROYECTO.md). El catálogo original encontró 367 de 375 por ruta/tamaño; ocho ausencias se comunicaron para descarga, sin nueva verificación. Los [archivos adicionales](DESCARGAS_ADICIONALES.md) tienen [manifiesto separado](model_download_manifest_additional.json). No confundir descarga declarada, tamaño coincidente, SHA verificado e inferencia correcta.
+
 Estado: 6 de noviembre de 2026. Comprobador nuevo:
 `scripts/verify_model_downloads.py`. Solo usa biblioteca estándar Python 3.10+,
 compatible con el Python embebido de ComfyUI. El código del fork y su manifiesto
@@ -97,3 +99,20 @@ Actualización del 7 de noviembre de 2026: el comprobador rechaza inventarios o 
 Un manifiesto vacío o ambiguo termina con código 2; no puede producir una aprobación de cero archivos. Esto valida la estructura del inventario, no demuestra que una lista editada conserve todos los componentes del motor: debe mantenerse el manifiesto revisado del repositorio.
 
 Validación de esta actualización: **49 pruebas aprobadas** entre ambos comprobadores, incluyendo 13 casos nuevos. Se usaron archivos sintéticos pequeños y el inventario real de 375 destinos; no se han inspeccionado los pesos de tu PC ni realizado inferencia.
+
+## Manifiesto adicional de noviembre
+
+Preparado para la fase posterior de verificación (no ejecutado en los discos):
+
+```powershell
+python scripts/verify_model_downloads.py --manifest docs/model_download_manifest_additional.json --groups all --root "D:\OPENMONTAJE-IA" --sha256
+```
+
+El manifiesto conserva el prefijo lógico C:/OPENMONTAJE-IA del comprobador; `--root`
+lo redirige al disco elegido. Identificar antes ADATA o Seagate por nombre y serie,
+no solo por D:. Cada disco contiene una parte del conjunto: un resultado MISSING
+no demuestra que falte en ambos. Hay que combinar inventarios y resolver fuentes
+compartidas antes del dictamen final. Las entradas sin SHA256 autorizado producen
+HASH_UNAVAILABLE cuando se solicita hash; Git blob SHA1 no reemplaza ese SHA256.
+El manifiesto adicional registra archivos HF seleccionados y reutilizaciones, no
+los grupos de GitHub ni todos los auxiliares omitidos: no es un instalador completo.

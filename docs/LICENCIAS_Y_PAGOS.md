@@ -1,5 +1,7 @@
 # Licencias y pagos de OPENMONTAGE-IA
 
+> **Ampliación 12/11/2026:** se añadieron 30 grupos de candidatos/utilidades; sus licencias, fuentes, excepciones y dependencias compartidas están en [descargas adicionales](DESCARGAS_ADICIONALES.md). Parakeet exige atribución CC-BY-4.0; GATED con acceso concedido no equivale a licencia comercial irrestricta. La revisión no certifica todos los auxiliares ni derechos sobre el contenido. Ver también [automatización y publicación](AUTOMATIZACION_AGENTES.md).
+
 Revisión: 6 de noviembre de 2026. Código revisado: rama
 `feat/zero-cost-local-policy`, commit `cf6a6b24bbed43ba837195caf4de5681a0d3b26c`.
 
