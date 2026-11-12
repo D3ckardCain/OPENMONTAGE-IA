@@ -42,7 +42,9 @@ class _GenBase(BaseTool):
     version = "1.0.0"
     tier = ToolTier.GENERATE
     determinism = Determinism.DETERMINISTIC
-    runtime = ToolRuntime.API
+    # Cache behavior is tested with a local fixture: API execution is forbidden
+    # in this fork and is covered separately by test_zero_cost_policy.py.
+    runtime = ToolRuntime.LOCAL
     idempotency_key_fields = ["prompt"]
 
     def __init__(self) -> None:
@@ -50,7 +52,7 @@ class _GenBase(BaseTool):
         self.calls = 0
 
     def estimate_cost(self, inputs: dict) -> float:
-        return 0.05
+        return 0.0
 
     def execute(self, inputs: dict) -> ToolResult:
         self.calls += 1
@@ -114,7 +116,7 @@ class _MultiArtGen(_GenBase):
             success=True,
             data={"output": str(out)},
             artifacts=[str(out), str(side)],
-            cost_usd=0.05,
+            cost_usd=0.0,
         )
 
 
@@ -137,7 +139,7 @@ class _NoPathGen(_GenBase):
         out.write_bytes(b"data")
         return ToolResult(
             success=True, data={"output": str(out)},
-            artifacts=[str(out)], cost_usd=0.05,
+            artifacts=[str(out)], cost_usd=0.0,
         )
 
 
@@ -156,7 +158,7 @@ class _InputFileGen(_GenBase):
         out.write_bytes(b"OUT:" + src)
         return ToolResult(
             success=True, data={"output": str(out)},
-            artifacts=[str(out)], cost_usd=0.05,
+            artifacts=[str(out)], cost_usd=0.0,
         )
 
 
@@ -198,7 +200,7 @@ def test_identical_call_is_served_from_cache(cache_on):
 
     stats = get_default_asset_cache().stats()
     assert stats["hits_this_session"] == 1
-    assert stats["cost_saved_usd_this_session"] == 0.05
+    assert stats["cost_saved_usd_this_session"] == 0.0
 
 
 def test_disabled_by_default_does_not_cache(tmp_path, monkeypatch):

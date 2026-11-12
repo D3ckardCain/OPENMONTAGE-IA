@@ -12,7 +12,7 @@ import pkgutil
 from types import ModuleType
 from typing import Any, Optional
 
-from tools.base_tool import BaseTool, ToolStatus, ToolTier, ToolStability
+from tools.base_tool import BaseTool, ToolStatus, ToolTier, ToolStability, zero_cost_block_reason
 
 
 # Unicode punctuation that breaks on Windows cp1252 stdout. Map each to an
@@ -191,7 +191,13 @@ class ToolRegistry:
             candidates.append(tool.fallback)
         for name in candidates:
             fb = self.get(name)
-            if fb and fb.get_status() == ToolStatus.AVAILABLE:
+            if fb is None:
+                continue
+            if zero_cost_block_reason(fb) is not None:
+                continue
+            if tool.capability == "video_generation" and fb.capability != "video_generation":
+                continue
+            if fb.get_status() == ToolStatus.AVAILABLE:
                 return fb
         return None
 
@@ -285,6 +291,7 @@ class ToolRegistry:
                 "dependencies": info.get("dependencies", []),
                 "install_instructions": tool.install_instructions,
                 "status": status.value,
+                "cost_policy_block_reason": info.get("cost_policy_block_reason"),
             }
             for extra_key in (
                 "source_provider_menu",
@@ -403,6 +410,8 @@ class ToolRegistry:
         setup_offers: list[dict[str, Any]] = []
         for cap, bucket in menu.items():
             for entry in bucket.get("unavailable", []):
+                if entry.get("cost_policy_block_reason"):
+                    continue
                 offer = entry.get("setup_offer")
                 if offer:
                     setup_offers.append(

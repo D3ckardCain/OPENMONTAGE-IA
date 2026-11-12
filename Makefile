@@ -6,7 +6,7 @@ PIP = $(RUN_PYTHON) -m pip
 
 .DEFAULT_GOAL := setup
 
-.PHONY: setup install install-dev install-gpu test test-contracts lint clean preflight demo demo-list hyperframes-doctor hyperframes-warm venv ensure-venv
+.PHONY: setup install install-dev install-gpu test test-zero-cost test-contracts lint clean preflight demo demo-list hyperframes-doctor hyperframes-warm venv ensure-venv
 
 # ---- Virtual environment ----
 
@@ -59,7 +59,7 @@ setup: ensure-venv
 	cd remotion-composer && npm install
 	@echo ""
 	@echo "==> Installing free offline TTS (Piper)..."
-	$(PIP) install piper-tts || echo "  [skip] piper-tts install failed — TTS will use cloud providers instead"
+	$(PIP) install piper-tts || echo "  [skip] piper-tts install failed — local TTS unavailable; install Piper before narration"
 	@echo ""
 	@echo "==> Installing HyperFrames runtime (cache-warm via npx)..."
 	@echo "    Pulls the 'hyperframes' npm package into the local npx cache so the"
@@ -67,10 +67,10 @@ setup: ensure-venv
 	@npx --yes hyperframes --version >/dev/null 2>&1 && echo "    HyperFrames CLI cached (npx)" || echo "  [skip] HyperFrames cache-warm failed — offline or npm unavailable; first render will fetch on demand"
 	@$(RUN_PYTHON) -c "from tools.video.hyperframes_compose import HyperFramesCompose; HyperFramesCompose._npm_resolve_cache=None; c=HyperFramesCompose()._runtime_check(); print(f'    HyperFrames runtime_available={c[\"runtime_available\"]}, npm={c.get(\"npm_package_version\") or c.get(\"npm_resolve_error\")}'); [print(f'    note: {r}') for r in c['reasons']]" || echo "  [skip] HyperFrames check failed — runtime can be set up later"
 	@echo ""
-	$(RUN_PYTHON) -c "import shutil, os; e=os.path.exists('.env'); shutil.copy('.env.example','.env') if not e else None; print('==> Created .env from .env.example — add your API keys there.' if not e else '==> .env already exists — skipping.')"
+	$(RUN_PYTHON) -c "import shutil, os; e=os.path.exists('.env'); shutil.copy('.env.example','.env') if not e else None; print('==> Created .env from .env.example — paid APIs remain disabled by the fork.' if not e else '==> .env already exists — skipping.')"
 	@echo ""
 	@echo "Done! Open this project in your AI coding assistant and start creating."
-	@echo "  Optional: add API keys to .env to unlock cloud providers."
+	@echo "  Paid API providers remain disabled; configure local engines instead."
 	@echo "  Optional: run 'make install-gpu' if you have an NVIDIA GPU."
 	@echo "  Optional: run 'make hyperframes-doctor' to fully validate the HyperFrames runtime."
 	@echo "  Optional: run 'make hyperframes-warm' anytime to refresh the npx cache to the latest hyperframes version."
@@ -91,6 +91,31 @@ install-gpu: ensure-venv
 
 test: ensure-venv
 	$(RUN_PYTHON) -m pytest tests/ -v
+
+# Focused fork checks: local core + cost policy + guarded ComfyUI + cache.
+# The upstream suite still contains expectations for disabled paid providers.
+test-zero-cost: ensure-venv
+	$(RUN_PYTHON) -m pytest tests/lib tests/backlot \
+		tests/contracts/test_phase0_contracts.py \
+		tests/contracts/test_phase1_contracts.py \
+		tests/contracts/test_phase2_contracts.py \
+		tests/contracts/test_phase3_contracts.py \
+		tests/contracts/test_zero_cost_provider_catalog.py \
+		tests/tools/test_3d_asset_generation.py \
+		tests/tools/test_zero_cost_selector_routes.py \
+		tests/tools/test_video_selector_routing.py \
+		tests/tools/test_scoring.py \
+		tests/tools/test_offline_test_guard.py \
+		tests/tools/test_zero_cost_policy.py \
+		tests/tools/test_comfyui_wan_local.py \
+		tests/tools/test_comfyui_artifacts.py \
+		tests/tools/test_local_model_downloads.py \
+		tests/tools/test_verify_model_downloads.py \
+		tests/tools/test_base_tool_dependencies.py \
+		tests/tools/test_base_tool_cache.py \
+		tests/tools/test_base_tool_cache_formats.py \
+		tests/tools/test_asset_cache_dry_run.py \
+		tests/tools/test_asset_cache_output_references.py -q
 
 test-contracts: ensure-venv
 	$(RUN_PYTHON) -m pytest tests/contracts/ -v

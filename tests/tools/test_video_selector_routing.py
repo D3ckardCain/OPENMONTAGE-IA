@@ -244,16 +244,15 @@ def test_fallback_excludes_image_selector_for_reference_to_video():
     assert "image_selector" not in fallback
 
 
-def test_fallback_keeps_image_selector_for_text_to_video():
-    """A still-image degraded fallback is acceptable for a non-motion brief."""
+def test_fallback_excludes_image_selector_for_text_to_video():
+    """The fork never proposes still images as an automatic video downgrade."""
     sel = VideoSelector()
     fallback = sel.fallback_tools_for({"operation": "text_to_video"})
-    assert "image_selector" in fallback
+    assert "image_selector" not in fallback
 
 
-def test_static_fallback_tools_property_still_lists_image_selector():
-    """The input-agnostic property preserves the old shape for external consumers."""
-    assert "image_selector" in VideoSelector().fallback_tools
+def test_static_fallback_tools_property_excludes_image_selector():
+    assert "image_selector" not in VideoSelector().fallback_tools
 
 
 # ---------------------------------------------------------------------------
@@ -286,9 +285,9 @@ def test_estimate_cost_zero_when_no_providers():
     assert sel.estimate_cost({"prompt": "x"}) == 0.0
 
 
-def test_ark_local_reference_routes_without_fal_upload(rankings, monkeypatch, tmp_path):
-    """An explicit Ark route preserves the local path for Ark's own encoder."""
-    ark = _StubTool("seedance_ark", "ark")
+def test_local_reference_routes_without_fal_upload(rankings, monkeypatch, tmp_path):
+    """A zero-cost local route preserves the local path without cloud upload."""
+    ark = _StubTool("local_video_fixture", "local_fixture", cost=0)
     ark.input_schema = {
         "properties": {
             "prompt": {},
@@ -296,7 +295,7 @@ def test_ark_local_reference_routes_without_fal_upload(rankings, monkeypatch, tm
             "reference_image_url": {},
         }
     }
-    rankings.append(_ScoreStub("seedance_ark", "ark", 0.99))
+    rankings.append(_ScoreStub("local_video_fixture", "local_fixture", 0.99))
 
     def fail_upload(*args, **kwargs):
         raise AssertionError("Ark local references must never be uploaded via FAL")
@@ -310,8 +309,8 @@ def test_ark_local_reference_routes_without_fal_upload(rankings, monkeypatch, tm
     result = selector.execute({
         "prompt": "motion",
         "operation": "image_to_video",
-        "preferred_provider": "ark",
-        "allowed_providers": ["ark"],
+        "preferred_provider": "local_fixture",
+        "allowed_providers": ["local_fixture"],
         "reference_image_path": str(image_path),
     })
 
@@ -319,5 +318,5 @@ def test_ark_local_reference_routes_without_fal_upload(rankings, monkeypatch, tm
     assert ark.last_execute_inputs is not None
     assert ark.last_execute_inputs["reference_image_path"] == str(image_path)
     assert "image_url" not in ark.last_execute_inputs
-    assert result.data["selected_tool"] == "seedance_ark"
-    assert result.data["selected_provider"] == "ark"
+    assert result.data["selected_tool"] == "local_video_fixture"
+    assert result.data["selected_provider"] == "local_fixture"
