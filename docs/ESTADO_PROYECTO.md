@@ -110,3 +110,10 @@ comparación de declaraciones con pruebas y contexto omitido, trazabilidad de ci
 plantilla fija ES/EN y revisión editorial. Especificación y ejemplo vacío; integración,
 esquemas de ejecución, inferencia y producción pendientes. No requiere nuevas descargas
 obligatorias en esta etapa.
+
+## Series infantiles automatizadas
+
+[Diseño de las tres series y biblioteca de movimientos](SERIES_INFANTILES_AUTOMATIZADAS.md)
+documentado el 13 de noviembre de 2026. Públicos 2–4, 5–7 y 8–12; estilos 2D/3D/mixto
+pendientes de comparación. Descargas comunicadas: Krita, Blender y Rhubarb; Rigify
+incluido. Biblioteca propuesta, sin clips creados, integración ni inferencia probadas.
