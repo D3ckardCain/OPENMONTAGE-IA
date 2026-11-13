@@ -102,3 +102,11 @@ Qwen3.6 (comparar una variante), Qwen-Image-2512 y Qwen TTS CustomVoice de 1,7B 
 nuevos candidatos, con fuentes y revisiones. No se han entregado sus listas finales,
 no se declara descarga completada y no se han probado. Qwen-Image-2.1 y TangoFlux
 quedan excluidos del flujo comercial por sus restricciones no comerciales.
+
+## Verificación de afirmaciones y contexto
+
+[Diseño del módulo](VERIFICACION_AFIRMACIONES.md) documentado el 13 de noviembre de 2026:
+comparación de declaraciones con pruebas y contexto omitido, trazabilidad de citas,
+plantilla fija ES/EN y revisión editorial. Especificación y ejemplo vacío; integración,
+esquemas de ejecución, inferencia y producción pendientes. No requiere nuevas descargas
+obligatorias en esta etapa.
