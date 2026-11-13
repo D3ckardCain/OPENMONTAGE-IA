@@ -94,3 +94,11 @@ cuando se monte el entorno de ejecución.
 5. Integrar director local, revisión, campañas y publicación según criterios documentados.
 
 No iniciar automáticamente estos pasos futuros por actualizar la documentación.
+
+## Selección para el encargo de 48 vídeos
+
+La [revisión orientada a calidad](SELECCION_CALIDAD_CAMPANAS.md) propone MOSS-SoundEffect v2,
+Qwen3.6 (comparar una variante), Qwen-Image-2512 y Qwen TTS CustomVoice de 1,7B como
+nuevos candidatos, con fuentes y revisiones. No se han entregado sus listas finales,
+no se declara descarga completada y no se han probado. Qwen-Image-2.1 y TangoFlux
+quedan excluidos del flujo comercial por sus restricciones no comerciales.
