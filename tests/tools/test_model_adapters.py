@@ -177,3 +177,13 @@ def test_native_network_guard_covers_connect_and_connect_ex(monkeypatch):
     # Guard rejection happens before opening any real socket.
     for method in [socket.socket.connect,socket.socket.connect_ex]:
         with pytest.raises(RuntimeError,match='sin red'):method(None,('example.invalid',443))
+
+def test_kokoro_does_not_require_unused_voices(isolated,monkeypatch):
+    model=fake_model(isolated,'kokoro');studio.configure({'resource_roots':[str(isolated)]})
+    voices=list((model/'voices').glob('*.pt'));assert len(voices)>1
+    voices[0].unlink()
+    monkeypatch.setattr(adapters,'dependency_probe',lambda *a:{m:True for m in a[1]})
+    info=adapters.diagnostics('kokoro')
+    assert info['ready']
+    assert 'voices/'+voices[0].name in info['optional_missing_files']
+    assert voices[1].stem in info['available_voices']

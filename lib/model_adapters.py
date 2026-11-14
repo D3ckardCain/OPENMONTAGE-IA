@@ -146,11 +146,13 @@ def diagnostics(family,probe=True):
         return result
     model=resolve_model(family);result['model_dir']=str(model) if model else None
     if model is None:result['problems'].append('No se encuentra la carpeta local del modelo en los recursos configurados.')
-    missing=[]
+    missing=[];optional_missing=[]
     if model:
+        if family=='kokoro':result['available_voices']=[p.stem for p in sorted((model/'voices').glob('*.pt')) if p.is_file() and p.stat().st_size]
         for relative in expected_files(family,model):
             p=model/relative
-            if relative.lower().endswith(('.json','.safetensors','.bin','.pth','.pt','.onnx','.model','.pdiparams','.yml','.yaml','.py','.txt','.tiktoken')) and (not p.is_file() or not p.stat().st_size):missing.append(relative)
+            if relative.lower().endswith(('.json','.safetensors','.bin','.pth','.pt','.onnx','.model','.pdiparams','.yml','.yaml','.py','.txt','.tiktoken')) and (not p.is_file() or not p.stat().st_size):
+                (optional_missing if family=='kokoro' and relative.startswith('voices/') else missing).append(relative)
         for index in model.glob('*.index.json'):
             try:
                 for filename in set(studio.read_json(index).get('weight_map',{}).values()):
@@ -159,6 +161,7 @@ def diagnostics(family,probe=True):
             except (ValueError,TypeError):result['problems'].append('Índice de pesos inválido: '+index.name)
         if missing:result['problems'].append('Ficheros necesarios ausentes o vacíos: '+', '.join(sorted(set(missing))))
     result['missing_files']=sorted(set(missing))
+    result['optional_missing_files']=sorted(set(optional_missing))
     python=cfg.get('python_executable') or sys.executable
     modules=tuple(s['dependencies']);mtime=Path(python).stat().st_mtime if Path(python).is_file() else 0
     available=dependency_probe(python,modules,mtime,cfg.get('source_dir','')) if probe and model is not None else {}
