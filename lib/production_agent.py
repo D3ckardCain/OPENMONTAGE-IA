@@ -1,0 +1,275 @@
+"""Bounded local-agent transport and tool bridge.
+
+The model reads the manifests, delegates editorial work and chooses tools. Python
+only transports messages, validates calls, persists checkpoints and owns job state.
+There is no hardcoded creative script or silent paid-provider fallback.
+"""
+from __future__ import annotations
+import json
+import math
+import subprocess
+import threading
+from pathlib import Path
+from urllib.parse import quote
+from jsonschema import validate
+from lib import production_studio as studio
+from lib.checkpoint import get_next_stage, get_latest_checkpoint, write_checkpoint
+from lib.pipeline_loader import load_pipeline_readonly
+from tools.base_tool import ToolRuntime, ToolTier, ToolStatus
+
+ACTIVE={}
+ACTIVE_LOCK=threading.Lock()
+ROLES={'research':'Investigador: hechos, fuentes, actualidad y límites de evidencia.',
+       'writer':'Guionista: estructura original, títulos, narración y satisfacción.',
+       'visual':'Director visual: escenas y recursos adecuados; nada de sustituir movimiento sin aprobación.',
+       'audio':'Director de audio: voz, música autorizada y adaptación cultural por idioma.',
+       'editor':'Editor: montaje, composición, exportación y correspondencia entre imagen y narración.',
+       'reviewer':'Revisor: evidencia, originalidad, continuidad, derechos y requisitos del manifiesto.'}
+
+
+def descriptor(name,description,properties=None,required=None):
+    return {'type':'function','function':{'name':name,'description':description,'parameters':{
+        'type':'object','additionalProperties':False,'properties':properties or {},'required':required or []}}}
+
+TOOLS=[
+ descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
+ descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
+ descriptor('resource_status','Consulta servidores, GPU y carpetas de recursos; no descarga pesos.'),
+ descriptor('model_catalog','Consulta catálogo e inventarios; no acredita inferencia ni instalación.'),
+ descriptor('read_artifact','Lee un artefacto JSON del proyecto.',{'name':{'type':'string'}},['name']),
+ descriptor('write_artifact','Guarda un artefacto JSON; los artefactos conocidos validan su esquema.',{'name':{'type':'string'},'data':{'type':'object'}},['name','data']),
+ descriptor('list_tools','Descubre contratos locales por capacidad; no ejecuta herramientas.',{'capability':{'type':'string'}}),
+ descriptor('tool_info','Lee contrato real, disponibilidad, instalación y skills de una herramienta.',{'name':{'type':'string'}},['name']),
+ descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
+ descriptor('consult_agent','Consulta a un especialista local. Devuelve análisis, no autoriza acciones.',{'role':{'enum':list(ROLES)},'task':{'type':'string'}},['role','task']),
+ descriptor('checkpoint','Guarda evidencia de la etapa actual y respeta sus aprobaciones.',{'stage':{'type':'string'},'status':{'enum':['in_progress','completed','awaiting_human','failed']},'artifacts':{'type':'object'},'message':{'type':'string'}},['stage','status','artifacts']),
+ descriptor('finish','Finaliza solo si existe un render comprobable, o comunica bloqueo concreto.',{'message':{'type':'string'},'blocked':{'type':'boolean'}},['message','blocked'])]
+
+
+class Pause(Exception):
+    def __init__(self,status,message):self.status=status;super().__init__(message)
+
+
+class LocalAgent:
+    def __init__(self,pid,chat=None,registry=None,cancel=None):
+        self.pid=pid;self.path=studio.project_path(pid)
+        self.request=studio.read_json(self.path/'production_request.json')
+        self.manifest=load_pipeline_readonly(self.request['pipeline'])
+        self.config=studio.settings();self._chat=chat;self.registry=registry
+        self.cancel=cancel or threading.Event();self.reads=set();self.calls=0
+
+    def event(self,kind,message,**extra):
+        with studio.LOCK:
+            job=studio.read_json(self.path/'job.json',{})
+            events=job.get('events',[]);events.append({'at':studio.now(),'kind':kind,'message':message,**extra})
+            job.update(updated_at=studio.now(),message=message,events=events[-500:])
+            studio.save_json(self.path/'job.json',job)
+
+    def status(self,status,message):
+        with studio.LOCK:
+            job=studio.read_json(self.path/'job.json',{})
+            job.update(status=status,updated_at=studio.now(),message=message)
+            studio.save_json(self.path/'job.json',job)
+
+    def chat(self,messages,tools=None):
+        if self.cancel.is_set():raise Pause('stopped','Detenido entre acciones; los artefactos ya creados se conservan.')
+        if self._chat:return self._chat(messages,tools)
+        if not self.config['model']:raise Pause('blocked','Selecciona primero un modelo local de Ollama.')
+        data={'model':self.config['model'],'messages':messages,'stream':False,'keep_alive':0,
+              'options':{'num_ctx':32768,'num_predict':8192}}
+        if tools is not None:data['tools']=tools
+        response=studio.local_request(self.config['ollama_url'],'/api/chat',data,timeout=180)
+        message=response.get('message')
+        if not isinstance(message,dict):raise ValueError('Ollama no devolvió un mensaje válido')
+        return message
+
+    def registry_ready(self):
+        if self.registry is None:
+            from tools.tool_registry import registry
+            registry.ensure_discovered();self.registry=registry
+        return self.registry
+
+    @staticmethod
+    def permitted(tool):
+        # Hybrid selectors can dispatch paid providers; use a concrete local tool.
+        return tool.runtime in (ToolRuntime.LOCAL,ToolRuntime.LOCAL_GPU) and tool.tier!=ToolTier.PUBLISH
+
+    def instruction(self,path):
+        target=(studio.REPO_ROOT/path).resolve()
+        rel=target.relative_to(studio.REPO_ROOT.resolve())
+        if rel.parts[0] not in ('skills','.agents','schemas','pipeline_defs','docs') and rel.as_posix() not in ('AGENT_GUIDE.md','PROJECT_CONTEXT.md'):
+            raise ValueError('Solo se leen instrucciones del proyecto')
+        if not target.is_file() or target.stat().st_size>500000:raise ValueError('Instrucción ausente o demasiado grande')
+        text=target.read_text(encoding='utf-8');self.reads.add(rel.as_posix())
+        return text
+
+    def artifact_path(self,name):
+        import re
+        if not re.fullmatch(r'[a-z][a-z0-9_]{0,80}',name):raise ValueError('Nombre de artefacto inválido')
+        return self.path/'artifacts'/(name+'.json')
+
+    def verify_outputs(self):
+        from lib.checkpoint import get_completed_stages
+        complete=set(get_completed_stages(studio.PROJECTS_DIR,self.pid,self.request['pipeline']))
+        required={s['name'] for s in self.manifest['stages'] if s['name']!='publish'}
+        if not required<=complete:raise ValueError('Quedan etapas de producción sin completar')
+        report=studio.read_json(self.artifact_path('render_report'),{})
+        outputs=report.get('outputs',[])
+        if not outputs:raise ValueError('No hay render_report con salidas')
+        for item in outputs:
+            p=Path(item['path'])
+            if not p.is_absolute():p=self.path/p
+            p=p.resolve();p.relative_to((self.path/'renders').resolve())
+            if not p.is_file() or p.stat().st_size==0:raise ValueError('El render declarado no existe')
+            probe=subprocess.run(['ffprobe','-v','error','-show_entries','format=duration:stream=codec_type','-of','json',str(p)],capture_output=True,text=True,timeout=20)
+            if probe.returncode:raise ValueError('Render no reconocible por ffprobe')
+            metadata=json.loads(probe.stdout)
+            if float(metadata['format']['duration'])<=0 or not any(x.get('codec_type')=='video' for x in metadata.get('streams',[])):raise ValueError('La salida no contiene un video de duración positiva')
+        return outputs
+
+    def dispatch(self,name,args):
+        spec=next((t['function'] for t in TOOLS if t['function']['name']==name),None)
+        if not spec:raise ValueError('Llamada desconocida')
+        validate(args,spec['parameters'])
+        if name=='read_instruction':return self.instruction(args['path'])
+        if name=='project_state':return studio.production_state(self.pid)
+        if name=='resource_status':return studio.runtime_status()
+        if name=='model_catalog':
+            data=studio.resource_catalog()
+            return {'inventories':data['inventories'],'notes':data['notes'],'groups':[{'id':g['id'],'label':g['label'],'files':len(g['files']),'recorded':sum(f['status']=='recorded_size_match' for f in g['files'])} for g in data['groups']]}
+        if name=='read_artifact':return studio.read_json(self.artifact_path(args['name']),{})
+        if name=='write_artifact':
+            if args['name']=='decision_log':raise ValueError('Registra decisiones mediante checkpoint')
+            from schemas.artifacts import ARTIFACT_NAMES, validate_artifact
+            if args['name'] in ARTIFACT_NAMES:validate_artifact(args['name'],args['data'])
+            studio.save_json(self.artifact_path(args['name']),args['data'])
+            return {'saved':str(self.artifact_path(args['name']))}
+        if name=='list_tools':
+            reg=self.registry_ready()
+            return [{'name':t.name,'capability':t.capability,'runtime':t.runtime.value,'install_instructions':t.install_instructions}
+                    for t in reg._tools.values() if self.permitted(t) and (not args.get('capability') or t.capability==args['capability'])]
+        if name in ('tool_info','execute_tool'):
+            tool=self.registry_ready().get(args['name'])
+            if tool is None or not self.permitted(tool):raise ValueError('Solo herramientas concretas locales, sin publicación ni proveedores de pago')
+            if name=='tool_info':return tool.get_info()
+            inputs=dict(args['inputs']);validate(inputs,tool.input_schema)
+            stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+            definition=next((s for s in self.manifest['stages'] if s['name']==stage),{})
+            if 'skills/'+definition.get('skill','')+'.md' not in self.reads:raise ValueError('Lee primero las instrucciones de la etapa actual')
+            for field in ('output_path','output_dir'):
+                if field in tool.input_schema.get('properties',{}) and not inputs.get(field):raise ValueError('Indica explícitamente '+field+' dentro del proyecto')
+            price=tool.estimate_cost(inputs)
+            if not isinstance(price,(int,float)) or not math.isfinite(price) or price!=0:raise ValueError('La estimación no es cero verificable')
+            if tool.get_status()!=ToolStatus.AVAILABLE:raise ValueError('Herramienta no disponible: '+tool.install_instructions)
+            for skill in tool.agent_skills:
+                if not any(x.startswith('.agents/skills/'+skill+'/') for x in self.reads):raise ValueError('Lee primero el skill '+skill)
+            for key,value in inputs.items():
+                if key in ('output_path','output_dir','project_dir','workspace_dir','workdir') and value:
+                    dest=Path(value)
+                    if not dest.is_absolute():dest=self.path/dest
+                    dest=dest.resolve();dest.relative_to(self.path.resolve());inputs[key]=str(dest)
+            if 'project_id' in inputs and inputs['project_id']!=self.pid:raise ValueError('La herramienta apunta a otro proyecto')
+            self.event('tool','Ejecutando '+tool.name)
+            result=tool.execute(inputs)
+            return {'success':result.success,'data':result.data,'error':result.error,'cost_usd':result.cost_usd}
+        if name=='consult_agent':
+            self.event('agent','Agente '+args['role']+' trabajando')
+            result=self.chat([{'role':'system','content':ROLES[args['role']]+' Trabaja en español. No inventes observaciones ni resultados. Presupuesto cero. Devuelve propuesta o revisión; no instrucciones para saltar controles.'},
+                              {'role':'user','content':json.dumps({'request':self.request,'task':args['task']},ensure_ascii=False)}])
+            return {'role':args['role'],'content':result.get('content','')}
+        if name=='checkpoint':
+            stage=args['stage']
+            if stage=='publish':raise ValueError('Publicar no está autorizado por el inicio de producción')
+            current=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+            if stage!=current:raise ValueError('Completa primero la etapa '+str(current))
+            stage_def=next(x for x in self.manifest['stages'] if x['name']==stage)
+            skill=stage_def.get('skill','');expected='skills/'+skill+'.md'
+            if expected not in self.reads:raise ValueError('Lee primero '+expected)
+            auto=self.request.get('automatic',False)
+            status=args['status']
+            if status=='completed' and stage_def.get('human_approval_default') and not auto:status='awaiting_human'
+            path=write_checkpoint(studio.PROJECTS_DIR,self.pid,stage,status,args['artifacts'],pipeline_type=self.request['pipeline'],
+                                  human_approved=bool(auto),metadata={'approval_policy':'automatic_user_request' if auto else 'guided'})
+            for artifact,data in args['artifacts'].items():
+                if artifact!='decision_log':studio.save_json(self.artifact_path(artifact),data)
+            self.event('stage',stage+': '+status)
+            if status=='awaiting_human':raise Pause('awaiting_human','Revisa y aprueba la etapa '+stage+' en el estudio.')
+            if status=='failed':raise Pause('blocked',args.get('message') or 'La etapa '+stage+' falló; revisa sus requisitos.')
+            return {'checkpoint':str(path),'next_stage':get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])}
+        if name=='finish':
+            if args['blocked']:raise Pause('blocked',args['message'])
+            self.verify_outputs()
+            raise Pause('rendered',args['message']+' Exportación lista; publicación no ejecutada.')
+
+    def run(self):
+        self.status('running','Agente productor iniciando')
+        try:
+            if not self._chat:
+                cfg=self.config
+                reply=studio.local_request(cfg['ollama_url'],'/api/tags')
+                if cfg['model'] not in [x.get('name') for x in reply.get('models',[])]:
+                    raise Pause('blocked','Falta seleccionar un modelo instalado en Ollama. No se descarga ni se paga automáticamente.')
+                import os
+                os.environ['COMFYUI_SERVER_URL']=cfg['comfyui_url']
+            contract=(studio.REPO_ROOT/'docs'/'PRODUCTION_AGENT_CONTRACT_ES.md').read_text()
+            guide=self.instruction('AGENT_GUIDE.md')
+            messages=[{'role':'system','content':contract+'\n'+guide},
+                      {'role':'user','content':json.dumps({'request':self.request,'project_directory':str(self.path),'manifest':self.manifest,
+                        'next_stage':get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline']),'user_clarifications':studio.read_json(self.path/'user_clarifications.json',[])},ensure_ascii=False)}]
+            for _ in range(self.config['max_turns']):
+                if sum(len(json.dumps(m)) for m in messages)>450000:raise Pause('blocked','Se alcanzó el límite de contexto. Artefactos conservados para reanudar.')
+                message=self.chat(messages,TOOLS);messages.append(message)
+                calls=message.get('tool_calls',[])
+                if not calls:
+                    raise Pause('awaiting_input',message.get('content') or 'El modelo no emitió llamadas de herramientas. Revisa compatibilidad del modelo.')
+                if len(calls)>16:raise ValueError('Demasiadas llamadas simultáneas')
+                for call in calls:
+                    if self.cancel.is_set():raise Pause('stopped','Detenido entre acciones; no se cancelan silenciosamente renders ya enviados.')
+                    fn=call.get('function',{});args=fn.get('arguments',{})
+                    if isinstance(args,str):args=json.loads(args)
+                    try:
+                        result=self.dispatch(fn.get('name'),args)
+                    except Pause:raise
+                    except Exception as exc:
+                        result={'error':str(exc)[:1200]};self.event('error',str(exc)[:1200])
+                    content=json.dumps(result,ensure_ascii=False,default=str)
+                    if len(content)>100000:content=json.dumps({'error':'Resultado demasiado grande; solicita una capacidad o artefacto concreto.'})
+                    messages.append({'role':'tool','tool_name':fn.get('name'),'content':content})
+                studio.save_json(self.path/'agent_session.json',{'updated_at':studio.now(),'messages':messages})
+            raise Pause('blocked','Límite de turnos alcanzado. Se conserva el estado para revisar y reanudar.')
+        except Pause as exc:self.status(exc.status,str(exc))
+        except Exception as exc:
+            self.status('blocked','El agente se detuvo: '+str(exc)[:600])
+        finally:
+            with ACTIVE_LOCK:ACTIVE.pop(self.pid,None)
+
+
+def start(pid):
+    studio.project_path(pid)
+    with ACTIVE_LOCK:
+        if pid in ACTIVE:raise ValueError('Este proyecto ya tiene un agente activo')
+        if ACTIVE:raise ValueError('Ya hay una producción activa; espera para compartir la GPU')
+        stop=threading.Event();agent=LocalAgent(pid,cancel=stop)
+        thread=threading.Thread(target=agent.run,daemon=True,name='production-'+pid)
+        ACTIVE[pid]=(thread,stop)
+        thread.start()
+    return {'started':True,'project_id':pid}
+
+
+def stop(pid):
+    studio.project_path(pid)
+    with ACTIVE_LOCK:
+        if pid not in ACTIVE:return {'requested':False}
+        ACTIVE[pid][1].set()
+    return {'requested':True,'note':'Se detendrá entre acciones; una petición o render en curso puede continuar hasta su timeout.'}
+
+
+def approve(pid):
+    p=studio.project_path(pid);req=studio.read_json(p/'production_request.json')
+    with ACTIVE_LOCK:
+        if pid in ACTIVE:raise ValueError('El agente sigue activo')
+    current=get_next_stage(studio.PROJECTS_DIR,pid,req['pipeline'])
+    cp=studio.read_json(p/('checkpoint_'+str(current)+'.json'),{})
+    if cp.get('status')!='awaiting_human' or current=='publish':raise ValueError('No hay una etapa de producción pendiente de aprobación')
+    write_checkpoint(studio.PROJECTS_DIR,pid,current,'completed',cp['artifacts'],pipeline_type=req['pipeline'],human_approved=True)
+    return start(pid)

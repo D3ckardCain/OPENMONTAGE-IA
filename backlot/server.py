@@ -169,6 +169,9 @@ def create_app() -> FastAPI:
     from backlot.channel_routes import create_channel_router
     app.include_router(create_channel_router())
 
+    from backlot.studio_routes import create_studio_router
+    app.include_router(create_studio_router())
+
     # ---- API ----------------------------------------------------------
 
     @app.get("/api/health")

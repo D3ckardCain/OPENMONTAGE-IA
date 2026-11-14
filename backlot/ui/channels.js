@@ -47,6 +47,7 @@ form.onsubmit=event=>{
 function showChannel(ch,index){
   const card=element('article','','channel');card.append(element('span',`CANAL ${index+1}`,'rank'));
   const h=element('h2',''),a=element('a',ch.title||ch.id);a.href=`https://www.youtube.com/channel/${encodeURIComponent(ch.id)}`;a.target='_blank';a.rel='noopener noreferrer';h.append(a);card.append(h);
+  const produce=element('a','Crear video a partir de este canal','chip');produce.href='/studio?reference='+encodeURIComponent(a.href)+'&title='+encodeURIComponent(ch.title||ch.id);card.append(produce);
   const metrics=element('div','','metrics');for(const [title,value] of [['Vistas totales',ch.viewCount],['Suscriptores',ch.subscriberCount_public_rounded]]){const metric=element('div','','metric');metric.append(element('strong',format(value)),element('span',title));metrics.append(metric);}card.append(metrics);
   const created=ch.created_at?new Date(ch.created_at):null;
   card.append(element('p',`Creado: ${created&&!Number.isNaN(created.getTime())?created.toLocaleDateString('es-MX'):'fecha no disponible'}`));
