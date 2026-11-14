@@ -45,7 +45,12 @@ $('search').onsubmit=async event=>{
   $('results').replaceChildren();$('scope').textContent='';$('status').textContent='Buscando canales y comprobando filtros… Puede tardar unos minutos.';
   try{
     const response=await fetch('/api/research/channels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:$('query').value.trim(),...applied})});
-    const data=await response.json();if(!response.ok)throw Error(data.error||data.detail||'No se pudo completar la búsqueda.');
+    const data=await response.json();
+    if(!response.ok){
+      if(['MISSING_KEY','INVALID_KEY','API_DISABLED','ACCESS_DENIED'].includes(data.error_code))$('configuration').textContent=data.error;
+      throw Error(data.error||data.detail||'No se pudo completar la búsqueda.');
+    }
+    $('configuration').textContent='YouTube respondió a esta consulta · datos consultados ahora';
     data.results.forEach((ch,index)=>$('results').append(showChannel(ch,index)));
     $('status').textContent=data.results.length?`${data.results.length} canales encontrados.`:'Ningún canal coincide en los candidatos y la muestra revisados. Prueba otros filtros.';
     const excluded=Object.values(data.excluded).reduce((sum,n)=>sum+n,0);
@@ -54,4 +59,4 @@ $('search').onsubmit=async event=>{
   }catch(error){$('status').textContent=error.message;}
   finally{$('submit').disabled=false;$('open-filters').disabled=false;}
 };
-fetch('/api/research/channels/status').then(r=>r.json()).then(data=>{$('configuration').textContent=data.configured?'YouTube API configurada · consultas al buscar':'Pendiente: configurar la clave local de YouTube API. No se muestran datos de ejemplo.';}).catch(()=>{$('configuration').textContent='No se pudo comprobar la configuración.';});
+fetch('/api/research/channels/status').then(r=>r.json()).then(data=>{$('configuration').textContent=data.configured?'Clave local presente · se comprobará al buscar':'Pendiente: configurar la clave local de YouTube API. No se muestran datos de ejemplo.';}).catch(()=>{$('configuration').textContent='No se pudo comprobar la configuración.';});

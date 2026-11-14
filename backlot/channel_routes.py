@@ -45,6 +45,12 @@ def create_channel_router():
         async with busy:
             result=await asyncio.to_thread(YouTubeChannelSearch().execute,inputs)
         if not result.success:
+            failure=result.data.get('failure')
+            if failure:
+                status={'QUOTA_EXCEEDED':429,'RATE_LIMITED':429,'TIMEOUT':504,
+                        'RESOURCE_UNAVAILABLE':404,'INVALID_RESPONSE':502,'UPSTREAM_ERROR':502}.get(failure['code'],503)
+                return JSONResponse({'error':failure['message'],'error_code':failure['code'],
+                    'retryable':failure['retryable']},status_code=status,headers={'Cache-Control':'no-store'})
             status=422 if result.error.startswith(('CHANNEL_FILTERS_INVALID','CHANNEL_INPUT_INVALID')) else 503
             return JSONResponse({'error':result.error},status_code=status,headers={'Cache-Control':'no-store'})
         return JSONResponse(result.data,headers={'Cache-Control':'no-store'})

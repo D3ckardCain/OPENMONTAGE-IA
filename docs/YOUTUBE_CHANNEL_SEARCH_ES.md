@@ -84,3 +84,20 @@ La profundidad en páginas solo se aplica a temas; la muestra reciente se mantie
 cuando se activan filtros de contenido.
 
 Referencia oficial: https://developers.google.com/youtube/v3/docs/channels/list
+
+
+## Diagnóstico de fallos
+La presencia de una clave local no certifica su validez: esta se comprueba durante
+una consulta real. Los errores distinguen clave ausente/rechazada, API sin habilitar,
+acceso denegado, cuota agotada, límite temporal, desconexión, timeout y respuesta
+inválida. Se muestran mensajes propios y códigos estables; no se devuelven claves,
+URLs de petición, mensajes originales del proveedor ni cuerpos HTTP de error.
+La lectura del cuerpo de error está limitada a 64 KiB y su conexión se cierra.
+
+Una consulta fallida no devuelve resultados anteriores ni se transforma en una lista
+vacía satisfactoria. Se conservan el tema y los filtros en la pantalla para corregir
+y reintentar. No hay reintentos automáticos: la cuota agotada necesita restablecerse;
+los errores temporales se indican como tales a los agentes mediante `retryable`.
+No se promete una hora de recuperación ni se deduce que toda respuesta 403 sea cuota.
+
+Referencia: https://developers.google.com/youtube/v3/docs/errors

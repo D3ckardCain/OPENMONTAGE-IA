@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 import re
 import time
 
-from .youtube_client import YouTube, Unavailable, count, duration_seconds
+from .youtube_client import YouTube, Unavailable, YouTubeFailure, count, duration_seconds
 from .channel_identity import parse_channel_query
 
 
@@ -57,7 +57,7 @@ class ChannelFilters:
 class ChannelSearch(YouTube):
     def get(self, resource, **params):
         if time.monotonic() > self._deadline:
-            raise Unavailable('Consulta demasiado amplia; reduce páginas o filtros')
+            raise YouTubeFailure('SEARCH_TOO_BROAD')
         return super().get(resource, **params)
 
     def search_channels(self, query, filters=None, pages=1):

@@ -2,7 +2,7 @@
 from jsonschema import validate
 from tools.base_tool import ToolResult
 from .youtube_research import YouTubeResearch
-from .youtube_channels import ChannelSearch, ChannelFilters, Unavailable
+from .youtube_channels import ChannelSearch, ChannelFilters, Unavailable, YouTubeFailure
 from .channel_identity import parse_channel_query, InvalidChannelQuery
 
 FILTER_SCHEMA = {'type':'object','additionalProperties':False,'properties':{
@@ -15,7 +15,7 @@ FILTER_SCHEMA = {'type':'object','additionalProperties':False,'properties':{
 
 class YouTubeChannelSearch(YouTubeResearch):
     name = 'youtube_channel_search'
-    version = '0.3.0'
+    version = '0.4.0'
     capability = 'youtube_channel_research'
     capabilities = ['youtube_channel_research']
     input_schema = {'type':'object','additionalProperties':False,'required':['query'],
@@ -36,6 +36,9 @@ class YouTubeChannelSearch(YouTubeResearch):
             client = ChannelSearch()
             data = client.search_channels(inputs['query'],filters,inputs.get('pages',1))
             return ToolResult(success=True,data=data,artifacts=[],cost_usd=0)
+        except YouTubeFailure as exc:
+            return ToolResult(success=False,error=exc.code+': '+str(exc),
+                data={'stale_fallback':False,'failure':{'code':exc.code,'message':str(exc),'retryable':exc.retryable}})
         except Unavailable:
             return ToolResult(success=False,error='CHANNEL_SEARCH_UNAVAILABLE: comprueba clave, cuota, conexión o reduce páginas',data={'stale_fallback':False})
         except Exception:

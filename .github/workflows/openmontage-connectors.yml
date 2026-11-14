@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -r requirements.txt -r requirements-dev.txt
-      - run: python -m pytest tests/tools/test_official_uefa_live.py tests/tools/test_youtube_research.py tests/tools/test_youtube_client.py tests/contracts/test_cultural_audio.py tests/contracts/test_local_budget_policy.py tests/tools/test_youtube_channels.py tests/tools/test_channel_identity.py tests/backlot/test_channel_search.py -q
+      - run: python -m pytest tests/tools/test_official_uefa_live.py tests/tools/test_youtube_research.py tests/tools/test_youtube_client.py tests/contracts/test_cultural_audio.py tests/contracts/test_local_budget_policy.py tests/tools/test_youtube_channels.py tests/tools/test_channel_identity.py tests/tools/test_youtube_errors.py tests/backlot/test_channel_search.py -q
 
   browser-regressions:
     runs-on: ubuntu-latest

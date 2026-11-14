@@ -54,3 +54,16 @@ def test_bad_channel_link_reports_input_error(client,monkeypatch):
     response=client.post('/api/research/channels',json={'query':'https://youtube.com/watch?v=abc'})
     assert response.status_code==422
     assert response.json()['error'].startswith('CHANNEL_INPUT_INVALID:')
+
+@pytest.mark.parametrize('code,status',[('QUOTA_EXCEEDED',429),('RATE_LIMITED',429),
+    ('INVALID_KEY',503),('TIMEOUT',504),('RESOURCE_UNAVAILABLE',404)])
+def test_structured_failure_reaches_ui(client,monkeypatch,code,status):
+    from tools.research.youtube_errors import MESSAGES
+    message,retryable=MESSAGES[code]
+    result=ToolResult(success=False,error=code,data={'stale_fallback':False,
+        'failure':{'code':code,'message':message,'retryable':retryable}})
+    monkeypatch.setattr('backlot.channel_routes.YouTubeChannelSearch.execute',lambda *args:result)
+    response=client.post('/api/research/channels',json={'query':'a'})
+    assert response.status_code==status
+    assert response.json()=={'error':message,'error_code':code,'retryable':retryable}
+    assert response.headers['cache-control']=='no-store'

@@ -5,10 +5,19 @@ import argparse
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 import json, os, re
+import socket
+from .youtube_errors import MESSAGES, classify_http_error, read_http_error
 import urllib.request, urllib.error
 from urllib.parse import urlencode
 
 class Unavailable(ValueError): pass
+
+class YouTubeFailure(Unavailable):
+    def __init__(self, code):
+        self.code = code if code in MESSAGES else 'UNKNOWN_ERROR'
+        message, self.retryable = MESSAGES[self.code]
+        super().__init__(message)
+
 
 def duration_seconds(value):
     m=re.fullmatch(r'P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?',value or '')
@@ -40,7 +49,7 @@ class Filters:
 class YouTube:
     def __init__(self,key=None,transport=None):
         self.key=key or os.environ.get('YOUTUBE_API_KEY')
-        if not self.key:raise Unavailable('Falta YOUTUBE_API_KEY; no se usa scraping como sustituto')
+        if not self.key:raise YouTubeFailure('MISSING_KEY')
         self.transport=transport;self.calls={}
     def get(self,resource,**params):
         self.calls[resource]=self.calls.get(resource,0)+1
@@ -49,13 +58,26 @@ class YouTube:
             url='https://www.googleapis.com/youtube/v3/'+resource+'?'+urlencode({**params,'key':self.key})
             try:
                 with urllib.request.urlopen(urllib.request.Request(url,headers={'Cache-Control':'no-cache'}),timeout=30) as r:
-                    if r.geturl()!=url:raise Unavailable('Redirección inesperada')
+                    if r.geturl()!=url:raise YouTubeFailure('INVALID_RESPONSE')
                     raw=r.read(8_000_001)
-                    if len(raw)>8_000_000:raise Unavailable('Respuesta excesiva')
+                    if len(raw)>8_000_000:raise YouTubeFailure('INVALID_RESPONSE')
                     result=json.loads(raw)
-            except urllib.error.HTTPError as e:raise Unavailable('YouTube HTTP '+str(e.code)+'; comprueba clave, API y cuota. No se devuelven datos anteriores.') from None
-            except (urllib.error.URLError,TimeoutError):raise Unavailable('No se pudo consultar YouTube') from None
-        if not isinstance(result,dict) or not isinstance(result.get('items'),list) or 'error' in result:raise Unavailable('Respuesta API no válida')
+            except urllib.error.HTTPError as e:
+                raise YouTubeFailure(read_http_error(e)) from None
+            except urllib.error.URLError as e:
+                code = 'TIMEOUT' if isinstance(e.reason,(TimeoutError,socket.timeout)) else 'NETWORK_ERROR'
+                raise YouTubeFailure(code) from None
+            except TimeoutError:
+                raise YouTubeFailure('TIMEOUT') from None
+            except OSError:
+                raise YouTubeFailure('NETWORK_ERROR') from None
+            except (ValueError,UnicodeDecodeError):
+                raise YouTubeFailure('INVALID_RESPONSE') from None
+        if isinstance(result,dict) and isinstance(result.get('error'),dict):
+            status=result['error'].get('code',400)
+            raise YouTubeFailure(classify_http_error(status if type(status) is int else 400,result))
+        if not isinstance(result,dict) or not isinstance(result.get('items'),list) or 'error' in result:
+            raise YouTubeFailure('INVALID_RESPONSE')
         return result
     def pages(self,resource,max_pages,**params):
         if type(max_pages) is not int or not 1<=max_pages<=20:raise Unavailable('Usa 1..20 páginas por consulta')

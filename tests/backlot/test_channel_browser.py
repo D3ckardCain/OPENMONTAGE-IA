@@ -56,4 +56,13 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         assert page.locator('dialog').is_visible()
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         page.get_by_role('button',name='Cancelar',exact=True).click()
+        page.unroute('**/api/research/channels')
+        page.route('**/api/research/channels',lambda route:route.fulfill(status=429,json={
+            'error':'La cuota de YouTube se agotó. Espera antes de repetir.',
+            'error_code':'QUOTA_EXCEEDED','retryable':False}))
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.get_by_text('La cuota de YouTube se agotó. Espera antes de repetir.',exact=True).wait_for()
+        assert page.locator('.channel').count()==0
+        assert page.locator('#query').input_value()=='@example'
+        assert page.get_by_role('button',name='Buscar canales',exact=True).is_enabled()
         browser.close()
