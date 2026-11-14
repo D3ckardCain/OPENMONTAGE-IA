@@ -1,4 +1,4 @@
-"""Channel discovery ordered by public lifetime views, then subscribers.
+"""Channel discovery ordered by channel or matching-publication views, then subscribers.
 Content filters inspect recent uploads, not the complete channel history.
 No derived viral/earnings score, media download or persistent cache.
 """
@@ -27,6 +27,7 @@ class ChannelFilters:
     min_publication_views: int = 0
     min_matching_publications: int = 1
     sample_size: int = 10
+    sort_by: str = 'channel_views'
 
     @property
     def inspect_uploads(self):
@@ -56,8 +57,27 @@ class ChannelFilters:
             raise Unavailable('País ISO de dos letras mayúsculas')
         if self.content_type not in {'any','short_candidate','over_3m','medium','long'}:
             raise Unavailable('Tipo de contenido inválido')
+        if self.sort_by not in {'channel_views','matching_publication_views'}:
+            raise Unavailable('Orden inválido')
+        if self.sort_by == 'matching_publication_views' and self.published_within == 'any':
+            raise Unavailable('Selecciona un periodo de publicaciones para ordenar por coincidencias recientes')
         if self.published_within not in {'any','hour','day','week','month','year'}:
             raise Unavailable('Periodo inválido')
+
+
+def channel_order(sort_by):
+    primary = 'matching_publication_views_sum' if sort_by == 'matching_publication_views' else 'viewCount'
+    return [primary+'_desc','subscriberCount_public_rounded_desc']
+
+
+def sort_channels(rows, sort_by):
+    def key(row):
+        views = ((row.get('content_review') or {}).get('matching_publication_views_sum')
+                 if sort_by == 'matching_publication_views' else row['viewCount'])
+        subs = row['subscriberCount_public_rounded']
+        return (views is None, -views if views is not None else 0,
+                -subs if subs is not None else 1, row['id'])
+    rows.sort(key=key)
 
 
 class ChannelSearch(YouTube):
@@ -165,9 +185,11 @@ class ChannelSearch(YouTube):
                 if len(matches) < filters.min_matching_publications:
                     reject('insufficient_matching_publications'); continue
                 dates = [v['snippet']['publishedAt'] for v in matches if v['snippet'].get('publishedAt')]
+                matched_views = [count(v.get('statistics',{}).get('viewCount')) for v in matches]
                 row['content_review'] = dict(sample_requested=filters.sample_size,
                     inspected=len(videos),matched=len(matches),
                     minimum_required=filters.min_matching_publications,
+                    matching_publication_views_sum=sum(matched_views) if all(v is not None for v in matched_views) else None,
                     matching_publications=[dict(id=v['id'],title=v.get('snippet',{}).get('title'),
                         published_at=v.get('snippet',{}).get('publishedAt'),
                         viewCount=count(v.get('statistics',{}).get('viewCount')),
@@ -181,14 +203,16 @@ class ChannelSearch(YouTube):
         else:
             for row in rows:
                 row.pop('uploads_playlist',None)
+        sort_channels(rows,filters.sort_by)
         return dict(source='YouTube Data API',retrieved_at_utc=datetime.now(timezone.utc).isoformat(),
-            result_type='channels',order=['viewCount_desc','subscriberCount_public_rounded_desc'],
+            result_type='channels',order=channel_order(filters.sort_by),
             scope=dict(query=query.strip(),lookup_mode=identity_kind,
                        pages_requested=pages,pages_applicable=identity_kind=='keywords',search_pages_exhausted=exhausted,
                        candidate_channels=len(ids),global_coverage=False,
                        content_filter_scope='recent_upload_sample' if filters.inspect_uploads else 'not_requested'),
             filters=asdict(filters),results=rows,excluded=excluded,requests=dict(self.calls),
-            notes=['Orden por vistas acumuladas del canal; suscriptores como segundo criterio.',
+            notes=['Orden seleccionado: '+filters.sort_by+'; suscriptores como segundo criterio.',
+                   'La suma de vistas de publicaciones coincidentes corresponde solo a la muestra, no a vistas ganadas por el canal durante el periodo.',
                    'La antigüedad se mide desde la creación del canal, no desde su primer video ni un cambio de propietario.',
                    'La fecha de publicación no mide vistas ganadas dentro del periodo por un canal antiguo.',
                    'La muestra no certifica viralidad actual, crecimiento, monetización ni RPM.',

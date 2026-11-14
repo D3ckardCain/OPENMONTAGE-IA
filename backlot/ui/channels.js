@@ -18,6 +18,7 @@ function readFilters(){
     if(filters[low]!==undefined && filters[high]!==undefined && filters[low]>filters[high])throw Error('El mínimo no puede superar al máximo.');
   }
   if(filters.min_matching_publications<1 || filters.min_matching_publications>filters.sample_size)throw Error('Las coincidencias mínimas deben estar entre 1 y el tamaño de la muestra.');
+  if(filters.sort_by==='matching_publication_views'&&filters.published_within==='any')throw Error('Selecciona una fecha reciente para ordenar por publicaciones coincidentes.');
   return {pages,filters,max_requests};
 }
 $('open-filters').onclick=()=>{snapshot=[...new FormData(form)];$('filter-error').textContent='';dialog.showModal();};
@@ -25,6 +26,10 @@ function cancel(){restore(snapshot);dialog.close();}
 $('close-filters').onclick=cancel;$('cancel-filters').onclick=cancel;
 dialog.addEventListener('cancel',event=>{event.preventDefault();cancel();});
 $('reset-filters').onclick=()=>form.reset();
+$('recent-preset').onclick=()=>{
+  for(const name of ['min_views','max_views','max_channel_age_days'])form.elements.namedItem(name).value='';
+  restore([['published_within','month'],['min_publication_views','100000'],['min_matching_publications','3'],['sample_size','20'],['sort_by','matching_publication_views']]);
+};
 $('young-preset').onclick=()=>{
   form.elements.namedItem('min_views').value='1000000';
   form.elements.namedItem('max_views').value='';
@@ -32,7 +37,7 @@ $('young-preset').onclick=()=>{
 };
 form.onsubmit=event=>{
   event.preventDefault();try{applied=readFilters();dialog.close();
-    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && value!=='any' && !(key==='min_matching_publications'&&value===1) && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
+    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && key!=='sort_by' && value!=='any' && !(key==='min_matching_publications'&&value===1) && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
     $('filter-count').textContent=n?`(${n})`:'';
     // Old results must not appear as if the new filters have been searched.
     $('results').replaceChildren();$('scope').textContent='';$('status').textContent='Filtros aplicados. Pulsa Buscar canales para consultar.';
@@ -47,7 +52,9 @@ function showChannel(ch,index){
   card.append(element('p',`${format(ch.videoCount)} publicaciones públicas · País: ${ch.country_declared||'no declarado'}`));
   if(ch.matched_queries)card.append(element('p',`Temas: ${ch.matched_queries.join(' · ')}`));
   if(ch.content_review){
-    const r=ch.content_review;card.append(element('p',`${r.matched} coincidencias entre ${r.inspected} publicaciones revisadas (muestra de ${r.sample_requested}).`));
+    const r=ch.content_review;
+    if('matching_publication_views_sum' in r)card.append(element('p',`Vistas de publicaciones coincidentes: ${format(r.matching_publication_views_sum)} · suma de la muestra revisada.`));
+    card.append(element('p',`${r.matched} coincidencias entre ${r.inspected} publicaciones revisadas (muestra de ${r.sample_requested}).`));
     if(r.matching_publications?.length){
       const details=element('details',''),summary=element('summary','Ver publicaciones coincidentes');details.append(summary);
       const list=element('ul','');
@@ -76,6 +83,7 @@ $('search').onsubmit=async event=>{
     const payload=isBatch?{queries,...applied}:{query:queries[0],pages:applied.pages,filters:applied.filters};
     const response=await fetch(isBatch?'/api/research/channels/batch':'/api/research/channels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await response.json();
+    $('result-order').textContent=data.order?.[0]==='matching_publication_views_sum_desc'?'Orden: vistas de publicaciones coincidentes ↓ · suscriptores ↓':'Orden: vistas totales ↓ · suscriptores ↓';
     if(!response.ok){
       if(['MISSING_KEY','INVALID_KEY','API_DISABLED','ACCESS_DENIED'].includes(data.error_code))$('configuration').textContent=data.error;
       if(isBatch && data.result_type==='channels'){

@@ -8,6 +8,7 @@ from .channel_identity import parse_channel_query, InvalidChannelQuery
 FILTER_SCHEMA = {'type':'object','additionalProperties':False,'properties':{
     **{key:{'type':'integer','minimum':0} for key in ('min_views','max_views','min_subscribers',
        'max_subscribers','min_minutes','max_minutes','min_publication_views')},
+    'sort_by':{'enum':['channel_views','matching_publication_views']},
     'min_matching_publications':{'type':'integer','minimum':1,'maximum':20},
     'max_channel_age_days':{'type':'integer','minimum':1,'maximum':36500},
     'language':{'type':'string'},'country':{'type':'string'},
@@ -17,7 +18,7 @@ FILTER_SCHEMA = {'type':'object','additionalProperties':False,'properties':{
 
 class YouTubeChannelSearch(YouTubeResearch):
     name = 'youtube_channel_search'
-    version = '0.6.0'
+    version = '0.7.0'
     capability = 'youtube_channel_research'
     capabilities = ['youtube_channel_research']
     input_schema = {'type':'object','additionalProperties':False,'required':['query'],

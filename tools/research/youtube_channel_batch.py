@@ -7,13 +7,13 @@ import time
 from jsonschema import validate
 from tools.base_tool import ToolResult
 from .youtube_channel_search import YouTubeChannelSearch, FILTER_SCHEMA
-from .youtube_channels import ChannelSearch, ChannelFilters, YouTubeFailure
+from .youtube_channels import ChannelSearch, ChannelFilters, YouTubeFailure, channel_order, sort_channels
 from .channel_identity import parse_channel_query
 
 
 class YouTubeChannelBatch(YouTubeChannelSearch):
     name = 'youtube_channel_batch'
-    version = '0.1.0'
+    version = '0.2.0'
     capability = 'youtube_channel_batch_research'
     capabilities = ['youtube_channel_batch_research']
     input_schema = {'type':'object','additionalProperties':False,'required':['queries'],
@@ -63,12 +63,11 @@ class YouTubeChannelBatch(YouTubeChannelSearch):
         except Exception:
             failure={'code':'UNKNOWN_ERROR','message':'El lote se detuvo por un fallo de consulta. No se reintenta automáticamente.','retryable':False}
         result=list(rows.values())
-        result.sort(key=lambda row:(-row['viewCount'],
-            -(row['subscriberCount_public_rounded'] if row['subscriberCount_public_rounded'] is not None else -1),row['id']))
+        sort_channels(result,filters.sort_by)
         pending=queries[len(completed):]
         data={'result_type':'channels','source':'YouTube Data API',
             'started_at_utc':started,'retrieved_at_utc':datetime.now(timezone.utc).isoformat(),
-            'results':result,'order':['viewCount_desc','subscriberCount_public_rounded_desc'],
+            'results':result,'order':channel_order(filters.sort_by),
             'queries':queries,'completed_queries':completed,'pending_queries':pending,
             'failed_query':failed_query,'complete':failure is None,'partial':bool(completed) and failure is not None,
             'stale_fallback':False,'requests':requests,'max_requests':limit,

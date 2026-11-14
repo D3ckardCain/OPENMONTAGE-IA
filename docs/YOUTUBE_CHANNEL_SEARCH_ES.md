@@ -8,7 +8,7 @@ actuales; no se almacena un inventario de estadísticas ni se recuperan resultad
 anteriores cuando falla la consulta.
 
 ## Orden y filtros
-El orden es fijo: vistas totales del canal descendentes; suscriptores públicos
+El orden predeterminado es vistas totales del canal descendentes; suscriptores públicos
 como segundo criterio en empates. No prioriza suscriptores por encima de vistas.
 Los contadores de suscriptores están redondeados por YouTube. Un valor oculto o
 faltante se representa como desconocido, nunca como cero; si se exige un rango
@@ -182,4 +182,27 @@ Cada ficha permite desplegar las publicaciones coincidentes: enlace, título,
 fecha, vistas, duración ISO 8601 e idioma de audio declarado; los valores ausentes
 se indican como no disponibles. Los datos se consultan de nuevo en cada búsqueda,
 sin guardar estadísticas históricas. El orden sigue siendo vistas totales del
-canal y después suscriptores. No hay una puntuación de crecimiento inventada.
+canal y después suscriptores por defecto; puede elegirse el orden por publicaciones
+coincidentes descrito abajo. No hay una puntuación de crecimiento inventada.
+
+
+## Priorizar publicaciones recientes
+
+Seleccionar **Vistas de publicaciones coincidentes recientes** en Orden de los
+canales (`sort_by: matching_publication_views`) y un periodo de publicación.
+El botón **Ejemplo: 3 videos / 100 mil vistas / 30 días** configura últimos 30 días,
+100000 vistas por publicación, mínimo tres coincidencias y muestra de 20; retira
+los límites de vistas totales y antigüedad del canal, conservando los demás filtros.
+
+La clasificación suma los contadores actuales de las publicaciones distintas que
+cumplen todos los filtros. Una publicación anterior al periodo no aporta vistas a
+esta suma. Después ordena por suscriptores en los empates, tanto para un tema como
+para un lote. Se mantiene el último registro completo al deduplicar canales. Si
+falta cualquier contador coincidente, la suma se marca desconocida y queda detrás
+de las sumas conocidas; nunca se convierte en cero ni en una suma parcial.
+
+Es una comparación de publicaciones de la muestra, no de todo el historial ni de
+vistas ganadas durante el periodo. El descubrimiento de candidatos sigue usando
+el índice de canales: cambiar el orden no amplía la cobertura ni demuestra que
+se encontraron los canales con mayor crecimiento en YouTube. Se conserva el orden
+por vistas totales como opción predeterminada (`sort_by: channel_views`).

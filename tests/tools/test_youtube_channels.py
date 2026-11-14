@@ -187,3 +187,29 @@ def test_matching_minimum_validated_by_both_agent_tools_before_client(monkeypatc
     filters={'min_matching_publications':6,'sample_size':5}
     assert not YouTubeChannelSearch().execute({'query':'animals','filters':filters}).success
     assert not YouTubeChannelBatch().execute({'queries':['animals'],'filters':filters}).success
+
+
+def test_recent_matching_views_can_out_rank_lifetime_channel_views():
+    api=API([channel(A,90000000,9000),channel(B,1000000,10)],{
+        A:[video('aaaaaaaaaaa',cid=A,views=10000),video('ccccccccccc',cid=A,age=60,views=80000000)],
+        B:[video('bbbbbbbbbbb',cid=B,views=400000)]})
+    result=search(api,published_within='month',sort_by='matching_publication_views')
+    assert [r['id'] for r in result['results']]==[B,A]
+    assert result['results'][0]['content_review']['matching_publication_views_sum']==400000
+    assert result['order']==['matching_publication_views_sum_desc','subscriberCount_public_rounded_desc']
+
+
+def test_unknown_matching_views_do_not_become_zero_or_partial_sum():
+    missing=video('aaaaaaaaaaa');missing['statistics']={}
+    api=API([channel(A,1000,999),channel(B,100,1)],{
+        A:[missing,video('ccccccccccc',views=90000)],B:[video('bbbbbbbbbbb',cid=B,views=0)]})
+    result=search(api,published_within='month',sort_by='matching_publication_views')
+    assert [r['id'] for r in result['results']]==[B,A]
+    assert result['results'][1]['content_review']['matching_publication_views_sum'] is None
+
+
+@pytest.mark.parametrize('filters',[{'sort_by':'rpm'},{'sort_by':'matching_publication_views'}])
+def test_invalid_or_undated_recent_order_rejected_before_network(filters):
+    api=API([])
+    with pytest.raises(Unavailable):search(api,**filters)
+    assert not api.calls

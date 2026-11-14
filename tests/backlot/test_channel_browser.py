@@ -15,9 +15,10 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         def respond(route):
             captured.append(route.request.post_data_json)
             route.fulfill(json={'result_type':'channels','retrieved_at_utc':'2026-11-14T00:00:00Z',
+                'order':['matching_publication_views_sum_desc','subscriberCount_public_rounded_desc'],
                 'results':[{'id':'UC'+'a'*22,'title':'<img src=x onerror=alert(1)>',
                     'viewCount':2000000,'subscriberCount_public_rounded':10000,'videoCount':30,
-                    'content_review':{'matched':2,'inspected':10,'sample_requested':10,'matching_publications':[{'id':'abcdefghijk','title':'Publicación reciente','viewCount':150000,'published_at':'2026-11-13T00:00:00Z','duration_iso8601':'PT10M','audio_language_declared':'es'}]}}],
+                    'content_review':{'matching_publication_views_sum':150000,'matched':2,'inspected':10,'sample_requested':10,'matching_publications':[{'id':'abcdefghijk','title':'Publicación reciente','viewCount':150000,'published_at':'2026-11-13T00:00:00Z','duration_iso8601':'PT10M','audio_language_declared':'es'}]}}],
                 'scope':{'candidate_channels':50,'lookup_mode':'handle' if route.request.post_data_json['query'].startswith('@') else 'keywords','content_filter_scope':'recent_upload_sample'},'excluded':{}})
         page.route('**/api/research/channels',respond)
         page.goto(staged_backlot_server+'/channels')
@@ -50,6 +51,8 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         assert page.locator('.channel h2').inner_text()=='<img src=x onerror=alert(1)>'
         assert page.locator('.channel img').count()==0
         assert 'canales encontrados' in page.locator('#status').inner_text()
+        assert 'vistas de publicaciones coincidentes' in page.locator('#result-order').inner_text()
+        assert 'Vistas de publicaciones coincidentes: 150,000' in page.locator('.channel').inner_text()
         page.locator('#query').fill('@example')
         page.get_by_role('button',name='Buscar canales',exact=True).click()
         page.locator('.channel').wait_for()
@@ -61,6 +64,14 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         page.get_by_role('button',name='Cancelar',exact=True).click()
         page.get_by_role('button',name='Filtros',exact=False).click()
         assert page.locator('[name=min_views]').input_value()=='1000000'
+        page.get_by_role('button',name='Ejemplo: 3 videos / 100 mil vistas / 30 días').click()
+        assert page.locator('[name=sort_by]').input_value()=='matching_publication_views'
+        assert page.locator('[name=max_channel_age_days]').input_value()==''
+        assert page.locator('[name=min_matching_publications]').input_value()=='3'
+        assert page.locator('[name=sample_size]').input_value()=='20'
+        page.locator('[name=published_within]').select_option('any')
+        page.get_by_role('button',name='Aplicar filtros').click()
+        assert 'fecha reciente' in page.locator('#filter-error').inner_text()
         page.get_by_role('button',name='Restablecer todo').click()
         page.get_by_role('button',name='Aplicar filtros').click()
         assert page.locator('.channel').count()==0

@@ -73,3 +73,24 @@ def test_agent_can_discover_batch_retrieval():
     from tools.tool_registry import ToolRegistry
     from tools.research import youtube_channel_batch
     assert 'youtube_channel_batch' in ToolRegistry().register_module(youtube_channel_batch)
+
+
+def test_recent_sort_uses_latest_sample_after_batch_deduplication(monkeypatch):
+    from tests.tools.test_youtube_channels import API, video
+    channels=[channel(A,9000000,999),channel(B,1000000,1)]
+    api=API(channels,{A:[video('aaaaaaaaaaa',views=100)],B:[video('bbbbbbbbbbb',cid=B,views=500)]})
+    class ChangingAPI:
+        rounds=0
+        def __call__(self,resource,params):
+            if resource=='search':self.rounds+=1
+            if self.rounds==2:
+                api.publications[A][0]['statistics']['viewCount']='900'
+            return api(resource,params)
+    monkeypatch.setattr('tools.research.youtube_channel_batch.ChannelSearch',lambda:ChannelSearch('fixture',ChangingAPI()))
+    result=YouTubeChannelBatch().execute({'queries':['first','second'],'filters':{
+        'published_within':'month','sort_by':'matching_publication_views'}})
+    assert result.success
+    assert result.data['order'][0]=='matching_publication_views_sum_desc'
+    assert [r['id'] for r in result.data['results']]==[A,B]
+    assert result.data['results'][0]['content_review']['matching_publication_views_sum']==900
+    assert result.data['results'][0]['matched_queries']==['first','second']

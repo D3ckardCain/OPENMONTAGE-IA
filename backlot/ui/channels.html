@@ -8,12 +8,13 @@
 <form id="search"><div class="searchbar"><label class="sr-only" for="query">Tema, @usuario o enlace del canal</label>
 <textarea id="query" name="query" maxlength="1004" rows="2" placeholder="Un tema, @usuario o enlace por línea · máximo 5" required></textarea>
 <button type="button" id="open-filters" class="secondary">Filtros <span id="filter-count"></span></button><button id="submit">Buscar canales</button></div></form>
-<div class="toolbar"><p id="configuration">Comprobando conexión…</p><span>Orden: vistas ↓ · suscriptores ↓</span></div>
+<div class="toolbar"><p id="configuration">Comprobando conexión…</p><span id="result-order">Orden: vistas totales ↓ · suscriptores ↓</span></div>
 <p class="notice">Combina vistas de publicación, fecha reciente y varias coincidencias para detectar éxitos repetidos. La creación del canal y la fecha de sus publicaciones son filtros distintos.</p>
 <p id="status" role="status" aria-live="polite">Introduce un tema para comenzar.</p>
 <div id="results" class="results"></div><div id="scope" class="scope"></div>
 <dialog id="filters"><form id="filter-form"><div class="modal-head"><div><h2>Filtros de búsqueda</h2><p>Encuentra canales que encajen con tu contenido.</p></div><button type="button" id="close-filters" class="icon" aria-label="Cerrar filtros">×</button></div>
 <div class="filter-grid">
+<fieldset><legend>Orden de los canales</legend><select name="sort_by"><option value="channel_views">Vistas totales del canal</option><option value="matching_publication_views">Vistas de publicaciones coincidentes recientes</option></select><small>La segunda opción requiere una fecha reciente. Compara solo la muestra revisada; suscriptores en los empates.</small><button type="button" id="recent-preset" class="secondary">Ejemplo: 3 videos / 100 mil vistas / 30 días</button></fieldset>
 <fieldset><legend>Vistas totales del canal</legend><div class="pair"><label>Mínimas<input name="min_views" type="number" min="0" step="1" placeholder="0"></label><label>Máximas<input name="max_views" type="number" min="0" step="1" placeholder="Sin límite"></label></div></fieldset>
 <fieldset><legend>Antigüedad máxima del canal</legend><label>Días desde su creación<input name="max_channel_age_days" type="number" min="1" max="36500" step="1" placeholder="Sin límite · ejemplo 90"></label><small>Descarta canales antiguos aunque acumulen muchas vistas. No mide desde su primer video.</small><button type="button" id="young-preset" class="secondary">Ejemplo: 1 millón de vistas / hasta 90 días</button></fieldset>
 <fieldset><legend>Tamaño del canal · suscriptores</legend><div class="pair"><label>Mínimos<input name="min_subscribers" type="number" min="0" step="1" placeholder="Sin límite"></label><label>Máximos<input name="max_subscribers" type="number" min="0" step="1" placeholder="Sin límite"></label></div></fieldset>
