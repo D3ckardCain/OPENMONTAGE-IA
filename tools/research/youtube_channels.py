@@ -8,6 +8,7 @@ import re
 import time
 
 from .youtube_client import YouTube, Unavailable, count, duration_seconds
+from .channel_identity import parse_channel_query
 
 
 @dataclass
@@ -69,16 +70,28 @@ class ChannelSearch(YouTube):
         self._deadline = time.monotonic() + 120
         self.calls = {}
         now = datetime.now(timezone.utc)
-        params = dict(part='snippet',type='channel',q=query.strip(),maxResults=50,
-                      order='viewCount',safeSearch='moderate')
-        if filters.language:
-            params['relevanceLanguage'] = filters.language
-        items, exhausted = self.pages('search', pages, **params)
-        # The documented search index may mix resource types for some orders.
-        ids = list(dict.fromkeys(item['id']['channelId'] for item in items
-                   if isinstance(item.get('id'),dict) and item['id'].get('channelId')
-                   and item['id'].get('kind','youtube#channel') == 'youtube#channel'))
-        channels = self.batches('channels', ids, 'snippet,statistics,contentDetails')
+        identity_kind, identity = parse_channel_query(query)
+        if identity_kind == 'keywords':
+            params = dict(part='snippet',type='channel',q=identity,maxResults=50,
+                          order='viewCount',safeSearch='moderate')
+            if filters.language:
+                params['relevanceLanguage'] = filters.language
+            items, exhausted = self.pages('search', pages, **params)
+            # Search-index ordering may mix resource types; keep channel identities only.
+            ids = list(dict.fromkeys(item['id']['channelId'] for item in items
+                       if isinstance(item.get('id'),dict) and item['id'].get('channelId')
+                       and item['id'].get('kind','youtube#channel') == 'youtube#channel'))
+            channels = self.batches('channels', ids, 'snippet,statistics,contentDetails')
+        else:
+            key = {'id':'id','handle':'forHandle','username':'forUsername'}[identity_kind]
+            channels = self.get('channels',part='snippet,statistics,contentDetails',**{key:identity})['items']
+            channels = [ch for ch in channels if re.fullmatch(r'UC[A-Za-z0-9_-]{22}',ch.get('id',''))]
+            if identity_kind == 'id':
+                channels = [ch for ch in channels if ch['id']==identity]
+            if len(channels)>1:
+                raise Unavailable('Respuesta ambigua al identificar el canal')
+            ids = [ch['id'] for ch in channels]
+            exhausted = True
         by_id = {ch.get('id'):ch for ch in channels}
         rows = []
         excluded = {}
@@ -138,7 +151,8 @@ class ChannelSearch(YouTube):
                 row.pop('uploads_playlist',None)
         return dict(source='YouTube Data API',retrieved_at_utc=datetime.now(timezone.utc).isoformat(),
             result_type='channels',order=['viewCount_desc','subscriberCount_public_rounded_desc'],
-            scope=dict(query=query.strip(),pages_requested=pages,search_pages_exhausted=exhausted,
+            scope=dict(query=query.strip(),lookup_mode=identity_kind,
+                       pages_requested=pages,pages_applicable=identity_kind=='keywords',search_pages_exhausted=exhausted,
                        candidate_channels=len(ids),global_coverage=False,
                        content_filter_scope='recent_upload_sample' if filters.inspect_uploads else 'not_requested'),
             filters=asdict(filters),results=rows,excluded=excluded,requests=dict(self.calls),

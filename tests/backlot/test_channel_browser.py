@@ -18,7 +18,7 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
                 'results':[{'id':'UC'+'a'*22,'title':'<img src=x onerror=alert(1)>',
                     'viewCount':2000000,'subscriberCount_public_rounded':10000,'videoCount':30,
                     'content_review':{'matched':1,'inspected':10,'sample_requested':10}}],
-                'scope':{'candidate_channels':50,'content_filter_scope':'recent_upload_sample'},'excluded':{}})
+                'scope':{'candidate_channels':50,'lookup_mode':'handle' if route.request.post_data_json['query'].startswith('@') else 'keywords','content_filter_scope':'recent_upload_sample'},'excluded':{}})
         page.route('**/api/research/channels',respond)
         page.goto(staged_backlot_server+'/channels')
         page.get_by_role('button',name='Filtros',exact=False).click()
@@ -37,6 +37,11 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         assert page.locator('.channel h2').inner_text()=='<img src=x onerror=alert(1)>'
         assert page.locator('.channel img').count()==0
         assert 'canales encontrados' in page.locator('#status').inner_text()
+        page.locator('#query').fill('@example')
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.locator('.channel').wait_for()
+        assert captured[1]['query']=='@example'
+        assert 'Canal identificado directamente' in page.locator('#scope').inner_text()
         # Cancel must not apply edited filters, and applying filters clears old results.
         page.get_by_role('button',name='Filtros',exact=False).click()
         page.locator('[name=min_views]').fill('9999999')

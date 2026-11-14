@@ -3,6 +3,7 @@ from jsonschema import validate
 from tools.base_tool import ToolResult
 from .youtube_research import YouTubeResearch
 from .youtube_channels import ChannelSearch, ChannelFilters, Unavailable
+from .channel_identity import parse_channel_query, InvalidChannelQuery
 
 FILTER_SCHEMA = {'type':'object','additionalProperties':False,'properties':{
     **{key:{'type':'integer','minimum':0} for key in ('min_views','max_views','min_subscribers',
@@ -14,7 +15,7 @@ FILTER_SCHEMA = {'type':'object','additionalProperties':False,'properties':{
 
 class YouTubeChannelSearch(YouTubeResearch):
     name = 'youtube_channel_search'
-    version = '0.2.0'
+    version = '0.3.0'
     capability = 'youtube_channel_research'
     capabilities = ['youtube_channel_research']
     input_schema = {'type':'object','additionalProperties':False,'required':['query'],
@@ -26,6 +27,9 @@ class YouTubeChannelSearch(YouTubeResearch):
             validate(inputs,self.input_schema)
             filters = ChannelFilters(**inputs.get('filters',{}))
             filters.validate()
+            parse_channel_query(inputs['query'])
+        except InvalidChannelQuery as exc:
+            return ToolResult(success=False,error='CHANNEL_INPUT_INVALID: '+str(exc))
         except Exception:
             return ToolResult(success=False,error='CHANNEL_FILTERS_INVALID: revisa los rangos y filtros')
         try:

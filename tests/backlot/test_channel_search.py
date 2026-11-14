@@ -46,3 +46,11 @@ def test_failure_is_reported_without_stale_results(client,monkeypatch):
 
 def test_query_body_limit(client):
     assert client.post('/api/research/channels',content='x'*16385,headers={'Content-Type':'application/json'}).status_code==413
+
+
+def test_bad_channel_link_reports_input_error(client,monkeypatch):
+    def fail():raise AssertionError('No client may be constructed')
+    monkeypatch.setattr('tools.research.youtube_channel_search.ChannelSearch',fail)
+    response=client.post('/api/research/channels',json={'query':'https://youtube.com/watch?v=abc'})
+    assert response.status_code==422
+    assert response.json()['error'].startswith('CHANNEL_INPUT_INVALID:')

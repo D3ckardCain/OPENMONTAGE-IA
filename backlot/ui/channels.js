@@ -26,7 +26,7 @@ dialog.addEventListener('cancel',event=>{event.preventDefault();cancel();});
 $('reset-filters').onclick=()=>form.reset();
 form.onsubmit=event=>{
   event.preventDefault();try{applied=readFilters();dialog.close();
-    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && value!==0 && value!=='any').length;
+    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && value!=='any' && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
     $('filter-count').textContent=n?`(${n})`:'';
     // Old results must not appear as if the new filters have been searched.
     $('results').replaceChildren();$('scope').textContent='';$('status').textContent='Filtros aplicados. Pulsa Buscar canales para consultar.';
@@ -44,12 +44,13 @@ $('search').onsubmit=async event=>{
   event.preventDefault();$('submit').disabled=true;$('open-filters').disabled=true;
   $('results').replaceChildren();$('scope').textContent='';$('status').textContent='Buscando canales y comprobando filtros… Puede tardar unos minutos.';
   try{
-    const response=await fetch('/api/research/channels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:$('query').value,...applied})});
+    const response=await fetch('/api/research/channels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:$('query').value.trim(),...applied})});
     const data=await response.json();if(!response.ok)throw Error(data.error||data.detail||'No se pudo completar la búsqueda.');
     data.results.forEach((ch,index)=>$('results').append(showChannel(ch,index)));
     $('status').textContent=data.results.length?`${data.results.length} canales encontrados.`:'Ningún canal coincide en los candidatos y la muestra revisados. Prueba otros filtros.';
     const excluded=Object.values(data.excluded).reduce((sum,n)=>sum+n,0);
-    $('scope').textContent=`Consultado: ${new Date(data.retrieved_at_utc).toLocaleString('es-MX')} · ${data.scope.candidate_channels} canales candidatos · ${excluded} excluidos.\nMuestra de búsqueda, no clasificación global de YouTube. Suscriptores redondeados.\n${data.scope.content_filter_scope==='recent_upload_sample'?'Los filtros de contenido revisan publicaciones recientes; no todo el historial.':''}`;
+    const mode=!data.scope.lookup_mode||data.scope.lookup_mode==='keywords'?'Muestra del índice de búsqueda.':'Canal identificado directamente; los filtros siguen aplicándose.';
+    $('scope').textContent=`${mode}\nConsultado: ${new Date(data.retrieved_at_utc).toLocaleString('es-MX')} · ${data.scope.candidate_channels} canales candidatos · ${excluded} excluidos.\nAlcance limitado a los resultados consultados; no es una clasificación global. Suscriptores redondeados.\n${data.scope.content_filter_scope==='recent_upload_sample'?'Los filtros de contenido revisan publicaciones recientes; no todo el historial.':''}`;
   }catch(error){$('status').textContent=error.message;}
   finally{$('submit').disabled=false;$('open-filters').disabled=false;}
 };

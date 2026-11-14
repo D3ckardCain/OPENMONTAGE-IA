@@ -45,7 +45,7 @@ def create_channel_router():
         async with busy:
             result=await asyncio.to_thread(YouTubeChannelSearch().execute,inputs)
         if not result.success:
-            status=422 if result.error.startswith('CHANNEL_FILTERS_INVALID') else 503
+            status=422 if result.error.startswith(('CHANNEL_FILTERS_INVALID','CHANNEL_INPUT_INVALID')) else 503
             return JSONResponse({'error':result.error},status_code=status,headers={'Cache-Control':'no-store'})
         return JSONResponse(result.data,headers={'Cache-Control':'no-store'})
 

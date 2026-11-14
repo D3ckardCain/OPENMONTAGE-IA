@@ -66,3 +66,21 @@ Fuentes oficiales revisadas el 14 de noviembre de 2026:
 - https://developers.google.com/youtube/v3/docs/search/list
 - https://developers.google.com/youtube/v3/docs/channels
 - https://developers.google.com/youtube/v3/docs/playlistItems/list
+
+
+## Identificación directa de canales
+El campo de búsqueda acepta temas, `@usuario`, ID `UC…` y enlaces de YouTube
+`/@usuario` o `/channel/UC…`, incluso sus pestañas videos/shorts/about. También
+acepta los enlaces históricos `/user/nombre` mediante la API oficial. Los enlaces
+personalizados `/c/nombre` y enlaces de videos no se convierten en canales por
+aproximación: se pide usar el @usuario. Se admiten handles con escritura Unicode.
+
+Una identidad concreta se consulta con `channels.list` (id/forHandle/forUsername),
+sin gastar una consulta de `search.list`. No se sigue el enlace pegado ni se visita
+su dirección: solo se extrae el identificador y se envía al endpoint oficial.
+Si no se encuentra, no se sustituyen resultados por nombres similares. Los filtros
+se mantienen, por lo que un canal identificado puede quedar excluido por sus rangos.
+La profundidad en páginas solo se aplica a temas; la muestra reciente se mantiene
+cuando se activan filtros de contenido.
+
+Referencia oficial: https://developers.google.com/youtube/v3/docs/channels/list
