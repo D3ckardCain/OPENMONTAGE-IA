@@ -213,3 +213,59 @@ def test_invalid_or_undated_recent_order_rejected_before_network(filters):
     api=API([])
     with pytest.raises(Unavailable):search(api,**filters)
     assert not api.calls
+
+
+class RecentDiscoveryAPI(API):
+    def __init__(self,channels,publications,seeds):
+        super().__init__(channels,publications);self.seeds=seeds
+    def __call__(self,resource,params):
+        if resource=='search':
+            self.calls.append((resource,params))
+            assert params['type']=='video' and params['order']=='viewCount'
+            return {'items':[{'id':{'kind':'youtube#video','videoId':v['id']},
+                              'snippet':{'channelId':C}} for v in self.seeds]
+                    +[{'id':{'kind':'youtube#channel','channelId':C}}]}
+        if resource=='videos':
+            self.calls.append((resource,params));ids=params['id'].split(',')
+            by_id={v['id']:v for group in self.publications.values() for v in group}
+            by_id.update({v['id']:v for v in self.seeds})
+            return {'items':[by_id[v] for v in ids if v in by_id]}
+        return super().__call__(resource,params)
+
+
+def test_discovers_channel_from_recent_video_not_channel_search_snippet():
+    publications=[video('aaaaaaaaaaa',cid=A,views=200000),video('bbbbbbbbbbb',cid=A,views=300000)]
+    api=RecentDiscoveryAPI([channel(A,900000),channel(C,50000000)],{A:publications},[publications[0],publications[0]])
+    result=search(api,discovery_mode='recent_publications',published_within='month',
+                  min_publication_views=100000,min_matching_publications=2)
+    assert [row['id'] for row in result['results']]==[A]
+    assert result['scope']['candidate_channels']==1
+    assert result['scope']['candidate_discovery']=='recent_publications'
+    params=api.calls[0][1]
+    assert datetime.fromisoformat(params['publishedBefore'])-datetime.fromisoformat(params['publishedAfter'])==timedelta(days=30)
+    assert result['results'][0]['content_review']['matched']==2
+
+
+def test_seed_metadata_must_pass_actual_publication_filters():
+    seeds=[video('aaaaaaaaaaa',age=60,views=9000000),video('bbbbbbbbbbb',lang='en',views=9000000),
+           video('ccccccccccc',views=1),video('ddddddddddd',seconds='PT1M',views=9000000)]
+    api=RecentDiscoveryAPI([channel(A,10000000)],{A:seeds},seeds)
+    result=search(api,discovery_mode='recent_publications',published_within='month',
+                  language='es',min_publication_views=100000,min_minutes=10)
+    assert result['results']==[] and result['scope']['candidate_channels']==0
+    assert [r for r,p in api.calls]==['search','videos']
+
+
+def test_recent_seed_does_not_replace_repeated_success_check():
+    v=video('aaaaaaaaaaa',views=200000)
+    api=RecentDiscoveryAPI([channel(A,900000)],{A:[v]},[v])
+    result=search(api,discovery_mode='recent_publications',published_within='month',min_matching_publications=2)
+    assert not result['results']
+    assert result['excluded']=={'insufficient_matching_publications':1}
+
+
+@pytest.mark.parametrize('filters',[{'discovery_mode':'unsupported'},{'discovery_mode':'recent_publications'}])
+def test_invalid_discovery_mode_or_missing_window_never_queries(filters):
+    api=API([])
+    with pytest.raises(Unavailable):search(api,**filters)
+    assert not api.calls

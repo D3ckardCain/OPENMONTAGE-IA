@@ -191,7 +191,8 @@ coincidentes descrito abajo. No hay una puntuación de crecimiento inventada.
 Seleccionar **Vistas de publicaciones coincidentes recientes** en Orden de los
 canales (`sort_by: matching_publication_views`) y un periodo de publicación.
 El botón **Ejemplo: 3 videos / 100 mil vistas / 30 días** configura últimos 30 días,
-100000 vistas por publicación, mínimo tres coincidencias y muestra de 20; retira
+100000 vistas por publicación, mínimo tres coincidencias, muestra de 20 y
+descubrimiento por publicaciones recientes; retira
 los límites de vistas totales y antigüedad del canal, conservando los demás filtros.
 
 La clasificación suma los contadores actuales de las publicaciones distintas que
@@ -203,6 +204,37 @@ de las sumas conocidas; nunca se convierte en cero ni en una suma parcial.
 
 Es una comparación de publicaciones de la muestra, no de todo el historial ni de
 vistas ganadas durante el periodo. El descubrimiento de candidatos sigue usando
-el índice de canales: cambiar el orden no amplía la cobertura ni demuestra que
+el índice seleccionado: cambiar solo el orden no amplía la cobertura ni demuestra que
 se encontraron los canales con mayor crecimiento en YouTube. Se conserva el orden
 por vistas totales como opción predeterminada (`sort_by: channel_views`).
+
+
+## Descubrimiento desde publicaciones recientes
+
+En **Descubrir canales a partir de**, elegir **Publicaciones recientes con muchas
+vistas** (`discovery_mode: recent_publications`) junto con una fecha de publicación.
+Para temas, se consulta `search.list` con `type=video`, `order=viewCount` y la ventana
+RFC 3339. Se recuperan los metadatos reales de los videos y se verifican idioma,
+fecha, vistas, duración y exclusión de directos. Sus canales se deduplican y pasan
+por todos los filtros de canal y por la revisión de publicaciones recientes.
+
+Los resultados siguen siendo canales. Un solo video descubierto no satisface un
+mínimo de varias coincidencias: este mínimo se comprueba en la muestra de subidas.
+Un video encontrado por el índice puede haber salido ya de esa muestra; no se
+mezclan conjuntos para inflar las coincidencias. Las páginas limitan videos
+candidatos (hasta 50 por página), de los que pueden salir menos canales distintos.
+La fecha de búsqueda corresponde a publicaciones, no a creación del canal; el
+filtro opcional de edad del canal se comprueba después con sus propios metadatos.
+
+`discovery_mode: channels` conserva el comportamiento anterior. Para @usuarios,
+IDs y enlaces concretos se mantiene la consulta directa, sin buscar videos para
+identificar al propietario. El campo `scope.candidate_discovery` indica el método
+real usado. Los lotes conservan ese alcance por tema completado.
+
+El índice puede retrasarse, omitir coincidencias o devolver menos resultados con
+orden y fecha. No hay una clasificación exhaustiva, una garantía de viralidad, ni
+una certificación de ingresos. No se guardan estadísticas históricas ni se crean
+tareas recurrentes.
+
+Referencia oficial revisada el 14 de noviembre de 2026:
+https://developers.google.com/youtube/v3/docs/search/list

@@ -18,6 +18,7 @@ function readFilters(){
     if(filters[low]!==undefined && filters[high]!==undefined && filters[low]>filters[high])throw Error('El mínimo no puede superar al máximo.');
   }
   if(filters.min_matching_publications<1 || filters.min_matching_publications>filters.sample_size)throw Error('Las coincidencias mínimas deben estar entre 1 y el tamaño de la muestra.');
+  if(filters.discovery_mode==='recent_publications'&&filters.published_within==='any')throw Error('Selecciona una fecha reciente para descubrir canales por publicaciones.');
   if(filters.sort_by==='matching_publication_views'&&filters.published_within==='any')throw Error('Selecciona una fecha reciente para ordenar por publicaciones coincidentes.');
   return {pages,filters,max_requests};
 }
@@ -28,7 +29,7 @@ dialog.addEventListener('cancel',event=>{event.preventDefault();cancel();});
 $('reset-filters').onclick=()=>form.reset();
 $('recent-preset').onclick=()=>{
   for(const name of ['min_views','max_views','max_channel_age_days'])form.elements.namedItem(name).value='';
-  restore([['published_within','month'],['min_publication_views','100000'],['min_matching_publications','3'],['sample_size','20'],['sort_by','matching_publication_views']]);
+  restore([['published_within','month'],['min_publication_views','100000'],['min_matching_publications','3'],['sample_size','20'],['sort_by','matching_publication_views'],['discovery_mode','recent_publications']]);
 };
 $('young-preset').onclick=()=>{
   form.elements.namedItem('min_views').value='1000000';
@@ -37,7 +38,7 @@ $('young-preset').onclick=()=>{
 };
 form.onsubmit=event=>{
   event.preventDefault();try{applied=readFilters();dialog.close();
-    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && key!=='sort_by' && value!=='any' && !(key==='min_matching_publications'&&value===1) && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
+    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && key!=='sort_by' && key!=='discovery_mode' && value!=='any' && !(key==='min_matching_publications'&&value===1) && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
     $('filter-count').textContent=n?`(${n})`:'';
     // Old results must not appear as if the new filters have been searched.
     $('results').replaceChildren();$('scope').textContent='';$('status').textContent='Filtros aplicados. Pulsa Buscar canales para consultar.';
@@ -100,7 +101,7 @@ $('search').onsubmit=async event=>{
       return;
     }
     const excluded=Object.values(data.excluded).reduce((sum,n)=>sum+n,0);
-    const mode=!data.scope.lookup_mode||data.scope.lookup_mode==='keywords'?'Muestra del índice de búsqueda.':'Canal identificado directamente; los filtros siguen aplicándose.';
+    const mode=data.scope.candidate_discovery==='recent_publications'?'Canales descubiertos desde publicaciones recientes del índice de videos.':(!data.scope.lookup_mode||data.scope.lookup_mode==='keywords'?'Muestra del índice de canales.':'Canal identificado directamente; los filtros siguen aplicándose.');
     $('scope').textContent=`${mode}\nConsultado: ${new Date(data.retrieved_at_utc).toLocaleString('es-MX')} · ${data.scope.candidate_channels} canales candidatos · ${excluded} excluidos.\nAlcance limitado a los resultados consultados; no es una clasificación global. Suscriptores redondeados.\n${data.scope.content_filter_scope==='recent_upload_sample'?'Los filtros de contenido revisan publicaciones recientes; no todo el historial.':''}`;
   }catch(error){$('status').textContent=error.message;}
   finally{$('submit').disabled=false;$('open-filters').disabled=false;}

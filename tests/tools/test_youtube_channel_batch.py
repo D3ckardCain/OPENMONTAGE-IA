@@ -94,3 +94,15 @@ def test_recent_sort_uses_latest_sample_after_batch_deduplication(monkeypatch):
     assert [r['id'] for r in result.data['results']]==[A,B]
     assert result.data['results'][0]['content_review']['matching_publication_views_sum']==900
     assert result.data['results'][0]['matched_queries']==['first','second']
+
+
+def test_recent_publication_discovery_is_shared_by_batch(monkeypatch):
+    from tests.tools.test_youtube_channels import RecentDiscoveryAPI, video
+    v=video('aaaaaaaaaaa',views=200000)
+    api=RecentDiscoveryAPI([channel(A,900000)],{A:[v]},[v])
+    monkeypatch.setattr('tools.research.youtube_channel_batch.ChannelSearch',lambda:ChannelSearch('fixture',api))
+    result=YouTubeChannelBatch().execute({'queries':['animals','wildlife'],'filters':{
+        'discovery_mode':'recent_publications','published_within':'month','min_publication_views':100000}})
+    assert result.success and len(result.data['results'])==1
+    assert all(q['scope']['candidate_discovery']=='recent_publications' for q in result.data['completed_queries'])
+    assert result.data['results'][0]['matched_queries']==['animals','wildlife']

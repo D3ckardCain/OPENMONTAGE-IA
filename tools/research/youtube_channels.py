@@ -10,6 +10,8 @@ import time
 from .youtube_client import YouTube, Unavailable, YouTubeFailure, count, duration_seconds
 from .channel_identity import parse_channel_query
 
+PERIOD_HOURS = {'hour':1,'day':24,'week':168,'month':720,'year':8760}
+
 
 @dataclass
 class ChannelFilters:
@@ -28,6 +30,7 @@ class ChannelFilters:
     min_matching_publications: int = 1
     sample_size: int = 10
     sort_by: str = 'channel_views'
+    discovery_mode: str = 'channels'
 
     @property
     def inspect_uploads(self):
@@ -57,6 +60,10 @@ class ChannelFilters:
             raise Unavailable('País ISO de dos letras mayúsculas')
         if self.content_type not in {'any','short_candidate','over_3m','medium','long'}:
             raise Unavailable('Tipo de contenido inválido')
+        if self.discovery_mode not in {'channels','recent_publications'}:
+            raise Unavailable('Modo de descubrimiento inválido')
+        if self.discovery_mode == 'recent_publications' and self.published_within == 'any':
+            raise Unavailable('Selecciona un periodo para descubrir canales por publicaciones recientes')
         if self.sort_by not in {'channel_views','matching_publication_views'}:
             raise Unavailable('Orden inválido')
         if self.sort_by == 'matching_publication_views' and self.published_within == 'any':
@@ -100,19 +107,36 @@ class ChannelSearch(YouTube):
         self.calls = {}
         now = datetime.now(timezone.utc)
         identity_kind, identity = parse_channel_query(query)
+        discovery = 'direct_identity'
         if identity_kind == 'keywords':
+            discovery = filters.discovery_mode
             params = dict(part='snippet',type='channel',q=identity,maxResults=50,
                           order='viewCount',safeSearch='moderate')
             if filters.language:
                 params['relevanceLanguage'] = filters.language
-            if filters.max_channel_age_days is not None:
+            if discovery == 'recent_publications':
+                params['type']='video'
+                params['publishedAfter']=(now-timedelta(hours=PERIOD_HOURS[filters.published_within])).isoformat()
+                params['publishedBefore']=now.isoformat()
+            elif filters.max_channel_age_days is not None:
                 params['publishedAfter']=(now-timedelta(days=filters.max_channel_age_days)).isoformat()
                 params['publishedBefore']=now.isoformat()
             items, exhausted = self.pages('search', pages, **params)
-            # Search-index ordering may mix resource types; keep channel identities only.
-            ids = list(dict.fromkeys(item['id']['channelId'] for item in items
-                       if isinstance(item.get('id'),dict) and item['id'].get('channelId')
-                       and item['id'].get('kind','youtube#channel') == 'youtube#channel'))
+            if discovery == 'recent_publications':
+                # Enrich actual video resources: search snippets alone are not evidence.
+                video_ids = list(dict.fromkeys(item['id']['videoId'] for item in items
+                    if isinstance(item.get('id'),dict) and item['id'].get('videoId')
+                    and item['id'].get('kind','youtube#video') == 'youtube#video'))
+                seeds=self.batches('videos',video_ids,'snippet,statistics,contentDetails,liveStreamingDetails')
+                ids=list(dict.fromkeys(v['snippet']['channelId'] for v in seeds
+                    if v.get('id') in video_ids
+                    and re.fullmatch(r'UC[A-Za-z0-9_-]{22}',v.get('snippet',{}).get('channelId',''))
+                    and self._matches(v,v['snippet']['channelId'],filters,now)))
+            else:
+                # Search ordering can mix types; only accept the requested resource type.
+                ids = list(dict.fromkeys(item['id']['channelId'] for item in items
+                    if isinstance(item.get('id'),dict) and item['id'].get('channelId')
+                    and item['id'].get('kind','youtube#channel') == 'youtube#channel'))
             channels = self.batches('channels', ids, 'snippet,statistics,contentDetails')
         else:
             key = {'id':'id','handle':'forHandle','username':'forUsername'}[identity_kind]
@@ -206,7 +230,7 @@ class ChannelSearch(YouTube):
         sort_channels(rows,filters.sort_by)
         return dict(source='YouTube Data API',retrieved_at_utc=datetime.now(timezone.utc).isoformat(),
             result_type='channels',order=channel_order(filters.sort_by),
-            scope=dict(query=query.strip(),lookup_mode=identity_kind,
+            scope=dict(query=query.strip(),lookup_mode=identity_kind,candidate_discovery=discovery,
                        pages_requested=pages,pages_applicable=identity_kind=='keywords',search_pages_exhausted=exhausted,
                        candidate_channels=len(ids),global_coverage=False,
                        content_filter_scope='recent_upload_sample' if filters.inspect_uploads else 'not_requested'),
@@ -234,7 +258,7 @@ class ChannelSearch(YouTube):
         if filters.published_within != 'any':
             try:
                 date = datetime.fromisoformat(sn.get('publishedAt','').replace('Z','+00:00'))
-                hours = {'hour':1,'day':24,'week':168,'month':720,'year':8760}[filters.published_within]
+                hours = PERIOD_HOURS[filters.published_within]
                 if date.utcoffset() is None or not now-timedelta(hours=hours) <= date <= now:
                     return False
             except (ValueError,TypeError):
