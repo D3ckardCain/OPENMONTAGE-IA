@@ -160,3 +160,20 @@ def test_comfy_export_and_resume_keep_job_identity(isolated,monkeypatch):
     result=execute_workflow('wan',{'resume_prompt_id':'prompt-fixture'},isolated)
     assert len(submissions)==1
     with pytest.raises(ValueError):execute_workflow('wan',{'resume_prompt_id':'unrelated'},isolated)
+
+def test_comfy_graph_rejects_declared_paid_api_nodes(isolated,monkeypatch):
+    g=graph()
+    monkeypatch.setattr(studio,'local_request',lambda server,path,**kw:{path.rsplit('/',1)[-1]:{'api_node':True,'output_node':True}})
+    with pytest.raises(ValueError,match='presupuesto cero'):validate_graph('wan',g,'2','http://127.0.0.1:8188')
+
+
+def test_native_network_guard_covers_connect_and_connect_ex(monkeypatch):
+    import socket
+    original=socket.socket.connect;original_ex=socket.socket.connect_ex;original_sendto=socket.socket.sendto
+    monkeypatch.setattr(socket.socket,'connect',original)
+    monkeypatch.setattr(socket.socket,'connect_ex',original_ex)
+    monkeypatch.setattr(socket.socket,'sendto',original_sendto)
+    worker.block_network()
+    # Guard rejection happens before opening any real socket.
+    for method in [socket.socket.connect,socket.socket.connect_ex]:
+        with pytest.raises(RuntimeError,match='sin red'):method(None,('example.invalid',443))

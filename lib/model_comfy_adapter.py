@@ -47,7 +47,9 @@ def validate_graph(family,graph,output,server):
     for name in sorted({node['class_type'] for node in graph.values()}):
         data=studio.local_request(server,'/object_info/'+quote(name,safe=''),timeout=10)
         if name not in data:raise ValueError('Falta el nodo ComfyUI: '+name)
-        infos[name]=data[name]
+        info=data[name]
+        if info.get('api_node') or str(info.get('category','')).casefold().startswith(('api/','api node','partner/')):raise ValueError('Nodo de servicio externo no autorizado por presupuesto cero: '+name)
+        infos[name]=info
     for node in graph.values():
         fields=infos[node['class_type']].get('input',{})
         definitions={**fields.get('required',{}),**fields.get('optional',{})}

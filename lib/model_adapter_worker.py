@@ -229,11 +229,16 @@ def run(request):
 def block_network():
     import socket
     original=socket.socket.connect
+    original_ex=socket.socket.connect_ex
     def offline(sock,address):
         if isinstance(address,(tuple,list)):raise RuntimeError('Runtime sin red: instala previamente la dependencia local que falta')
         return original(sock,address)
     def no_datagrams(*args,**kwargs):raise RuntimeError('Runtime sin red: descarga automática deshabilitada')
+    def offline_ex(sock,address):
+        if isinstance(address,(tuple,list)):raise RuntimeError('Runtime sin red: descarga automática deshabilitada')
+        return original_ex(sock,address)
     socket.socket.connect=offline
+    socket.socket.connect_ex=offline_ex
     socket.socket.sendto=no_datagrams
 
 
