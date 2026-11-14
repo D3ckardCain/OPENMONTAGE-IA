@@ -179,3 +179,37 @@ la aprobación a otras voces, idiomas, hardware ni a todas las familias.
 Las pruebas automáticas usan WAV controlado y adaptadores simulados. Verifican
 el recorrido diagnóstico y sus fallos, no una inferencia real con los modelos
 Windows del usuario. Para esa evidencia hay que ejecutar la prueba en ese equipo.
+
+
+## Perfil explícito Wan 2.2 5B
+
+En el estudio, «Perfiles de video WAN» muestra las alternativas y los tres pesos
+necesarios para 5B. Seleccionar el perfil actualiza la vinculación; no mueve ni
+descarga archivos y no envía un render. El perfil 14B existente se conserva hasta
+que haya una selección explícita. Un workflow personalizado puede seguir usándose.
+
+El agente puede consultar `wan_presets` y, después de comunicar/registrar la
+selección aprobada, usar `select_wan_preset`. La herramienta `model_wan` toma
+`text` como prompt positivo, `negative_prompt`, `width`, `height`, `frames`,
+`steps`, `seed`, `fps` y `output_dir`. El perfil 5B incluye un grafo T2V con los
+nodos nativos de ComfyUI: loader 5B, encoder UMT5, VAE Wan2.2, shift 8, sampler
+uni_pc/simple, decodificación y salida de video. No usa expertos 14B ni sus LoRAs.
+
+La plantilla de prueba es de 512×320, 33 cuadros, 20 pasos y 24 fps: una muestra
+corta para medir ejecución, no una promesa de calidad final. Las dimensiones son
+múltiplos de 32 y los cuadros tienen forma 4n+1. El perfil 14B mantiene sus cuatro
+pasos y rechaza sustituirlos por parámetros de 5B sin cambiar de perfil.
+
+Antes de generar, se comprueban los nodos y los modelos registrados en ComfyUI.
+Que los pesos figuren en un inventario no demuestra que ComfyUI pueda encontrarlos.
+La documentación oficial indica que 5B debería caber en 8 GB con offloading nativo;
+no es una medición de esta laptop ni una garantía sobre su RAM, tiempo o calidad.
+El grafo incluido es texto a video; no se anuncia como implementación I2V todavía.
+
+Fuentes de parámetros y nodos:
+- https://docs.comfy.org/tutorials/video/wan/wan2_2
+- https://github.com/Comfy-Org/workflow_templates/blob/main/templates/video_wan2_2_5B_ti2v.json
+
+Para ejecutar una muestra de producción se sigue el pipeline elegido y sus
+aprobaciones, usando el perfil explícito en assets. Las pruebas automáticas del
+grafo verifican contratos y dependencias con fixtures, sin inferencia GPU real.

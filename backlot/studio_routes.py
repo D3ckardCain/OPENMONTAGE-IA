@@ -76,6 +76,11 @@ def create_studio_router():
     def resources():return studio.resource_catalog()
     @router.post('/api/studio/inventories')
     async def inventory(request:Request):return invoke(studio.import_inventory,await body(request,32000000))
+    @router.get('/api/studio/wan-presets')
+    def wan_presets():
+        from lib.wan_presets import catalog
+        from lib.model_adapters import configuration
+        return {'presets':catalog(),'current':configuration('wan')}
     @router.get('/api/studio/adapters')
     async def adapters():
         from lib.model_adapters import CATALOG,diagnostics,dependency_probe

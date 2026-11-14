@@ -60,17 +60,34 @@ def spec(family):
 
 def configuration(family):
     defaults={'workflow_path':str(studio.REPO_ROOT/'tools/_comfyui/workflows/wan22-t2v-4step.json'),'output_node':'16'} if family=='wan' else {}
-    return {**defaults,**studio.settings().get('adapter_settings',{}).get(family,{})}
+    saved=studio.settings().get('adapter_settings',{}).get(family,{})
+    if family=='wan' and not saved.get('workflow_path') and not saved.get('preset'):defaults['preset']='wan22-14b-t2v-4step'
+    if family=='wan' and saved.get('preset'):
+        from lib.wan_presets import config
+        defaults=config(saved['preset'])
+    return {**defaults,**saved}
 
 
 def configure(family,data):
     if family not in CATALOG:raise ValueError('Modelo desconocido')
-    if set(data)-{'python_executable','model_dir','workflow_path','output_node','source_dir'}:raise ValueError('Configuración de adaptador desconocida')
+    if set(data)-{'python_executable','model_dir','workflow_path','output_node','source_dir','preset'}:raise ValueError('Configuración de adaptador desconocida')
     for name,value in data.items():
         if not isinstance(value,str) or len(value)>4000:raise ValueError('Configuración inválida')
-        if name!='output_node' and value and not Path(value).is_absolute():raise ValueError('Usa una ruta absoluta para '+name)
+        if name not in ('output_node','preset') and value and not Path(value).is_absolute():raise ValueError('Usa una ruta absoluta para '+name)
+    if 'preset' in data:
+        from lib.wan_presets import config
+        if family!='wan':raise ValueError('Los perfiles WAN solo se aplican a Wan')
+        config(data['preset'])
+        if set(data)!={'preset'}:raise ValueError('Selecciona un perfil o un workflow personalizado, no ambos')
     with studio.LOCK:
         current=studio.settings();bindings=current.get('adapter_settings',{})
+        if 'preset' in data:
+            bindings[family]={k:v for k,v in bindings.get(family,{}).items() if k not in ('workflow_path','output_node')}
+        elif 'workflow_path' in data or 'output_node' in data:
+            old=configuration(family)
+            if old.get('preset') and data.get('workflow_path',old['workflow_path'])==old['workflow_path'] and data.get('output_node',old['output_node'])==old['output_node']:
+                data={**data,'preset':old['preset']}
+            else:bindings[family]={k:v for k,v in bindings.get(family,{}).items() if k!='preset'}
         bindings[family]={**bindings.get(family,{}),**data};current['adapter_settings']=bindings
         studio.save_json(studio.CONFIG_DIR/'settings.json',current)
     dependency_probe.cache_clear()
@@ -139,7 +156,7 @@ def diagnostics(family,probe=True):
                 from lib.model_comfy_adapter import graph_config,validate_graph
                 server=studio.settings()['comfyui_url']
                 studio.local_request(server,'/system_stats',timeout=2)
-                graph,node=graph_config(family,{})
+                graph,node=graph_config(family,{},preflight=True)
                 validate_graph(family,graph,node,server)
             except Exception as exc:result['problems'].append('ComfyUI/workflow: '+str(exc)[:500])
         result['ready']=result['workflow_configured'] and not result['problems']
@@ -191,6 +208,7 @@ class LocalModelAdapter(BaseTool):
     idempotency_key_fields=[]
     side_effects=['writes requested artifacts inside output_dir']
     input_schema={'type':'object','additionalProperties':False,'required':['output_dir'], 'properties':{
+        'width':{'type':'integer','minimum':256,'maximum':1280},'height':{'type':'integer','minimum':256,'maximum':1280},'frames':{'type':'integer','minimum':5,'maximum':121},'steps':{'type':'integer','minimum':1,'maximum':100},'seed':{'type':'integer','minimum':0,'maximum':9223372036854775807},'fps':{'type':'integer','minimum':1,'maximum':60},'negative_prompt':{'type':'string','maxLength':5000},
         'output_dir':{'type':'string'},'text':{'type':'string','maxLength':50000},'input_path':{'type':'string'},'reference_audio':{'type':'string'},
         'reference_text':{'type':'string'},'language':{'type':'string'},'source_language':{'type':'string'},'voice':{'type':'string'},
         'instruction':{'type':'string'},'labels':{'type':'array','items':{'type':'string'},'maxItems':100},'texts':{'type':'array','items':{'type':'string'},'maxItems':100},

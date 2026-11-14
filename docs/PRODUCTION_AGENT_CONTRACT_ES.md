@@ -64,3 +64,10 @@ validada. Usa su output_dir dentro del proyecto y proporciona entradas reales.
 Para grafos ComfyUI, consulta comfy_nodes, crea JSON API y usa bind_workflow;
 no inventes nombres de nodos ni cambies de familia por un fallo. Los timeouts
 con prompt_id se reanudan; no vuelvas a enviar el mismo render por defecto.
+
+
+Para WAN distingue los perfiles 5B y 14B. Consulta wan_presets y el estado del
+runtime; registra la variante elegida antes de select_wan_preset. Nunca sustituyas
+14B por 5B o viceversa por un fallo. La muestra 5B usa text como prompt y parámetros
+explícitos; no confundas pasos, VAEs o LoRAs entre perfiles. El perfil incluido 5B
+es T2V, no I2V. Una recomendación documental de VRAM no equivale a un benchmark.

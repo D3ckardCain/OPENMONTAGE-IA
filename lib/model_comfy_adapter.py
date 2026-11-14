@@ -8,7 +8,7 @@ from lib import production_studio as studio
 from tools._comfyui.client import ComfyUIClient,ComfyUIError
 
 
-def graph_config(family,inputs):
+def graph_config(family,inputs,preflight=False):
     from lib.model_adapters import configuration
     cfg=configuration(family)
     graph=inputs.get('workflow_json')
@@ -25,6 +25,9 @@ def graph_config(family,inputs):
         for field,value in patch.items():
             if field not in graph[node_id]['inputs']:raise ValueError('Binding apunta a un campo desconocido')
             graph[node_id]['inputs'][field]=value
+    if family=='wan' and cfg.get('preset') and not inputs.get('workflow_json') and not preflight:
+        from lib.wan_presets import apply_parameters
+        graph=apply_parameters(graph,cfg['preset'],inputs)
     output=str(inputs.get('output_node') or cfg.get('output_node') or '')
     if output not in graph:raise ValueError('Falta el nodo de salida del workflow')
     return graph,output

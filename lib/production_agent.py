@@ -44,6 +44,8 @@ TOOLS=[
  descriptor('list_tools','Descubre contratos locales por capacidad; no ejecuta herramientas.',{'capability':{'type':'string'}}),
  descriptor('tool_info','Lee contrato real, disponibilidad, instalación y skills de una herramienta.',{'name':{'type':'string'}},['name']),
  descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
+ descriptor('wan_presets','Lee perfiles WAN locales y su configuración actual.'),
+ descriptor('select_wan_preset','Selecciona explícitamente el perfil WAN previamente anunciado y registra el cambio; no descarga modelos.',{'preset':{'enum':['wan22-5b-t2v','wan22-14b-t2v-4step']}},['preset']),
  descriptor('adapter_status','Diagnóstico del adaptador, pesos locales y dependencias; no descarga.',{'family':{'type':'string'}},['family']),
  descriptor('comfy_nodes','Consulta esquemas y modelos registrados en nodos ComfyUI concretos.',{'classes':{'type':'array','items':{'type':'string'},'maxItems':12}},['classes']),
  descriptor('bind_workflow','Vincula un workflow API ya creado dentro del proyecto a una familia de modelos.',{'family':{'type':'string'},'path':{'type':'string'},'output_node':{'type':'string'}},['family','path','output_node']),
@@ -203,6 +205,15 @@ class LocalAgent:
             self.event('tool','Ejecutando '+tool.name)
             result=tool.execute(inputs)
             return {'success':result.success,'data':result.data,'error':result.error,'cost_usd':result.cost_usd}
+        if name=='wan_presets':
+            from lib.wan_presets import catalog
+            from lib.model_adapters import configuration
+            return {'presets':catalog(),'current':configuration('wan')}
+        if name=='select_wan_preset':
+            from lib.model_adapters import configure
+            value=configure('wan',{'preset':args['preset']})
+            self.event('adapter','Perfil WAN seleccionado explícitamente: '+args['preset'])
+            return value
         if name=='adapter_status':
             from lib.model_adapters import diagnostics,CATALOG
             if args['family'] not in CATALOG:raise ValueError('Familia desconocida')

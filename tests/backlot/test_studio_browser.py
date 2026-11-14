@@ -37,6 +37,17 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Iniciar / reanudar agentes').click()
         page.wait_for_function('document.querySelector("#status").textContent === "blocked"')
         assert actions==['start']
+        selected_profiles=[]
+        profiles={'presets':[{'id':'wan22-5b-t2v','label':'Wan 2.2 · 5B · texto a video','note':'Perfil local de prueba','required_models':['wan2.2_ti2v_5B_fp16.safetensors']}],'current':{'preset':'wan22-14b-t2v-4step'}}
+        page.route('**/api/studio/wan-presets',lambda r:r.fulfill(json=profiles))
+        def select_profile(route):
+            selected_profiles.append(route.request.post_data_json);profiles['current']=selected_profiles[-1];route.fulfill(json=profiles['current'])
+        page.route('**/api/studio/adapters/wan',select_profile)
+        page.get_by_role('button',name='Ver perfiles y modelo seleccionado').click()
+        page.locator('#wan-profile-list summary').click()
+        page.get_by_role('button',name='Seleccionar Wan 2.2 · 5B · texto a video',exact=True).click()
+        page.wait_for_function('document.querySelector("#wan-profile-list").textContent.includes("Selección actual: wan22-5b-t2v")')
+        assert selected_profiles==[{'preset':'wan22-5b-t2v'}]
         bindings=[]
         page.route('**/api/studio/adapters',lambda r:r.fulfill(json=[{'family':'kokoro','backend':'native','ready':False,'problems':['Falta runtime'],'configuration':{},'model_dir':None,'python_executable':'/runtime/python','available_voices':['ef_dora']}]))
         def save_binding(route):
