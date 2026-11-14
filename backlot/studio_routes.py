@@ -76,6 +76,18 @@ def create_studio_router():
     def resources():return studio.resource_catalog()
     @router.post('/api/studio/inventories')
     async def inventory(request:Request):return invoke(studio.import_inventory,await body(request,32000000))
+    @router.get('/api/studio/adapters')
+    async def adapters():
+        from lib.model_adapters import CATALOG,diagnostics,dependency_probe
+        dependency_probe.cache_clear()
+        return await asyncio.to_thread(lambda:[diagnostics(family) for family in CATALOG])
+    @router.post('/api/studio/adapters/{family}')
+    async def bind_adapter(family:str,request:Request):
+        from lib.model_adapters import configure
+        data=await body(request)
+        with agent.ACTIVE_LOCK:
+            if agent.ACTIVE:raise HTTPException(409,'Detén la producción antes de cambiar adaptadores')
+            return invoke(configure,family,data)
     @router.get('/api/studio/tools')
     async def tools():
         def discover():

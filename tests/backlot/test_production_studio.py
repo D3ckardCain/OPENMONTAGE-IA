@@ -192,3 +192,26 @@ def test_studio_cli_opens_actual_studio_url(monkeypatch):
     urls.clear()
     assert cli.main(['open','video-existing'])==0
     assert urls[0].endswith('/p/video-existing')
+
+def test_adapter_settings_and_diagnostics_are_reachable_in_studio(isolated,monkeypatch):
+    from lib import model_adapters
+    monkeypatch.setattr(model_adapters,'diagnostics',lambda family:{'family':family,'ready':False,'inference_verified':False})
+    assert len(isolated.get('/api/studio/adapters').json())==46
+    cfg={'python_executable':__import__('sys').executable,'model_dir':str(studio.CONFIG_DIR/'weights')}
+    assert isolated.post('/api/studio/adapters/kokoro',json=cfg).status_code==200
+    assert model_adapters.configuration('kokoro')['model_dir']==cfg['model_dir']
+    assert isolated.post('/api/studio/adapters/unknown',json={}).status_code==400
+    assert isolated.post('/api/studio/adapters/kokoro',json={},headers={'Origin':'https://evil.invalid'}).status_code==403
+    agent.ACTIVE['fixture']=(None,threading.Event())
+    assert isolated.post('/api/studio/adapters/kokoro',json={}).status_code==409
+
+
+def test_agent_can_inspect_and_bind_only_project_workflows(isolated,monkeypatch):
+    from lib import model_comfy_adapter,model_adapters
+    pid=project();worker=agent.LocalAgent(pid)
+    path=studio.project_path(pid)/'workspaces/graph.json';studio.save_json(path,{'1':{'class_type':'Fixture','inputs':{}}})
+    monkeypatch.setattr(model_comfy_adapter,'validate_graph',lambda *a:None)
+    bound=worker.dispatch('bind_workflow',{'family':'wan','path':str(path),'output_node':'1'})
+    assert bound['workflow_path']==str(path)
+    with pytest.raises(ValueError):worker.dispatch('bind_workflow',{'family':'wan','path':str(studio.CONFIG_DIR/'outside.json'),'output_node':'1'})
+    with pytest.raises(ValueError):worker.dispatch('bind_workflow',{'family':'kokoro','path':str(path),'output_node':'1'})

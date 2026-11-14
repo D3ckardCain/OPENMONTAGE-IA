@@ -55,3 +55,12 @@ Si el usuario pide varias lenguas, prepara variantes independientes con sus
 propios artefactos, locución, rótulos y decisiones culturales. La primera ejecución
 corresponde al idioma del proyecto; las demás se crean como proyectos separados.
 Nunca simules que una variante está terminada porque tradujiste el texto.
+
+## Modelos descargados
+
+Lee docs/ADAPTADORES_MODELOS_ES.md antes de usar herramientas model_*. Consulta
+adapter_status con la familia. Distingue dependencias detectadas de inferencia
+validada. Usa su output_dir dentro del proyecto y proporciona entradas reales.
+Para grafos ComfyUI, consulta comfy_nodes, crea JSON API y usa bind_workflow;
+no inventes nombres de nodos ni cambies de familia por un fallo. Los timeouts
+con prompt_id se reanudan; no vuelvas a enviar el mismo render por defecto.

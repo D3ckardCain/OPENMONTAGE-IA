@@ -37,6 +37,17 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Iniciar / reanudar agentes').click()
         page.wait_for_function('document.querySelector("#status").textContent === "blocked"')
         assert actions==['start']
+        bindings=[]
+        page.route('**/api/studio/adapters',lambda r:r.fulfill(json=[{'family':'kokoro','backend':'native','ready':False,'problems':['Falta runtime'],'configuration':{},'model_dir':None,'python_executable':'/runtime/python'}]))
+        def save_binding(route):
+            bindings.append(route.request.post_data_json);route.fulfill(json=bindings[-1])
+        page.route('**/api/studio/adapters/kokoro',save_binding)
+        page.get_by_role('button',name='Detectar adaptadores y dependencias').click()
+        page.locator('#adapter-list summary').click()
+        page.locator('#adapter-list [name=model_dir]').fill('/models/kokoro')
+        page.get_by_role('button',name='Guardar adaptador',exact=True).click()
+        page.wait_for_function('document.querySelector("#notice").textContent.includes("kokoro guardado")')
+        assert bindings[0]['model_dir']=='/models/kokoro'
         page.set_viewport_size({'width':390,'height':844})
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert errors==[]

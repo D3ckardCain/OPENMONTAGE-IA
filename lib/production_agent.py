@@ -44,6 +44,9 @@ TOOLS=[
  descriptor('list_tools','Descubre contratos locales por capacidad; no ejecuta herramientas.',{'capability':{'type':'string'}}),
  descriptor('tool_info','Lee contrato real, disponibilidad, instalación y skills de una herramienta.',{'name':{'type':'string'}},['name']),
  descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
+ descriptor('adapter_status','Diagnóstico del adaptador, pesos locales y dependencias; no descarga.',{'family':{'type':'string'}},['family']),
+ descriptor('comfy_nodes','Consulta esquemas y modelos registrados en nodos ComfyUI concretos.',{'classes':{'type':'array','items':{'type':'string'},'maxItems':12}},['classes']),
+ descriptor('bind_workflow','Vincula un workflow API ya creado dentro del proyecto a una familia de modelos.',{'family':{'type':'string'},'path':{'type':'string'},'output_node':{'type':'string'}},['family','path','output_node']),
  descriptor('inspect_image','Inspecciona una imagen real del proyecto con el modelo local; requiere capacidad de visión.',{'path':{'type':'string'},'question':{'type':'string','maxLength':4000}},['path','question']),
  descriptor('consult_agent','Consulta a un especialista local. Devuelve análisis, no autoriza acciones.',{'role':{'enum':list(ROLES)},'task':{'type':'string'}},['role','task']),
  descriptor('checkpoint','Guarda evidencia de la etapa actual y respeta sus aprobaciones.',{'stage':{'type':'string'},'status':{'enum':['in_progress','completed','awaiting_human','failed']},'artifacts':{'type':'object'},'message':{'type':'string'}},['stage','status','artifacts']),
@@ -200,6 +203,32 @@ class LocalAgent:
             self.event('tool','Ejecutando '+tool.name)
             result=tool.execute(inputs)
             return {'success':result.success,'data':result.data,'error':result.error,'cost_usd':result.cost_usd}
+        if name=='adapter_status':
+            from lib.model_adapters import diagnostics,CATALOG
+            if args['family'] not in CATALOG:raise ValueError('Familia desconocida')
+            return diagnostics(args['family'])
+        if name=='comfy_nodes':
+            result={}
+            for cls in args['classes']:
+                if len(cls)>150:raise ValueError('Nombre de nodo demasiado largo')
+                result[cls]=studio.local_request(self.config['comfyui_url'],'/object_info/'+quote(cls,safe=''),timeout=10).get(cls)
+            return result
+        if name=='bind_workflow':
+            from lib.model_adapters import configure,spec,CATALOG
+            from lib.model_comfy_adapter import validate_graph
+            family=args['family']
+            if family not in CATALOG or spec(family)['backend']!='comfyui':raise ValueError('Esta familia no usa workflows ComfyUI')
+            path=Path(args['path'])
+            if not path.is_absolute():path=self.path/path
+            path=path.resolve();rel=path.relative_to(self.path.resolve())
+            if not rel.parts or rel.parts[0] not in ('assets','workspaces'):raise ValueError('Guarda el workflow en assets/ o workspaces/')
+            if not path.is_file() or path.stat().st_size>2000000:raise ValueError('Workflow ausente o demasiado grande')
+            graph=studio.read_json(path)
+            if not isinstance(graph,dict) or len(graph)>200:raise ValueError('Workflow inválido')
+            validate_graph(family,graph,args['output_node'],self.config['comfyui_url'])
+            result=configure(family,{'workflow_path':str(path),'output_node':args['output_node']})
+            self.event('adapter','Workflow validado y vinculado: '+family)
+            return result
         if name=='inspect_image':
             import base64
             import io

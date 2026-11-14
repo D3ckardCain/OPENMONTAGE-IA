@@ -722,6 +722,7 @@ class TestCapabilityMetadata:
             "kling_official",
             "openai",
             "piper",
+            "local_downloaded_models",
         }
 
 

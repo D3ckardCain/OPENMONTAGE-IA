@@ -79,3 +79,10 @@ actividad. `checkpoint_<etapa>.json`: artefactos y decisiones por etapa.
 `assets/`: medios de producción. `renders/`: exportaciones.
 `user_clarifications.json`: instrucciones adicionales. `agent_session.json`:
 conversación auditable del productor. Las carpetas de modelos no se modifican.
+
+## Adaptadores de pesos descargados
+
+El registro incorpora 21 rutas nativas y 25 conexiones de workflow ComfyUI.
+Su panel de configuración y diagnóstico está en «Modelos y discos». Consulta
+[Adaptadores](ADAPTADORES_MODELOS_ES.md): implementaciones, dependencias,
+parámetros, limitaciones y diferencia entre conector e inferencia validada.
