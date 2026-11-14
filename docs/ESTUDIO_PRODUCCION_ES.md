@@ -1,6 +1,10 @@
 # Estudio de producción local
 
-Abre `/studio` en el servidor Backlot (`python -m backlot serve --port 4750`).
+En Windows, abre `OPENMONTAGE_ESTUDIO.cmd` desde la carpeta del repositorio.
+El lanzador usa `.venv\Scripts\python.exe` si existe, o Python instalado, y
+abre el estudio. No instala dependencias ni descarga pesos silenciosamente.
+También puedes ejecutar `python -m backlot studio`, que inicia Backlot si hace
+falta y abre `/studio`. El servidor manual usa `python -m backlot serve --port 4750`.
 El estudio controla las producciones; el buscador entrega su canal de referencia
 mediante «Crear video a partir de este canal». El storyboard original sigue en
 `/p/<proyecto>`, con acceso desde el estudio.

@@ -181,3 +181,14 @@ def test_agent_can_author_composition_files_without_overwriting_checkpoints(isol
         with pytest.raises(ValueError):worker.dispatch('write_project_file',{'path':path,'content':'invalid'})
     group=studio.resource_catalog()['groups'][0]
     assert worker.dispatch('model_catalog',{'group_id':group['id']})['group']['files'][0]['download_url']
+
+def test_studio_cli_opens_actual_studio_url(monkeypatch):
+    from backlot import __main__ as cli
+    urls=[]
+    monkeypatch.setattr(cli,'_server_alive',lambda port:True)
+    monkeypatch.setattr(cli.webbrowser,'open',lambda url:urls.append(url))
+    assert cli.main(['studio'])==0
+    assert urls[0].endswith('/studio')
+    urls.clear()
+    assert cli.main(['open','video-existing'])==0
+    assert urls[0].endswith('/p/video-existing')

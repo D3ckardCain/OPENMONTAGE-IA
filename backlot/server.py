@@ -2,7 +2,8 @@
 
 The watcher observes ``projects/`` with watchfiles; on any change it bumps a
 per-project version and wakes SSE subscribers, who tell the browser to
-refetch state. The server never writes to project directories.
+refetch state. The observer routes remain read-only. The production studio separately owns
+explicit project creation, agent jobs and approval actions.
 """
 
 from __future__ import annotations
