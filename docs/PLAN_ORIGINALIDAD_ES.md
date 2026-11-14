@@ -60,3 +60,13 @@ que deben seguir los agentes cuando se seleccione una referencia.
 
 Referencia oficial revisada el 14 de noviembre de 2026:
 https://support.google.com/youtube/answer/1311392?hl=es
+
+## Referencia adicional: curso YTF y preparación de títulos
+
+Para el curso de Gabriel Signes, AgedProfiles, Titulator y los dos prompts enlazados,
+consultar `docs/REFERENCIA_YTF_GQiUXnqFAvI_ES.md` y los prompts propios de
+`docs/PROMPTS_ORIGINALES_YOUTUBE_ES.md`. Mantener las funciones descritas por el
+curso separadas de las verificadas y de las implementadas. El estudio no autoriza
+compras, evasión de cancelaciones ni predicciones de monetización. Seleccionar
+primero el objetivo editorial y la aportación propia; las decisiones siguen en el
+agente y en los checkpoints del pipeline.
