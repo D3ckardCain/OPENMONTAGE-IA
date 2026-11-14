@@ -17,7 +17,7 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
             route.fulfill(json={'result_type':'channels','retrieved_at_utc':'2026-11-14T00:00:00Z',
                 'results':[{'id':'UC'+'a'*22,'title':'<img src=x onerror=alert(1)>',
                     'viewCount':2000000,'subscriberCount_public_rounded':10000,'videoCount':30,
-                    'content_review':{'matched':1,'inspected':10,'sample_requested':10}}],
+                    'content_review':{'matched':2,'inspected':10,'sample_requested':10,'matching_publications':[{'id':'abcdefghijk','title':'Publicación reciente','viewCount':150000,'published_at':'2026-11-13T00:00:00Z','duration_iso8601':'PT10M','audio_language_declared':'es'}]}}],
                 'scope':{'candidate_channels':50,'lookup_mode':'handle' if route.request.post_data_json['query'].startswith('@') else 'keywords','content_filter_scope':'recent_upload_sample'},'excluded':{}})
         page.route('**/api/research/channels',respond)
         page.goto(staged_backlot_server+'/channels')
@@ -25,6 +25,13 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         page.get_by_role('button',name='Ejemplo: 1 millón de vistas / hasta 90 días').click()
         assert page.locator('[name=max_channel_age_days]').input_value()=='90'
         page.locator('[name=min_subscribers]').fill('1000')
+        page.locator('[name=min_matching_publications]').fill('3')
+        page.locator('[name=sample_size]').select_option('5')
+        page.locator('[name=min_matching_publications]').fill('6')
+        page.get_by_role('button',name='Aplicar filtros').click()
+        assert page.locator('dialog').is_visible()
+        assert 'tamaño de la muestra' in page.locator('#filter-error').inner_text()
+        page.locator('[name=min_matching_publications]').fill('2')
         page.locator('[name=language]').select_option('es')
         page.locator('[name=content_type]').select_option('medium')
         page.locator('[name=published_within]').select_option('month')
@@ -32,6 +39,10 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         page.locator('#query').fill('animales')
         page.get_by_role('button',name='Buscar canales',exact=True).click()
         page.locator('.channel').wait_for()
+        assert captured[0]['filters']['min_matching_publications']==2
+        page.get_by_text('Ver publicaciones coincidentes',exact=True).click()
+        assert page.get_by_role('link',name='Publicación reciente').get_attribute('href')=='https://www.youtube.com/watch?v=abcdefghijk'
+        assert '150,000 vistas acumuladas' in page.locator('.channel').inner_text()
         assert captured[0]['filters']['min_views']==1000000
         assert captured[0]['filters']['max_channel_age_days']==90
         assert captured[0]['filters']['min_subscribers']==1000

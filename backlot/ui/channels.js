@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const dialog = $('filters'), form = $('filter-form');
 let applied = {pages:1,max_requests:300,filters:{sample_size:10}};
 let snapshot = [];
-const numeric = ['min_views','max_views','max_channel_age_days','min_subscribers','max_subscribers','min_minutes','max_minutes','min_publication_views','pages','sample_size','max_requests'];
+const numeric = ['min_views','max_views','max_channel_age_days','min_subscribers','max_subscribers','min_minutes','max_minutes','min_publication_views','min_matching_publications','pages','sample_size','max_requests'];
 const format = value => value === null || value === undefined ? 'No disponible' : new Intl.NumberFormat('es-MX').format(value);
 function element(tag,text,cls){const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;}
 function restore(values){for(const [name,value] of values)form.elements.namedItem(name).value=value;}
@@ -17,6 +17,7 @@ function readFilters(){
   for(const [low,high] of [['min_views','max_views'],['min_subscribers','max_subscribers'],['min_minutes','max_minutes']]){
     if(filters[low]!==undefined && filters[high]!==undefined && filters[low]>filters[high])throw Error('El mínimo no puede superar al máximo.');
   }
+  if(filters.min_matching_publications<1 || filters.min_matching_publications>filters.sample_size)throw Error('Las coincidencias mínimas deben estar entre 1 y el tamaño de la muestra.');
   return {pages,filters,max_requests};
 }
 $('open-filters').onclick=()=>{snapshot=[...new FormData(form)];$('filter-error').textContent='';dialog.showModal();};
@@ -31,7 +32,7 @@ $('young-preset').onclick=()=>{
 };
 form.onsubmit=event=>{
   event.preventDefault();try{applied=readFilters();dialog.close();
-    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && value!=='any' && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
+    const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && value!=='any' && !(key==='min_matching_publications'&&value===1) && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
     $('filter-count').textContent=n?`(${n})`:'';
     // Old results must not appear as if the new filters have been searched.
     $('results').replaceChildren();$('scope').textContent='';$('status').textContent='Filtros aplicados. Pulsa Buscar canales para consultar.';
@@ -45,7 +46,21 @@ function showChannel(ch,index){
   card.append(element('p',`Creado: ${created&&!Number.isNaN(created.getTime())?created.toLocaleDateString('es-MX'):'fecha no disponible'}`));
   card.append(element('p',`${format(ch.videoCount)} publicaciones públicas · País: ${ch.country_declared||'no declarado'}`));
   if(ch.matched_queries)card.append(element('p',`Temas: ${ch.matched_queries.join(' · ')}`));
-  if(ch.content_review){const r=ch.content_review;card.append(element('p',`${r.matched} coincidencias entre ${r.inspected} publicaciones revisadas (muestra de ${r.sample_requested}).`));}
+  if(ch.content_review){
+    const r=ch.content_review;card.append(element('p',`${r.matched} coincidencias entre ${r.inspected} publicaciones revisadas (muestra de ${r.sample_requested}).`));
+    if(r.matching_publications?.length){
+      const details=element('details',''),summary=element('summary','Ver publicaciones coincidentes');details.append(summary);
+      const list=element('ul','');
+      for(const video of r.matching_publications){
+        if(!/^[A-Za-z0-9_-]{11}$/.test(video.id))continue;
+        const item=element('li',''),link=element('a',video.title||video.id);
+        link.href=`https://www.youtube.com/watch?v=${encodeURIComponent(video.id)}`;link.target='_blank';link.rel='noopener noreferrer';
+        const date=video.published_at?new Date(video.published_at):null;
+        item.append(link,element('p',`${format(video.viewCount)} vistas acumuladas · Publicado: ${date&&!Number.isNaN(date.getTime())?date.toLocaleDateString('es-MX'):'fecha no disponible'} · Duración: ${video.duration_iso8601||'no disponible'} · Audio declarado: ${video.audio_language_declared||'no disponible'}`));list.append(item);
+      }
+      details.append(list,element('small','Vistas acumuladas de estas publicaciones; no vistas ganadas por el canal durante el periodo.'));card.append(details);
+    }
+  }
   return card;
 }
 $('search').onsubmit=async event=>{

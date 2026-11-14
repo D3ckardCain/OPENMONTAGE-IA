@@ -148,3 +148,42 @@ def test_age_filter_also_limits_candidate_discovery():
     start=datetime.fromisoformat(params['publishedAfter'])
     end=datetime.fromisoformat(params['publishedBefore'])
     assert end-start==timedelta(days=90)
+
+
+def test_repeated_recent_success_requires_distinct_matching_publications():
+    publications=[video('aaaaaaaaaaa',views=120000),video('bbbbbbbbbbb',views=200000),
+                  video('ccccccccccc',views=90000),video('ddddddddddd',age=40,views=900000)]
+    api=API([channel(A,2000000)],{A:publications})
+    result=search(api,min_publication_views=100000,published_within='month',min_matching_publications=2)
+    review=result['results'][0]['content_review']
+    assert review['matched']==2 and review['minimum_required']==2
+    assert [v['id'] for v in review['matching_publications']]==['aaaaaaaaaaa','bbbbbbbbbbb']
+    assert review['matching_publications'][0]['viewCount']==120000
+    assert review['complete_history'] is False
+    rejected=search(api,min_publication_views=100000,published_within='month',min_matching_publications=3)
+    assert rejected['results']==[]
+    assert rejected['excluded']=={'insufficient_matching_publications':1}
+
+
+def test_repeated_response_records_cannot_satisfy_minimum():
+    api=API([channel(A,100)],{A:[video('aaaaaaaaaaa'),video('aaaaaaaaaaa')]})
+    result=search(api,min_matching_publications=2)
+    assert not result['results']
+    assert result['excluded']=={'insufficient_matching_publications':1}
+
+
+@pytest.mark.parametrize('minimum,sample',[(0,10),(True,10),(21,20),(6,5)])
+def test_invalid_matching_minimum_never_queries(minimum,sample):
+    api=API([])
+    with pytest.raises(Unavailable):search(api,min_matching_publications=minimum,sample_size=sample)
+    assert not api.calls
+
+
+def test_matching_minimum_validated_by_both_agent_tools_before_client(monkeypatch):
+    from tools.research.youtube_channel_batch import YouTubeChannelBatch
+    def fail():raise AssertionError('client must not be created')
+    monkeypatch.setattr('tools.research.youtube_channel_search.ChannelSearch',fail)
+    monkeypatch.setattr('tools.research.youtube_channel_batch.ChannelSearch',fail)
+    filters={'min_matching_publications':6,'sample_size':5}
+    assert not YouTubeChannelSearch().execute({'query':'animals','filters':filters}).success
+    assert not YouTubeChannelBatch().execute({'queries':['animals'],'filters':filters}).success

@@ -9,7 +9,7 @@
 <textarea id="query" name="query" maxlength="1004" rows="2" placeholder="Un tema, @usuario o enlace por línea · máximo 5" required></textarea>
 <button type="button" id="open-filters" class="secondary">Filtros <span id="filter-count"></span></button><button id="submit">Buscar canales</button></div></form>
 <div class="toolbar"><p id="configuration">Comprobando conexión…</p><span>Orden: vistas ↓ · suscriptores ↓</span></div>
-<p class="notice">Combina vistas mínimas con antigüedad máxima para buscar canales jóvenes con muchas vistas. La creación del canal y la fecha de sus publicaciones son filtros distintos.</p>
+<p class="notice">Combina vistas de publicación, fecha reciente y varias coincidencias para detectar éxitos repetidos. La creación del canal y la fecha de sus publicaciones son filtros distintos.</p>
 <p id="status" role="status" aria-live="polite">Introduce un tema para comenzar.</p>
 <div id="results" class="results"></div><div id="scope" class="scope"></div>
 <dialog id="filters"><form id="filter-form"><div class="modal-head"><div><h2>Filtros de búsqueda</h2><p>Encuentra canales que encajen con tu contenido.</p></div><button type="button" id="close-filters" class="icon" aria-label="Cerrar filtros">×</button></div>
@@ -22,6 +22,7 @@
 <fieldset><legend>Duración de publicaciones · minutos</legend><div class="pair"><label>Mínima<input name="min_minutes" type="number" min="0" step="1" placeholder="0"></label><label>Máxima<input name="max_minutes" type="number" min="0" step="1" placeholder="Sin límite"></label></div></fieldset>
 <fieldset><legend>Fecha de sus publicaciones</legend><select name="published_within"><option value="any">Cualquier fecha</option><option value="hour">Última hora</option><option value="day">Últimas 24 horas</option><option value="week">Últimos 7 días</option><option value="month">Últimos 30 días</option><option value="year">Últimos 365 días</option></select></fieldset>
 <fieldset><legend>Vistas de una publicación de la muestra</legend><label>Mínimas<input name="min_publication_views" type="number" min="0" step="1" placeholder="0"></label></fieldset>
+<fieldset><legend>Publicaciones coincidentes mínimas</legend><label>Cantidad en la muestra<input name="min_matching_publications" type="number" min="1" max="20" step="1" value="1" required></label><small>Cada publicación debe cumplir todos los filtros. No puede superar el tamaño de la muestra.</small></fieldset>
 <fieldset><legend>País declarado del canal</legend><label>Código de dos letras<input name="country" maxlength="2" placeholder="Todos · ejemplo MX" pattern="[A-Za-z]{2}|" autocomplete="off"></label></fieldset>
 <fieldset><legend>Profundidad de búsqueda</legend><label>Páginas de candidatos<select name="pages"><option value="1">1 · hasta 50 canales</option><option value="2">2 · hasta 100 canales</option><option value="3">3 · hasta 150 canales</option></select></label></fieldset>
 <fieldset><legend>Muestra reciente por canal</legend><label>Publicaciones que revisar<select name="sample_size"><option value="10">10 publicaciones</option><option value="20">20 publicaciones</option><option value="5">5 publicaciones</option></select></label></fieldset>

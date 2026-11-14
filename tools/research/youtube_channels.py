@@ -25,13 +25,14 @@ class ChannelFilters:
     content_type: str = 'any'
     published_within: str = 'any'
     min_publication_views: int = 0
+    min_matching_publications: int = 1
     sample_size: int = 10
 
     @property
     def inspect_uploads(self):
         return bool(self.language or self.min_minutes or self.max_minutes is not None
                     or self.content_type != 'any' or self.published_within != 'any'
-                    or self.min_publication_views)
+                    or self.min_publication_views or self.min_matching_publications > 1)
 
     def validate(self):
         for low, high in ((self.min_views,self.max_views),
@@ -47,6 +48,8 @@ class ChannelFilters:
             raise Unavailable('Vistas de publicación inválidas')
         if type(self.sample_size) is not int or not 1 <= self.sample_size <= 20:
             raise Unavailable('Revisa entre 1 y 20 publicaciones por canal')
+        if type(self.min_matching_publications) is not int or not 1 <= self.min_matching_publications <= self.sample_size:
+            raise Unavailable('Las coincidencias mínimas deben estar entre 1 y el tamaño de la muestra')
         if self.language and not re.fullmatch(r'[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*', self.language):
             raise Unavailable('Idioma inválido')
         if self.country and not re.fullmatch('[A-Z]{2}', self.country):
@@ -154,12 +157,23 @@ class ChannelSearch(YouTube):
                 video_ids = list(dict.fromkeys(x.get('contentDetails',{}).get('videoId')
                                  for x in reply['items'] if x.get('contentDetails',{}).get('videoId')))
                 videos = self.batches('videos',video_ids,'snippet,statistics,contentDetails,liveStreamingDetails')
+                # Count distinct requested publications, even if upstream repeats records.
+                videos = list({v['id']:v for v in videos if v.get('id') in video_ids}.values())
                 matches = [v for v in videos if self._matches(v,row['id'],filters,now)]
                 if not matches:
                     reject('no_match_in_recent_sample'); continue
+                if len(matches) < filters.min_matching_publications:
+                    reject('insufficient_matching_publications'); continue
                 dates = [v['snippet']['publishedAt'] for v in matches if v['snippet'].get('publishedAt')]
                 row['content_review'] = dict(sample_requested=filters.sample_size,
                     inspected=len(videos),matched=len(matches),
+                    minimum_required=filters.min_matching_publications,
+                    matching_publications=[dict(id=v['id'],title=v.get('snippet',{}).get('title'),
+                        published_at=v.get('snippet',{}).get('publishedAt'),
+                        viewCount=count(v.get('statistics',{}).get('viewCount')),
+                        duration_iso8601=v.get('contentDetails',{}).get('duration'),
+                        audio_language_declared=v.get('snippet',{}).get('defaultAudioLanguage'))
+                        for v in matches],
                     latest_matching_publication=max(dates) if dates else None,
                     complete_history=False,shorts_confirmed=None)
                 reviewed.append(row)
@@ -179,7 +193,7 @@ class ChannelSearch(YouTube):
                    'La fecha de publicación no mide vistas ganadas dentro del periodo por un canal antiguo.',
                    'La muestra no certifica viralidad actual, crecimiento, monetización ni RPM.',
                    'Suscriptores públicos redondeados; desconocido no equivale a cero.',
-                   'Los filtros de contenido exigen una misma publicación coincidente en la muestra reciente.',
+                   'Cada coincidencia cumple todos los filtros de contenido; el mínimo cuenta publicaciones distintas de la muestra reciente.',
                    'Idioma: audio declarado de publicaciones; no verificación acústica ni idioma de todo el canal.',
                    'Hasta 3 minutos solo indica candidato a Short; más de 3 minutos es un filtro de duración.',
                    'Periodos móviles: día 24h, semana 7d, mes 30d, año 365d.'])

@@ -23,11 +23,12 @@ Filtros disponibles:
 - Tipo por duración: todos, hasta 3 minutos (candidatos a Shorts), más de 3
   minutos, 4–20 minutos inclusive y más de 20 minutos.
 - Fecha de publicación: última hora, 24 horas, 7 días, 30 días o 365 días.
-- Vistas mínimas de una publicación de la muestra: distinto de vistas totales.
+- Vistas mínimas por publicación coincidente: distinto de vistas totales.
+- Cantidad mínima de publicaciones coincidentes: entre 1 y el tamaño de la muestra.
 - Profundidad: 1–3 páginas de candidatos y 5, 10 o 20 publicaciones recientes.
 
 Los filtros de contenido se evalúan **juntos en una misma publicación**. Basta
-una coincidencia en la muestra para incluir al canal; no se afirma que todo el
+una coincidencia de forma predeterminada; el mínimo es configurable. No se afirma que todo el
 canal tenga ese idioma, formato o volumen de vistas. Las emisiones en directo y
 sus archivos quedan excluidos de esta revisión. Los elementos privados o borrados
 pueden reducir la muestra efectivamente revisada. No se buscan publicaciones en
@@ -158,3 +159,27 @@ material autorizado y adaptación cultural, además de diferencias superficiales
 Fuentes oficiales:
 - https://developers.google.com/youtube/v3/docs/channels
 - https://support.google.com/youtube/answer/1311392?hl=es
+
+
+## Éxitos repetidos en publicaciones recientes
+
+El filtro `min_matching_publications` (predeterminado 1) exige entre 1 y
+`sample_size` publicaciones **distintas** que cumplan cada una todos los filtros
+de contenido. Se aplica igual a una consulta directa y a un lote. Por ejemplo:
+
+```json
+{"query":"animal behavior","filters":{"published_within":"month",
+ "min_publication_views":100000,"min_matching_publications":3,"sample_size":20}}
+```
+
+Esto pide al menos tres publicaciones de los últimos 30 días con 100000 vistas
+acumuladas cada una dentro de la muestra reciente. No mide vistas ganadas durante
+el mes ni certifica monetización o viralidad. Un canal con una sola coincidencia
+queda excluido como `insufficient_matching_publications`. Una muestra incompleta
+no equivale al historial completo.
+
+Cada ficha permite desplegar las publicaciones coincidentes: enlace, título,
+fecha, vistas, duración ISO 8601 e idioma de audio declarado; los valores ausentes
+se indican como no disponibles. Los datos se consultan de nuevo en cada búsqueda,
+sin guardar estadísticas históricas. El orden sigue siendo vistas totales del
+canal y después suscriptores. No hay una puntuación de crecimiento inventada.
