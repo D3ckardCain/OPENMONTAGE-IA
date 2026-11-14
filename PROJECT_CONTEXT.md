@@ -135,3 +135,11 @@ Localization checkpoints now require `cultural_audio_audit` from assets onward.
 The audit is agent-authored evidence, not an acoustic detection model. Missing
 runtimes, unresolved audio or unclear rights block completion. These integrations
 are beta and do not certify end-to-end GPU rendering or API connectivity.
+
+
+Channel discovery now has a dedicated `youtube_channel_research` capability and
+local `/channels` screen; see `docs/YOUTUBE_CHANNEL_SEARCH_ES.md`. For channel
+research prefer this capability, which returns channels ordered by lifetime views
+then public subscriber count. Content filters inspect a bounded recent-upload
+sample, not whole-channel properties or verified current virality. Do not route
+this request to the legacy video-search or channel-upload-list modes.

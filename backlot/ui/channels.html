@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OPENMONTAGE-IA · Canales</title><link rel="stylesheet" href="/ui/channels.css"></head>
+<body><main>
+<header><a href="/">← Producciones</a><span>OPENMONTAGE-IA / INVESTIGACIÓN</span></header>
+<section class="intro"><p class="eyebrow">DESCUBRE TU PRÓXIMA IDEA</p><h1>Buscador de canales</h1>
+<p>Primero las vistas. Después los suscriptores.</p></section>
+<form id="search"><div class="searchbar"><label class="sr-only" for="query">Tema o nombre del canal</label>
+<input id="query" name="query" maxlength="200" placeholder="Animales, fútbol, geografía…" required>
+<button type="button" id="open-filters" class="secondary">Filtros <span id="filter-count"></span></button><button id="submit">Buscar canales</button></div></form>
+<div class="toolbar"><p id="configuration">Comprobando conexión…</p><span>Orden: vistas ↓ · suscriptores ↓</span></div>
+<p class="notice">Las vistas son el total acumulado del canal. No certifican viralidad actual ni ingresos.</p>
+<p id="status" role="status" aria-live="polite">Introduce un tema para comenzar.</p>
+<div id="results" class="results"></div><div id="scope" class="scope"></div>
+<dialog id="filters"><form id="filter-form"><div class="modal-head"><div><h2>Filtros de búsqueda</h2><p>Encuentra canales que encajen con tu contenido.</p></div><button type="button" id="close-filters" class="icon" aria-label="Cerrar filtros">×</button></div>
+<div class="filter-grid">
+<fieldset><legend>Vistas totales del canal</legend><div class="pair"><label>Mínimas<input name="min_views" type="number" min="0" step="1" placeholder="0"></label><label>Máximas<input name="max_views" type="number" min="0" step="1" placeholder="Sin límite"></label></div></fieldset>
+<fieldset><legend>Tamaño del canal · suscriptores</legend><div class="pair"><label>Mínimos<input name="min_subscribers" type="number" min="0" step="1" placeholder="Sin límite"></label><label>Máximos<input name="max_subscribers" type="number" min="0" step="1" placeholder="Sin límite"></label></div></fieldset>
+<fieldset><legend>Tipo de contenido en la muestra</legend><select name="content_type"><option value="any">Todos</option><option value="over_3m">Más de 3 minutos</option><option value="short_candidate">Hasta 3 min · candidatos a Shorts</option><option value="medium">Medianos · 4 a 20 min</option><option value="long">Largos · más de 20 min</option></select><small>La duración no confirma que sea un Short.</small></fieldset>
+<fieldset><legend>Idioma del audio declarado</legend><select name="language"><option value="">Todos</option><option value="es">Español</option><option value="en">Inglés</option><option value="ko">Coreano</option><option value="de">Alemán</option><option value="fr">Francés</option><option value="pt">Portugués</option><option value="ja">Japonés</option><option value="it">Italiano</option><option value="ar">Árabe</option><option value="hi">Hindi</option><option value="zh-Hans">Chino simplificado</option><option value="zh-Hant">Chino tradicional</option></select><small>Revisa publicaciones; no acredita el idioma de todo el canal.</small></fieldset>
+<fieldset><legend>Duración de publicaciones · minutos</legend><div class="pair"><label>Mínima<input name="min_minutes" type="number" min="0" step="1" placeholder="0"></label><label>Máxima<input name="max_minutes" type="number" min="0" step="1" placeholder="Sin límite"></label></div></fieldset>
+<fieldset><legend>Publicaciones recientes</legend><select name="published_within"><option value="any">Cualquier fecha</option><option value="hour">Última hora</option><option value="day">Últimas 24 horas</option><option value="week">Últimos 7 días</option><option value="month">Últimos 30 días</option><option value="year">Últimos 365 días</option></select></fieldset>
+<fieldset><legend>Vistas de una publicación de la muestra</legend><label>Mínimas<input name="min_publication_views" type="number" min="0" step="1" placeholder="0"></label></fieldset>
+<fieldset><legend>País declarado del canal</legend><label>Código de dos letras<input name="country" maxlength="2" placeholder="Todos · ejemplo MX" pattern="[A-Za-z]{2}|" autocomplete="off"></label></fieldset>
+<fieldset><legend>Profundidad de búsqueda</legend><label>Páginas de candidatos<select name="pages"><option value="1">1 · hasta 50 canales</option><option value="2">2 · hasta 100 canales</option><option value="3">3 · hasta 150 canales</option></select></label></fieldset>
+<fieldset><legend>Muestra reciente por canal</legend><label>Publicaciones que revisar<select name="sample_size"><option value="10">10 publicaciones</option><option value="20">20 publicaciones</option><option value="5">5 publicaciones</option></select></label></fieldset>
+<div class="explanation">Los filtros de idioma, duración, tipo, vistas de publicación y fecha se comprueban juntos en una misma publicación de la muestra reciente. La búsqueda devuelve canales; no revisa todo su historial. Una consulta profunda tarda más y consume más cuota gratuita.</div>
+</div><p id="filter-error" role="alert"></p><footer><button type="button" id="reset-filters" class="secondary">Restablecer todo</button><div><button type="button" id="cancel-filters" class="secondary">Cancelar</button><button>Aplicar filtros</button></div></footer></form></dialog>
+</main><script type="module" src="/ui/channels.js"></script></body></html>
