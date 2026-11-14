@@ -169,6 +169,10 @@ def diagnostics(family,probe=True):
     result['required_modules']=list(modules)
     if probe and model is not None and not all(available.values()):result['problems'].append('Dependencias Python ausentes: '+', '.join(m for m,ok in available.items() if not ok))
     result['ready']=model is not None and not result['problems']
+    if model is not None:
+        from lib.model_validation import current_evidence
+        evidence=current_evidence(family,model)
+        if evidence:result.update(inference_verified=True,validation_evidence=evidence)
     return result
 
 

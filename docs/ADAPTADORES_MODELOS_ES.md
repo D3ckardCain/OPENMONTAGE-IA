@@ -142,3 +142,40 @@ usa nodos locales y revisa sus dependencias/servicios antes de aprobar el grafo.
 Los archivos de código propios del modelo se ejecutan solo desde la carpeta
 local ya instalada (`local_files_only=True`); no se obtiene código remoto durante
 la inferencia. Conserva las licencias de cada modelo y recurso de audio.
+
+
+## Primera prueba verificable: voz española
+
+El estudio incluye «Prueba de voz española». Detecta primero los adaptadores,
+selecciona una voz española local y revisa el texto de prueba. La ejecución usa
+Kokoro y, si lo solicitas, Faster-Whisper ya configurado. Comparte el bloqueo de
+recursos con producción: no se inicia otra tarea mientras esté trabajando.
+
+Cada prueba crea su propia carpeta `.backlot/studio/validations/check-…/` con
+solicitud, reporte, voz WAV y transcripción. Mide duración, muestras, RMS, pico y
+fracción de muestras recortadas. Rechaza WAV vacío, truncado o completamente
+silencioso. El RMS no acredita buena pronunciación, naturalidad ni ausencia de
+ruidos: escucha el resultado antes de registrar aprobación o rechazo.
+
+La comparación de transcripción informa WER, ignorando mayúsculas, tildes y
+puntuación. WER puede superar 1 cuando hay muchas inserciones; no se presenta
+como porcentaje de calidad ni como aprobación automática. Se comprueba que las
+marcas de tiempo estén dentro de la muestra con una tolerancia de un segundo.
+
+Si falla ASR se conserva la voz y la prueba queda parcial. Si faltan pesos o
+runtime no se genera audio falso. Un cierre del servidor deja una prueba
+interrumpida; una nueva ejecución obtiene otro identificador y no pisa evidencia.
+Cada paso tiene un timeout de diez minutos y una llamada en curso termina o
+agota su timeout; cerrar la página no la cancela.
+
+Un diagnóstico puede mostrar `inference_verified` para esa muestra concreta,
+con la referencia del reporte y la revisión humana separadas. La evidencia se
+invalida si cambian la ruta, los tamaños/fechas registrados de archivos del
+modelo, el worker o la configuración de runtime; no se calcula el hash completo
+de todos los pesos ni se certifica que los paquetes instalados sigan siendo
+idénticos. Un cambio de dependencias requiere repetir la prueba. No se generaliza
+la aprobación a otras voces, idiomas, hardware ni a todas las familias.
+
+Las pruebas automáticas usan WAV controlado y adaptadores simulados. Verifican
+el recorrido diagnóstico y sus fallos, no una inferencia real con los modelos
+Windows del usuario. Para esa evidencia hay que ejecutar la prueba en ese equipo.

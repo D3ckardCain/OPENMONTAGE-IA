@@ -38,7 +38,7 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.wait_for_function('document.querySelector("#status").textContent === "blocked"')
         assert actions==['start']
         bindings=[]
-        page.route('**/api/studio/adapters',lambda r:r.fulfill(json=[{'family':'kokoro','backend':'native','ready':False,'problems':['Falta runtime'],'configuration':{},'model_dir':None,'python_executable':'/runtime/python'}]))
+        page.route('**/api/studio/adapters',lambda r:r.fulfill(json=[{'family':'kokoro','backend':'native','ready':False,'problems':['Falta runtime'],'configuration':{},'model_dir':None,'python_executable':'/runtime/python','available_voices':['ef_dora']}]))
         def save_binding(route):
             bindings.append(route.request.post_data_json);route.fulfill(json=bindings[-1])
         page.route('**/api/studio/adapters/kokoro',save_binding)
@@ -48,6 +48,25 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Guardar adaptador',exact=True).click()
         page.wait_for_function('document.querySelector("#notice").textContent.includes("kokoro guardado")')
         assert bindings[0]['model_dir']=='/models/kokoro'
+        check_id='check-123456abcdef';requests=[];reviews=[]
+        def create_check(route):
+            requests.append(route.request.post_data_json);route.fulfill(json={'id':check_id})
+        measured={'id':check_id,'created_at':'fixture','status':'review_required','message':'Escucha la muestra','active':False,'request':{'voice':'ef_dora'},'audio':{'decoded':True,'duration_seconds':1},'audio_url':'/api/studio/validations/'+check_id+'/audio','models':{},'quality_review_required':True}
+        page.route('**/api/studio/validations',create_check)
+        page.route('**/api/studio/validations/'+check_id,lambda r:r.fulfill(json=measured))
+        page.route('**/api/studio/validations/'+check_id+'/audio',lambda r:r.fulfill(body=b'fixture',content_type='audio/wav'))
+        def review_check(route):
+            reviews.append(route.request.post_data_json);measured['human_review']=reviews[-1];route.fulfill(json=measured)
+        page.route('**/api/studio/validations/'+check_id+'/review',review_check)
+        page.locator('#voice-check [name=voice]').select_option('ef_dora')
+        page.get_by_role('button',name='Ejecutar prueba local',exact=True).click()
+        page.locator('#validation-result h3').wait_for()
+        assert requests[0]['voice']=='ef_dora' and requests[0]['transcribe'] is True
+        assert page.locator('#validation-audio').get_attribute('src').endswith('/audio')
+        page.get_by_role('button',name='Aprobar voz después de escuchar',exact=True).click()
+        page.wait_for_function('document.querySelector("#validation-result pre").textContent.includes("accepted")')
+        assert reviews[0]['accepted'] is True
+
         page.set_viewport_size({'width':390,'height':844})
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert errors==[]

@@ -3,7 +3,7 @@ import asyncio
 import json
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse,FileResponse
 from lib import production_studio as studio
 from lib import production_agent as agent
 
@@ -88,6 +88,29 @@ def create_studio_router():
         with agent.ACTIVE_LOCK:
             if agent.ACTIVE:raise HTTPException(409,'Detén la producción antes de cambiar adaptadores')
             return invoke(configure,family,data)
+    @router.get('/api/studio/validations')
+    def validations():
+        from lib import model_validation as checks
+        paths=sorted(checks.root().glob('check-*/report.json'),key=lambda p:p.stat().st_mtime,reverse=True)[:100]
+        return [invoke(checks.read,p.parent.name) for p in paths]
+    @router.post('/api/studio/validations')
+    async def start_validation(request:Request):
+        from lib import model_validation as checks
+        return invoke(checks.start,await body(request))
+    @router.get('/api/studio/validations/{identifier}')
+    def validation(identifier:str):
+        from lib import model_validation as checks
+        return invoke(checks.read,identifier)
+    @router.get('/api/studio/validations/{identifier}/audio')
+    def validation_audio(identifier:str):
+        from lib import model_validation as checks
+        path=invoke(checks.folder,identifier)/'voice/voice.wav'
+        if not path.is_file():raise HTTPException(404,'Audio no disponible')
+        return FileResponse(path,media_type='audio/wav')
+    @router.post('/api/studio/validations/{identifier}/review')
+    async def validation_review(identifier:str,request:Request):
+        from lib import model_validation as checks
+        return invoke(checks.review,identifier,await body(request))
     @router.get('/api/studio/tools')
     async def tools():
         def discover():
