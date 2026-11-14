@@ -20,11 +20,21 @@ def test_simultaneous_tracks_allowed_but_duplicate_ids_rejected():
     item['id']='1'
     with pytest.raises(ValueError,match='Duplicate'):validate_cultural_audio(value)
 
-def test_localization_checkpoint_cannot_skip_audio_review(monkeypatch):
-    # Isolate the new gate from existing canonical artifact fixture complexity.
-    monkeypatch.setattr('lib.checkpoint._validate_artifacts_for_stage',lambda *args:None)
-    with pytest.raises(CheckpointValidationError,match='requires cultural_audio_audit'):
-        validate_checkpoint(dict(stage='compose',status='completed',pipeline_type='localization-dub',artifacts={}))
+@pytest.mark.parametrize("stage,canonical", [("assets","asset_manifest"),("edit","edit_decisions"),("compose","render_report"),("publish","publish_log")])
+def test_real_checkpoint_requires_resolved_audio(stage, canonical):
+    import json
+    from pathlib import Path
+    samples = json.loads((Path(__file__).parents[1] / "fixtures/localization_checkpoint_artifacts.json").read_text())
+    value = dict(version="1.0", project_id="locale-fixture", stage=stage,
+        status="completed", timestamp="2026-11-14T00:00:00Z",
+        pipeline_type="localization-dub", artifacts={canonical:samples[canonical]})
+    with pytest.raises(CheckpointValidationError,match="requires cultural_audio_audit"):
+        validate_checkpoint(value)
+    value["artifacts"]["cultural_audio_audit"] = audit()
+    validate_checkpoint(value)
+    value["artifacts"]["cultural_audio_audit"]["segments"][0]["resolved"] = False
+    with pytest.raises(CheckpointValidationError, match="blocked"):
+        validate_checkpoint(value)
 
 
 def test_manifest_requires_audit_at_each_downstream_stage():

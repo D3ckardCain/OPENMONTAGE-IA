@@ -133,3 +133,20 @@ CHECK: Per-locale validation
 - **Degrading source video**: Re-encoding the source video for each locale should preserve quality. Never downgrade resolution.
 
 Cost policy: zero-cost runs must not select paid providers. Missing local tools block the stage; do not silently change providers. Follow docs/OPENMONTAGE_AUTOMATION_ES.md and carry the cultural audio evidence through every downstream checkpoint.
+
+
+## Local agent work protocol
+Assign each stage as a bounded work order: project ID, locale, input artifact
+references, named tool capabilities, required output artifact, acceptance criteria,
+zero-cost constraint and remaining revision count. The producer owns sequencing;
+workers must not publish or expand their scope. A reviewer checks the artifact
+against the manifest before the producer writes a completed checkpoint. Record
+blocking failures and retry only within the manifest limit; never mark a tool or
+model ready based only on its presence in a download inventory.
+
+On resumption, read checkpoints and decision logs before assigning work. Reuse
+validated artifacts; rerun only invalidated downstream work. Full-run authority
+must be represented by the existing approval-policy decision log contract;
+never fabricate a human approval. Publishing remains subject to the recorded
+project authorization. Research agents use fresh official connectors at task time,
+and cultural review covers the final mix for the target locale.
