@@ -27,6 +27,10 @@ mediante «Crear video a partir de este canal». El storyboard original sigue en
 - Los 12 pipelines públicos existentes, con sus esquemas, requisitos y skills.
 - Transporte real de agentes a Ollama, delegación editorial en contextos separados,
   puente a herramientas concretas locales y registros persistentes por proyecto.
+- Archivos de trabajo para subtítulos, SVG y proyectos de composición dentro de
+  `assets/` o `workspaces/`, consultables por el productor sin editar checkpoints.
+- Inspección de imágenes reales del proyecto mediante el modelo local cuando declara
+  capacidad de visión; sin esa capacidad se informa la dependencia.
 - Descubrimiento del registro local existente: análisis, investigación de YouTube,
   fuentes de fútbol, voz, imágenes, video, audio, composición y verificación según
   disponibilidad de cada herramienta. No se agregan proveedores de pago como fallback.
@@ -53,6 +57,10 @@ conservan artefactos. Reanudar reconstruye el contexto desde solicitud, aclaraci
 checkpoints y artefactos; el historial conversacional se guarda para auditoría.
 Al reiniciar el servidor un trabajo sin worker activo figura como interrumpido.
 Solo se ejecuta una producción a la vez para compartir recursos locales.
+
+Una prueba recorre las etapas de `hybrid` hasta un MP4 de prueba generado por
+FFmpeg, con un modelo simulado y checkpoints reales; deja publicación pendiente.
+Esto valida el recorrido del orquestador, no la calidad generativa.
 
 Las pruebas automatizadas verifican transporte, contratos, persistencia, política
 $0 y control de interfaz con fixtures. **No prueban generación con la GPU Windows

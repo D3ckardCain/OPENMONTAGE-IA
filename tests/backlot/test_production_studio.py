@@ -110,3 +110,74 @@ def test_export_verification_requires_real_video_stream(isolated,monkeypatch):
     assert worker.verify_outputs()[0]['path']==str(p)
     p.unlink()
     with pytest.raises(ValueError,match='no existe'):worker.verify_outputs()
+
+def test_guided_checkpoint_waits_and_explicit_approval_resumes(isolated,monkeypatch):
+    from tests.contracts.test_phase0_contracts import sample_artifact
+    pid=studio.create_production({'title':'Aprobaciones','brief':'Video original','pipeline':'hybrid','language':'es','automatic':False})['project_id'];worker=agent.LocalAgent(pid)
+    stage=worker.manifest['stages'][0]
+    worker.instruction('skills/'+stage['skill']+'.md')
+    with pytest.raises(agent.Pause) as pause:
+        worker.dispatch('checkpoint',{'stage':'idea','status':'completed','artifacts':{'brief':sample_artifact('brief')}})
+    assert pause.value.status=='awaiting_human'
+    cp=studio.read_json(studio.project_path(pid)/'checkpoint_idea.json')
+    assert cp['status']=='awaiting_human'
+    assert not cp['human_approved']
+    started=[]
+    monkeypatch.setattr(agent,'start',lambda p:started.append(p) or {'started':True})
+    agent.approve(pid)
+    cp=studio.read_json(studio.project_path(pid)/'checkpoint_idea.json')
+    assert cp['status']=='completed' and cp['human_approved']
+    assert started==[pid]
+
+def test_image_review_sends_actual_project_image_to_transport(isolated):
+    from PIL import Image
+    pid=project();p=studio.project_path(pid)/'assets'/'sample.png';p.parent.mkdir(exist_ok=True)
+    Image.new('RGB',(12,12),'red').save(p)
+    messages=[]
+    def chat(m,t):
+        messages.extend(m);return {'content':'Synthetic review fixture'}
+    worker=agent.LocalAgent(pid,chat=chat)
+    result=worker.dispatch('inspect_image',{'path':str(p),'question':'Revisar composición'})
+    assert result['scope']=='single_image'
+    import base64,io
+    image=Image.open(io.BytesIO(base64.b64decode(messages[-1]['images'][0])))
+    assert image.size==(12,12)
+    with pytest.raises(ValueError):worker.dispatch('inspect_image',{'path':str(studio.PROJECTS_DIR.parent/'private.png'),'question':'Revisar'})
+
+def test_automatic_agent_walks_pipeline_to_real_fixture_export(isolated):
+    """Exercise orchestration with a synthetic model, not generative quality."""
+    import shutil,subprocess
+    from tests.contracts.test_phase0_contracts import sample_artifact
+    from lib.checkpoint import CANONICAL_STAGE_ARTIFACTS
+    if not shutil.which('ffmpeg') or not shutil.which('ffprobe'):pytest.skip('FFmpeg required for media contract')
+    pid=studio.create_production({'title':'Synthetic transport end-to-end','brief':'Contract fixture only','pipeline':'hybrid','language':'es','automatic':True})['project_id']
+    worker=agent.LocalAgent(pid)
+    output=studio.project_path(pid)/'renders'/'fixture.mp4'
+    subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','color=c=blue:s=64x64:d=0.2','-c:v','mpeg4','-y',str(output)],check=True,timeout=20)
+    messages=[]
+    for stage in worker.manifest['stages']:
+        if stage['name']=='publish':continue
+        def call(name,args):return {'role':'assistant','tool_calls':[{'function':{'name':name,'arguments':args}}]}
+        messages.append(call('read_instruction',{'path':'skills/'+stage['skill']+'.md'}))
+        name=CANONICAL_STAGE_ARTIFACTS[stage['name']];artifact=sample_artifact(name)
+        if name=='edit_decisions':artifact['render_runtime']='ffmpeg'
+        if name=='render_report':artifact['outputs'][0]['path']=str(output)
+        messages.append(call('checkpoint',{'stage':stage['name'],'status':'completed','artifacts':{name:artifact}}))
+    messages.append(call('finish',{'blocked':False,'message':'Synthetic fixture export verified'}))
+    stream=iter(messages);worker._chat=lambda m,t:next(stream)
+    worker.run();state=studio.production_state(pid)
+    assert state['job']['status']=='rendered',state['job']
+    assert state['outputs'][0]['name']=='fixture.mp4'
+    assert next(x for x in state['stages'] if x['name']=='publish')['status']=='pending'
+
+def test_agent_can_author_composition_files_without_overwriting_checkpoints(isolated):
+    worker=agent.LocalAgent(project())
+    worker.dispatch('write_project_file',{'path':'assets/captions.srt','content':'1\n00:00:00,000 --> 00:00:01,000\nHola\n'})
+    worker.dispatch('write_project_file',{'path':'workspaces/composition/src/Root.tsx','content':'export const Title = () => <div>Original</div>;'})
+    result=worker.dispatch('read_project_file',{'path':'assets/captions.srt'})
+    assert 'Hola' in result['content']
+    assert any(x['path']=='workspaces/composition/src/Root.tsx' for x in worker.dispatch('project_files',{})['files'])
+    for path in ['checkpoint_research.json','../outside.txt','assets/malicious.exe']:
+        with pytest.raises(ValueError):worker.dispatch('write_project_file',{'path':path,'content':'invalid'})
+    group=studio.resource_catalog()['groups'][0]
+    assert worker.dispatch('model_catalog',{'group_id':group['id']})['group']['files'][0]['download_url']

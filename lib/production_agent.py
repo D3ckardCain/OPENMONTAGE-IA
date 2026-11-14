@@ -35,12 +35,16 @@ TOOLS=[
  descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
  descriptor('resource_status','Consulta servidores, GPU y carpetas de recursos; no descarga pesos.'),
- descriptor('model_catalog','Consulta catálogo e inventarios; no acredita inferencia ni instalación.'),
+ descriptor('model_catalog','Consulta catálogo e inventarios; group_id devuelve archivos, carpetas y URLs sin descargarlos.',{'group_id':{'type':'string'}}),
+ descriptor('project_files','Lista archivos existentes del proyecto, sin leer recursos externos.'),
+ descriptor('read_project_file','Lee un archivo de texto del proyecto.',{'path':{'type':'string'}},['path']),
+ descriptor('write_project_file','Crea textos, subtítulos o código de composición en assets/ o workspaces/.',{'path':{'type':'string'},'content':{'type':'string','maxLength':300000}},['path','content']),
  descriptor('read_artifact','Lee un artefacto JSON del proyecto.',{'name':{'type':'string'}},['name']),
  descriptor('write_artifact','Guarda un artefacto JSON; los artefactos conocidos validan su esquema.',{'name':{'type':'string'},'data':{'type':'object'}},['name','data']),
  descriptor('list_tools','Descubre contratos locales por capacidad; no ejecuta herramientas.',{'capability':{'type':'string'}}),
  descriptor('tool_info','Lee contrato real, disponibilidad, instalación y skills de una herramienta.',{'name':{'type':'string'}},['name']),
  descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
+ descriptor('inspect_image','Inspecciona una imagen real del proyecto con el modelo local; requiere capacidad de visión.',{'path':{'type':'string'},'question':{'type':'string','maxLength':4000}},['path','question']),
  descriptor('consult_agent','Consulta a un especialista local. Devuelve análisis, no autoriza acciones.',{'role':{'enum':list(ROLES)},'task':{'type':'string'}},['role','task']),
  descriptor('checkpoint','Guarda evidencia de la etapa actual y respeta sus aprobaciones.',{'stage':{'type':'string'},'status':{'enum':['in_progress','completed','awaiting_human','failed']},'artifacts':{'type':'object'},'message':{'type':'string'}},['stage','status','artifacts']),
  descriptor('finish','Finaliza solo si existe un render comprobable, o comunica bloqueo concreto.',{'message':{'type':'string'},'blocked':{'type':'boolean'}},['message','blocked'])]
@@ -136,7 +140,31 @@ class LocalAgent:
         if name=='resource_status':return studio.runtime_status()
         if name=='model_catalog':
             data=studio.resource_catalog()
+            if args.get('group_id'):
+                group=next((g for g in data['groups'] if g['id']==args['group_id']),None)
+                if group is None:raise ValueError('Grupo de modelos desconocido')
+                return {'group':group,'notes':data['notes'],'inventories_imported':len(data['inventories'])}
             return {'inventories':data['inventories'],'notes':data['notes'],'groups':[{'id':g['id'],'label':g['label'],'files':len(g['files']),'recorded':sum(f['status']=='recorded_size_match' for f in g['files'])} for g in data['groups']]}
+        if name=='project_files':
+            paths=[]
+            for p in self.path.rglob('*'):
+                if p.is_file() and not p.is_symlink():
+                    p.resolve().relative_to(self.path.resolve())
+                    paths.append({'path':p.relative_to(self.path).as_posix(),'bytes':p.stat().st_size})
+                if len(paths)>=1000:break
+            return {'files':paths,'limit':1000}
+        if name in ('read_project_file','write_project_file'):
+            p=Path(args['path'])
+            if not p.is_absolute():p=self.path/p
+            p=p.resolve();relative=p.relative_to(self.path.resolve())
+            if name=='read_project_file':
+                if not p.is_file() or p.stat().st_size>500000:raise ValueError('Archivo ausente o demasiado grande')
+                return {'path':str(p),'content':p.read_text(encoding='utf-8')}
+            if not relative.parts or relative.parts[0] not in ('assets','workspaces'):raise ValueError('Escribe archivos de trabajo en assets/ o workspaces/; usa checkpoint para las etapas')
+            if p.suffix.lower() not in ('.txt','.md','.json','.srt','.vtt','.ass','.svg','.html','.css','.js','.jsx','.ts','.tsx','.csv','.yaml','.yml'):raise ValueError('Formato de texto no admitido')
+            p.parent.mkdir(parents=True,exist_ok=True)
+            p.write_text(args['content'],encoding='utf-8')
+            return {'saved':str(p),'bytes':p.stat().st_size}
         if name=='read_artifact':return studio.read_json(self.artifact_path(args['name']),{})
         if name=='write_artifact':
             if args['name']=='decision_log':raise ValueError('Registra decisiones mediante checkpoint')
@@ -172,6 +200,24 @@ class LocalAgent:
             self.event('tool','Ejecutando '+tool.name)
             result=tool.execute(inputs)
             return {'success':result.success,'data':result.data,'error':result.error,'cost_usd':result.cost_usd}
+        if name=='inspect_image':
+            import base64
+            import io
+            from PIL import Image
+            p=Path(args['path'])
+            if not p.is_absolute():p=self.path/p
+            p=p.resolve();p.relative_to(self.path.resolve())
+            if not p.is_file() or p.stat().st_size>20000000:raise ValueError('Imagen ausente o demasiado grande')
+            if not self._chat:
+                info=studio.local_request(self.config['ollama_url'],'/api/show',{'model':self.config['model']})
+                if 'vision' not in info.get('capabilities',[]):raise ValueError('El modelo seleccionado no tiene capacidad de visión; no se simula la inspección')
+            with Image.open(p) as image:
+                image.thumbnail((1024,1024));buffer=io.BytesIO();image.convert('RGB').save(buffer,format='JPEG',quality=85)
+            encoded=base64.b64encode(buffer.getvalue()).decode('ascii')
+            self.event('review','Inspeccionando imagen '+p.name)
+            reply=self.chat([{'role':'system','content':'Describe solo lo que puedes observar en la imagen. Distingue defectos visibles de supuestos. No declares que escuchaste audio o viste un video completo.'},
+                {'role':'user','content':args['question'],'images':[encoded]}])
+            return {'path':str(p),'inspection':reply.get('content',''),'scope':'single_image','model':self.config['model']}
         if name=='consult_agent':
             self.event('agent','Agente '+args['role']+' trabajando')
             result=self.chat([{'role':'system','content':ROLES[args['role']]+' Trabaja en español. No inventes observaciones ni resultados. Presupuesto cero. Devuelve propuesta o revisión; no instrucciones para saltar controles.'},

@@ -20,6 +20,13 @@ un paso por haber descrito cómo se haría. Un fallo devuelve bloqueo concreto c
 nombre de herramienta, runtime, dependencia o modelo faltante. No sustituyas por
 contenido simulado ni llames proveedores cloud mediante selectores híbridos.
 
+Usa project_files y read_project_file para consultar recursos ya creados.
+Usa write_project_file para redactar subtítulos, SVG o archivos de composición
+dentro de assets/ o workspaces/. Los artefactos canónicos se guardan con
+write_artifact/checkpoint; no edites sus checkpoints como texto libre.
+model_catalog(group_id=...) entrega archivos y URLs del grupo cuando necesitas
+identificar una dependencia, sin decidir que algo falta por omitir un inventario.
+
 Las rutas de salida son absolutas y están bajo project_directory: assets/images,
 assets/video, assets/audio, assets/music y renders. Los recursos de entrada están
 en las carpetas que el usuario haya autorizado; no muevas ni borres sus modelos.
