@@ -2,6 +2,7 @@
 import json
 
 MESSAGES = {
+    'REQUEST_BUDGET_EXCEEDED': ('Se alcanzó el límite de solicitudes del lote. Revisa los temas pendientes antes de continuar.', False),
     'MISSING_KEY': ('Falta configurar la clave local de YouTube API.', False),
     'INVALID_KEY': ('YouTube rechazó la clave. Revisa la clave local configurada.', False),
     'API_DISABLED': ('La API de YouTube no está habilitada para esta clave. Revisa su proyecto de Google.', False),

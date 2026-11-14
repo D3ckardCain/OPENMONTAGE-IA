@@ -6,7 +6,7 @@
 <section class="intro"><p class="eyebrow">DESCUBRE TU PRÓXIMA IDEA</p><h1>Buscador de canales</h1>
 <p>Primero las vistas. Después los suscriptores.</p></section>
 <form id="search"><div class="searchbar"><label class="sr-only" for="query">Tema, @usuario o enlace del canal</label>
-<input id="query" name="query" maxlength="200" placeholder="Tema, @usuario o enlace de un canal…" required>
+<textarea id="query" name="query" maxlength="1004" rows="2" placeholder="Un tema, @usuario o enlace por línea · máximo 5" required></textarea>
 <button type="button" id="open-filters" class="secondary">Filtros <span id="filter-count"></span></button><button id="submit">Buscar canales</button></div></form>
 <div class="toolbar"><p id="configuration">Comprobando conexión…</p><span>Orden: vistas ↓ · suscriptores ↓</span></div>
 <p class="notice">Las vistas son el total acumulado del canal. No certifican viralidad actual ni ingresos.</p>
@@ -24,6 +24,7 @@
 <fieldset><legend>País declarado del canal</legend><label>Código de dos letras<input name="country" maxlength="2" placeholder="Todos · ejemplo MX" pattern="[A-Za-z]{2}|" autocomplete="off"></label></fieldset>
 <fieldset><legend>Profundidad de búsqueda</legend><label>Páginas de candidatos<select name="pages"><option value="1">1 · hasta 50 canales</option><option value="2">2 · hasta 100 canales</option><option value="3">3 · hasta 150 canales</option></select></label></fieldset>
 <fieldset><legend>Muestra reciente por canal</legend><label>Publicaciones que revisar<select name="sample_size"><option value="10">10 publicaciones</option><option value="20">20 publicaciones</option><option value="5">5 publicaciones</option></select></label></fieldset>
+<fieldset><legend>Límite de solicitudes del lote</legend><select name="max_requests"><option value="300">300 solicitudes</option><option value="30">30 solicitudes</option><option value="100">100 solicitudes</option><option value="500">500 solicitudes</option></select><small>Solo para varios temas. No son unidades de cuota ni dinero.</small></fieldset>
 <div class="explanation">Los filtros de idioma, duración, tipo, vistas de publicación y fecha se comprueban juntos en una misma publicación de la muestra reciente. La búsqueda devuelve canales; no revisa todo su historial. Una consulta profunda tarda más y consume más cuota gratuita.</div>
 </div><p id="filter-error" role="alert"></p><footer><button type="button" id="reset-filters" class="secondary">Restablecer todo</button><div><button type="button" id="cancel-filters" class="secondary">Cancelar</button><button>Aplicar filtros</button></div></footer></form></dialog>
 </main><script type="module" src="/ui/channels.js"></script></body></html>

@@ -56,7 +56,10 @@ class ChannelFilters:
 
 class ChannelSearch(YouTube):
     def get(self, resource, **params):
-        if time.monotonic() > self._deadline:
+        limit=getattr(self,'request_limit',None)
+        if limit is not None and sum(self.calls.values())>=limit:
+            raise YouTubeFailure('REQUEST_BUDGET_EXCEEDED')
+        if time.monotonic() > min(self._deadline,getattr(self,'batch_deadline',self._deadline)):
             raise YouTubeFailure('SEARCH_TOO_BROAD')
         return super().get(resource, **params)
 

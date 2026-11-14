@@ -65,4 +65,23 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         assert page.locator('.channel').count()==0
         assert page.locator('#query').input_value()=='@example'
         assert page.get_by_role('button',name='Buscar canales',exact=True).is_enabled()
+        batches=[]
+        def batch_response(route):
+            batches.append(route.request.post_data_json)
+            route.fulfill(status=429,json={'error':'Cuota agotada en segundo tema',
+                'error_code':'QUOTA_EXCEEDED','result_type':'channels','complete':False,'partial':True,
+                'queries':['animales','geografía'],'completed_queries':[{'query':'animales'}],
+                'pending_queries':['geografía'],'results':[{'id':'UC'+'b'*22,'title':'Canal de prueba',
+                    'viewCount':5000000,'subscriberCount_public_rounded':1000,'videoCount':10,
+                    'matched_queries':['animales']}]})
+        page.route('**/api/research/channels/batch',batch_response)
+        page.locator('#query').fill('animales\ngeografía')
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.get_by_text('Cuota agotada en segundo tema',exact=True).wait_for()
+        assert batches[0]['queries']==['animales','geografía']
+        assert batches[0]['max_requests']==300
+        assert 'LOTE INCOMPLETO' in page.locator('#scope').inner_text()
+        assert 'geografía' in page.locator('#scope').inner_text()
+        assert page.locator('.channel').count()==1
+        assert 'animales' in page.locator('.channel').inner_text()
         browser.close()

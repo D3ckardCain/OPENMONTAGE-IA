@@ -101,3 +101,31 @@ los errores temporales se indican como tales a los agentes mediante `retryable`.
 No se promete una hora de recuperación ni se deduce que toda respuesta 403 sea cuota.
 
 Referencia: https://developers.google.com/youtube/v3/docs/errors
+
+
+## Consultas automáticas de varios temas
+Escribir hasta cinco temas, @usuarios o enlaces, uno por línea, y pulsar Buscar
+canales. El servidor los consulta secuencialmente, elimina entradas equivalentes
+y une canales por su ID. Se conservan los temas que coincidieron con cada canal,
+y se ordena por vistas y después suscriptores. Si un contador cambia entre temas,
+se conserva la respuesta más reciente; no se fabrica el mayor valor observado.
+
+Se validan todos los temas y filtros antes de la primera consulta. Hay un límite
+de 300 solicitudes API por lote de forma predeterminada (configurable entre 1 y
+500 por los agentes, con opciones en la interfaz), y 180 segundos para iniciar
+peticiones; una petición en curso mantiene su timeout de 30 segundos. El presupuesto
+cuenta solicitudes, no unidades de cuota de Google ni dinero.
+
+Ante cualquier fallo, el lote se detiene sin reintentar los temas restantes.
+Si ya había temas completados, se muestran sus resultados actuales con el aviso
+LOTE INCOMPLETO y la lista de pendientes. Un tema interrumpido no aporta resultados
+parciales. Los resultados no se guardan ni se mezclan con ejecuciones anteriores.
+Tras resolver el fallo, el agente puede consultar los temas pendientes en un lote
+nuevo, con datos actualizados; no se programa una tarea recurrente ni se ejecuta
+nada después de cerrar la aplicación.
+
+Los agentes descubren `youtube_channel_batch_research` y llaman a
+`youtube_channel_batch.execute` con `queries`, `filters`, `pages`, `max_requests`.
+Es una herramienta de consulta determinista: el agente elige los temas y toma las
+decisiones editoriales. No introduce un orquestador de agentes en Python ni inicia
+producción o publicación de videos.

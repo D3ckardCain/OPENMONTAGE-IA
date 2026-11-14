@@ -67,3 +67,14 @@ def test_structured_failure_reaches_ui(client,monkeypatch,code,status):
     assert response.status_code==status
     assert response.json()=={'error':message,'error_code':code,'retryable':retryable}
     assert response.headers['cache-control']=='no-store'
+
+
+def test_batch_route_exposes_incomplete_results_explicitly(client,monkeypatch):
+    data={'result_type':'channels','results':[{'id':'fixture'}],'complete':False,'partial':True,
+          'pending_queries':['second'],'failure':{'code':'QUOTA_EXCEEDED','message':'Cuota agotada','retryable':False}}
+    monkeypatch.setattr('backlot.channel_routes.YouTubeChannelBatch.execute',lambda *args:ToolResult(success=False,error='quota',data=data))
+    response=client.post('/api/research/channels/batch',json={'queries':['first','second']})
+    assert response.status_code==429 and response.json()['partial']
+    assert not response.json()['complete']
+    assert response.json()['pending_queries']==['second']
+    assert response.headers['cache-control']=='no-store'

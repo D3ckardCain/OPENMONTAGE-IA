@@ -143,3 +143,11 @@ research prefer this capability, which returns channels ordered by lifetime view
 then public subscriber count. Content filters inspect a bounded recent-upload
 sample, not whole-channel properties or verified current virality. Do not route
 this request to the legacy video-search or channel-upload-list modes.
+
+
+For explicitly requested multi-topic channel discovery, agents can use the
+`youtube_channel_batch_research` capability: bounded deterministic retrieval of
+up to five specified topics, merged by channel ID, latest returned counters and
+views/subscriber ordering. Any failure stops the batch and explicitly reports
+pending queries and incomplete coverage. No persistent statistics, automatic
+retries, topic invention, production orchestration or recurring jobs are added.
