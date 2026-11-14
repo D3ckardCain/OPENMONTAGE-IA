@@ -121,7 +121,7 @@ CHECK: Per-locale validation
 | Max revisions per stage | 3 |
 | Max send-backs per stage pair | 1 |
 | Max total send-backs | 3 |
-| Max total budget | Configurable (default $3 — localization is costlier) |
+| Max total budget | Configurable (default $0 — local tools only) |
 | Max total wall-time | 15 minutes |
 
 ## Common Pitfalls
@@ -131,3 +131,5 @@ CHECK: Per-locale validation
 - **Translating protected terms**: Brand names, product names, and technical terms in the glossary must stay in the original language.
 - **Inconsistent locale labeling**: Use ISO language codes in filenames. "Spanish" is ambiguous (es-ES vs es-MX).
 - **Degrading source video**: Re-encoding the source video for each locale should preserve quality. Never downgrade resolution.
+
+Cost policy: zero-cost runs must not select paid providers. Missing local tools block the stage; do not silently change providers. Follow docs/OPENMONTAGE_AUTOMATION_ES.md and carry the cultural audio evidence through every downstream checkpoint.
