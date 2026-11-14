@@ -123,3 +123,31 @@ Each tool's `agent_skills[]` field bridges Layer 1 → Layer 3. See `skills/INDE
 6. Let discovery happen through `tools/tool_registry.py`; do not depend on ad hoc imports
 7. Add a JSON schema in `schemas/tools/` if the tool has complex I/O
 8. Add tests only after the runtime path is correct
+
+
+## OPENMONTAGE-IA integration (2026-11-14)
+See `docs/OPENMONTAGE_AUTOMATION_ES.md` for the current local-first agent policy.
+The registry discovers `youtube_research` and `official_uefa_live` for on-demand,
+non-cached source queries. Research agents must request data at task time, retain
+source identity and retrieval time in their reasoning, and never present public
+YouTube metrics as verified earnings or UEFA coverage as global football coverage.
+Localization checkpoints now require `cultural_audio_audit` from assets onward.
+The audit is agent-authored evidence, not an acoustic detection model. Missing
+runtimes, unresolved audio or unclear rights block completion. These integrations
+are beta and do not certify end-to-end GPU rendering or API connectivity.
+
+
+Channel discovery now has a dedicated `youtube_channel_research` capability and
+local `/channels` screen; see `docs/YOUTUBE_CHANNEL_SEARCH_ES.md`. For channel
+research prefer this capability, which returns channels ordered by lifetime views
+then public subscriber count. Content filters inspect a bounded recent-upload
+sample, not whole-channel properties or verified current virality. Do not route
+this request to the legacy video-search or channel-upload-list modes.
+
+
+For explicitly requested multi-topic channel discovery, agents can use the
+`youtube_channel_batch_research` capability: bounded deterministic retrieval of
+up to five specified topics, merged by channel ID, latest returned counters and
+views/subscriber ordering. Any failure stops the batch and explicitly reports
+pending queries and incomplete coverage. No persistent statistics, automatic
+retries, topic invention, production orchestration or recurring jobs are added.

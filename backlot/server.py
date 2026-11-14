@@ -166,6 +166,9 @@ async def _lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(title="Backlot", docs_url=None, redoc_url=None, lifespan=_lifespan)
 
+    from backlot.channel_routes import create_channel_router
+    app.include_router(create_channel_router())
+
     # ---- API ----------------------------------------------------------
 
     @app.get("/api/health")
