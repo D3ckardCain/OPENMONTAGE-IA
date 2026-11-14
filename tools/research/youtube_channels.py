@@ -15,6 +15,7 @@ from .channel_identity import parse_channel_query
 class ChannelFilters:
     min_views: int = 0
     max_views: int | None = None
+    max_channel_age_days: int | None = None
     min_subscribers: int | None = None
     max_subscribers: int | None = None
     language: str | None = None
@@ -40,6 +41,8 @@ class ChannelFilters:
                 raise Unavailable('Los límites deben ser enteros no negativos')
             if low is not None and high is not None and low > high:
                 raise Unavailable('Rango invertido')
+        if self.max_channel_age_days is not None and (type(self.max_channel_age_days) is not int or not 1 <= self.max_channel_age_days <= 36500):
+            raise Unavailable('La antigüedad máxima debe ser de 1 a 36500 días')
         if type(self.min_publication_views) is not int or self.min_publication_views < 0:
             raise Unavailable('Vistas de publicación inválidas')
         if type(self.sample_size) is not int or not 1 <= self.sample_size <= 20:
@@ -79,6 +82,9 @@ class ChannelSearch(YouTube):
                           order='viewCount',safeSearch='moderate')
             if filters.language:
                 params['relevanceLanguage'] = filters.language
+            if filters.max_channel_age_days is not None:
+                params['publishedAfter']=(now-timedelta(days=filters.max_channel_age_days)).isoformat()
+                params['publishedBefore']=now.isoformat()
             items, exhausted = self.pages('search', pages, **params)
             # Search-index ordering may mix resource types; keep channel identities only.
             ids = list(dict.fromkeys(item['id']['channelId'] for item in items
@@ -105,6 +111,15 @@ class ChannelSearch(YouTube):
             if not ch:
                 reject('channel_unavailable'); continue
             sn, stats = ch.get('snippet',{}), ch.get('statistics',{})
+            if filters.max_channel_age_days is not None:
+                try:
+                    created=datetime.fromisoformat(sn.get('publishedAt','').replace('Z','+00:00'))
+                    if created.utcoffset() is None or created>now:
+                        raise ValueError
+                except (ValueError,TypeError,AttributeError):
+                    reject('channel_creation_unknown_or_invalid'); continue
+                if now-created>timedelta(days=filters.max_channel_age_days):
+                    reject('channel_too_old'); continue
             views = count(stats.get('viewCount'))
             subs = None if stats.get('hiddenSubscriberCount') else count(stats.get('subscriberCount'))
             if views is None:
@@ -160,6 +175,8 @@ class ChannelSearch(YouTube):
                        content_filter_scope='recent_upload_sample' if filters.inspect_uploads else 'not_requested'),
             filters=asdict(filters),results=rows,excluded=excluded,requests=dict(self.calls),
             notes=['Orden por vistas acumuladas del canal; suscriptores como segundo criterio.',
+                   'La antigüedad se mide desde la creación del canal, no desde su primer video ni un cambio de propietario.',
+                   'La fecha de publicación no mide vistas ganadas dentro del periodo por un canal antiguo.',
                    'La muestra no certifica viralidad actual, crecimiento, monetización ni RPM.',
                    'Suscriptores públicos redondeados; desconocido no equivale a cero.',
                    'Los filtros de contenido exigen una misma publicación coincidente en la muestra reciente.',

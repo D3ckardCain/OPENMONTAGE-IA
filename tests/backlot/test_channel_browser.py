@@ -22,7 +22,8 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         page.route('**/api/research/channels',respond)
         page.goto(staged_backlot_server+'/channels')
         page.get_by_role('button',name='Filtros',exact=False).click()
-        page.locator('[name=min_views]').fill('1000000')
+        page.get_by_role('button',name='Ejemplo: 1 millón de vistas / hasta 90 días').click()
+        assert page.locator('[name=max_channel_age_days]').input_value()=='90'
         page.locator('[name=min_subscribers]').fill('1000')
         page.locator('[name=language]').select_option('es')
         page.locator('[name=content_type]').select_option('medium')
@@ -32,6 +33,7 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         page.get_by_role('button',name='Buscar canales',exact=True).click()
         page.locator('.channel').wait_for()
         assert captured[0]['filters']['min_views']==1000000
+        assert captured[0]['filters']['max_channel_age_days']==90
         assert captured[0]['filters']['min_subscribers']==1000
         assert captured[0]['filters']['published_within']=='month'
         assert page.locator('.channel h2').inner_text()=='<img src=x onerror=alert(1)>'

@@ -129,3 +129,32 @@ Los agentes descubren `youtube_channel_batch_research` y llaman a
 Es una herramienta de consulta determinista: el agente elige los temas y toma las
 decisiones editoriales. No introduce un orquestador de agentes en Python ni inicia
 producción o publicación de videos.
+
+## Muchas vistas en un canal joven
+`max_channel_age_days` limita la antigüedad desde `snippet.publishedAt`, la fecha
+oficial de creación del canal. Por ejemplo, `min_views: 1000000` junto con
+`max_channel_age_days: 90` exige un millón de vistas acumuladas y un canal creado
+hace como máximo 90 días. Un canal con un millón de vistas en cinco años queda
+fuera. Si la fecha falta, es inválida o futura, no cumple este filtro. No hace falta
+consultar publicaciones para comprobar la antigüedad. Se aplica también a lotes e
+identidades concretas. El orden sigue siendo vistas, después suscriptores.
+
+La creación del canal no es la fecha del primer video ni el comienzo de una nueva
+etapa del canal. Un canal antiguo que crece ahora puede quedar fuera de este modo.
+La fecha de publicaciones sirve para otro caso: encontrar publicaciones recientes
+con muchas vistas. No revela las vistas ganadas por todo el canal durante los
+últimos 30 días. Para ese dato haría falta una fuente temporal autorizada; no se
+inventa a partir del contador acumulado ni se guarda un histórico silenciosamente.
+
+## Investigación editorial posterior
+La detección de candidatos precede al análisis de sus publicaciones: tema, hechos,
+fuentes, gancho, estructura, ritmo, tratamiento visual y audiencia. El análisis
+permitirá proponer un guion y recursos propios para cada idioma, verificando hechos
+y derechos de los materiales. No se implementan transformaciones para ocultar una
+copia: cambios cosméticos o traducciones por sí solos no garantizan originalidad
+ni monetización. La revisión editorial debe identificar aportaciones propias,
+material autorizado y adaptación cultural, además de diferencias superficiales.
+
+Fuentes oficiales:
+- https://developers.google.com/youtube/v3/docs/channels
+- https://support.google.com/youtube/answer/1311392?hl=es

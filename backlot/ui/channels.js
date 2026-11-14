@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const dialog = $('filters'), form = $('filter-form');
 let applied = {pages:1,max_requests:300,filters:{sample_size:10}};
 let snapshot = [];
-const numeric = ['min_views','max_views','min_subscribers','max_subscribers','min_minutes','max_minutes','min_publication_views','pages','sample_size','max_requests'];
+const numeric = ['min_views','max_views','max_channel_age_days','min_subscribers','max_subscribers','min_minutes','max_minutes','min_publication_views','pages','sample_size','max_requests'];
 const format = value => value === null || value === undefined ? 'No disponible' : new Intl.NumberFormat('es-MX').format(value);
 function element(tag,text,cls){const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;}
 function restore(values){for(const [name,value] of values)form.elements.namedItem(name).value=value;}
@@ -24,6 +24,11 @@ function cancel(){restore(snapshot);dialog.close();}
 $('close-filters').onclick=cancel;$('cancel-filters').onclick=cancel;
 dialog.addEventListener('cancel',event=>{event.preventDefault();cancel();});
 $('reset-filters').onclick=()=>form.reset();
+$('young-preset').onclick=()=>{
+  form.elements.namedItem('min_views').value='1000000';
+  form.elements.namedItem('max_views').value='';
+  form.elements.namedItem('max_channel_age_days').value='90';
+};
 form.onsubmit=event=>{
   event.preventDefault();try{applied=readFilters();dialog.close();
     const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && value!=='any' && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
@@ -36,6 +41,8 @@ function showChannel(ch,index){
   const card=element('article','','channel');card.append(element('span',`CANAL ${index+1}`,'rank'));
   const h=element('h2',''),a=element('a',ch.title||ch.id);a.href=`https://www.youtube.com/channel/${encodeURIComponent(ch.id)}`;a.target='_blank';a.rel='noopener noreferrer';h.append(a);card.append(h);
   const metrics=element('div','','metrics');for(const [title,value] of [['Vistas totales',ch.viewCount],['Suscriptores',ch.subscriberCount_public_rounded]]){const metric=element('div','','metric');metric.append(element('strong',format(value)),element('span',title));metrics.append(metric);}card.append(metrics);
+  const created=ch.created_at?new Date(ch.created_at):null;
+  card.append(element('p',`Creado: ${created&&!Number.isNaN(created.getTime())?created.toLocaleDateString('es-MX'):'fecha no disponible'}`));
   card.append(element('p',`${format(ch.videoCount)} publicaciones públicas · País: ${ch.country_declared||'no declarado'}`));
   if(ch.matched_queries)card.append(element('p',`Temas: ${ch.matched_queries.join(' · ')}`));
   if(ch.content_review){const r=ch.content_review;card.append(element('p',`${r.matched} coincidencias entre ${r.inspected} publicaciones revisadas (muestra de ${r.sample_requested}).`));}

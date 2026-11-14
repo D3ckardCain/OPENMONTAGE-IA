@@ -110,3 +110,41 @@ def test_agent_adapter_is_discoverable():
     from tools.tool_registry import ToolRegistry
     from tools.research import youtube_channel_search
     assert 'youtube_channel_search' in ToolRegistry().register_module(youtube_channel_search)
+
+@pytest.mark.parametrize('age,expected',[(10,True),(89,True),(91,False),(365*5,False)])
+def test_many_views_with_maximum_channel_age(age,expected):
+    ch=channel(A,1000000)
+    ch['snippet']['publishedAt']=(datetime.now(timezone.utc)-timedelta(days=age)).isoformat()
+    result=search(API([ch]),min_views=1000000,max_channel_age_days=90)
+    assert bool(result['results'])==expected
+    if not expected:assert result['excluded']=={'channel_too_old':1}
+
+@pytest.mark.parametrize('date',[None,'invalid','2026-01-01T00:00:00',
+    (datetime.now(timezone.utc)+timedelta(days=1)).isoformat()])
+def test_unknown_or_invalid_creation_does_not_pass_age_filter(date):
+    ch=channel(A,1000000);ch['snippet']['publishedAt']=date
+    result=search(API([ch]),max_channel_age_days=90)
+    assert not result['results']
+    assert result['excluded']=={'channel_creation_unknown_or_invalid':1}
+
+def test_channel_age_does_not_require_video_requests():
+    api=API([channel(A,1000000)])
+    api.channels[0]['snippet']['publishedAt']=datetime.now(timezone.utc).isoformat()
+    assert search(api,max_channel_age_days=90)['results']
+    assert [resource for resource,params in api.calls]==['search','channels']
+
+@pytest.mark.parametrize('age',[0,-1,True,36501])
+def test_invalid_age_limits_rejected_before_requests(age):
+    api=API([])
+    with pytest.raises(Unavailable):search(api,max_channel_age_days=age)
+    assert not api.calls
+
+
+def test_age_filter_also_limits_candidate_discovery():
+    api=API([])
+    search(api,max_channel_age_days=90)
+    resource,params=api.calls[0]
+    assert resource=='search' and params['type']=='channel'
+    start=datetime.fromisoformat(params['publishedAfter'])
+    end=datetime.fromisoformat(params['publishedBefore'])
+    assert end-start==timedelta(days=90)
