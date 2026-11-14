@@ -21,7 +21,9 @@ explícita del proyecto. Un fallo bloquea la etapa: no se inventan resultados.
   canciones por sí mismo. Variantes de idioma se ejecutan como proyectos separados.
 
 ## Costo y modelos
-Localización usa presupuesto predeterminado cero. El agente debe elegir solamente
+La configuración global y localización usan presupuesto predeterminado cero,
+modo de límite estricto y proveedor LLM local Ollama. Instalar y validar ese runtime
+sigue siendo necesario: la configuración no lo descarga ni lo ejecuta. El agente debe elegir solamente
 herramientas locales disponibles; no sustituirlas por servicios de pago.
 Los pesos descargados no prueban instalación ni funcionamiento. Antes de asignar
 un modelo, verificar archivos, licencia de pesos, dependencias, VRAM y una muestra
@@ -39,3 +41,7 @@ originales: traducir un video ajeno y cambiar su miniatura no concede derechos.
 Actions ejecuta las pruebas existentes y pruebas focalizadas Linux/Windows sin
 credenciales, tráfico externo ni pesos. Las pruebas reales con GPU y APIs deben
 ser explícitas y separadas; las pruebas simuladas no certifican esas conexiones.
+
+Las pruebas completas y del navegador en Linux se ejecutan en un espacio de red
+aislado: solamente loopback está activo. Así tampoco pueden salir conexiones de
+telemetría de procesos secundarios. Las instalaciones ocurren antes del aislamiento.

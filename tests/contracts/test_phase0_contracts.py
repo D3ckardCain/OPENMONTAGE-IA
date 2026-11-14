@@ -255,13 +255,13 @@ def sample_artifact(name: str) -> dict:
 class TestConfig:
     def test_load_defaults(self):
         config = OpenMontageConfig()
-        assert config.llm.provider == "anthropic"
-        assert config.budget.mode.value == "warn"
+        assert config.llm.provider == "ollama"
+        assert config.budget.mode.value == "cap"
         assert config.checkpoint.policy.value == "guided"
 
     def test_load_from_yaml(self):
         config = OpenMontageConfig.load()
-        assert config.budget.total_usd == 10.0
+        assert config.budget.total_usd == 0.0
 
 
 # ---- Schemas ----

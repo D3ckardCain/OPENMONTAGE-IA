@@ -42,5 +42,7 @@ jobs:
       - name: Run lint smoke checks
         run: make lint
 
-      - name: Run test suite
-        run: make test
+      - name: Run test suite without external networking
+        run: |
+          PYTHON_BIN="$(pwd)/.venv/bin/python"
+          sudo unshare --net -- bash -c 'ip link set lo up; exec "$@"' bash "$PYTHON_BIN" -m pytest tests/ -v
