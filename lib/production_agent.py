@@ -34,6 +34,9 @@ def descriptor(name,description,properties=None,required=None):
 TOOLS=[
  descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
+ descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
+ descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
+ descriptor('reference_analysis','Lee el análisis local del video de referencia: transcripción, fotogramas, observaciones y límites. No inventa verificaciones externas.'),
  descriptor('resource_status','Consulta servidores, GPU y carpetas de recursos; no descarga pesos.'),
  descriptor('model_catalog','Consulta catálogo e inventarios; group_id devuelve archivos, carpetas y URLs sin descargarlos.',{'group_id':{'type':'string'}}),
  descriptor('project_files','Lista archivos existentes del proyecto, sin leer recursos externos.'),
@@ -45,7 +48,7 @@ TOOLS=[
  descriptor('tool_info','Lee contrato real, disponibilidad, instalación y skills de una herramienta.',{'name':{'type':'string'}},['name']),
  descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
  descriptor('wan_presets','Lee perfiles WAN locales y su configuración actual.'),
- descriptor('select_wan_preset','Selecciona explícitamente el perfil WAN previamente anunciado y registra el cambio; no descarga modelos.',{'preset':{'enum':['wan22-5b-t2v','wan22-14b-t2v-4step']}},['preset']),
+ descriptor('select_wan_preset','Selecciona explícitamente el perfil WAN previamente anunciado y registra el cambio; no descarga modelos.',{'preset':{'enum':['wan22-5b-t2v','wan22-14b-t2v-4step','wan22-14b-i2v-4step']}},['preset']),
  descriptor('adapter_status','Diagnóstico del adaptador, pesos locales y dependencias; no descarga.',{'family':{'type':'string'}},['family']),
  descriptor('comfy_nodes','Consulta esquemas y modelos registrados en nodos ComfyUI concretos.',{'classes':{'type':'array','items':{'type':'string'},'maxItems':12}},['classes']),
  descriptor('bind_workflow','Vincula un workflow API ya creado dentro del proyecto a una familia de modelos.',{'family':{'type':'string'},'path':{'type':'string'},'output_node':{'type':'string'}},['family','path','output_node']),
@@ -142,6 +145,16 @@ class LocalAgent:
         validate(args,spec['parameters'])
         if name=='read_instruction':return self.instruction(args['path'])
         if name=='project_state':return studio.production_state(self.pid)
+        if name=='reference_analysis':
+            from lib.reference_analysis import read
+            return read(self.pid)
+        if name=='project_comfy_jobs':
+            from lib.comfy_job_records import project_jobs
+            return project_jobs(self.pid)
+        if name=='project_source_image':
+            from lib.production_input_image import current_image
+            return {'project_id':self.pid,'image':current_image(self.pid),
+                    'usage':'Para WAN I2V usa project_id de este proyecto y text en execute_tool. La imagen se transfiere solo al ejecutar. No inventes server_image.'}
         if name=='resource_status':return studio.runtime_status()
         if name=='model_catalog':
             data=studio.resource_catalog()
@@ -301,7 +314,9 @@ class LocalAgent:
             guide=self.instruction('AGENT_GUIDE.md')
             messages=[{'role':'system','content':contract+'\n'+guide},
                       {'role':'user','content':json.dumps({'request':self.request,'project_directory':str(self.path),'manifest':self.manifest,
-                        'next_stage':get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline']),'user_clarifications':studio.read_json(self.path/'user_clarifications.json',[])},ensure_ascii=False)}]
+                        'next_stage':get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline']),'user_clarifications':studio.read_json(self.path/'user_clarifications.json',[]),
+                        'source_image':self.dispatch('project_source_image',{}),
+                        'reference_analysis':self.dispatch('reference_analysis',{})},ensure_ascii=False)}]
             for _ in range(self.config['max_turns']):
                 if sum(len(json.dumps(m)) for m in messages)>450000:raise Pause('blocked','Se alcanzó el límite de contexto. Artefactos conservados para reanudar.')
                 message=self.chat(messages,TOOLS);messages.append(message)
@@ -333,6 +348,9 @@ class LocalAgent:
 def start(pid):
     studio.project_path(pid)
     with ACTIVE_LOCK:
+        from lib import reference_analysis
+        with reference_analysis.LOCK:
+            if reference_analysis.ACTIVE:raise ValueError('Espera a que termine el análisis local del video')
         if pid in ACTIVE:raise ValueError('Este proyecto ya tiene un agente activo')
         if ACTIVE:raise ValueError('Ya hay una producción activa; espera para compartir la GPU')
         stop=threading.Event();agent=LocalAgent(pid,cancel=stop)

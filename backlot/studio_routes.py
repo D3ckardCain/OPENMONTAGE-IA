@@ -81,6 +81,67 @@ def create_studio_router():
         from lib.wan_presets import catalog
         from lib.model_adapters import configuration
         return {'presets':catalog(),'current':configuration('wan')}
+    @router.post('/api/studio/comfy-history/report')
+    async def comfy_history_report(request:Request):
+        from lib.comfy_history_report import summarize_history
+        history=await body(request,8000000)
+        return {'jobs':invoke(summarize_history,history),'source':'uploaded_history','persisted':False}
+    @router.get('/api/studio/comfy-history/projects/{pid}')
+    def comfy_saved_reports(pid:str):
+        from lib.comfy_history_report import saved_reports
+        return {'reports':invoke(saved_reports,pid)}
+    @router.post('/api/studio/comfy-history/projects/{pid}')
+    async def comfy_save_report(pid:str,request:Request):
+        from lib.comfy_history_report import save_report
+        return invoke(save_report,pid,await body(request,8000000))
+    @router.post('/api/studio/comfy-history/projects/{pid}/{report_id}/context')
+    async def comfy_report_context(pid:str,report_id:str,request:Request):
+        from lib.comfy_history_report import annotate_report
+        return invoke(annotate_report,pid,report_id,await body(request))
+    @router.post('/api/studio/source-images/{pid}')
+    async def source_image(pid:str,request:Request):
+        from lib.production_input_image import stage_image
+        data=await body(request,11000000)
+        with agent.ACTIVE_LOCK:
+            if pid in agent.ACTIVE:raise HTTPException(409,'Detén los agentes del proyecto antes de cambiar su imagen de entrada')
+            return invoke(stage_image,pid,data)
+    @router.get('/api/studio/source-images/{pid}')
+    def source_image_current(pid:str):
+        from lib.production_input_image import current_image
+        return {'image':invoke(current_image,pid)}
+    @router.get('/api/studio/comfy-jobs/{pid}')
+    def comfy_project_jobs(pid:str):
+        from lib.comfy_job_records import project_jobs
+        return invoke(project_jobs,pid)
+    @router.post('/api/studio/reference-video/{pid}/upload')
+    async def reference_video_upload(pid:str,request:Request):
+        import uuid
+        from lib import reference_analysis as analysis
+        origin=request.headers.get('origin')
+        if origin and origin.rstrip('/')!=str(request.base_url).rstrip('/'):raise HTTPException(403,'Origen no autorizado')
+        folder=invoke(studio.project_path,pid)
+        temp=folder/('reference-upload-'+uuid.uuid4().hex+'.tmp');size=0
+        try:
+            with temp.open('xb') as stream:
+                async for chunk in request.stream():
+                    size+=len(chunk)
+                    if size>500000000:raise HTTPException(413,'Video demasiado grande: máximo 500 MB')
+                    stream.write(chunk)
+            if not size:raise HTTPException(400,'Video vacío')
+            with agent.ACTIVE_LOCK,analysis.LOCK:
+                if agent.ACTIVE or analysis.ACTIVE:raise HTTPException(409,'Hay una tarea local activa; no se reemplazó el video')
+                temp.replace(folder/'reference_video.mp4')
+                studio.save_json(folder/'reference_analysis.json',{'status':'not_started','message':'Video cargado, análisis pendiente','bytes':size})
+            return {'uploaded':True,'bytes':size,'analysis_started':False}
+        finally:temp.unlink(missing_ok=True)
+    @router.post('/api/studio/reference-video/{pid}/analyze')
+    async def reference_video_analyze(pid:str,request:Request):
+        from lib.reference_analysis import start
+        return invoke(start,pid,await body(request))
+    @router.get('/api/studio/reference-video/{pid}')
+    def reference_video_report(pid:str):
+        from lib.reference_analysis import read
+        return invoke(read,pid)
     @router.get('/api/studio/adapters')
     async def adapters():
         from lib.model_adapters import CATALOG,diagnostics,dependency_probe

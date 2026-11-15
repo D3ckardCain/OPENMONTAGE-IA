@@ -72,7 +72,31 @@ def test_node_and_model_registration_are_checked_before_execution(isolated,monke
 
 def test_preset_api_can_select_5b_without_starting_inference(isolated):
     client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
-    assert len(client.get('/api/studio/wan-presets').json()['presets'])==2
+    assert len(client.get('/api/studio/wan-presets').json()['presets'])==3
     result=client.post('/api/studio/adapters/wan',json={'preset':'wan22-5b-t2v'})
     assert result.status_code==200 and result.json()['preset']=='wan22-5b-t2v'
     assert client.get('/api/studio/wan-presets').json()['current']['preset']=='wan22-5b-t2v'
+
+
+def test_i2v_profile_requires_image_and_binds_correct_nodes(isolated):
+    adapters.configure('wan',{'preset':'wan22-14b-i2v-4step'})
+    with pytest.raises(ValueError,match='server_image'):
+        graph_config('wan',{'text':'A moving subject'})
+    graph,output=graph_config('wan',{'text':'A moving subject','server_image':'source.png',
+        'negative_prompt':'blur','seed':0,'width':512,'height':320,'frames':17,'fps':16,'steps':4})
+    assert output=='108'
+    assert graph['97']['inputs']['image']=='source.png'
+    assert graph['93']['inputs']['text']=='A moving subject'
+    assert graph['89']['inputs']['text']=='blur'
+    assert graph['98']['inputs']['width']==512
+    assert graph['98']['inputs']['height']==320
+    assert graph['98']['inputs']['length']==17
+    assert graph['86']['inputs']['noise_seed']==0
+    assert graph['86']['inputs']['steps']==graph['85']['inputs']['steps']==4
+    assert graph['94']['inputs']['fps']==16
+    assert graph['95']['inputs']['unet_name'].startswith('wan2.2_i2v_high')
+    assert graph['96']['inputs']['unet_name'].startswith('wan2.2_i2v_low')
+    with pytest.raises(ValueError,match='cuatro'):
+        graph_config('wan',{'text':'Motion','server_image':'source.png','steps':20})
+    with pytest.raises(ValueError,match='múltiplos'):
+        graph_config('wan',{'text':'Motion','server_image':'source.png','width':500})

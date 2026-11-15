@@ -398,7 +398,7 @@ class ComfyUIClient:
         with open(local_path, "rb") as f:
             resp = requests.post(
                 f"{self.server_url}/upload/image",
-                files={"image": (name, f, "image/png")},
+                files={"image": (name, f, "image/jpeg" if local_path.suffix.lower() in (".jpg", ".jpeg") else "image/png")},
                 timeout=30,
             )
         resp.raise_for_status()

@@ -210,6 +210,7 @@ class LocalModelAdapter(BaseTool):
     input_schema={'type':'object','additionalProperties':False,'required':['output_dir'], 'properties':{
         'width':{'type':'integer','minimum':256,'maximum':1280},'height':{'type':'integer','minimum':256,'maximum':1280},'frames':{'type':'integer','minimum':5,'maximum':121},'steps':{'type':'integer','minimum':1,'maximum':100},'seed':{'type':'integer','minimum':0,'maximum':9223372036854775807},'fps':{'type':'integer','minimum':1,'maximum':60},'negative_prompt':{'type':'string','maxLength':5000},
         'output_dir':{'type':'string'},'text':{'type':'string','maxLength':50000},'input_path':{'type':'string'},'reference_audio':{'type':'string'},
+        'project_id':{'type':'string'},'server_image':{'type':'string','maxLength':1000},
         'reference_text':{'type':'string'},'language':{'type':'string'},'source_language':{'type':'string'},'voice':{'type':'string'},
         'instruction':{'type':'string'},'labels':{'type':'array','items':{'type':'string'},'maxItems':100},'texts':{'type':'array','items':{'type':'string'},'maxItems':100},
         'device':{'enum':['cpu','cuda']},'max_new_tokens':{'type':'integer','minimum':1,'maximum':8192},'speed':{'type':'number','minimum':0.5,'maximum':2},
@@ -221,6 +222,15 @@ class LocalModelAdapter(BaseTool):
 
     def get_info(self):
         result=super().get_info();result['adapter']=diagnostics(self.family);result['usage_manual']='docs/ADAPTADORES_MODELOS_ES.md'
+        if self.family=='wan':
+            result['wan_profile']=configuration('wan').get('preset')
+            result['i2v_input_contract']={
+                'profile':'wan22-14b-i2v-4step',
+                'required':['text','output_dir'],
+                'image_options':['project_id: use the prepared image of the current project',
+                                 'server_image: explicit filename already registered in ComfyUI'],
+                'manual':'docs/wan-i2v-profile.md',
+                'note':'input_path is not the image binding for this preset. Never invent a server filename.'}
         return result
 
     def estimate_cost(self,inputs):return 0.0

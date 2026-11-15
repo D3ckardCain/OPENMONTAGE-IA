@@ -52,14 +52,16 @@ def local_url(value):
 
 def settings():
     defaults = {'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188',
-                'model':'','resource_roots':[],'max_turns':120}
+                'model':'','resource_roots':[],'max_turns':120,'ffmpeg_path':'','ffprobe_path':''}
     return {**defaults, **read_json(CONFIG_DIR/'settings.json',{})}
 
 
 def configure(data):
-    allowed={'ollama_url','comfyui_url','model','resource_roots','max_turns'}
+    allowed={'ollama_url','comfyui_url','model','resource_roots','max_turns','ffmpeg_path','ffprobe_path'}
     if set(data)-allowed:raise ValueError('Configuración desconocida')
     value={**settings(),**data}
+    for key in ('ffmpeg_path','ffprobe_path'):
+        if not isinstance(value[key],str) or len(value[key])>4000 or (value[key] and not Path(value[key]).is_absolute()):raise ValueError('Usa ruta absoluta para '+key)
     for k in ('ollama_url','comfyui_url'):value[k]=local_url(value[k])
     if not isinstance(value['model'],str) or len(value['model'])>200:raise ValueError('Modelo inválido')
     if type(value['max_turns']) is not int or not 1<=value['max_turns']<=300:raise ValueError('Límite inválido')

@@ -64,18 +64,25 @@ def validate_graph(family,graph,output,server):
 
 
 def execute_workflow(family,inputs,output):
-    server=studio.settings()['comfyui_url'];graph,node=graph_config(family,inputs)
+    server=studio.settings()['comfyui_url']
+    client=ComfyUIClient(server_url=server);ledger=output/('comfy-'+family+'-job.json')
+    previous=studio.read_json(ledger,{})
+    resume=inputs.get('resume_prompt_id')
+    if previous.get('prompt_id') and not resume:
+        raise ComfyUIError('Esta carpeta ya tiene un trabajo registrado. Usa resume_prompt_id para recuperarlo o una carpeta distinta para una generación nueva.',prompt_id=previous['prompt_id'])
+    if resume and (previous.get('prompt_id')!=resume or previous.get('server')!=server):
+        raise ValueError('La reanudación no coincide con el trabajo y servidor registrados')
+    inputs,source=prepare_i2v_image(family,inputs,client,ledger)
+    graph,node=graph_config(family,inputs)
     validate_graph(family,graph,node,server)
     digest=hashlib.sha256(json.dumps(graph,sort_keys=True).encode()).hexdigest()
-    client=ComfyUIClient(server_url=server);ledger=output/('comfy-'+family+'-job.json')
-    resume=inputs.get('resume_prompt_id')
     if resume:
         saved=studio.read_json(ledger,{})
         if saved.get('prompt_id')!=resume or saved.get('workflow_sha256')!=digest:raise ValueError('La reanudación no coincide con el workflow registrado')
         prompt_id=resume
     else:
         prompt_id=client.submit(graph)
-        studio.save_json(ledger,{'family':family,'prompt_id':prompt_id,'workflow_sha256':digest,'output_node':node,'server':server,'submitted_at':studio.now(),'status':'submitted'})
+        studio.save_json(ledger,{'family':family,'prompt_id':prompt_id,'workflow_sha256':digest,'output_node':node,'server':server,'submitted_at':studio.now(),'status':'submitted','source_image':source})
     try:
         entry=client.poll(prompt_id,timeout=inputs.get('timeout',1800),interval=2)
         record=entry.get('outputs',{}).get(node,{})
@@ -88,7 +95,49 @@ def execute_workflow(family,inputs,output):
             path=output/(family+'-'+str(i)+suffix)
             client.download(item['filename'],item.get('subfolder',''),path,item.get('type','output'));paths.append(str(path))
         result={'success':True,'outputs':paths,'prompt_id':prompt_id,'workflow_sha256':digest}
-        studio.save_json(ledger,{**studio.read_json(ledger),'status':'completed','outputs':paths})
+        studio.save_json(ledger,{**studio.read_json(ledger),'status':'completed','outputs':paths,'completed_at':studio.now(),'last_error':None})
         return result
     except ComfyUIError as exc:
+        studio.save_json(ledger,{**studio.read_json(ledger),'status':'recovery_required','updated_at':studio.now(),'last_error':str(exc)[:1800]})
         raise ComfyUIError(str(exc),prompt_id=prompt_id) from exc
+    except Exception as exc:
+        studio.save_json(ledger,{**studio.read_json(ledger),'status':'recovery_required','updated_at':studio.now(),'last_error':str(exc)[:1800]})
+        raise ComfyUIError('No se pudo recuperar la salida del trabajo: '+str(exc),prompt_id=prompt_id) from exc
+
+
+def prepare_i2v_image(family,inputs,client,ledger):
+    """Stage an explicit project image only during authorized tool execution.
+
+    Resume reuses the recorded server filename; it never uploads a second copy.
+    """
+    from lib.model_adapters import configuration
+    if family!='wan' or configuration(family).get('preset')!='wan22-14b-i2v-4step' or inputs.get('workflow_json'):
+        return inputs,None
+    if inputs.get('server_image'):
+        return inputs,None
+    from lib.production_input_image import current_image
+    pid=inputs.get('project_id')
+    if not pid:
+        raise ValueError('Indica project_id para usar su imagen preparada, o server_image')
+    image=current_image(pid)
+    if not image:
+        raise ValueError('Prepara primero la imagen de entrada de este proyecto')
+    path=(studio.project_path(pid)/'source_images'/image['filename']).resolve()
+    path.relative_to((studio.project_path(pid)/'source_images').resolve())
+    if not path.is_file() or path.stat().st_size>8000000:
+        raise ValueError('Imagen preparada ausente o demasiado grande')
+    digest=hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest!=image['sha256']:
+        raise ValueError('La imagen preparada cambió desde su validación')
+    graph_config(family,{**inputs,'server_image':'pending-upload'+path.suffix})
+    if inputs.get('resume_prompt_id'):
+        saved=studio.read_json(ledger,{})
+        source=saved.get('source_image') or {}
+        if saved.get('prompt_id')!=inputs['resume_prompt_id'] or source.get('sha256')!=digest or saved.get('server')!=client.server_url:
+            raise ValueError('La reanudación no coincide con la imagen y servidor registrados')
+        name=source.get('server_image')
+        if not isinstance(name,str) or not name:raise ValueError('Falta la imagen del trabajo registrado')
+    else:
+        name=client.upload_image(path,'openmontage-'+image['filename'])
+        source={'sha256':digest,'project_id':pid,'server_image':name}
+    return {**inputs,'server_image':name},source
