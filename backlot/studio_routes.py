@@ -74,6 +74,24 @@ def create_studio_router():
         return {'saved':True}
     @router.get('/api/studio/resources')
     def resources():return studio.resource_catalog()
+    @router.get('/api/studio/integration-coverage')
+    def integration_coverage():
+        from lib.integration_coverage import coverage
+        return coverage()
+    @router.get('/api/studio/applications')
+    def applications():
+        from lib.external_applications import catalog
+        return {'applications':catalog()}
+    @router.post('/api/studio/applications/{identifier}')
+    async def application_configure(identifier:str,request:Request):
+        from lib.external_applications import configure
+        return invoke(configure,identifier,await body(request))
+    @router.post('/api/studio/applications/{identifier}/launch')
+    async def application_launch(identifier:str,request:Request):
+        from lib.external_applications import launch
+        data=await body(request)
+        if set(data)-{'project_id','file'} or not isinstance(data.get('project_id'),str) or ('file' in data and not isinstance(data['file'],str)):raise HTTPException(400,'Indica proyecto y archivo opcional')
+        return invoke(launch,identifier,data['project_id'],data.get('file'))
     @router.get('/api/studio/storage')
     def storage():
         from lib.storage_layout import describe

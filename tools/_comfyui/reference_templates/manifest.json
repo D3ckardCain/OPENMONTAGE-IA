@@ -1,0 +1,143 @@
+{
+  "source_repository": "Comfy-Org/workflow_templates",
+  "source_tree": "b4f476f68276a12e1bc710b6931ecd7b8efec48a",
+  "format": "comfyui_ui_not_api",
+  "inference_verified": false,
+  "templates": [
+    {
+      "family": "qwen-edit",
+      "file": "qwen-edit.ui.json",
+      "source_path": "templates/image_qwen_image_edit_2511.json",
+      "blob_sha": "2cd325568315d39e79f141852b242bb04498023b",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/image_qwen_image_edit_2511.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "qwen-image",
+      "file": "qwen-image.ui.json",
+      "source_path": "templates/image_qwen_image.json",
+      "blob_sha": "796ccd0940fd06151d18b6c38ca1ceb38b525f0c",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/image_qwen_image.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "flux-klein",
+      "file": "flux-klein.ui.json",
+      "source_path": "templates/image_flux2_klein_image_edit_4b_distilled.json",
+      "blob_sha": "5aa12c7909d4a7cf96362c4b1eb9dfc6fe367f50",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/image_flux2_klein_image_edit_4b_distilled.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "z-image",
+      "file": "z-image.ui.json",
+      "source_path": "templates/image_z_image_turbo.json",
+      "blob_sha": "0e616b47f80b14c6818c90a14714c5c5dfc57d27",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/image_z_image_turbo.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "wan-camera",
+      "file": "wan-camera.ui.json",
+      "source_path": "templates/video_wan2_2_14B_fun_camera.json",
+      "blob_sha": "ecc10f08d25252ac10df6b3caee537a5348848e8",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_wan2_2_14B_fun_camera.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "wan-control",
+      "file": "wan-control.ui.json",
+      "source_path": "templates/video_wan2_2_14B_fun_control.json",
+      "blob_sha": "1c01ccfc75b06416279c21b9e6c5cfa5ba91e51a",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_wan2_2_14B_fun_control.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "wan-s2v",
+      "file": "wan-s2v.ui.json",
+      "source_path": "templates/video_wan2_2_14B_s2v.json",
+      "blob_sha": "fbae2e5d52d1028fd329a56a489f6f0623bda6ed",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_wan2_2_14B_s2v.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "ltx-legacy",
+      "file": "ltx-legacy.ui.json",
+      "source_path": "templates/ltxv_text_to_video.json",
+      "blob_sha": "f82d2e921c9af597e51df82b525313cdcbd54e98",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/ltxv_text_to_video.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "ltx23",
+      "file": "ltx23.ui.json",
+      "source_path": "templates/video_ltx2_3_t2v.json",
+      "blob_sha": "4786f08094e63093ad7bb7a2836f56d00c00e744",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_ltx2_3_t2v.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "ltx25",
+      "file": "ltx25.ui.json",
+      "source_path": "templates/video_ltx2_5_t2v.json",
+      "blob_sha": "3bd79a304a238ca50336db3733752a2815ad4b1e",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_ltx2_5_t2v.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "hunyuan15",
+      "file": "hunyuan15.ui.json",
+      "source_path": "templates/video_hunyuan_video_1.5_720p_t2v.json",
+      "blob_sha": "c0b0238f36ae34b8cb2d6baabdbd3fb26decc47f",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_hunyuan_video_1.5_720p_t2v.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "h3",
+      "file": "h3.ui.json",
+      "source_path": "templates/video_minimax_h3_t2v.json",
+      "blob_sha": "0eb8f1bd1116a85609b1e44847a2cfcbc9069637",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_minimax_h3_t2v.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "kandinsky",
+      "file": "kandinsky.ui.json",
+      "source_path": "templates/video_kandinsky5_t2v.json",
+      "blob_sha": "26babb182ebc0c506ec18c0aa825ef691dc22d5f",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/video_kandinsky5_t2v.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "acestep",
+      "file": "acestep.ui.json",
+      "source_path": "templates/audio_ace_step_1_5_split.json",
+      "blob_sha": "10ef23ea5ef5a629458fe435eb91d798733608c6",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/templates/audio_ace_step_1_5_split.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "mochi",
+      "file": "mochi.ui.json",
+      "source_path": "archived/mochi_text_to_video_example.json",
+      "blob_sha": "f6087b50e3627fce83fc6996ca4850349c52f7ca",
+      "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/archived/mochi_text_to_video_example.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    }
+  ]
+}
