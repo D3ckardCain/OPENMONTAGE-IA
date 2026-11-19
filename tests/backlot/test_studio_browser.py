@@ -1,4 +1,5 @@
 """UI handoff contract with synthetic transport; no inference claims."""
+import os
 import pytest
 pytest.importorskip('playwright.sync_api')
 from playwright.sync_api import sync_playwright
@@ -7,7 +8,7 @@ from tests.backlot.test_ui_bug_bash import staged_backlot_server
 
 def test_studio_creation_control_and_review(staged_backlot_server):
     with sync_playwright() as pw:
-        browser=pw.chromium.launch()
+        browser=pw.chromium.launch(executable_path=os.environ.get("OPENMONTAGE_TEST_CHROMIUM"))
         page=browser.new_page(viewport={'width':1280,'height':900})
         errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
         page.route('**/api/studio/bootstrap',lambda r:r.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture-local','resource_roots':[]},'pipelines':[{'name':'animated-explainer','stages':['research','compose']}],'projects':[]}))
@@ -43,6 +44,7 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         def select_profile(route):
             selected_profiles.append(route.request.post_data_json);profiles['current']=selected_profiles[-1];route.fulfill(json=profiles['current'])
         page.route('**/api/studio/adapters/wan',select_profile)
+        page.get_by_role('button',name='Modelos y discos',exact=True).click()
         page.get_by_role('button',name='Ver perfiles y modelo seleccionado').click()
         page.locator('#wan-profile-list summary').click()
         page.get_by_role('button',name='Seleccionar Wan 2.2 · 5B · texto a video',exact=True).click()
@@ -69,6 +71,7 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         def review_check(route):
             reviews.append(route.request.post_data_json);measured['human_review']=reviews[-1];route.fulfill(json=measured)
         page.route('**/api/studio/validations/'+check_id+'/review',review_check)
+        page.get_by_role('button',name='Historial y pruebas',exact=True).click()
         page.locator('#voice-check [name=voice]').select_option('ef_dora')
         page.get_by_role('button',name='Ejecutar prueba local',exact=True).click()
         page.locator('#validation-result h3').wait_for()
@@ -78,6 +81,46 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.wait_for_function('document.querySelector("#validation-result pre").textContent.includes("accepted")')
         assert reviews[0]['accepted'] is True
 
+        page.set_viewport_size({'width':390,'height':844})
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert errors==[]
+        browser.close()
+
+
+def test_reference_download_and_local_analysis_controls(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get("OPENMONTAGE_TEST_CHROMIUM"));page=browser.new_page(viewport={'width':1280,'height':900})
+        errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda r:r.fulfill(json={'settings':{
+            'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture',
+            'resource_roots':[],'ffmpeg_path':'/local/ffmpeg','ffprobe_path':'/local/ffprobe',
+            'yt_dlp_path':'/local/yt-dlp','deno_path':'/local/deno'},
+            'pipelines':[{'name':'animated-explainer','stages':[]}],
+            'projects':[{'project_id':'video-fixture','title':'Fixture'}]}))
+        page.route('**/api/studio/projects/video-fixture',lambda r:r.fulfill(json={
+            'request':{'title':'Fixture'},'job':{'status':'ready','message':'Ready','events':[]},
+            'stages':[],'outputs':[],'artifacts':[],'board_url':'/p/video-fixture'}))
+        page.route('**/api/studio/reference-video/video-fixture',lambda r:r.fulfill(json={
+            'status':'partial','frames':[],'gaps':['Modelo no preparado: fixture'],
+            'external_fact_check':'not_performed'}))
+        requests=[]
+        def analyze(route):requests.append(route.request.post_data_json);route.fulfill(json={'started':True})
+        page.route('**/api/studio/reference-video/video-fixture/analyze',analyze)
+        page.goto(staged_backlot_server+'/studio?project=video-fixture')
+        page.locator('#title').get_by_text('Fixture',exact=True).wait_for()
+        page.get_by_role('button',name='Referencias e imágenes',exact=True).click()
+        assert page.locator('[data-pane=references]').is_visible()
+        assert not page.locator('[data-pane=models]').is_visible()
+        page.locator('#reference-url').fill('https://youtu.be/M2oOPhZtTdU')
+        page.locator('#reference-vision').uncheck()
+        page.locator('#reference-summary').uncheck()
+        page.locator('#reference-download').click()
+        page.locator('#reference-result h3').get_by_text('Análisis: partial',exact=True).wait_for()
+        assert requests==[{'url':'https://youtu.be/M2oOPhZtTdU','vision':False,
+            'transcribe':True,'summary':False,'vision_model':'smolvlm'}]
+        assert 'Modelo no preparado' in page.locator('#reference-result').inner_text()
+        page.locator('#reference-report').click()
+        assert len(requests)==1
         page.set_viewport_size({'width':390,'height':844})
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert errors==[]

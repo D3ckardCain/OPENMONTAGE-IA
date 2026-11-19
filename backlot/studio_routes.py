@@ -74,6 +74,22 @@ def create_studio_router():
         return {'saved':True}
     @router.get('/api/studio/resources')
     def resources():return studio.resource_catalog()
+    @router.get('/api/studio/storage')
+    def storage():
+        from lib.storage_layout import describe
+        return invoke(describe,studio.REPO_ROOT,studio.PROJECTS_DIR)
+    @router.get('/api/studio/storage/readiness')
+    def storage_readiness():
+        from lib.storage_layout import readiness
+        return invoke(readiness,studio.REPO_ROOT,studio.PROJECTS_DIR)
+    @router.post('/api/studio/storage')
+    async def storage_configure(request:Request):
+        from lib.storage_layout import configure
+        from lib import reference_analysis
+        data=await body(request)
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar el almacenamiento')
+            return invoke(configure,studio.REPO_ROOT,data,studio.save_json)
     @router.post('/api/studio/inventories')
     async def inventory(request:Request):return invoke(studio.import_inventory,await body(request,32000000))
     @router.get('/api/studio/wan-presets')
@@ -113,6 +129,10 @@ def create_studio_router():
     def comfy_project_jobs(pid:str):
         from lib.comfy_job_records import project_jobs
         return invoke(project_jobs,pid)
+    @router.get('/api/studio/reference-runtime')
+    def reference_runtime():
+        from lib.reference_analysis import runtime
+        return runtime()
     @router.post('/api/studio/reference-video/{pid}/upload')
     async def reference_video_upload(pid:str,request:Request):
         import uuid
@@ -131,6 +151,7 @@ def create_studio_router():
             with agent.ACTIVE_LOCK,analysis.LOCK:
                 if agent.ACTIVE or analysis.ACTIVE:raise HTTPException(409,'Hay una tarea local activa; no se reemplazó el video')
                 temp.replace(folder/'reference_video.mp4')
+                studio.save_json(folder/'reference_source.json',{'path':'reference_video.mp4'})
                 studio.save_json(folder/'reference_analysis.json',{'status':'not_started','message':'Video cargado, análisis pendiente','bytes':size})
             return {'uploaded':True,'bytes':size,'analysis_started':False}
         finally:temp.unlink(missing_ok=True)

@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 from backlot.server import create_app
 from lib import production_studio as studio
@@ -30,7 +31,10 @@ def test_bad_and_symlinked_records_do_not_break_or_escape_project(tmp_path,monke
     studio.save_json(tmp_path/'one/production_request.json',{})
     (tmp_path/'one/comfy-bad-job.json').write_text('{invalid')
     studio.save_json(tmp_path/'outside/comfy-private-job.json',{'prompt_id':'secret'})
-    (tmp_path/'one/link').symlink_to(tmp_path/'outside',target_is_directory=True)
-    (tmp_path/'one/comfy-link-job.json').symlink_to(tmp_path/'outside/comfy-private-job.json')
+    try:
+        (tmp_path/'one/link').symlink_to(tmp_path/'outside',target_is_directory=True)
+        (tmp_path/'one/comfy-link-job.json').symlink_to(tmp_path/'outside/comfy-private-job.json')
+    except OSError:
+        pytest.skip('El sistema no permite crear enlaces simbólicos en esta prueba')
     result=project_jobs('one')
     assert not result['jobs'] and len(result['warnings'])==1

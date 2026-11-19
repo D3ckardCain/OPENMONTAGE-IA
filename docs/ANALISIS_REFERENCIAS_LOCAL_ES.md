@@ -24,11 +24,13 @@ C:\OPENMONTAJE-IA\HERRAMIENTAS\FFmpeg\ffmpeg-9.0.2-essentials_build\bin\ffprobe.
 
 1. Lee duración, resolución y presencia de audio con FFprobe; acepta hasta
    30 minutos por referencia.
-2. Extrae cuatro fotogramas repartidos por el video mediante FFmpeg.
+2. Detecta cambios de plano con FFmpeg (umbral 0,3, aproximado) y extrae
+   cuatro fotogramas repartidos por el video.
 3. Describe los fotogramas con el adaptador local SmolVLM. La API permite
    seleccionar Qwen-VL explícitamente o desactivar visión; no cambia de modelo
    por su cuenta.
-4. Extrae audio mono a 16 kHz y lo transcribe con Faster-Whisper local.
+4. Extrae audio mono a 16 kHz, lo transcribe con Faster-Whisper local y permite
+   descargar la transcripción en SRT con sus tiempos.
 5. Usa Qwen3 local para sintetizar tema, estructura, gancho, recursos, mejoras
    originales y cuestiones que requieren investigación externa.
 6. Guarda fotogramas, transcripción, observaciones, informe y carencias.
@@ -43,14 +45,14 @@ en equipos modestos, los modelos grandes pueden tardar o agotar memoria.
 ## Alcance y límites actuales
 
 La visión analiza imágenes muestreadas, no todo el movimiento del video.
-No existe todavía detección completa de cortes, análisis de música o medición
+La detección de cortes utiliza un umbral heurístico; puede omitir transiciones
+suaves o confundir destellos. No existe todavía análisis de música ni medición
 de retención real. El campo `external_fact_check: not_performed` distingue este
 análisis de una investigación de hechos con fuentes externas. Las inferencias
 del modelo requieren revisión y no garantizan calidad, originalidad o monetización.
 
-La entrada actual es un archivo local. La descarga por enlace desde el formulario
-y las versiones multilingües de producción todavía no están conectadas a este
-módulo. El análisis no inicia automáticamente un video nuevo ni publica contenido.
+La entrada admite archivo local o enlace individual de YouTube. Las versiones
+multilingües de producción todavía no están conectadas a este módulo. El análisis no inicia automáticamente un video nuevo ni publica contenido.
 Las pruebas de integración usan un video sintético y respuestas simuladas de los
 modelos; no constituyen validación de inferencia sobre el video del usuario.
 
@@ -64,3 +66,37 @@ modelos; no constituyen validación de inferencia sobre el video del usuario.
 Solo una tarea de análisis o producción de agentes puede estar activa a la vez.
 Si se reinicia el proceso, los informes pendientes aparecen como interrumpidos.
 Los resultados de cada intento se conservan en su carpeta de ejecución.
+
+## Descarga desde el formulario
+
+El enlace se valida y normaliza a un video individual de YouTube, sin listas.
+«Descargar enlace y analizar localmente» ejecuta yt-dlp con Deno y FFmpeg locales,
+sin cargar configuraciones externas de yt-dlp. Limita la selección a 1080p y
+comprueba que el resultado no supere 500 MB. La descarga queda en la carpeta de
+su ejecución y conserva metadata de yt-dlp y un registro local `download.log`.
+Una descarga rechazada o fallida no activa servicios alternativos.
+
+En la configuración se pueden guardar `yt_dlp_path` y `deno_path`, además de
+FFmpeg y FFprobe. «Detectar herramientas de referencia» consulta archivos locales,
+sin ejecutarlos. Si no hay ruta configurada ni herramienta en PATH, busca en
+HERRAMIENTAS bajo el repositorio y las raíces de recursos configuradas; en Windows
+también comprueba C:/OPENMONTAJE-IA y D:/OPENMONTAJE-IA. Una ruta configurada inválida
+se informa, no se sustituye silenciosamente. Las ubicaciones verificadas del
+usuario para yt-dlp.exe y deno.exe están en C:/OPENMONTAJE-IA/HERRAMIENTAS/yt-dlp/.
+
+El panel permite elegir SmolVLM o Qwen-VL y desactivar visión, transcripción o
+síntesis. No cambia de modelo cuando falta uno. Los informes de otro proyecto se
+limpian del panel al cambiar la selección para evitar confundir resultados.
+
+## Verificación de este bloque
+
+95 pruebas de contratos, integración y extracción con video sintético pasaron
+localmente. La descarga se simuló y no se descargó el video del usuario aquí.
+Los modelos siguieron simulados. Las dos pruebas de navegador se prepararon,
+pero no pudieron ejecutarse localmente por restricciones de sockets de Chromium;
+no se presentan como aprobadas. El workflow de GitHub añade los contratos nuevos
+y conserva la prueba de interfaz para ejecutarla en un runner compatible.
+
+La fuente seleccionada se registra por proyecto. Repetir el análisis utiliza el
+video descargado o cargado más recientemente, sin volver a descargarlo ni usar
+por accidente una referencia anterior. Se rechazan rutas fuera del proyecto.

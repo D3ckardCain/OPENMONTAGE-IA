@@ -297,7 +297,10 @@ class LocalAgent:
             return {'checkpoint':str(path),'next_stage':get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])}
         if name=='finish':
             if args['blocked']:raise Pause('blocked',args['message'])
-            self.verify_outputs()
+            outputs=self.verify_outputs()
+            from lib.final_delivery import deliver
+            delivery=deliver(self.pid,outputs)
+            if delivery['copied']:self.event('delivery','Videos finales copiados y verificados en el destino configurado')
             raise Pause('rendered',args['message']+' Exportación lista; publicación no ejecutada.')
 
     def run(self):
@@ -347,6 +350,9 @@ class LocalAgent:
 
 def start(pid):
     studio.project_path(pid)
+    from lib.storage_layout import readiness
+    storage=readiness(studio.REPO_ROOT,studio.PROJECTS_DIR)
+    if not storage['ready']:raise ValueError('Almacenamiento no preparado: '+'; '.join(storage['problems']))
     with ACTIVE_LOCK:
         from lib import reference_analysis
         with reference_analysis.LOCK:

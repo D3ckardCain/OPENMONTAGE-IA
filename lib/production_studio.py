@@ -52,15 +52,15 @@ def local_url(value):
 
 def settings():
     defaults = {'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188',
-                'model':'','resource_roots':[],'max_turns':120,'ffmpeg_path':'','ffprobe_path':''}
+                'model':'','resource_roots':[],'max_turns':120,'ffmpeg_path':'','ffprobe_path':'','yt_dlp_path':'','deno_path':''}
     return {**defaults, **read_json(CONFIG_DIR/'settings.json',{})}
 
 
 def configure(data):
-    allowed={'ollama_url','comfyui_url','model','resource_roots','max_turns','ffmpeg_path','ffprobe_path'}
+    allowed={'ollama_url','comfyui_url','model','resource_roots','max_turns','ffmpeg_path','ffprobe_path','yt_dlp_path','deno_path'}
     if set(data)-allowed:raise ValueError('Configuración desconocida')
     value={**settings(),**data}
-    for key in ('ffmpeg_path','ffprobe_path'):
+    for key in ('ffmpeg_path','ffprobe_path','yt_dlp_path','deno_path'):
         if not isinstance(value[key],str) or len(value[key])>4000 or (value[key] and not Path(value[key]).is_absolute()):raise ValueError('Usa ruta absoluta para '+key)
     for k in ('ollama_url','comfyui_url'):value[k]=local_url(value[k])
     if not isinstance(value['model'],str) or len(value['model'])>200:raise ValueError('Modelo inválido')
@@ -126,6 +126,9 @@ def project_path(project_id):
 
 
 def create_production(data):
+    from lib.paths import PROJECTS_DIR as startup_projects
+    if PROJECTS_DIR == startup_projects and PROJECTS_DIR != REPO_ROOT/'projects' and not PROJECTS_DIR.is_dir():
+        raise ValueError('El disco o carpeta de proyectos no está disponible. Conéctalo antes de crear una producción; no se guardará en otro disco.')
     allowed={'title','brief','pipeline','language','reference','automatic'}
     if set(data)-allowed:raise ValueError('Campos desconocidos')
     for name in ('title','brief','pipeline','language'):
@@ -163,7 +166,7 @@ def production_state(pid):
     for f in sorted((p/'artifacts').glob('*.json')):
         if f.is_file() and not f.is_symlink():artifacts.append({'name':f.name,'url':f'/media/{pid}/artifacts/{f.name}'})
     outputs=[{'name':f.name,'url':f'/media/{pid}/renders/{f.name}'} for f in sorted((p/'renders').glob('*')) if f.is_file() and not f.is_symlink()]
-    return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,'board_url':'/p/'+pid}
+    return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,'final_delivery':read_json(p/'final_delivery.json'),'board_url':'/p/'+pid}
 
 
 def import_inventory(data):

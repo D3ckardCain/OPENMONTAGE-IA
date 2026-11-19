@@ -86,3 +86,11 @@ El registro incorpora 21 rutas nativas y 25 conexiones de workflow ComfyUI.
 Su panel de configuración y diagnóstico está en «Modelos y discos». Consulta
 [Adaptadores](ADAPTADORES_MODELOS_ES.md): implementaciones, dependencias,
 parámetros, limitaciones y diferencia entre conector e inferencia validada.
+
+## Organización del Estudio
+
+El menú lateral separa Producción, Referencias e imágenes, Modelos y discos,
+e Historial y pruebas. Cambiar de sección conserva los formularios y no inicia
+ninguna herramienta. La configuración local permanece en el lateral. El acceso
+a investigar canales conserva su página específica. Esta organización se
+comprobó en el navegador real de desarrollo sin activar inferencias.
