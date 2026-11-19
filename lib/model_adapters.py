@@ -13,6 +13,16 @@ from tools.base_tool import BaseTool, ToolResult, ToolRuntime, ToolTier, ToolSta
 
 # Each native entry names a real worker implementation and its import dependencies.
 NATIVE={
+ 'wan-camera':('video_generation',['torch','diffusers','transformers','omegaconf','videox_fun']),
+ 'wan-control':('video_generation',['torch','diffusers','transformers','omegaconf','videox_fun']),
+ 'wan-s2v':('video_generation',['torch','wan','transformers','diffusers']),
+ 'framepack':('video_generation',['torch','transformers','diffusers','diffusers_helper','einops']),
+ 'longcat':('video_generation',['torch','diffusers','transformers','longcat_video','torchvision']),
+ 'longcat-avatar':('avatar',['torch','diffusers','transformers','longcat_video','audio_separator']),
+ 'cogvideo':('video_generation',['torch','diffusers','transformers','accelerate','imageio']),
+ 'dwpose':('pose_estimation',['onnxruntime','numpy','cv2']),
+ 'lama':('image_inpainting',['torch','omegaconf','numpy','PIL','saicinpainting']),
+ 'magihuman':('video_generation',['torch','inference','magi_compiler']),
  'kokoro':('tts',['torch','kokoro','soundfile']),
  'faster-whisper':('transcription',['faster_whisper']),
  'm2m100':('translation',['torch','transformers','sentencepiece']),
@@ -70,8 +80,12 @@ def configuration(family):
 
 def configure(family,data):
     if family not in CATALOG:raise ValueError('Modelo desconocido')
-    if set(data)-{'python_executable','model_dir','workflow_path','output_node','source_dir','preset'}:raise ValueError('Configuración de adaptador desconocida')
+    if set(data)-{'python_executable','model_dir','workflow_path','output_node','source_dir','preset','parameter_bindings','runtime_config'}:raise ValueError('Configuración de adaptador desconocida')
     for name,value in data.items():
+        if name=='parameter_bindings':
+            from lib.workflow_preparation import validate_bindings
+            validate_bindings(value)
+            continue
         if not isinstance(value,str) or len(value)>4000:raise ValueError('Configuración inválida')
         if name not in ('output_node','preset') and value and not Path(value).is_absolute():raise ValueError('Usa una ruta absoluta para '+name)
     if 'preset' in data:
@@ -179,6 +193,18 @@ def diagnostics(family,probe=True):
         if missing:result['problems'].append('Ficheros necesarios ausentes o vacíos: '+', '.join(sorted(set(missing))))
     result['missing_files']=sorted(set(missing))
     result['optional_missing_files']=sorted(set(optional_missing))
+    extra_files={'lama':['config.yaml','models/best.ckpt'],'dwpose':['yolox_l.onnx','dw-ll_ucoco_384.onnx']}
+    if model:
+        for name in extra_files.get(family,[]):
+            if not (model/name).is_file():result['problems'].append('Falta recurso del motor: '+name+(' (extrae big-lama.zip)' if family=='lama' else ''))
+    if family in ('dwpose','longcat','longcat-avatar','magihuman','framepack','wan-camera','wan-control','wan-s2v'):
+        source=cfg.get('source_dir')
+        if not source or not Path(source).is_dir():result['problems'].append('Configura source_dir con el código del motor original')
+    if family in ('magihuman','framepack'):
+        runtime=cfg.get('runtime_config')
+        if not runtime or not Path(runtime).is_file():result['problems'].append('Configura runtime_config con las rutas locales de los modelos auxiliares de '+family)
+    if family in ('longcat','longcat-avatar','magihuman'):
+        result['platform_requirement']='Linux/WSL con CUDA; los motores originales usan componentes distribuidos no preparados para Windows nativo'
     python=cfg.get('python_executable') or sys.executable
     modules=tuple(s['dependencies']);mtime=Path(python).stat().st_mtime if Path(python).is_file() else 0
     available=dependency_probe(python,modules,mtime,cfg.get('source_dir','')) if probe and model is not None else {}
@@ -208,9 +234,12 @@ class LocalModelAdapter(BaseTool):
     idempotency_key_fields=[]
     side_effects=['writes requested artifacts inside output_dir']
     input_schema={'type':'object','additionalProperties':False,'required':['output_dir'], 'properties':{
+        'mask_path':{'type':'string'},'seconds':{'type':'integer','minimum':1,'maximum':60},
+        'control_video':{'type':'string'},'camera_path':{'type':'string'},
         'width':{'type':'integer','minimum':256,'maximum':1280},'height':{'type':'integer','minimum':256,'maximum':1280},'frames':{'type':'integer','minimum':5,'maximum':121},'steps':{'type':'integer','minimum':1,'maximum':100},'seed':{'type':'integer','minimum':0,'maximum':9223372036854775807},'fps':{'type':'integer','minimum':1,'maximum':60},'negative_prompt':{'type':'string','maxLength':5000},
         'output_dir':{'type':'string'},'text':{'type':'string','maxLength':50000},'input_path':{'type':'string'},'reference_audio':{'type':'string'},
         'project_id':{'type':'string'},'server_image':{'type':'string','maxLength':1000},
+        'server_audio':{'type':'string','maxLength':1000},'server_image_2':{'type':'string','maxLength':1000},
         'reference_text':{'type':'string'},'language':{'type':'string'},'source_language':{'type':'string'},'voice':{'type':'string'},
         'instruction':{'type':'string'},'labels':{'type':'array','items':{'type':'string'},'maxItems':100},'texts':{'type':'array','items':{'type':'string'},'maxItems':100},
         'device':{'enum':['cpu','cuda']},'max_new_tokens':{'type':'integer','minimum':1,'maximum':8192},'speed':{'type':'number','minimum':0.5,'maximum':2},
@@ -222,6 +251,10 @@ class LocalModelAdapter(BaseTool):
 
     def get_info(self):
         result=super().get_info();result['adapter']=diagnostics(self.family);result['usage_manual']='docs/ADAPTADORES_MODELOS_ES.md'
+        from lib.workflow_preparation import recipes
+        result['workflow_recipe']=next(row for row in recipes() if row['family']==self.family)
+        if self.family in ('longcat','longcat-avatar','magihuman','framepack','wan-camera','wan-control','wan-s2v'):
+            result['execution_requirements']={'device':'cuda','silent_cpu_fallback':False}
         if self.family=='wan':
             result['wan_profile']=configuration('wan').get('preset')
             result['i2v_input_contract']={
@@ -239,6 +272,10 @@ class LocalModelAdapter(BaseTool):
         from jsonschema import validate
         try:
             validate(inputs,self.input_schema)
+            from lib.workflow_preparation import REQUIRED
+            if self.family in ('longcat','longcat-avatar','magihuman','cogvideo','dwpose','lama','framepack','wan-camera','wan-control','wan-s2v'):
+                absent=[key for key in REQUIRED[self.family] if not inputs.get(key)]
+                if absent:raise ValueError('Entradas requeridas por el workflow: '+', '.join(absent))
             output=Path(inputs['output_dir']).resolve();output.mkdir(parents=True,exist_ok=True)
             info=diagnostics(self.family)
             if not info['ready']:return ToolResult(success=False,error='; '.join(info['problems']),data={'adapter':info})
@@ -248,11 +285,14 @@ class LocalModelAdapter(BaseTool):
             else:
                 request=output/('adapter-'+self.family+'-request.json');response=output/('adapter-'+self.family+'-response.json')
                 response.unlink(missing_ok=True)
-                studio.save_json(request,{'family':self.family,'model_dir':info['model_dir'],'inputs':inputs,'output_dir':str(output),'source_dir':configuration(self.family).get('source_dir','')})
+                studio.save_json(request,{'family':self.family,'model_dir':info['model_dir'],'inputs':inputs,'output_dir':str(output),'source_dir':configuration(self.family).get('source_dir',''),'runtime_config':configuration(self.family).get('runtime_config','')})
                 env={**os.environ,'HF_HUB_OFFLINE':'1','TRANSFORMERS_OFFLINE':'1','HF_DATASETS_OFFLINE':'1','HF_HUB_DISABLE_TELEMETRY':'1','TOKENIZERS_PARALLELISM':'false'}
+                ffmpeg=studio.settings().get('ffmpeg_path')
+                if ffmpeg and Path(ffmpeg).is_file():env['PATH']=str(Path(ffmpeg).parent)+os.pathsep+env.get('PATH','');env['IMAGEIO_FFMPEG_EXE']=ffmpeg
                 if inputs.get('device','cpu')=='cpu':env['CUDA_VISIBLE_DEVICES']=''
                 worker=Path(__file__).with_name('model_adapter_worker.py')
                 result=subprocess.run([info['python_executable'],str(worker),str(request),str(response)],env=env,capture_output=True,text=True,timeout=inputs.get('timeout',1800))
+                (output/('adapter-'+self.family+'-runtime.log')).write_text((getattr(result,'stdout','') or '')[-1000000:]+'\n'+(result.stderr or '')[-1000000:],encoding='utf-8')
                 if not response.is_file():raise RuntimeError('El runtime no devolvió un resultado: '+result.stderr[-1000:])
                 data=studio.read_json(response)
                 if not data.get('success'):raise RuntimeError(data.get('error','Inferencia fallida'))

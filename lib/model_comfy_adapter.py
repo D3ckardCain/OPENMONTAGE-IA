@@ -28,15 +28,29 @@ def graph_config(family,inputs,preflight=False):
     if family=='wan' and cfg.get('preset') and not inputs.get('workflow_json') and not preflight:
         from lib.wan_presets import apply_parameters
         graph=apply_parameters(graph,cfg['preset'],inputs)
+    elif not preflight:
+        parameter_bindings=cfg.get('parameter_bindings',{})
+        from lib.workflow_preparation import PARAMETERS,validate_bindings
+        validate_bindings(parameter_bindings)
+        if not inputs.get('workflow_json'):
+            ignored=(set(inputs)&PARAMETERS)-set(parameter_bindings)
+            if ignored:raise ValueError('Este workflow no expone los parámetros solicitados: '+', '.join(sorted(ignored)))
+        for parameter,targets in parameter_bindings.items():
+            if parameter not in inputs:continue
+            for target in targets:
+                node=target['node'];field=target['field']
+                if node not in graph or field not in graph[node]['inputs']:raise ValueError('Binding de parámetro fuera del workflow')
+                graph[node]['inputs'][field]=inputs[parameter]
     output=str(inputs.get('output_node') or cfg.get('output_node') or '')
     if output not in graph:raise ValueError('Falta el nodo de salida del workflow')
     return graph,output
 
 
-def validate_graph(family,graph,output,server):
+def validate_graph(family,graph,output,server,object_info=None,strict=False):
     from lib.model_adapters import CATALOG
     files={e['path'].replace('\\','/').split('/')[-1] for e in CATALOG[family]['entries'] if e['path'].endswith(('.safetensors','.pth','.pt','.bin','.onnx','.ckpt'))}
     if family=='lama':files|={'big-lama.pt','big-lama','lama'}
+    if family=='wan-vace':files.add('Wan2.2-VACE-Fun-A14B')
     strings=[]
     def walk(value):
         if isinstance(value,str):strings.append(value.replace('\\','/').split('/')[-1])
@@ -48,7 +62,7 @@ def validate_graph(family,graph,output,server):
     if not files.intersection(strings):raise ValueError('El workflow no referencia pesos de la familia seleccionada: '+family)
     infos={}
     for name in sorted({node['class_type'] for node in graph.values()}):
-        data=studio.local_request(server,'/object_info/'+quote(name,safe=''),timeout=10)
+        data=object_info if object_info is not None else studio.local_request(server,'/object_info/'+quote(name,safe=''),timeout=10)
         if name not in data:raise ValueError('Falta el nodo ComfyUI: '+name)
         info=data[name]
         if info.get('api_node') or str(info.get('category','')).casefold().startswith(('api/','api node','partner/')):raise ValueError('Nodo de servicio externo no autorizado por presupuesto cero: '+name)
@@ -56,10 +70,24 @@ def validate_graph(family,graph,output,server):
     for node in graph.values():
         fields=infos[node['class_type']].get('input',{})
         definitions={**fields.get('required',{}),**fields.get('optional',{})}
+        if strict:
+            missing=set(fields.get('required',{}))-set(node['inputs'])
+            if missing:raise ValueError('Entradas obligatorias ausentes en '+node['class_type']+': '+', '.join(sorted(missing)))
         for key,value in node['inputs'].items():
             definition=definitions.get(key)
+            if strict and definition is None:raise ValueError('Entrada desconocida en '+node['class_type']+'.'+key)
+            if isinstance(value,list) and len(value)==2 and isinstance(value[0],str) and isinstance(value[1],int):
+                if value[0] not in graph:raise ValueError('Enlace a nodo ausente')
+                source_info=infos[graph[value[0]]['class_type']]
+                if strict and not 0<=value[1]<len(source_info.get('output',[])):raise ValueError('Índice de salida no admitido')
+                continue
             # Combo lists advertise the model names actually registered in ComfyUI.
             if definition and isinstance(definition[0],list) and isinstance(value,str) and value not in definition[0]:raise ValueError('Valor/modelo no registrado en '+node['class_type']+'.'+key+': '+value)
+            if strict and definition:
+                kind=definition[0];options=definition[1] if len(definition)>1 and isinstance(definition[1],dict) else {}
+                valid={'INT':lambda:type(value) is int,'FLOAT':lambda:type(value) in (int,float),'BOOLEAN':lambda:type(value) is bool,'STRING':lambda:isinstance(value,str)}
+                if isinstance(kind,str) and kind in valid and not valid[kind]():raise ValueError('Tipo de entrada inválido: '+key)
+                if type(value) in (int,float) and ('min' in options and value<options['min'] or 'max' in options and value>options['max']):raise ValueError('Entrada fuera de rango: '+key)
     if not infos[graph[output]['class_type']].get('output_node',False):raise ValueError('El nodo elegido no es un nodo de salida ComfyUI')
 
 

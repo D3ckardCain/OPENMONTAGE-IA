@@ -138,6 +138,61 @@
       "source_url": "https://github.com/Comfy-Org/workflow_templates/blob/b4f476f68276a12e1bc710b6931ecd7b8efec48a/archived/mochi_text_to_video_example.json",
       "requires_api_conversion": true,
       "variant_review_required": true
+    },
+    {
+      "family": "wan-vace",
+      "file": "wan-vace.ui.json",
+      "source_path": "comfyui/wan2_2_vace_fun/v1/wan2.2_vace_fun_workflow_i2v.json",
+      "source_repository": "aigc-apps/VideoX-Fun",
+      "source_revision": "32f7582451c1f716e67158500de7506999a41f0b",
+      "blob_sha": "806ef2bb66653a2b3c3b0868937cd8d8f273a896",
+      "source_url": "https://github.com/aigc-apps/VideoX-Fun/blob/32f7582451c1f716e67158500de7506999a41f0b/comfyui/wan2_2_vace_fun/v1/wan2.2_vace_fun_workflow_i2v.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "framepack",
+      "file": "framepack.ui.json",
+      "source_path": "example_workflows/framepack_hv_example.json",
+      "source_repository": "kijai/ComfyUI-FramePackWrapper",
+      "source_revision": "a0eeaa6993e835e158062cfa1c436a19ab332b2c",
+      "blob_sha": "8a8c0c882cdb6df3d8afe879095ce1a2e331421a",
+      "source_url": "https://github.com/kijai/ComfyUI-FramePackWrapper/blob/a0eeaa6993e835e158062cfa1c436a19ab332b2c/example_workflows/framepack_hv_example.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "longcat",
+      "file": "longcat.ui.json",
+      "source_path": "example_workflows/LongCat_TI2V_example_01.json",
+      "source_repository": "kijai/ComfyUI-WanVideoWrapper",
+      "source_revision": "a7439db30bed0c5b5fa437d77ae8a7bb220dfd00",
+      "blob_sha": "ec8776db1556eba97995013592132eb4f5a90b7f",
+      "source_url": "https://github.com/kijai/ComfyUI-WanVideoWrapper/blob/a7439db30bed0c5b5fa437d77ae8a7bb220dfd00/example_workflows/LongCat_TI2V_example_01.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "longcat-avatar",
+      "file": "longcat-avatar.ui.json",
+      "source_path": "example_workflows/LongCatAvatar_audio_image_to_video_example_01.json",
+      "source_repository": "kijai/ComfyUI-WanVideoWrapper",
+      "source_revision": "a7439db30bed0c5b5fa437d77ae8a7bb220dfd00",
+      "blob_sha": "f982637e5f842c687bbaed3db148305dd4bf8d11",
+      "source_url": "https://github.com/kijai/ComfyUI-WanVideoWrapper/blob/a7439db30bed0c5b5fa437d77ae8a7bb220dfd00/example_workflows/LongCatAvatar_audio_image_to_video_example_01.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
+    },
+    {
+      "family": "cosmos",
+      "file": "cosmos.ui.json",
+      "source_path": "cosmos/image_to_video_cosmos_7B.json",
+      "source_repository": "comfyanonymous/ComfyUI_examples",
+      "source_revision": "f9431bb000ce792094ff345446e22cac1ea6cef3",
+      "blob_sha": "f04c2d066f59bf729a54fc9fec7ac1600672de50",
+      "source_url": "https://github.com/comfyanonymous/ComfyUI_examples/blob/f9431bb000ce792094ff345446e22cac1ea6cef3/cosmos/image_to_video_cosmos_7B.json",
+      "requires_api_conversion": true,
+      "variant_review_required": true
     }
   ]
 }

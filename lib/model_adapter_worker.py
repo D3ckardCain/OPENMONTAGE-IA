@@ -54,6 +54,14 @@ def run(request):
     if request.get('source_dir'):
         source=Path(request['source_dir']);sys.path.insert(0,str(source));sys.path.insert(0,str(source/'third_party'/'Matcha-TTS'))
     if not m.is_dir():raise ValueError('Carpeta de pesos ausente')
+    if family in ('wan-camera','wan-control','wan-s2v','framepack'):
+        try:from lib.original_model_engines import run as run_original
+        except ImportError:from original_model_engines import run as run_original
+        return run_original(request)
+    if family in ('dwpose','cogvideo','lama','magihuman','longcat','longcat-avatar'):
+        try:from lib.model_extra_workers import run as run_extra
+        except ImportError:from model_extra_workers import run as run_extra
+        return run_extra(request)
     def report(value,filename='result.json'):
         path=out/filename;path.write_text(json.dumps(plain(value),ensure_ascii=False,indent=2),encoding='utf-8')
         return {'success':True,'outputs':[str(path)],'result':plain(value)}

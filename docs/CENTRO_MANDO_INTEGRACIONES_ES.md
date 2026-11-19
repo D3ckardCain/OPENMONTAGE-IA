@@ -4,9 +4,9 @@ Estado: preparación; no se han ejecutado modelos ni aplicaciones reales en esta
 
 ## Modelos
 
-La matriz del panel incluye las 46 familias del catálogo: 21 trabajadores nativos y 25 puentes ComfyUI. Un puente no equivale a un workflow terminado. Los workflows API vinculados se muestran por separado.
+La matriz del panel incluye las 46 familias del catálogo: 31 motores nativos y 15 rutas ComfyUI. Todas las familias tienen receta de preparación; esto no acredita instalación ni inferencia. Los workflows API vinculados y las recetas todavía sin configurar se muestran por separado.
 
-Se incluyen 15 plantillas oficiales de Comfy-Org/workflow_templates, fijadas a una revisión, en tools/_comfyui/reference_templates. El manifiesto conserva origen y hash del blob. Son workflows de interfaz: requieren conversión a API y revisión de variantes antes de ejecutarse. No se vinculan automáticamente. En particular, Hunyuan 720p no demuestra compatibilidad con pesos 480p; ACE Step 1 no sustituye a ACE Step 1.5.
+Se incluyen 20 plantillas de Comfy-Org y de los autores de sus integraciones, fijadas a una revisión, en tools/_comfyui/reference_templates. El manifiesto conserva origen y hash del blob. El botón «Preparar workflow sin generar» convierte el lienzo a API consultando únicamente /object_info. Expande subgrafos, conserva entradas expuestas, resuelve reroutes/bypasses inequívocos y elimina ramas ajenas a la salida elegida. Rechaza servicios externos, nodos ausentes, widgets ambiguos y parámetros sin binding. Guarda el grafo y sus bindings para el agente; nunca llama /prompt. Las plantillas siguen requiriendo revisar sus variantes frente a los pesos instalados. En particular, Hunyuan 720p no demuestra compatibilidad con pesos 480p; ACE Step 1 no sustituye a ACE Step 1.5.
 
 Antes de las pruebas reales, cada familia necesita comprobar pesos completos, nodos/dependencias, contrato de entradas, salida esperada y recursos. La presencia en el inventario no acredita instalación o compatibilidad.
 
@@ -24,4 +24,20 @@ La app y su configuración pueden residir en M.2. Los modelos conservan sus ruta
 
 ## Cierre pendiente
 
-Completar workflows API específicos para las familias con puente genérico, configurar ejecutables instalados, y después realizar pruebas reales de extremo a extremo. No eliminar pesos ni herramientas por errores de configuración. Las pruebas de código con simulaciones no sustituyen las pruebas de inferencia.
+Configurar las rutas reales de pesos, código, dependencias y ejecutables instalados; preparar los grafos contra la versión de ComfyUI instalada; después realizar pruebas reales de extremo a extremo. No quedan familias sin receta de preparación, pero todavía no se ha validado ninguna nueva inferencia. No eliminar pesos ni herramientas por errores de configuración. Las pruebas de código con simulaciones no sustituyen las pruebas de inferencia.
+
+## Motores originales y pesos descargados
+
+CogVideoX usa Diffusers local; DWPose usa sus dos ONNX y rutinas originales; LaMa requiere extraer el ZIP (config.yaml y models/best.ckpt). LongCat, LongCat Avatar y MagiHuman tienen adaptadores para sus motores originales; los tres necesitan un runtime Linux/WSL con CUDA preparado. No se transforman pesos originales en una variante ComfyUI distinta sin avisar.
+
+Wan Camera y Wan Control adaptan exclusivamente los parámetros del ejemplo original VideoX-Fun. Wan S2V utiliza su CLI original. FramePack carga los checkpoints locales y ejecuta únicamente la función de trabajo original, sin abrir Gradio. Las revisiones de estos cuatro códigos se fijan y verifican mediante docs/runtime_sources.json; una revisión diferente debe adaptarse antes de usarla. No se descarga su código automáticamente.
+
+FramePack necesita runtime_config con backbone_dir y vision_dir absolutos (repositorios auxiliares completos). MagiHuman necesita runtime_config con engine_config y evaluation_config, con todas sus rutas de pesos/config locales. El panel permite configurar ambos. Los motores conservan registros de proceso en el proyecto.
+
+## Agentes y aplicaciones
+
+application_catalog permite al agente consultar las diez herramientas registradas. application_open_project_file abre un archivo existente del proyecto con una de las seis aplicaciones de escritorio configuradas. Devuelve el proceso iniciado, nunca afirma que abrirlo equivalga a haber renderizado o terminado el trabajo. La automatización completa de las funciones internas de esas seis aplicaciones no está implementada por este mecanismo de apertura.
+
+## Comprobaciones de esta fase
+
+Se ejecutan pruebas de contratos con datos sintéticos y procesos simulados. No se lanzan los motores originales, no se cargan pesos, no se interrumpe ComfyUI y no se realizan descargas de modelos.

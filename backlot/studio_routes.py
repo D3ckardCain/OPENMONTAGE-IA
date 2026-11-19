@@ -193,6 +193,18 @@ def create_studio_router():
         with agent.ACTIVE_LOCK:
             if agent.ACTIVE:raise HTTPException(409,'Detén la producción antes de cambiar adaptadores')
             return invoke(configure,family,data)
+    @router.get('/api/studio/workflow-recipes')
+    def workflow_recipes():
+        from lib.workflow_preparation import recipes
+        return recipes()
+    @router.post('/api/studio/adapters/{family}/prepare')
+    async def prepare_adapter_workflow(family:str,request:Request):
+        from lib.workflow_preparation import prepare
+        data=await body(request)
+        from lib import reference_analysis
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas locales antes de preparar workflows')
+            return invoke(prepare,family,data)
     @router.get('/api/studio/validations')
     def validations():
         from lib import model_validation as checks

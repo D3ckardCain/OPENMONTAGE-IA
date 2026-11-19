@@ -8,12 +8,13 @@ seleccionada y no se cambia de GPU a CPU de forma silenciosa.
 
 ## Estado de integración
 
-El catálogo completo tiene 46 familias: 21 rutas nativas implementadas y 25
-conectores para workflows API de ComfyUI. **Un conector no demuestra que exista un
-workflow compatible, que todos los nodos estén instalados ni que una GPU pueda
-cargar el modelo.** WAN incluye el workflow T2V de cuatro pasos ya existente;
-los demás conectores requieren un grafo compatible explícito. No se convierte
-ACE-Step 1.5 en ACE-Step 1 ni un modelo de video en imágenes estáticas.
+El catálogo completo tiene 46 familias: 31 rutas nativas y 15 rutas ComfyUI.
+Todas tienen receta de preparación. WAN tiene perfiles API; las otras 14 rutas
+ComfyUI tienen conversor de su plantilla de referencia, con bindings de entrada
+y validación contra los nodos instalados, sin enviar generaciones. Tener receta
+no acredita instalación, compatibilidad de cada variante ni calidad de salida.
+Consulta `CENTRO_MANDO_INTEGRACIONES_ES.md` para los motores originales y los
+requisitos Linux/WSL. La fase de pruebas reales continúa pendiente.
 
 Las pruebas utilizan dependencias y salidas controladas, sin bajar modelos. No
 certifican inferencia ni calidad de las 46 familias en el equipo del usuario.
