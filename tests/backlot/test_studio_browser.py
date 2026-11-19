@@ -125,3 +125,51 @@ def test_reference_download_and_local_analysis_controls(staged_backlot_server):
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert errors==[]
         browser.close()
+
+
+def test_setup_discovery_binding_and_runtime_forms_without_execution(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1280,'height':900});errors=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda r:r.fulfill(json={'settings':{
+            'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture',
+            'resource_roots':[]},'pipelines':[],'projects':[]}))
+        discovery_calls=[];bindings=[];runtime_saves=[]
+        path='/local/'+('long-directory-name/'*12)+'ffmpeg.exe'
+        def discovery(route):
+            discovery_calls.append(route.request.post_data_json)
+            route.fulfill(json={'entries_examined':3,'limited':False,'roots':[{'path':'/local','available':True}],
+                'applications':[{'id':'ffmpeg','label':'FFmpeg','configured_executable':'','candidates':[path]}],
+                'python_candidates':[],'installers_not_executed':['/local/Avogadro-setup.exe'],
+                'errors':[],'note':'No se ejecutó ningún candidato.'})
+        page.route('**/api/studio/setup/discover',discovery)
+        def bind(route):bindings.append(route.request.post_data_json);route.fulfill(json={'saved':True,'launched':False})
+        page.route('**/api/studio/applications/ffmpeg',bind)
+        def runtime(route):
+            if route.request.method=='POST':runtime_saves.append(route.request.post_data_json);route.fulfill(json={'saved':True,'generation_started':False})
+            else:route.fulfill(json={'fields':{'backbone_dir':'Backbone local','vision_dir':'Vision local'},'values':{'backbone_dir':'','vision_dir':''}})
+        page.route('**/api/studio/setup/runtime/framepack',runtime)
+        page.goto(staged_backlot_server+'/studio#setup')
+        assert page.locator('[data-pane=setup]').is_visible()
+        page.locator('#setup-roots').fill('/local')
+        page.locator('#setup-discover').click()
+        page.get_by_text('No se ejecutó ningún candidato.',exact=True).wait_for()
+        assert discovery_calls==[{'roots':['/local']}]
+        assert bindings==[]
+        page.locator('#setup-discovery-result details').first.locator('summary').click()
+        page.get_by_role('button',name='Vincular esta ruta de FFmpeg',exact=True).click()
+        page.get_by_text('Ruta de FFmpeg guardada. El ejecutable no se inició.',exact=True).wait_for()
+        assert bindings==[{'executable':path}]
+        page.locator('#setup-runtime-load').click()
+        page.locator('#setup-runtime-form [name=backbone_dir]').fill('/local/backbone')
+        page.locator('#setup-runtime-form [name=vision_dir]').fill('/local/vision')
+        page.get_by_role('button',name='Guardar configuración del motor',exact=True).click()
+        page.get_by_text('Configuración de framepack guardada. No se movieron pesos ni se inició generación.',exact=True).wait_for()
+        assert runtime_saves==[{'backbone_dir':'/local/backbone','vision_dir':'/local/vision'}]
+        page.locator('#setup-runtime-family').select_option('magihuman')
+        assert not page.locator('#setup-runtime-form').is_visible()
+        page.set_viewport_size({'width':390,'height':844})
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert errors==[]
+        browser.close()

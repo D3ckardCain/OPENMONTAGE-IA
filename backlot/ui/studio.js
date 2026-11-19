@@ -3,7 +3,7 @@ const notice=s=>{$('#notice').textContent=s||'';};
 async function api(path,data){const r=await fetch('/api/studio/'+path,data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let v=await r.json();if(!r.ok)throw Error(typeof v.detail==='string'?v.detail:JSON.stringify(v.detail));return v;}
 function node(tag,text){let n=document.createElement(tag);n.textContent=text;return n;}
 function link(label,url){let a=node('a',label);a.href=url;return a;}
-const sectionLabels={production:'Producción',references:'Referencias e imágenes',models:'Modelos y discos',applications:'Aplicaciones',history:'Historial y pruebas'};
+const sectionLabels={production:'Producción',references:'Referencias e imágenes',models:'Modelos y discos',applications:'Aplicaciones',setup:'Preparación del equipo',history:'Historial y pruebas'};
 function showSection(name){
  if(!(name in sectionLabels))name='production';
  for(const pane of document.querySelectorAll('[data-pane]'))pane.hidden=pane.dataset.pane!==name;
@@ -127,3 +127,59 @@ $('#storage-check').onclick=async()=>{try{const report=await api('storage/readin
 
 $('#coverage-load').onclick=async()=>{try{const report=await api('integration-coverage'),box=$('#coverage-result');box.replaceChildren(node('p',report.total+' familias · '+report.prepared_recipes+' recetas preparadas · '+report.native_workers+' implementaciones nativas · '+report.bound_workflows+' workflows vinculados · '+report.reference_templates+' plantillas oficiales para preparar. Sin pruebas de inferencia.'));for(const model of report.models){const d=document.createElement('details');d.append(node('summary',model.family+' · '+model.preparation_state),node('p',model.title+' · '+model.capability),node('p',model.next_step),node('pre',JSON.stringify(model,null,2)));box.append(d);}}catch(e){notice(e.message);}};
 $('#applications-load').onclick=async()=>{try{const report=await api('applications'),box=$('#applications-result');box.replaceChildren();for(const app of report.applications){const d=document.createElement('details');d.append(node('summary',app.label+' · '+(app.file_found?'Ejecutable localizado':'Pendiente de configurar')),node('p',app.purpose),node('p','Ejecutables admitidos: '+app.executables.join(', ')));const label=node('label','Ruta del ejecutable instalado o portable'),input=document.createElement('input');input.value=app.executable;input.placeholder='Ruta absoluta del ejecutable';label.append(input);const save=node('button','Guardar ruta');save.onclick=async()=>{try{await api('applications/'+app.id,{executable:input.value});notice(app.label+': ruta guardada; no se abrió la aplicación.');}catch(e){notice(e.message);}};const file=document.createElement('input');file.placeholder='Archivo relativo al proyecto (opcional)';const open=node('button','Abrir desde el proyecto');open.onclick=async()=>{if(!pid){notice('Selecciona primero un proyecto.');return;}try{const result=await api('applications/'+app.id+'/launch',{project_id:pid,...(file.value?{file:file.value}:{})});notice(app.label+': proceso iniciado ('+result.pid+'). Revisa el resultado en su ventana.');}catch(e){notice(e.message);}};d.append(label,save);if(app.mode==='managed_cli')d.append(node('p','Controlada por los flujos del Estudio; no abre una aplicación separada.'));else d.append(file,open);box.append(d);}}catch(e){notice(e.message);}};
+
+function showSetupReport(report){
+ const box=$('#setup-report-result');
+ box.replaceChildren(node('p',report.total_families+' familias · '+report.prepared_recipes+' recetas · '+report.summary));
+ for(const model of report.models){
+  const detail=document.createElement('details');
+  detail.append(node('summary',model.family+' · '+(model.problems.length?'Requiere configuración':'Rutas encontradas; entorno sin probar')));
+  for(const problem of model.problems)detail.append(node('p',problem));
+  detail.append(node('p','Imports requeridos: '+(model.imports_required.join(', ')||'Nodos del servidor ComfyUI')),
+   node('p','Entorno separado sugerido en el disco de la app: '+model.suggested_environment_dir));
+  if(model.platform_requirement)detail.append(node('p',model.platform_requirement));
+  if(model.source_reference)detail.append(node('p','Código requerido: '+model.source_reference.repo+' · '+model.source_reference.revision));
+  detail.append(node('pre',JSON.stringify(model,null,2)));box.append(detail);
+ }
+ if(report.storage.problems.length)box.append(node('p',report.storage.problems.join(' · ')));
+}
+$('#setup-report').onclick=async()=>{try{showSetupReport(await api('setup'));notice('Revisión de rutas terminada. No se comprobaron dependencias ni se cargaron modelos.');}catch(e){notice(e.message);}};
+$('#setup-save-report').onclick=async()=>{try{showSetupReport(await api('setup/report',{}));notice('Informe guardado en la configuración local de la app.');}catch(e){notice(e.message);}};
+$('#setup-discover').onclick=async()=>{
+ const button=$('#setup-discover');button.disabled=true;
+ try{
+  const text=$('#setup-roots').value.trim();
+  const report=await api('setup/discover',text?{roots:text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean)}:{});
+  const box=$('#setup-discovery-result');box.replaceChildren(node('p',report.entries_examined+' entradas revisadas · '+(report.limited?'Búsqueda limitada; puedes acotar las carpetas':'Búsqueda terminada')));
+  for(const root of report.roots)box.append(node('p',root.path+' · '+(root.available?'conectado':'no disponible')));
+  for(const app of report.applications){
+   if(!app.candidates.length)continue;
+   const detail=document.createElement('details');detail.append(node('summary',app.label+' · '+app.candidates.length+' candidatos'));
+   if(app.configured_executable)detail.append(node('p','Ruta conservada: '+app.configured_executable));
+   for(const path of app.candidates){
+    const use=node('button','Vincular esta ruta de '+app.label);
+    use.onclick=async()=>{try{await api('applications/'+app.id,{executable:path});notice('Ruta de '+app.label+' guardada. El ejecutable no se inició.');use.disabled=true;}catch(e){notice(e.message);}};
+    detail.append(node('p',path),use);
+   }
+   box.append(detail);
+  }
+  if(report.python_candidates.length){const detail=document.createElement('details');detail.append(node('summary','Intérpretes Python encontrados'));for(const path of report.python_candidates)detail.append(node('p',path));detail.append(node('p','Asigna el Python del entorno adecuado en el adaptador del modelo. No se comprueba su versión al buscar.'));box.append(detail);}
+  if(report.installers_not_executed.length){const detail=document.createElement('details');detail.append(node('summary','Posibles instaladores, sin ejecutar'));for(const path of report.installers_not_executed)detail.append(node('p',path));box.append(detail);}
+  for(const error of report.errors)box.append(node('p',error));
+  box.append(node('p',report.note));notice('Búsqueda terminada. No se modificó ninguna ruta automáticamente.');
+ }catch(e){notice(e.message);}finally{button.disabled=false;}
+};
+$('#setup-runtime-family').onchange=()=>{$('#setup-runtime-form').hidden=true;delete $('#setup-runtime-form').dataset.family;};
+$('#setup-runtime-load').onclick=async()=>{
+ const family=$('#setup-runtime-family').value;
+ try{const report=await api('setup/runtime/'+family);if(family!==$('#setup-runtime-family').value)return;
+  const form=$('#setup-runtime-form'),box=$('#setup-runtime-fields');box.replaceChildren();
+  for(const [name,text] of Object.entries(report.fields)){const label=node('label',text),input=document.createElement('input');input.name=name;input.value=report.values[name]||'';input.placeholder='Ruta local absoluta';input.required=true;label.append(input);box.append(label);}
+  form.dataset.family=family;form.hidden=false;
+ }catch(e){notice(e.message);}
+};
+$('#setup-runtime-form').onsubmit=async event=>{
+ event.preventDefault();const form=event.target,family=form.dataset.family;if(!family)return;
+ const data=Object.fromEntries(new FormData(form));
+ try{await api('setup/runtime/'+family,data);notice('Configuración de '+family+' guardada. No se movieron pesos ni se inició generación.');}catch(e){notice(e.message);}
+};

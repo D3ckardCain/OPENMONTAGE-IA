@@ -41,3 +41,15 @@ application_catalog permite al agente consultar las diez herramientas registrada
 ## Comprobaciones de esta fase
 
 Se ejecutan pruebas de contratos con datos sintéticos y procesos simulados. No se lanzan los motores originales, no se cargan pesos, no se interrumpe ComfyUI y no se realizan descargas de modelos.
+
+## Preparación del equipo desde el panel
+
+La sección «Preparación del equipo» reúne un informe de las 46 familias, candidatos de carpetas de pesos, imports requeridos y sugerencias de entornos separados dentro de .runtimes en el disco de la app. Es un plan: no crea entornos ni acredita versiones instaladas. El informe se puede guardar y regenerar cuando cambien los discos.
+
+La búsqueda de herramientas examina hasta 20 000 entradas y seis niveles en las carpetas elegidas. Omite pesos, bibliotecas voluminosas, enlaces y dependencias de programas. Puede ser parcial y lo indica; no es un inventario completo del disco. No inicia archivos. Los nombres coincidentes se presentan como candidatos y cada ruta se vincula mediante un botón explícito. No reemplaza configuraciones automáticamente ni usa instaladores como ejecutables.
+
+FramePack y MagiHuman tienen formularios para sus pesos auxiliares. El formulario MagiHuman prepara distill, una GPU y Turbo VAE con los parámetros del ejemplo original; todavía necesita un motor Linux/WSL con CUDA. Los formularios crean JSON locales y vinculan runtime_config; no copian modelos ni prueban inferencia. Los cambios se bloquean mientras haya una producción o análisis local activo.
+
+El agente puede consultar local_setup_report para conocer requisitos de configuración sin sondear dependencias, ejecutar aplicaciones o cargar modelos.
+
+El diagnóstico principal reconoce FFmpeg mediante la ruta configurada aunque no esté en PATH. La presencia del archivo tampoco prueba su versión o funcionamiento.

@@ -19,6 +19,24 @@ class ApplicationCatalog(BaseTool):
         return ToolResult(success=True,data={'applications':applications.catalog(),'cost_usd':0})
 
 
+class LocalSetupReport(BaseTool):
+    name='local_setup_report'
+    capability='local_configuration_analysis'
+    provider='local_application_center'
+    runtime=ToolRuntime.LOCAL
+    tier=ToolTier.CORE
+    determinism=Determinism.DETERMINISTIC
+    resource_profile=ResourceProfile(network_required=False)
+    input_schema={'type':'object','properties':{},'additionalProperties':False}
+    def get_status(self):return ToolStatus.AVAILABLE
+    def estimate_cost(self,inputs):return 0.0
+    def execute(self,inputs):
+        if inputs:return ToolResult(success=False,error='No se admiten argumentos')
+        from lib.setup_center import report
+        try:return ToolResult(success=True,data={**report(),'cost_usd':0})
+        except Exception as exc:return ToolResult(success=False,error=str(exc)[:1500])
+
+
 class ApplicationOpenProjectFile(BaseTool):
     name='application_open_project_file'
     capability='local_application_handoff'

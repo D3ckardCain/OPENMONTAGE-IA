@@ -89,7 +89,7 @@ def local_request(base, path, data=None, timeout=4):
 
 def runtime_status():
     cfg=settings();result={'settings':cfg,'models':[],'ollama_ready':False,'comfyui_ready':False,
-                           'ffmpeg_ready':bool(shutil.which('ffmpeg')),'problems':[]}
+                           'ffmpeg_ready':bool(Path(cfg['ffmpeg_path']).is_file()) if cfg['ffmpeg_path'] else bool(shutil.which('ffmpeg')),'problems':[]}
     try:
         reply=local_request(cfg['ollama_url'],'/api/tags')
         result['models']=[m['name'] for m in reply.get('models',[]) if isinstance(m.get('name'),str)]

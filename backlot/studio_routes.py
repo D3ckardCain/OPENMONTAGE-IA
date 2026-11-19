@@ -85,7 +85,11 @@ def create_studio_router():
     @router.post('/api/studio/applications/{identifier}')
     async def application_configure(identifier:str,request:Request):
         from lib.external_applications import configure
-        return invoke(configure,identifier,await body(request))
+        from lib import reference_analysis
+        data=await body(request)
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar herramientas')
+            return invoke(configure,identifier,data)
     @router.post('/api/studio/applications/{identifier}/launch')
     async def application_launch(identifier:str,request:Request):
         from lib.external_applications import launch
@@ -186,6 +190,32 @@ def create_studio_router():
         from lib.model_adapters import CATALOG,diagnostics,dependency_probe
         dependency_probe.cache_clear()
         return await asyncio.to_thread(lambda:[diagnostics(family) for family in CATALOG])
+    @router.get('/api/studio/setup')
+    def setup_report():
+        from lib.setup_center import report
+        return invoke(report)
+    @router.post('/api/studio/setup/report')
+    async def save_setup_report(request:Request):
+        from lib.setup_center import save_report
+        if await body(request):raise HTTPException(400,'El informe no necesita argumentos')
+        return await asyncio.to_thread(save_report)
+    @router.post('/api/studio/setup/discover')
+    async def discover_setup(request:Request):
+        from lib.setup_center import discover
+        data=await body(request)
+        return await asyncio.to_thread(lambda:invoke(discover,data))
+    @router.get('/api/studio/setup/runtime/{family}')
+    def runtime_settings(family:str):
+        from lib.setup_center import read_runtime_settings
+        return invoke(read_runtime_settings,family)
+    @router.post('/api/studio/setup/runtime/{family}')
+    async def configure_runtime_settings(family:str,request:Request):
+        from lib.setup_center import save_runtime_settings
+        from lib import reference_analysis
+        data=await body(request)
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar el motor')
+            return invoke(save_runtime_settings,family,data)
     @router.post('/api/studio/adapters/{family}')
     async def bind_adapter(family:str,request:Request):
         from lib.model_adapters import configure
