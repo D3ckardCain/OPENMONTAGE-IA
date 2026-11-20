@@ -93,3 +93,7 @@ La detección automática prefiere una copia con los archivos esperados presente
 ## Temporales de descargas
 
 La revisión identifica en la ruta lógica del catálogo los sufijos `.fdmdownload`, `.fdmdownload.reserva`, `.part` y `.crdownload`. Los muestra como temporales, aunque su tamaño coincida con el archivo final; un temporal puede estar preasignado y no representar bytes descargados. No se considera instalado ni terminado. El plan de FDM excluye estos registros hasta revisarlos; la app no los renombra, borra ni intenta reanudar una cola de FDM. Los temporales guardados en otras carpetas pueden requerir revisión manual.
+
+## Descargas que no contienen el modelo
+
+El diagnóstico lee como máximo los primeros 512 bytes de cada archivo esperado compatible para detectar páginas HTML, respuestas XML y punteros de Git LFS. Los muestra como sospechosos y bloquea la disponibilidad del adaptador antes de cargar pesos. La selección entre copias también considera estos problemas. No renombra, borra ni descarga automáticamente. No detecta toda corrupción ni certifica la estructura, integridad o calidad de archivos cuyo prefijo parezca normal.

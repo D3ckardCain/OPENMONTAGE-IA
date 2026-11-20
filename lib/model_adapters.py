@@ -137,11 +137,19 @@ def model_copy_status(family,path):
             if not relative.lower().endswith(('.json','.safetensors','.bin','.pth','.pt','.onnx','.model','.pdiparams','.yml','.yaml','.py','.txt','.tiktoken')):continue
             checked+=1;item=path/relative
             if not item.is_file() or not item.stat().st_size:missing.append(relative)
+            else:
+                from lib.model_file_checks import download_problem
+                problem=download_problem(item)
+                if problem:problems.append(relative+': '+problem)
         for index in path.glob('*.index.json'):
             try:
                 for filename in set(studio.read_json(index).get('weight_map',{}).values()):
                     item=(path/filename).resolve();item.relative_to(path.resolve());checked+=1
                     if not item.is_file() or not item.stat().st_size:missing.append(filename)
+                    else:
+                        from lib.model_file_checks import download_problem
+                        problem=download_problem(item)
+                        if problem:problems.append(filename+': '+problem)
             except (ValueError,TypeError,KeyError):problems.append('Índice inválido: '+index.name)
     except OSError as exc:problems.append(str(exc)[:400])
     return {'path':str(path),'available':True,'complete_files':checked>0 and not missing and not problems,
@@ -204,20 +212,34 @@ def diagnostics(family,probe=True):
         return result
     model=resolve_model(family);result['model_dir']=str(model) if model else None
     if model is None:result['problems'].append('No se encuentra la carpeta local del modelo en los recursos configurados.')
-    missing=[];optional_missing=[]
+    missing=[];optional_missing=[];suspicious=[]
     if model:
         if family=='kokoro':result['available_voices']=[p.stem for p in sorted((model/'voices').glob('*.pt')) if p.is_file() and p.stat().st_size]
         for relative in expected_files(family,model):
             p=model/relative
             if relative.lower().endswith(('.json','.safetensors','.bin','.pth','.pt','.onnx','.model','.pdiparams','.yml','.yaml','.py','.txt','.tiktoken')) and (not p.is_file() or not p.stat().st_size):
                 (optional_missing if family=='kokoro' and relative.startswith('voices/') else missing).append(relative)
+            elif p.is_file():
+                from lib.model_file_checks import download_problem
+                problem=download_problem(p)
+                if problem:
+                    suspicious.append(relative)
+                    if family=='kokoro' and relative.startswith('voices/'):
+                        optional_missing.append(relative)
+                        if p.stem in result.get('available_voices',[]):result['available_voices'].remove(p.stem)
+                    else:result['problems'].append(relative+': '+problem)
         for index in model.glob('*.index.json'):
             try:
                 for filename in set(studio.read_json(index).get('weight_map',{}).values()):
                     p=(model/filename).resolve();p.relative_to(model.resolve())
                     if not p.is_file() or not p.stat().st_size:missing.append(filename)
+                    else:
+                        from lib.model_file_checks import download_problem
+                        problem=download_problem(p)
+                        if problem:suspicious.append(filename);result['problems'].append(filename+': '+problem)
             except (ValueError,TypeError):result['problems'].append('Índice de pesos inválido: '+index.name)
         if missing:result['problems'].append('Ficheros necesarios ausentes o vacíos: '+', '.join(sorted(set(missing))))
+    result['suspicious_files']=sorted(set(suspicious))
     result['missing_files']=sorted(set(missing))
     result['optional_missing_files']=sorted(set(optional_missing))
     extra_files={'lama':['config.yaml','models/best.ckpt'],'dwpose':['yolox_l.onnx','dw-ll_ucoco_384.onnx']}
@@ -308,6 +330,12 @@ class LocalModelAdapter(BaseTool):
             output=Path(inputs['output_dir']).resolve();output.mkdir(parents=True,exist_ok=True)
             info=diagnostics(self.family)
             if not info['ready']:return ToolResult(success=False,error='; '.join(info['problems']),data={'adapter':info})
+            if self.family=='kokoro':
+                voice=Path(inputs.get('voice','af_heart'))
+                if not voice.is_absolute():voice=Path(info['model_dir'])/'voices'/(str(voice)+('.pt' if voice.suffix!='.pt' else ''))
+                from lib.model_file_checks import download_problem
+                problem=download_problem(voice)
+                if problem:raise ValueError('Voz local inválida: '+problem)
             if info['backend']=='comfyui':
                 from lib.model_comfy_adapter import execute_workflow
                 data=execute_workflow(self.family,inputs,output)

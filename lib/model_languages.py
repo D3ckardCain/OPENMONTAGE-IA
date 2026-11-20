@@ -34,7 +34,9 @@ def validate_request(family,data):
 def local_voices(language,model_dir):
     """List matching nonempty Kokoro files; filenames do not certify quality."""
     target=binding('kokoro',language)
+    try:from lib.model_file_checks import download_problem
+    except ImportError:from model_file_checks import download_problem
     if not model_dir:return []
     folder=Path(model_dir)/'voices'
     return [path.stem for path in sorted(folder.glob('*.pt'))
-        if path.name.startswith(target) and path.is_file() and not path.is_symlink() and path.stat().st_size>0]
+        if path.name.startswith(target) and path.is_file() and not path.is_symlink() and path.stat().st_size>0 and not download_problem(path)]
