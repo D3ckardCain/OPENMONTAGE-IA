@@ -27,3 +27,5 @@ Con la cola detenida, **Subir** y **Bajar** cambian la prioridad de un trabajo p
 ## Seguimiento
 
 La cola muestra el estado y mensaje guardados por el productor, la última actualización y los checkpoints por etapa (excluye publicación). Se actualiza cada cinco segundos mientras la sección está visible y conserva los detalles abiertos. El recuento de etapas no representa porcentaje del tiempo ni estima cuánto falta. Un proyecto inaccesible muestra su propio error sin impedir consultar los demás.
+
+La comprobación previa también detecta producciones, análisis de referencia y entregas locales activas. En ese caso indica que hay que esperar aunque la cola esté detenida. Es una consulta puntual; el control se vuelve a aplicar al iniciar.

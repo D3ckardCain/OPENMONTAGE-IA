@@ -168,7 +168,13 @@ def inspect():
         value=_load()
         active=WORKER is not None
         items=[dict(item) for item in value['items']]
+    from lib import reference_analysis
+    with agent.ACTIVE_LOCK,reference_analysis.LOCK:
+        local_task_active=bool(agent.ACTIVE or reference_analysis.ACTIVE)
     storage=readiness(studio.REPO_ROOT,studio.PROJECTS_DIR)
+    queue_problems=[]
+    if local_task_active:queue_problems.append('Espera a que termine la producción, análisis o entrega local activa')
+    if active:queue_problems.append('La cola ya está activa')
     reports=[]
     for item in items:
         problems=[];job_status=None
@@ -185,6 +191,6 @@ def inspect():
         reports.append({'id':item['id'],'title':item['title'],'status':item['status'],
             'job_status':job_status,'problems':problems,'ready':not problems})
     pending=[item for item in reports if item['status']!='completed']
-    return {'ready':bool(pending) and storage['ready'] and not active and all(item['ready'] for item in pending),
-        'worker_active':active,'storage':storage,'items':reports,'generation_started':False,
+    return {'ready':bool(pending) and storage['ready'] and not active and not local_task_active and all(item['ready'] for item in pending),
+        'worker_active':active,'local_task_active':local_task_active,'problems':queue_problems,'storage':storage,'items':reports,'generation_started':False,
         'scope':'queue_and_storage_only','note':'Comprobación puntual; no ejecuta modelos, no comprueba su compatibilidad ni garantiza espacio suficiente para el render.'}

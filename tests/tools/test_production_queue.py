@@ -211,3 +211,18 @@ def test_missing_project_does_not_hide_other_queue_progress(isolated):
     assert report['items'][1]['progress']['available'] is True
     value=queue._load();value['items'][1]['projects_root']=str(isolated/'other');queue._save(value)
     assert queue.read()['items'][1]['progress']['available'] is False
+
+
+@pytest.mark.parametrize('task',['producer','analysis','delivery'])
+def test_inspection_never_reports_ready_while_local_task_is_active(isolated,monkeypatch,task):
+    from lib import storage_layout
+    monkeypatch.setattr(storage_layout,'readiness',lambda *args:{'ready':True,'problems':[]})
+    queue.enqueue('first')
+    if task=='analysis':reference_analysis.ACTIVE.add('other')
+    else:agent.ACTIVE['other']=(None,threading.Event())
+    report=queue.inspect()
+    assert report['ready'] is False
+    assert report['local_task_active'] is True
+    assert report['problems']
+    assert report['worker_active'] is False
+    assert report['generation_started'] is False
