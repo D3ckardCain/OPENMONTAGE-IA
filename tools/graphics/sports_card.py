@@ -4,6 +4,7 @@ import json
 import math
 import re
 from pathlib import Path
+from tools.football.official_jleague import goals_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
 _LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
@@ -36,7 +37,7 @@ def uefa_report(report):
 def render(report):
     if report.get('fuente')=='UEFA':report=uefa_report(report)
     source=report.get('source')
-    if source not in ('FIFA','MLB','UEFA','WBA') or report.get('ready_for_script') is not True:
+    if source not in ('FIFA','MLB','UEFA','WBA','J.League') or report.get('ready_for_script') is not True:
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
@@ -48,13 +49,17 @@ def render(report):
     if source=='UEFA' and (not scope.get('competitionId') or not scope.get('seasonYear') or not scope.get('phase')):raise ValueError('Falta alcance UEFA explícito')
     if source=='WBA' and (scope.get('category')!='men' or not re.fullmatch(r'[0-9]{4}-(0[1-9]|1[0-2])',str(scope.get('as_of_month',''))) or not scope.get('division') or kind!='collectible_card'):raise ValueError('Alcance WBA no admitido')
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
+    if source == 'J.League' and (scope.get('competition') != 'j1' or type(scope.get('season')) is not int
+                                 or not 1993 <= scope['season'] <= 9999 or scope.get('phase') != 'league'
+                                 or scope.get('category') != 'men'):
+        raise ValueError('Alcance J1 no admitido')
     panels=[]
     for record in records:
         identity=record.get('identity',{})
         entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
         if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
         if kind=='collectible_card':facts=record.get('facts',[])
-        elif source in ('MLB','UEFA'):
+        elif source in ('MLB','UEFA','J.League'):
             origin=record.get('statistics_source',{})
             facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
         else:
@@ -72,8 +77,11 @@ def render(report):
             if not isinstance(fact.get('metric'),str) or fact['metric'] in seen:raise ValueError('Métrica inválida o repetida')
             seen.add(fact['metric'])
             if fact.get('entity_id')!=entity or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
-            if not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://compstats.uefa.com/' if source=='UEFA' else 'https://www.wbaboxing.com/' if source=='WBA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
-            if not any(q.get('url')==url and q.get('retrieved_at')==fact['retrieved_at'] for q in queries):raise ValueError('Fuente ajena al expediente')
+            if source == 'J.League':
+                if fact['metric'] != 'goals' or type(value) is not int or value < 0 or url != goals_url(scope['season']):
+                    raise ValueError('Cifra o fuente de goles J1 inválida')
+            elif not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://compstats.uefa.com/' if source=='UEFA' else 'https://www.wbaboxing.com/' if source=='WBA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
+            if not fact.get('retrieved_at') or not any(q.get('url')==url and q.get('retrieved_at')==fact['retrieved_at'] for q in queries):raise ValueError('Fuente ajena al expediente')
         if source=='MLB':
             identity=dict(identity,team_name=[{'Description':(record.get('team') or {}).get('name','Temporada regular MLB')}])
         panels.append((identity,facts))
@@ -87,7 +95,7 @@ def render(report):
            '<metadata>'+escape(json.dumps(report,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else 'J1 League · '+str(scope['season']) if source=='J.League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)

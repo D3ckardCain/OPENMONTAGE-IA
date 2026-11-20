@@ -17,7 +17,7 @@ _ROWS = [
  ('ligue1','football','europe','Ligue 1','https://ligue1.com/',''),
  ('portugal','football','europe','Liga Portugal','https://www.ligaportugal.pt/',''),
  ('eredivisie','football','europe','Eredivisie','https://eredivisie.nl/',''),
- ('jleague','football','asia','J.League','https://www.jleague.jp/',''),
+ ('jleague','football','asia','J.League','https://www.jleague.jp/','official_jleague_live'),
  ('kleague','football','asia','K League','https://www.kleague.com/',''),
  ('saudi','football','arab','Saudi Pro League','https://www.spl.com.sa/en/stats','official_spl_source_status'),
  ('uae','football','arab','UAE Pro League','https://www.uaeproleague.ae/',''),
