@@ -37,7 +37,7 @@ TOOLS=[
  descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
  descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
  descriptor('reference_analysis','Lee el análisis local del video de referencia: transcripción, fotogramas, observaciones y límites. No inventa verificaciones externas.'),
- descriptor('analyze_project_reference','Analiza la referencia seleccionada dentro de la tarea del productor, con motores locales en CPU. Reutiliza el video guardado; no cambia la referencia ni verifica hechos externos.',{
+ descriptor('analyze_project_reference','Analiza la referencia seleccionada dentro de la tarea del productor, con motores locales en CPU. Sin parámetros reutiliza el análisis compartido válido, aunque sea parcial. Con opciones explícitas ejecuta un nuevo análisis. Reutiliza el video guardado; no verifica hechos externos.',{
      'frames':{'type':'integer','minimum':1,'maximum':12},'vision':{'type':'boolean'},'transcribe':{'type':'boolean'},
      'summary':{'type':'boolean'},'vision_model':{'enum':['smolvlm','qwen-vl']}}),
  descriptor('resource_status','Consulta servidores, GPU y carpetas de recursos; no descarga pesos.'),

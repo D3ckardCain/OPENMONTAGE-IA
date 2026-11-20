@@ -105,6 +105,7 @@ $('#comfy-jobs-refresh').onclick=async()=>{if(!pid)return;const selected=pid;
  }catch(e){notice(e.message);}};
 
 async function loadReferenceReport(selected){try{const r=await api('reference-video/'+encodeURIComponent(selected));if(pid!==selected)return;const box=$('#reference-result');box.replaceChildren(node('h3','Análisis: '+r.status),node('p','Verificación de hechos externos: pendiente'));
+ if(r.reuse){box.append(node('p','Análisis compartido desde '+r.reuse.base_project_id+' · copia del informe: '+r.reuse.copied_at),node('p','Los fotogramas y subtítulos pertenecen al proyecto base; conserva su disco conectado.'));if(/^[a-z0-9][a-z0-9-]{0,99}$/.test(r.reuse.base_project_id))box.append(link('Abrir proyecto base','/studio?project='+encodeURIComponent(r.reuse.base_project_id)));}
  for(const frame of r.frames||[]){const d=node('div',frame.timestamp_seconds.toFixed(2)+' segundos');const image=document.createElement('img');image.src=frame.url;image.alt='Fotograma de referencia';image.style.maxWidth='240px';d.append(image);box.append(d);}
  if(r.transcript_srt_url)box.append(link('Descargar transcripción SRT',r.transcript_srt_url));
  box.append(node('pre',JSON.stringify(r,null,2)));if(!['queued','running','downloading'].includes(r.status)){clearInterval(referenceTimer);referenceTimer=null;}

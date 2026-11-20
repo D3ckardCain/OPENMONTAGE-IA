@@ -224,6 +224,17 @@ def run_for_producer(project_id,data,cancel):
     """Synchronous action of the sole registered producer, not a second worker."""
     if 'url' in data:raise ValueError('Usa la referencia elegida del proyecto, no una URL nueva')
     from lib import production_agent
+    # An empty request accepts the explicitly shared snapshot; concrete options
+    # still request a new analysis. Ownership is checked before either path.
+    with production_agent.ACTIVE_LOCK,LOCK:
+        owner=production_agent.ACTIVE.get(project_id)
+        if not owner or owner[1] is not cancel or len(production_agent.ACTIVE)!=1:raise ValueError('El análisis requiere el productor activo de este proyecto')
+        if ACTIVE:raise ValueError('Ya hay un análisis de referencia activo')
+        if cancel.is_set():raise ValueError('El productor recibió una solicitud de parada')
+        if not data:
+            from lib.reference_reuse import saved_snapshot
+            snapshot=saved_snapshot(project_id)
+            if snapshot is not None:return snapshot
     path=studio.project_path(project_id);source=selected_source(project_id)
     options=dict(data)
     if not source.is_file():

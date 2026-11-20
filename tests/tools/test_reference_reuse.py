@@ -52,3 +52,24 @@ def test_reuse_rejects_unfinished_source_and_api_extra_parameters(projects):
     with pytest.raises(ValueError,match='terminado'):reuse('base',['en'])
     client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
     assert client.post('/api/studio/reference-reuse/base',json={'project_ids':['en'],'force':True}).status_code==400
+
+
+def test_producer_reuses_explicit_snapshot_without_download_or_models(projects,monkeypatch):
+    reuse('base',['en'])
+    cancel=threading.Event();agent.ACTIVE['en']=(None,cancel)
+    monkeypatch.setattr(reference_analysis,'download_reference',lambda *args:pytest.fail('download'))
+    monkeypatch.setattr(reference_analysis,'analyze',lambda *args:pytest.fail('model'))
+    result=reference_analysis.run_for_producer('en',{},cancel)
+    assert result['status']=='partial' and result['reuse']['base_project_id']=='base'
+    assert not (projects/'en/reference_analysis').exists()
+    with pytest.raises(ValueError):reference_analysis.run_for_producer('en',{},threading.Event())
+
+
+def test_changed_snapshot_or_reference_blocks_reuse(projects):
+    from lib.reference_reuse import saved_snapshot
+    reuse('base',['en','ko'])
+    snapshot=studio.read_json(projects/'en/reference_analysis.json');snapshot['transcript']={'text':'changed'}
+    studio.save_json(projects/'en/reference_analysis.json',snapshot)
+    with pytest.raises(ValueError,match='cambió'):saved_snapshot('en')
+    studio.save_json(projects/'ko/production_request.json',{'reference':'another'})
+    with pytest.raises(ValueError,match='referencia actual'):saved_snapshot('ko')
