@@ -97,3 +97,6 @@ Para diseñar una postal o comparativa con los datos FIFA usa `sports_card_svg` 
 
 
 La herramienta `sports_card_svg` también acepta `output_path` con extensión `.png`. Exporta a 1080×1350 mediante Pillow, sin instalar un conversor SVG externo; requiere Arial o DejaVu Sans disponible en el sistema. El PNG incluye el expediente en `openmontage_evidence`. Usa el PNG resultante como imagen del proyecto para la composición de video; esto no ejecuta ni verifica por sí solo el render del video. La plantilla es tipográfica y no incluye retratos.
+
+
+Para convertir el informe FIFA en un segmento de video, descubre `sports_card_video` y pasa el informe intacto, `output_path` `.mp4` dentro del proyecto y `duration_seconds` (1–30; predeterminado 6). Genera una postal o comparativa estática con fundidos, 720×1280 a 24 fps, sin voz, música ni retrato. Usa FFmpeg/ffprobe configurados, CPU y dos hilos; no accede a ComfyUI. Comprueba duración, resolución y decodificación completa. Devuelve MP4 y `.evidence.json` hermano; no sobrescribe salidas existentes. El resultado es un recurso de composición, no el video final aprobado: intégralo con narración y demás escenas mediante el pipeline habitual y conserva sus revisiones y verificación final. No anunciarlo como producción terminada.
