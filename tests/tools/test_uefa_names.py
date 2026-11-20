@@ -74,3 +74,20 @@ def test_shared_surname_needs_first_name_not_ranking_position():
     exact=compare(c,'champions',2024,['Kylian Mbappe','Erling Haaland'],['goals'])
     assert exact['ready_for_script']
     assert exact['registros'][0]['id']=='1'
+
+
+def test_pagination_attaches_correct_page_to_each_ranking_row(monkeypatch):
+    from tools.football.uefa_live import UEFA,Reply
+    client=UEFA(page_size=1,pause=0)
+    data=[[{'id':'first'}],[{'id':'second'}],[]]
+    def api(ctx,base,path,params):
+        offset=params['offset']
+        return Reply(data[offset],f'https://compstats.uefa.com/ranking?offset={offset}',f'2026-11-20T00:00:0{offset}Z')
+    monkeypatch.setattr(client,'api',api)
+    rows,queries=client.paginate(None,'https://compstats.uefa.com/','ranking',{},lambda x:x['id'],True)
+    assert rows[0]['_openmontage_source']['url'].endswith('offset=0')
+    assert rows[1]['_openmontage_source']['url'].endswith('offset=1')
+    assert '_openmontage_source' not in data[0][0]
+    assert len(queries)==3
+    plain,_=client.paginate(None,'https://compstats.uefa.com/','ranking',{},lambda x:x['id'])
+    assert '_openmontage_source' not in plain[0]

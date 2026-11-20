@@ -90,19 +90,24 @@ class UEFA:
   r=self.transport.get(url,ctx.key)
   if isinstance(r.data,str):raise Unavailable('Servicio devolvio HTML en lugar de JSON')
   return r
- def paginate(self,ctx,base,path,params,identity):
+ def paginate(self,ctx,base,path,params,identity,include_sources=False):
   rows=[];seen=set();requests=[]
   for page in range(self.max_pages):
    r=self.api(ctx,base,path,{**params,'limit':self.page_size,'offset':page*self.page_size})
    if not isinstance(r.data,list):raise Unavailable('Paginacion: se esperaba lista')
-   requests.append({'url':r.url,'consultado_utc':r.retrieved_at,'fecha_http':r.http_date,'edad_cache_servidor':r.age})
+   source={'url':r.url,'consultado_utc':r.retrieved_at,'fecha_http':r.http_date,'edad_cache_servidor':r.age}
+   requests.append(source)
    if not r.data:return rows,requests
    if len(r.data)>self.page_size:raise Unavailable('Servicio ignoro el limite de pagina')
    for item in r.data:
     if not isinstance(item,dict):raise Unavailable('Registro no estructurado')
     key=identity(item)
     if key in seen:raise Unavailable('Paginacion duplicada o datos cambiantes; repetir la consulta')
-    seen.add(key);rows.append(item)
+    seen.add(key)
+    if include_sources:
+     if '_openmontage_source' in item:raise Unavailable('Colision de metadatos de procedencia')
+     rows.append({**item,'_openmontage_source':dict(source)})
+    else:rows.append(item)
    if self.pause:time.sleep(self.pause)
   raise Unavailable('Limite de paginas alcanzado; no se publica una lista parcial como completa')
  @staticmethod
@@ -129,7 +134,7 @@ class UEFA:
    pid=item.get('playerId') if entity=='player' else item.get('teamId')
    if not pid:raise Unavailable('Falta ID de entidad')
    return str(pid),str(item.get('teamId',''))
-  raw,requests=self.paginate(ctx,ctx.stats_url,'v2/'+entity+'-ranking',params,ident)
+  raw,requests=self.paginate(ctx,ctx.stats_url,'v2/'+entity+'-ranking',params,ident,True)
   rows=[]
   for item in raw:
    stats=item.get('statistics')
@@ -149,7 +154,7 @@ class UEFA:
    if team_id is not None and str(item.get('teamId'))!=str(team_id):raise Unavailable('El servicio ignoro el filtro de equipo')
    if not isinstance(profile,dict):raise Unavailable('Perfil mal formado')
    if profile.get('id') and str(profile['id'])!=str(item.get('playerId') if entity=='player' else item.get('teamId')):raise Unavailable('ID de perfil incompatible')
-   rows.append({'id':str(item.get('playerId') if entity=='player' else item.get('teamId')),'team_id':str(item['teamId']) if item.get('teamId') else None,'nombre':profile.get('internationalName'),'estadisticas':{m:values.get(m) for m in metrics},'metricas_no_disponibles':missing,'posicion':item.get('rank')})
+   rows.append({'id':str(item.get('playerId') if entity=='player' else item.get('teamId')),'team_id':str(item['teamId']) if item.get('teamId') else None,'nombre':profile.get('internationalName'),'fuente_estadisticas':item.get('_openmontage_source'),'estadisticas':{m:values.get(m) for m in metrics},'metricas_no_disponibles':missing,'posicion':item.get('rank')})
   return self.pack(ctx,{**scope,'entidad':entity,'metricas':metrics,'orden':order,'teamId':team_id},rows,requests,'ranking')
  def matches(self,competition,edition,phase='ALL',team_id=None):
   if phase=='ALL':
