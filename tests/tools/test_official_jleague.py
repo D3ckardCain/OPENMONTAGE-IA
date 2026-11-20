@@ -120,7 +120,29 @@ def test_goals_recovered_from_the_same_official_player_profile(official_page, mo
     assert (goals['value'], goals['source_url']) == (7, player_url)
     assert 'Goles' in render(result.data)
 
+    assert jleague.profile_goals(profile, '100', 'Example One', 2025, 'j2') == 3
     pages[player_url] = profile.replace('One Example', 'Wrong Player')
     result = jleague.OfficialJLeague().execute(inputs)
     assert result.success and not result.data['ready_for_script']
     assert result.data['records'][0]['statistics']['goals'] is None
+
+
+def test_j2_uses_its_own_rankings_and_rejects_j1_evidence(official_page, monkeypatch):
+    j1_url = jleague.ranking_url(2025, 'goals')
+    j2_url = jleague.ranking_url(2025, 'goals', 'j2')
+    j2_page = official_page.replace(j1_url, j2_url).replace('J1 League', 'J2 League')
+
+    def fetch(url):
+        assert url == j2_url
+        return j2_page, {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    result = jleague.OfficialJLeague().execute(
+        {'action': 'collectible_card', 'season': 2025, 'competition': 'j2', 'names': ['Example One']})
+    assert result.success and result.data['ready_for_script']
+    assert 'J2 League · 2025' in render(result.data)
+    result.data['records'][0]['facts'][0]['source_url'] = j1_url
+    with pytest.raises(ValueError, match='fuente'):
+        render(result.data)
+    with pytest.raises(ValueError, match='división'):
+        jleague.parse_ranking(official_page, 2025, 'goals', 'j2')

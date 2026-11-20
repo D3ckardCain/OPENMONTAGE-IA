@@ -1,4 +1,4 @@
-"""Read the visible official J1 player rankings for an explicit season."""
+"""Read the visible official J.League player rankings for an explicit season."""
 import re
 import urllib.request
 from datetime import datetime, timezone
@@ -11,11 +11,12 @@ BASE_URL = 'https://www.jleague.jp'
 ROW_CLASS = 'm-ranking-player-list-item'
 
 
+DIVISIONS = ('j1', 'j2')
 METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists')}
 
 
-def ranking_url(season, metric):
-    return f'{BASE_URL}/en/j1/stats/player/{season}/{METRICS[metric][0]}/search-list/'
+def ranking_url(season, metric, competition='j1'):
+    return f'{BASE_URL}/en/{competition}/stats/player/{season}/{METRICS[metric][0]}/search-list/'
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -36,14 +37,14 @@ def fetch(url):
         }
 
 
-def parse_ranking(html, season, metric):
+def parse_ranking(html, season, metric, competition='j1'):
     dom = DOM()
     dom.feed(html)
     canonical = dom.root.first('link', rel='canonical')
     title = dom.root.first('title')
-    if (not canonical or canonical.attrs.get('href') != ranking_url(season, metric)
-            or not title or title.text() != f'{season} Season - {METRICS[metric][1]} | J1 League Player Stats | Official Website of J.LEAGUE'):
-        raise ValueError('La página no acredita J1, la temporada solicitada y la métrica solicitada')
+    if (not canonical or canonical.attrs.get('href') != ranking_url(season, metric, competition)
+            or not title or title.text() != f'{season} Season - {METRICS[metric][1]} | {competition.upper()} League Player Stats | Official Website of J.LEAGUE'):
+        raise ValueError('La página no acredita la división, la temporada y la métrica solicitadas')
 
     links = {}
     for link in dom.root.walk('a', **{'class': ROW_CLASS + '__link'}):
@@ -59,7 +60,7 @@ def parse_ranking(html, season, metric):
         points = next((p.text() for p in row.walk('p')
                        if ROW_CLASS + '__points' in (p.attrs.get('class') or '').split()), None)
         if not name.strip() or not re.fullmatch(r'[0-9]+', score) or score != points:
-            raise ValueError('Fila estadística J1 inválida')
+            raise ValueError('Fila estadística J.League inválida')
         rows.append((name, links.get(id(row)), int(score)))
     if not rows:
         raise ValueError('La página oficial no mostró filas estadísticas')
@@ -72,7 +73,7 @@ def profile_url(player_id):
     return f'{BASE_URL}/en/player/{player_id}/'
 
 
-def profile_goals(html, player_id, name, season):
+def profile_goals(html, player_id, name, season, competition='j1'):
     dom = DOM()
     dom.feed(html)
     canonical = dom.root.first('link', rel='canonical')
@@ -94,10 +95,10 @@ def profile_goals(html, player_id, name, season):
         for row in table.walk('tr'):
             cells = list(row.walk('td'))
             if (len(cells) == 8 and cells[0].text() == str(season)
-                    and cells[1].text().endswith(' J1')):
+                    and cells[1].text().endswith(' ' + competition.upper())):
                 values.append(cells[3].text())
     if len(values) != 1 or not re.fullmatch(r'[0-9]+', values[0]):
-        raise ValueError('El perfil no acredita una única cifra de goles de J1 para la temporada')
+        raise ValueError('El perfil no acredita una única cifra de goles de la división solicitada para la temporada')
     return int(values[0])
 
 
@@ -126,7 +127,7 @@ def make_report(rankings, names, scope, queries, kind):
         if missing.get('goals') == 'not_in_visible_ranking':
             try:
                 html, query = fetch(profile_url(player_id))
-                goals = profile_goals(html, player_id, official_name, scope['season'])
+                goals = profile_goals(html, player_id, official_name, scope['season'], scope['competition'])
             except (OSError, ValueError):
                 missing['goals'] = 'profile_goals_unverified'
             else:
@@ -159,7 +160,7 @@ def make_report(rankings, names, scope, queries, kind):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.3.0'
+    version = '0.4.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
@@ -176,6 +177,7 @@ class OfficialJLeague(BaseTool):
                     'properties': {
                         'action': {'enum': ['compare_players', 'collectible_card']},
                         'season': {'type': 'integer', 'minimum': 1993, 'maximum': 9999},
+                        'competition': {'enum': list(DIVISIONS)},
                         'metrics': {'type': 'array', 'minItems': 1, 'uniqueItems': True,
                                     'items': {'enum': list(METRICS)}},
                         'names': {'type': 'array', 'minItems': 1, 'maxItems': 2,
@@ -193,11 +195,12 @@ class OfficialJLeague(BaseTool):
             if len(names) != (1 if card else 2) or len(keys) != len(names):
                 raise ValueError('Indica un nombre para la postal o dos nombres distintos para la comparativa')
             season = inputs['season']
+            competition = inputs.get('competition', 'j1')
             rankings, queries = {}, {}
             for metric in inputs.get('metrics', ['goals']):
-                html, queries[metric] = fetch(ranking_url(season, metric))
-                rankings[metric] = parse_ranking(html, season, metric)
-            scope = {'competition': 'j1', 'season': season, 'phase': 'league', 'category': 'men'}
+                html, queries[metric] = fetch(ranking_url(season, metric, competition))
+                rankings[metric] = parse_ranking(html, season, metric, competition)
+            scope = {'competition': competition, 'season': season, 'phase': 'league', 'category': 'men'}
             kind = 'collectible_card' if card else 'player_comparison'
             data = make_report(rankings, names, scope, queries, kind)
             return ToolResult(success=True, data=data, artifacts=[], cost_usd=0, from_cache=False)
