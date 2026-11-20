@@ -23,3 +23,7 @@ Con la cola detenida, **Subir** y **Bajar** cambian la prioridad de un trabajo p
 ## Comprobación previa
 
 **Comprobar cola sin ejecutar** consulta la disponibilidad del disco de trabajo y del destino final configurado, la raíz original de cada proyecto, su existencia y las aprobaciones pendientes. No modifica los registros ni inicia modelos. El informe es una fotografía del momento: no certifica modelos, permisos de escritura ni espacio suficiente para una producción. Los controles del productor se repiten al iniciar cada trabajo.
+
+## Seguimiento
+
+La cola muestra el estado y mensaje guardados por el productor, la última actualización y los checkpoints por etapa (excluye publicación). Se actualiza cada cinco segundos mientras la sección está visible y conserva los detalles abiertos. El recuento de etapas no representa porcentaje del tiempo ni estima cuánto falta. Un proyecto inaccesible muestra su propio error sin impedir consultar los demás.

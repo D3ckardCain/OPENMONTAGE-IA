@@ -15,6 +15,28 @@ def _load():return studio.read_json(_path(),{'status':'paused','items':[]})
 def _save(value):value['updated_at']=studio.now();studio.save_json(_path(),value)
 
 
+def _progress(item):
+    """Expose saved producer evidence; never infer percentage or ETA."""
+    if Path(item['projects_root']).resolve()!=studio.PROJECTS_DIR.resolve():
+        return {'available':False,'message':'Conecta y selecciona la raíz original del proyecto'}
+    try:
+        path=studio.project_path(item['project_id'])
+        request=studio.read_json(path/'production_request.json')
+        job=studio.read_json(path/'job.json',{})
+        stages=[]
+        if request.get('pipeline'):
+            manifest=studio.load_pipeline_readonly(request['pipeline'])
+            for stage in manifest['stages']:
+                if stage['name']=='publish':continue
+                checkpoint=studio.read_json(path/('checkpoint_'+stage['name']+'.json'),{})
+                stages.append({'name':stage['name'],'status':checkpoint.get('status','pending')})
+        return {'available':True,'status':job.get('status','unknown'),'message':job.get('message',''),
+            'updated_at':job.get('updated_at'),'stages':stages,
+            'completed_stages':sum(stage['status']=='completed' for stage in stages),'total_stages':len(stages)}
+    except (ValueError,OSError,KeyError) as exc:
+        return {'available':False,'message':'No se pudo leer el progreso: '+str(exc)[:600]}
+
+
 def read():
     with LOCK:
         value=_load()
@@ -23,7 +45,9 @@ def read():
             for item in value['items']:
                 if item['status'] in ('starting','running'):item['status']='interrupted'
             _save(value)
-        return {**value,'projects_root':str(studio.PROJECTS_DIR.resolve()),'worker_active':WORKER is not None,'automatic_restart':False}
+        snapshot={**value,'items':[dict(item) for item in value['items']],'projects_root':str(studio.PROJECTS_DIR.resolve()),'worker_active':WORKER is not None,'automatic_restart':False}
+    for item in snapshot['items']:item['progress']=_progress(item)
+    return snapshot
 
 
 def enqueue(project_id):
@@ -45,6 +69,7 @@ def retry(identifier):
         value=read();value.pop('worker_active',None);value.pop('automatic_restart',None);value.pop('projects_root',None)
         item=next((item for item in value['items'] if item['id']==identifier),None)
         if item is None or item['status'] not in ('blocked','stopped','interrupted','awaiting_input','awaiting_human'):raise ValueError('Este registro no admite reintento')
+        for record in value['items']:record.pop('progress',None)
         item.update(status='pending',message='Reintento solicitado; se conservarán los checkpoints')
         value['status']='paused';_save(value)
     return {'queued':True,'generation_started':False}

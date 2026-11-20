@@ -186,3 +186,28 @@ def test_inspection_api_does_not_mutate_queue(isolated,monkeypatch):
     assert response.status_code==200
     assert response.json()['ready'] is True
     assert queue._path().read_bytes()==before
+
+
+def test_progress_uses_checkpoints_and_never_persists_derived_fields(isolated,monkeypatch):
+    monkeypatch.setattr(studio,'load_pipeline_readonly',lambda name:{'stages':[{'name':'script'},{'name':'assets'},{'name':'publish'}]})
+    studio.save_json(studio.PROJECTS_DIR/'first/production_request.json',{'title':'first','pipeline':'fixture'})
+    studio.save_json(studio.PROJECTS_DIR/'first/checkpoint_script.json',{'status':'completed'})
+    studio.save_json(studio.PROJECTS_DIR/'first/checkpoint_assets.json',{'status':'awaiting_human'})
+    studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'awaiting_human','message':'Revisa imágenes','updated_at':'fixture-time'})
+    queue.enqueue('first');value=queue._load();value['items'][0]['status']='awaiting_human';queue._save(value)
+    progress=queue.read()['items'][0]['progress']
+    assert progress['completed_stages']==1 and progress['total_stages']==2
+    assert progress['message']=='Revisa imágenes' and progress['updated_at']=='fixture-time'
+    assert progress['stages'][1]['status']=='awaiting_human'
+    queue.retry(queue.read()['items'][0]['id'])
+    assert 'progress' not in queue._load()['items'][0]
+
+
+def test_missing_project_does_not_hide_other_queue_progress(isolated):
+    queue.enqueue('first');queue.enqueue('second')
+    (studio.PROJECTS_DIR/'first/production_request.json').unlink()
+    report=queue.read()
+    assert report['items'][0]['progress']['available'] is False
+    assert report['items'][1]['progress']['available'] is True
+    value=queue._load();value['items'][1]['projects_root']=str(isolated/'other');queue._save(value)
+    assert queue.read()['items'][1]['progress']['available'] is False

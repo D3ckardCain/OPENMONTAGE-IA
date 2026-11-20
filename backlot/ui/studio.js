@@ -195,9 +195,13 @@ $('#retry-final-delivery').onclick=async()=>{
  finally{deliveryRecoveryPending=false;$('#retry-final-delivery').disabled=false;}
 };
 
+let queueRequest=0;
 async function loadQueue(){
- const report=await api('queue'),box=$('#queue-result');box.replaceChildren(node('p','Estado: '+report.status+' · '+(report.message||'')));
+ const request=++queueRequest;const expanded=new Set([...$('#queue-result').querySelectorAll('details[open]')].map(detail=>detail.dataset.id));
+ const report=await api('queue');if(request!==queueRequest)return;const box=$('#queue-result');box.replaceChildren(node('p','Estado: '+report.status+' · '+(report.message||'')));
  for(const item of report.items){const detail=document.createElement('details');detail.append(node('summary',item.title+' · '+item.status),node('p',item.projects_root),node('p',item.message||''));
+  detail.dataset.id=item.id;detail.open=expanded.has(item.id);
+  const progress=item.progress;if(progress){detail.append(node('p',progress.available?'Productor: '+progress.status+' · '+progress.message:progress.message));if(progress.updated_at)detail.append(node('p','Última actividad guardada: '+progress.updated_at));if(progress.total_stages){detail.append(node('p',progress.completed_stages+' / '+progress.total_stages+' etapas completadas'));for(const stage of progress.stages)detail.append(node('p',stage.name+' · '+stage.status));}}
   const open=node('button','Abrir proyecto');open.disabled=item.projects_root!==report.projects_root;open.onclick=()=>select(item.project_id);detail.append(open);
   if(['blocked','stopped','interrupted','awaiting_input','awaiting_human'].includes(item.status)){const retry=node('button','Volver a poner pendiente');retry.disabled=report.worker_active;retry.onclick=async()=>{try{await api('queue/retry',{id:item.id});await loadQueue();}catch(error){notice(error.message);}};detail.append(retry);}
   const remove=node('button','Retirar de la cola');remove.disabled=report.worker_active;remove.onclick=async()=>{try{await api('queue/remove',{id:item.id});await loadQueue();notice('Registro retirado; archivos del proyecto conservados.');}catch(error){notice(error.message);}};detail.append(remove);
