@@ -4,7 +4,7 @@ import json
 import math
 import re
 from pathlib import Path
-from tools.football.official_jleague import DIVISIONS as JLEAGUE_DIVISIONS, METRICS as JLEAGUE_METRICS, profile_url, ranking_url
+from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, profile_url, ranking_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
 _LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
@@ -49,10 +49,11 @@ def render(report):
     if source=='UEFA' and (not scope.get('competitionId') or not scope.get('seasonYear') or not scope.get('phase')):raise ValueError('Falta alcance UEFA explícito')
     if source=='WBA' and (scope.get('category')!='men' or not re.fullmatch(r'[0-9]{4}-(0[1-9]|1[0-2])',str(scope.get('as_of_month',''))) or not scope.get('division') or kind!='collectible_card'):raise ValueError('Alcance WBA no admitido')
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
-    if source == 'J.League' and (scope.get('competition') not in JLEAGUE_DIVISIONS or type(scope.get('season')) is not int
-                                 or not 1993 <= scope['season'] <= 9999 or scope.get('phase') != 'league'
-                                 or scope.get('category') != 'men'):
-        raise ValueError('Alcance J.League no admitido')
+    if source == 'J.League':
+        competition = JLEAGUE_COMPETITIONS.get(scope.get('competition'))
+        if (not competition or type(scope.get('season')) is not int or not 1993 <= scope['season'] <= 9999
+                or scope.get('phase') != competition[1] or scope.get('category') != 'men'):
+            raise ValueError('Alcance J.League no admitido')
     panels=[]
     for record in records:
         identity=record.get('identity',{})
@@ -82,7 +83,7 @@ def render(report):
                 if metric not in JLEAGUE_METRICS or type(value) is not int or value < 0:
                     raise ValueError('Cifra J.League inválida')
                 allowed = {ranking_url(scope['season'], metric, scope['competition'])}
-                if metric == 'goals':
+                if metric == 'goals' and scope['phase'] == 'league':
                     allowed.add(profile_url(entity))
                 if url not in allowed:
                     raise ValueError('Cifra o fuente J.League inválida')
@@ -101,7 +102,7 @@ def render(report):
            '<metadata>'+escape(json.dumps(report,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else scope['competition'].upper()+' League · '+str(scope['season']) if source=='J.League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+str(scope['season']) if source=='J.League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)

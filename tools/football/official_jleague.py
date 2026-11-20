@@ -12,6 +12,8 @@ ROW_CLASS = 'm-ranking-player-list-item'
 
 
 DIVISIONS = ('j1', 'j2', 'j3')
+COMPETITIONS = {division: (f'{division.upper()} League', 'league') for division in DIVISIONS}
+COMPETITIONS['leaguecup'] = ('Levain Cup', 'cup')
 METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists')}
 
 
@@ -43,8 +45,8 @@ def parse_ranking(html, season, metric, competition='j1'):
     canonical = dom.root.first('link', rel='canonical')
     title = dom.root.first('title')
     if (not canonical or canonical.attrs.get('href') != ranking_url(season, metric, competition)
-            or not title or title.text() != f'{season} Season - {METRICS[metric][1]} | {competition.upper()} League Player Stats | Official Website of J.LEAGUE'):
-        raise ValueError('La página no acredita la división, la temporada y la métrica solicitadas')
+            or not title or title.text() != f'{season} Season - {METRICS[metric][1]} | {COMPETITIONS[competition][0]} Player Stats | Official Website of J.LEAGUE'):
+        raise ValueError('La página no acredita la división o copa, la temporada y la métrica solicitadas')
 
     links = {}
     for link in dom.root.walk('a', **{'class': ROW_CLASS + '__link'}):
@@ -124,7 +126,7 @@ def make_report(rankings, names, scope, queries, kind):
             continue
         official_name, player_id, _ = next(iter(found.values()))
         sources = dict(queries)
-        if missing.get('goals') == 'not_in_visible_ranking':
+        if scope['competition'] in DIVISIONS and missing.get('goals') == 'not_in_visible_ranking':
             try:
                 html, query = fetch(profile_url(player_id))
                 goals = profile_goals(html, player_id, official_name, scope['season'], scope['competition'])
@@ -160,7 +162,7 @@ def make_report(rankings, names, scope, queries, kind):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.5.0'
+    version = '0.6.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
@@ -177,7 +179,7 @@ class OfficialJLeague(BaseTool):
                     'properties': {
                         'action': {'enum': ['compare_players', 'collectible_card']},
                         'season': {'type': 'integer', 'minimum': 1993, 'maximum': 9999},
-                        'competition': {'enum': list(DIVISIONS)},
+                        'competition': {'enum': list(COMPETITIONS)},
                         'metrics': {'type': 'array', 'minItems': 1, 'uniqueItems': True,
                                     'items': {'enum': list(METRICS)}},
                         'names': {'type': 'array', 'minItems': 1, 'maxItems': 2,
@@ -200,7 +202,7 @@ class OfficialJLeague(BaseTool):
             for metric in inputs.get('metrics', ['goals']):
                 html, queries[metric] = fetch(ranking_url(season, metric, competition))
                 rankings[metric] = parse_ranking(html, season, metric, competition)
-            scope = {'competition': competition, 'season': season, 'phase': 'league', 'category': 'men'}
+            scope = {'competition': competition, 'season': season, 'phase': COMPETITIONS[competition][1], 'category': 'men'}
             kind = 'collectible_card' if card else 'player_comparison'
             data = make_report(rankings, names, scope, queries, kind)
             return ToolResult(success=True, data=data, artifacts=[], cost_usd=0, from_cache=False)

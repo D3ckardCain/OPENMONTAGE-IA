@@ -147,3 +147,30 @@ def test_division_uses_its_own_rankings_and_rejects_j1_evidence(official_page, m
         render(result.data)
     with pytest.raises(ValueError, match='división'):
         jleague.parse_ranking(official_page, 2025, 'goals', division)
+
+
+def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monkeypatch):
+    goals_url = jleague.ranking_url(2025, 'goals', 'leaguecup')
+    assists_url = jleague.ranking_url(2025, 'assists', 'leaguecup')
+    cup_goals = official_page.replace(jleague.ranking_url(2025, 'goals'), goals_url).replace('J1 League', 'Levain Cup')
+    cup_assists = cup_goals.replace(goals_url, assists_url).replace('Top scorers', 'Assists')
+
+    def fetch(url):
+        page = {goals_url: cup_goals.replace('Example Two', 'Other Player'), assists_url: cup_assists}[url]
+        return page, {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    inputs = {'action': 'collectible_card', 'season': 2025, 'competition': 'leaguecup',
+              'metrics': ['goals', 'assists']}
+    tool = jleague.OfficialJLeague()
+    card = tool.execute(dict(inputs, names=['Example One']))
+    assert card.success and card.data['ready_for_script']
+    assert card.data['scope']['phase'] == 'cup'
+    assert 'Levain Cup · 2025' in render(card.data)
+    card.data['scope']['phase'] = 'league'
+    with pytest.raises(ValueError, match='Alcance'):
+        render(card.data)
+
+    missing = tool.execute(dict(inputs, names=['Example Two']))
+    assert missing.success and not missing.data['ready_for_script']
+    assert missing.data['records'][0]['statistics']['goals'] is None
