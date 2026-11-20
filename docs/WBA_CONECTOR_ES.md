@@ -13,4 +13,4 @@ El 20-11-2026 se comprobó la página oficial: 17 divisiones y 255 puestos, con 
 
 No incluye campeones situados fuera de los puestos 1–15, ranking femenino, récord de combates, nocauts ni rankings de otros organismos. Un boxeador no encontrado puede ser campeón o estar clasificado en otra categoría u organismo; no inferir lo contrario. El texto de títulos regionales se conserva literalmente, sin transformarlo en palmarés verificado. El acceso a la información no da permiso para reutilizar fotos, logos o videos.
 
-El agente puede usar el resultado para investigación y guion. La plantilla gráfica FIFA/UEFA/MLB todavía no admite este informe de ranking; falta esa adaptación visual y una fuente específica para los récords de combates.
+El agente puede usar el resultado para investigación y guion. La acción `collectible_card` recibe un nombre y prepara una postal del puesto WBA. Las plantillas SVG/PNG/MP4 admiten este informe y muestran división y mes publicado. El flujo se comprobó con datos sintéticos. Sigue pendiente una fuente específica para los récords de combates, los retratos y sus permisos de uso.

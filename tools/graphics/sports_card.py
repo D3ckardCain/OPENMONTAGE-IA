@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
-_LABELS={'goals':'Goles','assists':'Asistencias','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
+_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
 
 
 def uefa_report(report):
@@ -36,7 +36,7 @@ def uefa_report(report):
 def render(report):
     if report.get('fuente')=='UEFA':report=uefa_report(report)
     source=report.get('source')
-    if source not in ('FIFA','MLB','UEFA') or report.get('ready_for_script') is not True:
+    if source not in ('FIFA','MLB','UEFA','WBA') or report.get('ready_for_script') is not True:
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
@@ -46,6 +46,7 @@ def render(report):
     scope=report.get('scope',{})
     if source=='FIFA' and (not scope.get('season_id') or not scope.get('competition_id')): raise ValueError('Falta alcance')
     if source=='UEFA' and (not scope.get('competitionId') or not scope.get('seasonYear') or not scope.get('phase')):raise ValueError('Falta alcance UEFA explícito')
+    if source=='WBA' and (scope.get('category')!='men' or not re.fullmatch(r'[0-9]{4}-(0[1-9]|1[0-2])',str(scope.get('as_of_month',''))) or not scope.get('division') or kind!='collectible_card'):raise ValueError('Alcance WBA no admitido')
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
     panels=[]
     for record in records:
@@ -66,11 +67,12 @@ def render(report):
             value=fact.get('value');url=fact.get('source_url','')
             numeric=type(value) in (int,float) and math.isfinite(value)
             original_rate=source in ('MLB','UEFA') and isinstance(value,str) and re.fullmatch(r'-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)',value)
+            if source=='WBA' and (fact.get('metric')!='rank' or type(value) is not int or not 1<=value<=15):raise ValueError('Solo puestos WBA del 1 al 15')
             if not (numeric or original_rate):raise ValueError('Cifra ausente o inválida')
             if not isinstance(fact.get('metric'),str) or fact['metric'] in seen:raise ValueError('Métrica inválida o repetida')
             seen.add(fact['metric'])
             if fact.get('entity_id')!=entity or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
-            if not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://compstats.uefa.com/' if source=='UEFA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
+            if not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://compstats.uefa.com/' if source=='UEFA' else 'https://www.wbaboxing.com/' if source=='WBA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
             if not any(q.get('url')==url and q.get('retrieved_at')==fact['retrieved_at'] for q in queries):raise ValueError('Fuente ajena al expediente')
         if source=='MLB':
             identity=dict(identity,team_name=[{'Description':(record.get('team') or {}).get('name','Temporada regular MLB')}])
@@ -84,8 +86,8 @@ def render(report):
     parts=['<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">',
            '<metadata>'+escape(json.dumps(report,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
-           text(54,82,('BÉISBOL · ' if source=='MLB' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)
@@ -104,7 +106,7 @@ def render(report):
             parts.append(text(x+26,y,_LABELS.get(fact['metric'],fact['metric']),22,'#8b949e'))
             parts.append(text(x+26,y+49,fact['value'],42))
     parts += [text(54,1232,'Fuente: '+source+' · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
-              text(54,1270,'Estadísticas de esta edición · Fuente oficial',20,'#8b949e'),'</svg>']
+              text(54,1270,'Puesto del mes publicado · No es récord de combates' if source=='WBA' else 'Estadísticas de esta edición · Fuente oficial',20,'#8b949e'),'</svg>']
     return ''.join(parts)
 
 

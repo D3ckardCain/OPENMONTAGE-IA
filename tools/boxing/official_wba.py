@@ -75,7 +75,7 @@ def parse(html,query):
 
 class OfficialWBA(BaseTool):
     name='official_wba_live'
-    version='0.1.0'
+    version='0.2.0'
     provider='wba_official'
     tier=ToolTier.SOURCE
     runtime=ToolRuntime.LOCAL
@@ -91,16 +91,28 @@ class OfficialWBA(BaseTool):
     resource_profile=ResourceProfile(cpu_cores=1,ram_mb=256,vram_mb=0,disk_mb=0,network_required=True)
     install_instructions='HTTPS a la web oficial WBA; sin clave, modelos ni API de pago. Solo ranking masculino, no récord de combates.'
     input_schema={'type':'object','required':['action'],'additionalProperties':False,'properties':{
-        'action':{'enum':['rankings','resolve_boxer']},'name':{'type':'string','minLength':1,'maxLength':150}}}
+        'action':{'enum':['rankings','resolve_boxer','collectible_card']},'name':{'type':'string','minLength':1,'maxLength':150}}}
     def execute(self,inputs):
         from jsonschema import validate
         try:
             validate(inputs,self.input_schema)
             if inputs['action']=='rankings' and 'name' in inputs:raise ValueError('Nombre no aplicable al listado completo')
-            target=normalized(inputs['name']) if inputs['action']=='resolve_boxer' else None
+            target=normalized(inputs['name']) if inputs['action'] in ('resolve_boxer','collectible_card') else None
             html,query=fetch();report=parse(html,query)
             if target:
                 candidates=[r for r in report['records'] if r['name'] and (target==normalized(r['name']) or (' '+target+' ') in (' '+normalized(r['name'])+' '))]
                 report.update(type='boxer_resolution',records=[{'requested_name':inputs['name'],'status':'resolved' if len(candidates)==1 else 'ambiguous' if candidates else 'not_found_in_ranking','candidates':candidates}])
+                if inputs['action']=='collectible_card':
+                    if len(candidates)!=1:
+                        report.update(type='card_blocked',ready_for_script=False)
+                    else:
+                        row=candidates[0];scope=report['scope']|{'division':row['division']}
+                        fact={'metric':'rank','value':row['rank'],'entity_id':row['entity_id'],
+                              'scope':scope,'source_url':query['url'],'retrieved_at':query['retrieved_at']}
+                        report.update(type='collectible_card',scope=scope,ready_for_script=True,rendered=False,
+                            records=[{'identity':{'name':row['name'],'entity_id':row['entity_id'],
+                                'team_name':[{'Description':row['division']}],'country':row['country'],
+                                'profile_url':row['profile_url']},'facts':[fact],
+                                'image':None,'fight_record':None,'knockouts':None,'skill_rating':None}])
             return ToolResult(success=True,data=report,artifacts=[],cost_usd=0,from_cache=False)
         except Exception as exc:return ToolResult(success=False,error='WBA_QUERY_REJECTED: '+str(exc),data={'fresh_query_failed':True,'stale_fallback':False},cost_usd=0,from_cache=False)
