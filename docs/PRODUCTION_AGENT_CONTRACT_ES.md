@@ -133,3 +133,6 @@ Boxeo: descubre `official_wba_live` (capacidad `boxing_rankings`). `rankings` le
 
 
 Postales WBA: `official_wba_live`, acción `collectible_card`, `name`. Solo produce informe listo cuando existe un candidato inequívoco entre los puestos consultados. Envía ese informe intacto a `sports_card_svg` o `sports_card_video`. El diseño indica boxeo, división, ranking masculino y mes publicado; únicamente representa el puesto WBA 1–15. Rechaza métricas como nocauts o victorias, y mantiene récord de combates y retrato sin proporcionar. No producir comparativas entre divisiones ni llamar «campeón» al primer clasificado. El PNG y MP4 fueron comprobados con datos sintéticos.
+
+
+Liga saudí: `official_spl_source_status` comprueba la página oficial por defecto. Es solo diagnóstico (`football_source_status`), no extractor de estadísticas ni soporte de comparativas. El directorio la marca `source_inspection_only`. Respeta `ready_for_script=false`; una página que declara indisponibilidad no equivale a jugadores con cero goles. Los IDs de temporada referenciados en el código no tienen una correspondencia de año validada. El 20-11-2026 la selección por defecto mostraba estadísticas no disponibles; no generalizar ese resultado a todas las temporadas ni atribuir cifras a la SPL hasta completar un extractor comprobado.

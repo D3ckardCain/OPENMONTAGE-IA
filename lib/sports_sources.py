@@ -19,7 +19,7 @@ _ROWS = [
  ('eredivisie','football','europe','Eredivisie','https://eredivisie.nl/',''),
  ('jleague','football','asia','J.League','https://www.jleague.jp/',''),
  ('kleague','football','asia','K League','https://www.kleague.com/',''),
- ('saudi','football','arab','Saudi Pro League','https://www.spl.com.sa/en/stats',''),
+ ('saudi','football','arab','Saudi Pro League','https://www.spl.com.sa/en/stats','official_spl_source_status'),
  ('uae','football','arab','UAE Pro League','https://www.uaeproleague.ae/',''),
  ('qatar','football','arab','Qatar Stars League','https://www.qsl.qa/',''),
  ('mls','football','americas','MLS','https://www.mlssoccer.com/',''),
@@ -47,7 +47,7 @@ def catalog(sport=None, region=None):
         if sport and kind!=sport: continue
         if region and area not in (region,'world'): continue
         rows.append(dict(id=ident,sport=kind,region=area,name=label,url=url,
-            connector=tool or None,status='implemented_requires_live_check' if tool else 'integration_pending',
+            connector=tool or None,status='source_inspection_only' if tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
             coverage_verified=False))
     return deepcopy(dict(sources=rows,complete_global_coverage=False,statistics_included=False,
         instruction='El agente resuelve nombres e IDs, consulta en el momento y conserva fuente, fecha y alcance. Un directorio no es un conector. No pedir al usuario que busque estadísticas. Si no hay acceso comprobado, declarar bloqueo; no inventar ni reutilizar datos antiguos.',
