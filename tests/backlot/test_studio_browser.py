@@ -184,3 +184,43 @@ def test_setup_discovery_binding_and_runtime_forms_without_execution(staged_back
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert errors==[]
         browser.close()
+
+
+def test_queue_controls_inspection_and_progress(staged_backlot_server):
+    """Queue transport is mocked; no inference, downloads or production start."""
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1280,'height':900})
+        errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
+        state={'status':'paused','worker_active':False,'projects_root':'/data/projects','items':[
+            {'id':'first','project_id':'first','title':'Primero','status':'blocked','projects_root':'/data/projects','message':'Revisar recursos','progress':{'available':True,'status':'awaiting_human','message':'Revisa imágenes','updated_at':'fixture-time','completed_stages':1,'total_stages':2,'stages':[{'name':'script','status':'completed'},{'name':'assets','status':'awaiting_human'}]}},
+            {'id':'second','project_id':'second','title':'Segundo','status':'pending','projects_root':'/other/projects','progress':{'available':False,'message':'Conecta el disco original'}}]}
+        calls=[]
+        page.route('**/api/studio/queue',lambda route:route.fulfill(json=state))
+        page.route('**/api/studio/queue/inspect',lambda route:route.fulfill(json={'ready':False,'worker_active':False,'note':'No ejecuta modelos','storage':{'problems':['Videos finales: disco no disponible']},'items':[]}))
+        def mutate(route):
+            action=route.request.url.rsplit('/',1)[-1];payload=route.request.post_data_json;calls.append((action,payload))
+            if action=='move':state['items'].reverse()
+            if action=='remove':state['items']=[item for item in state['items'] if item['id']!=payload['id']]
+            route.fulfill(json={'updated':True,'generation_started':False})
+        page.route('**/api/studio/queue/move',mutate)
+        page.route('**/api/studio/queue/remove',mutate)
+        page.goto(staged_backlot_server+'/studio#queue')
+        page.locator('#queue-load').click()
+        page.locator('#queue-result details').first.locator('summary').click()
+        assert 'Revisa imágenes' in page.locator('#queue-result').inner_text()
+        assert '1 / 2 etapas completadas' in page.locator('#queue-result').inner_text()
+        page.locator('#queue-load').click()
+        page.wait_for_function('document.querySelector("#queue-result details").open')
+        page.locator('#queue-result details').nth(1).locator('summary').click()
+        assert page.locator('#queue-result details').nth(1).get_by_role('button',name='Abrir proyecto',exact=True).is_disabled()
+        page.get_by_role('button',name='Subir',exact=True).click()
+        page.wait_for_function('document.querySelector("#queue-result summary").textContent.startsWith("Segundo")')
+        page.locator('#queue-result details').first.get_by_role('button',name='Retirar de la cola',exact=True).click()
+        page.wait_for_function('document.querySelectorAll("#queue-result details").length===1')
+        page.locator('#queue-inspect').click()
+        page.get_by_text('Videos finales: disco no disponible',exact=True).wait_for()
+        assert calls==[('move',{'id':'second','direction':'up'}),('remove',{'id':'second'})]
+        assert errors==[]
+        browser.close()
