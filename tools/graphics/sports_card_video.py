@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 from fractions import Fraction
 from tools.base_tool import DependencyError, BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
-from tools.graphics.sports_card import render, rasterize
+from tools.graphics.sports_card import render, rasterize, METRIC_SELECTION
 from lib.media_executables import require_media
 
 
@@ -52,6 +52,7 @@ class SportsCardVideo(BaseTool):
     resource_profile=ResourceProfile(cpu_cores=2,ram_mb=512,vram_mb=0,disk_mb=64,network_required=False)
     input_schema={'type':'object','required':['report','output_path'],'additionalProperties':False,'properties':{
         'report':{'type':'object'},'output_path':{'type':'string','minLength':1},
+        'metrics':METRIC_SELECTION,
         'audio_path':{'type':'string','minLength':1},
         'duration_seconds':{'type':'number','minimum':1,'maximum':30}}}
 
@@ -70,7 +71,7 @@ class SportsCardVideo(BaseTool):
         from jsonschema import validate
         try:
             validate(inputs,self.input_schema)
-            svg=render(inputs['report'])
+            svg=render(inputs['report'], inputs.get('metrics'))
             duration=inputs.get('duration_seconds',6)
             ffmpeg=require_media('ffmpeg');ffprobe=require_media('ffprobe')
             audio=None;audio_evidence=None
@@ -124,6 +125,8 @@ class SportsCardVideo(BaseTool):
                          'fps':24,'video_codec':'h264','pixel_format':'yuv420p',
                          'sha256':file_digest(video),'file_size_bytes':video.stat().st_size},
                         'role':'composition_segment','final_video_verified':False}
+                if 'metrics' in inputs:
+                    record['displayed_metrics'] = inputs['metrics']
                 saved=folder/'evidence.json';saved.write_text(json.dumps(record,ensure_ascii=False,indent=2),encoding='utf-8')
                 # Never replace a previous render. The final production still goes through its normal gates.
                 if output.exists() or evidence.exists():raise ValueError('La salida apareció durante la exportación')

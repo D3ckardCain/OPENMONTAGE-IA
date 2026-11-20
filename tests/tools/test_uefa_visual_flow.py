@@ -51,3 +51,22 @@ def test_individual_uefa_card_video_with_synthetic_data(tmp_path,monkeypatch):
     result=SportsCardVideo().execute({'report':r,'output_path':str(tmp_path/'uefa.mp4'),'duration_seconds':1})
     assert result.success,result.error
     assert result.data['full_decode_passed']
+
+
+def test_selected_goal_exports_from_partial_report_without_rewriting_evidence():
+    import json
+
+    report = example()
+    report['ready_for_script'] = False
+    for record in report['registros']:
+        record['estadisticas']['assists'] = None
+    original = deepcopy(report)
+    root = ET.fromstring(render(report, ['goals']))
+    evidence = json.loads(root.find('{http://www.w3.org/2000/svg}metadata').text)
+    assert evidence['displayed_metrics'] == ['goals']
+    assert evidence['original_report'] == original == report
+    with pytest.raises(ValueError, match='Cifra ausente'):
+        render(report, ['assists'])
+    report['tipo'] = 'comparativa_bloqueada'
+    with pytest.raises(ValueError, match='bloqueada'):
+        render(report, ['goals'])

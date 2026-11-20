@@ -163,3 +163,7 @@ El productor agrega `standard_statistics` a los informes de jugador de FIFA, UEF
 En UEFA, `metrics="standard"` en las consultas por nombre solicita las equivalencias comunes publicadas para jugadores. El productor conserva los campos faltantes, incluido cualquier campo sin equivalencia verificada.
 
 La consulta común de UEFA incluye apariciones, goles y fallos de penalti, pases largos intentados y completados, regates completados, despejes completados, bloqueos defensivos y penaltis detenidos cuando la definición oficial los admite para jugadores.
+
+Para usar un expediente completo en una pieza, pasa `metrics` a `sports_card_svg` o `sports_card_video` con entre una y seis claves originales del proveedor. La selección es idéntica para todos los jugadores y queda registrada junto al expediente completo. Si falta una cifra o su procedencia en la selección, la pieza queda bloqueada.
+
+Si la consulta común de UEFA falla con HTTP 400 o 500, el conector vuelve a consultar goles, asistencias y tiros a puerta cuando están definidos para jugadores. El nuevo informe identifica el alcance reducido en `standard_query`. Conserva los campos restantes como ausentes y selecciona explícitamente las métricas verificadas si vas a exportar una pieza.

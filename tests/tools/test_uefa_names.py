@@ -123,3 +123,29 @@ def test_standard_queries_only_verified_player_metric_names():
                            'names': ['Mbappe', 'Haaland'], 'metrics': 'standard'})
     assert result.success and result.data['ready_for_script']
     assert tool.client.calls[0][3] == ['goals']
+
+
+def test_standard_retries_with_fresh_core_metrics_only_after_http_failure():
+    from tools.football.uefa import Unavailable
+
+    class PartialClient(Client):
+        def definitions(self, competition):
+            return {'definiciones': [
+                {'name': 'goals', 'actors': ['PLAYER']},
+                {'name': 'matches_appearance', 'actors': ['PLAYER']},
+            ]}
+
+        def ranking(self, *args):
+            if 'matches_appearance' in args[3]:
+                raise Unavailable('Servicio UEFA devolvio HTTP 500; sin respaldo antiguo')
+            return super().ranking(*args)
+
+    tool = OfficialUEFA()
+    tool.client = PartialClient()
+    result = tool.execute({'action': 'compare_players', 'competition': 'champions', 'edition': 2024,
+                           'names': ['Mbappe', 'Haaland'], 'metrics': 'standard'})
+    assert result.success and not result.data['ready_for_script']
+    assert result.data['tipo'] == 'comparativa_jugadores'
+    assert result.data['standard_query']['status'] == 'partial'
+    assert result.data['standard_query']['queried_metrics'] == ['goals']
+    assert [r['estadisticas']['goals'] for r in result.data['registros']] == [0, 3]

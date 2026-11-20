@@ -1,7 +1,7 @@
 """Free public UEFA data adapter. No output artifacts or reusable data cache."""
 from tools.base_tool import BaseTool,ToolResult,ToolTier,ToolRuntime,ToolStability,ResourceProfile
 from tools.football.uefa_live import UEFA
-from tools.football.uefa import COMPETITIONS
+from tools.football.uefa import COMPETITIONS, Unavailable
 
 ACTIONS={
  'collectible_card':('competition','edition','names','metrics','phase'),
@@ -61,7 +61,8 @@ class OfficialUEFA(BaseTool):
    extra=set(inputs)-set(allowed)-{'action'}
    if extra:raise ValueError('Parametros no aplicables: '+','.join(sorted(extra)))
    kwargs={k:inputs[k] for k in allowed if k in inputs}
-   if kwargs.get('metrics')=='standard':
+   standard = kwargs.get('metrics') == 'standard'
+   if standard:
     if action not in ('resolve_players','compare_players','collectible_card'):
      raise ValueError('El conjunto común se aplica a consultas por nombre')
     from lib.football_statistics import UEFA_NAMES
@@ -71,7 +72,20 @@ class OfficialUEFA(BaseTool):
     if not kwargs['metrics']:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
    if action in ('resolve_players','compare_players','collectible_card'):
     from tools.football.uefa_names import resolve,compare,collectible_card
-    data={'resolve_players':resolve,'compare_players':compare,'collectible_card':collectible_card}[action](self.client,**kwargs)
+    query={'resolve_players':resolve,'compare_players':compare,'collectible_card':collectible_card}[action]
+    try:
+     data=query(self.client,**kwargs)
+    except Unavailable as exc:
+     if not standard or not str(exc).startswith(('Servicio UEFA devolvio HTTP 400;', 'Servicio UEFA devolvio HTTP 500;')):
+      raise
+     requested=kwargs['metrics']
+     core=[metric for metric in ('goals','assists','attempts_on_target') if metric in requested]
+     if not core or len(core)==len(requested):raise
+     kwargs['metrics']=core
+     data=query(self.client,**kwargs)
+     data['standard_query']={'status':'partial','requested_metrics':requested,'queried_metrics':core,
+                             'reason':str(exc)}
+     data['ready_for_script']=False
    else:data=getattr(self.client,action)(**kwargs)
    return ToolResult(success=True,data=data,artifacts=[],cost_usd=0,from_cache=False)
   except Exception as exc:

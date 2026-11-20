@@ -10,8 +10,8 @@ from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolSta
 _LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','interceptions':'Intercepciones','clean_sheets':'Porterías a cero','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
 
 
-def uefa_report(report):
-    if report.get('tipo') not in ('comparativa_jugadores','postal_jugador') or report.get('ready_for_script') is not True:
+def uefa_report(report, selected=False):
+    if report.get('tipo') not in ('comparativa_jugadores','postal_jugador') or (not selected and report.get('ready_for_script') is not True):
         raise ValueError('Comparativa UEFA bloqueada o no admitida')
     sources=report.get('consultas',[])
     queries=[dict(q,retrieved_at=q.get('consultado_utc')) for q in sources]
@@ -29,15 +29,20 @@ def uefa_report(report):
             row['facts']=[{'metric':metric,'value':value,'entity_id':row['entity_id'],'scope':scope,
                            'source_url':origin['url'],'retrieved_at':origin['retrieved_at']}
                           for metric,value in row['statistics'].items()]
-    return {'source':'UEFA','type':'collectible_card' if report['tipo']=='postal_jugador' else 'player_comparison','ready_for_script':True,
+    return {'source':'UEFA','type':'collectible_card' if report['tipo']=='postal_jugador' else 'player_comparison','ready_for_script':report.get('ready_for_script'),
             'scope':report.get('alcance',{}),'queries':queries,'records':rows,
             'competition':report.get('competicion'),'original_report':report}
 
 
-def render(report):
-    if report.get('fuente')=='UEFA':report=uefa_report(report)
+METRIC_SELECTION = {'type': 'array', 'minItems': 1, 'maxItems': 6, 'uniqueItems': True,
+                    'items': {'type': 'string', 'minLength': 1, 'maxLength': 100}}
+
+
+def render(report, metrics=None):
+    if report.get('fuente')=='UEFA':report=uefa_report(report, selected=metrics is not None)
     source=report.get('source')
-    if source not in ('FIFA','MLB','UEFA','WBA','J.League') or report.get('ready_for_script') is not True:
+    allow_partial = metrics is not None and source in ('FIFA', 'UEFA', 'J.League')
+    if source not in ('FIFA','MLB','UEFA','WBA','J.League') or (not allow_partial and report.get('ready_for_script') is not True):
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
@@ -67,6 +72,11 @@ def render(report):
             facts=[{'metric':k,**v,'entity_id':record.get('entity_id'),'scope':scope,
                     'source_url':queries[-1].get('url'),'retrieved_at':queries[-1].get('retrieved_at')}
                    for k,v in record.get('statistics',{}).items()]
+        if metrics is not None:
+            by_metric = {fact['metric']: fact for fact in facts}
+            if len(by_metric) != len(facts) or any(metric not in by_metric for metric in metrics):
+                raise ValueError('Falta una métrica seleccionada o figura repetida')
+            facts = [by_metric[metric] for metric in metrics]
         if not 1<=len(facts)<=6: raise ValueError('Selecciona entre una y seis métricas para esta plantilla')
         seen=set()
         for fact in facts:
@@ -98,8 +108,9 @@ def render(report):
         value=str(value)
         if len(value)>100:raise ValueError('Texto demasiado largo para la plantilla')
         return f'<text x="{x}" y="{y}" fill="{color}" font-size="{size}" font-family="sans-serif">{escape(value)}</text>'
+    evidence = report if metrics is None else dict(report, displayed_metrics=metrics)
     parts=['<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">',
-           '<metadata>'+escape(json.dumps(report,ensure_ascii=False))+'</metadata>',
+           '<metadata>'+escape(json.dumps(evidence,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
            text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+str(scope['season']) if source=='J.League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
@@ -164,7 +175,8 @@ class SportsCard(BaseTool):
     install_instructions='SVG local y PNG mediante Pillow (dependencia principal). PNG necesita Arial o DejaVu Sans; sin modelos ni red.'
     resource_profile=ResourceProfile(cpu_cores=1,ram_mb=128,vram_mb=0,disk_mb=1,network_required=False)
     input_schema={'type':'object','required':['report','output_path'],'additionalProperties':False,'properties':{
-        'report':{'type':'object'},'output_path':{'type':'string','minLength':1}}}
+        'report':{'type':'object'},'output_path':{'type':'string','minLength':1},
+        'metrics':METRIC_SELECTION}}
     def get_info(self):
         from lib.sports_export_requirements import png_requirements
         info=super().get_info()
@@ -178,7 +190,7 @@ class SportsCard(BaseTool):
             path=Path(inputs['output_path'])
             suffix=path.suffix.lower()
             if suffix not in ('.svg','.png'):raise ValueError('La salida debe ser SVG o PNG')
-            svg=render(inputs['report'])
+            svg=render(inputs['report'], inputs.get('metrics'))
             path.parent.mkdir(parents=True,exist_ok=True)
             if suffix=='.svg':path.write_text(svg,encoding='utf-8')
             else:rasterize(svg,path)
