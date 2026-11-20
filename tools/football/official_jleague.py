@@ -16,7 +16,8 @@ COMPETITIONS = {division: (f'{division.upper()} League', 'league') for division 
 COMPETITIONS['leaguecup'] = ('Levain Cup', 'cup')
 METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'duels_won': ('duels_won', 'Duels won'), 'clean_sheets': ('clean_sheet', 'Clean sheets'),
-           'yellow_cards': ('yellow_count', 'Yellow cards'), 'red_cards': ('red_count', 'Red cards')}
+           'yellow_cards': ('yellow_count', 'Yellow cards'), 'red_cards': ('red_count', 'Red cards'),
+           'interceptions': ('intercept_count', 'Interceptions')}
 
 
 def ranking_url(season, metric, competition='j1'):
@@ -106,7 +107,7 @@ def profile_goals(html, player_id, name, season, competition='j1'):
     return int(values[0])
 
 
-def make_report(rankings, names, scope, queries, kind):
+def make_report(rankings, names, scope, queries, kind, failed_metrics):
     records, unresolved, profile_queries = [], [], []
     for name in names:
         key = normalized(name)
@@ -117,7 +118,7 @@ def make_report(rankings, names, scope, queries, kind):
                 found[metric] = matches[0]
                 continue
             reason = {0: 'not_in_visible_ranking', 1: 'official_id_missing'}.get(len(matches), 'ambiguous')
-            missing[metric] = reason
+            missing[metric] = 'ranking_unavailable' if metric in failed_metrics else reason
         ids = {row[1] for row in found.values()}
         if len(ids) > 1:
             unresolved.append({'name': name, 'reason': 'conflicting_official_ids'})
@@ -150,7 +151,7 @@ def make_report(rankings, names, scope, queries, kind):
             'entity_id': player_id,
             'identity': {'entity_id': player_id, 'name': official_name},
             'statistics': {metric: found[metric][2] if metric in found else None for metric in rankings},
-            'statistics_source': dict(next(iter(queries.values()))) if len(queries) == 1 else None,
+            'statistics_source': dict(next(iter(queries.values()))) if len(rankings) == 1 else None,
             'facts': facts,
         })
     if len({row['entity_id'] for row in records}) != len(records):
@@ -158,13 +159,14 @@ def make_report(rankings, names, scope, queries, kind):
     return {'source': 'J.League', 'type': kind, 'scope': scope, 'queries': list(queries.values()) + profile_queries,
             'records': records, 'unresolved': unresolved, 'ready_for_script': not unresolved,
             'visible_rows': len(next(iter(rankings.values()))) if len(rankings) == 1 else None,
-            'visible_rows_by_metric': {metric: len(rows) for metric, rows in rankings.items()},
+            'visible_rows_by_metric': {metric: None if metric in failed_metrics else len(rows) for metric, rows in rankings.items()},
+            'failed_metrics': failed_metrics,
             'coverage': 'Rankings oficiales visibles. Una ausencia en la lista no equivale a cero.'}
 
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.9.0'
+    version = '0.10.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
@@ -182,8 +184,9 @@ class OfficialJLeague(BaseTool):
                         'action': {'enum': ['compare_players', 'collectible_card']},
                         'season': {'type': 'integer', 'minimum': 1993, 'maximum': 9999},
                         'competition': {'enum': list(COMPETITIONS)},
-                        'metrics': {'type': 'array', 'minItems': 1, 'uniqueItems': True,
-                                    'items': {'enum': list(METRICS)}},
+                        'metrics': {'oneOf': [{'const': 'all'},
+                                              {'type': 'array', 'minItems': 1, 'uniqueItems': True,
+                                               'items': {'enum': list(METRICS)}}]},
                         'names': {'type': 'array', 'minItems': 1, 'maxItems': 2,
                                   'items': {'type': 'string', 'minLength': 1, 'maxLength': 150}},
                     }}
@@ -200,13 +203,25 @@ class OfficialJLeague(BaseTool):
                 raise ValueError('Indica un nombre para la postal o dos nombres distintos para la comparativa')
             season = inputs['season']
             competition = inputs.get('competition', 'j1')
-            rankings, queries = {}, {}
-            for metric in inputs.get('metrics', ['goals']):
-                html, queries[metric] = fetch(ranking_url(season, metric, competition))
-                rankings[metric] = parse_ranking(html, season, metric, competition)
+            selection = inputs.get('metrics', ['goals'])
+            all_metrics = selection == 'all'
+            rankings, queries, failed_metrics = {}, {}, {}
+            for metric in METRICS if all_metrics else selection:
+                try:
+                    html, query = fetch(ranking_url(season, metric, competition))
+                    rankings[metric] = parse_ranking(html, season, metric, competition)
+                except (OSError, ValueError) as exc:
+                    if not all_metrics:
+                        raise
+                    rankings[metric] = []
+                    failed_metrics[metric] = str(exc)
+                else:
+                    queries[metric] = query
+            if not queries:
+                raise ValueError('No se pudo verificar ningún ranking oficial de J.League')
             scope = {'competition': competition, 'season': season, 'phase': COMPETITIONS[competition][1], 'category': 'men'}
             kind = 'collectible_card' if card else 'player_comparison'
-            data = make_report(rankings, names, scope, queries, kind)
+            data = make_report(rankings, names, scope, queries, kind, failed_metrics)
             return ToolResult(success=True, data=data, artifacts=[], cost_usd=0, from_cache=False)
         except Exception as exc:
             return ToolResult(success=False, error='JLEAGUE_QUERY_REJECTED: ' + str(exc),

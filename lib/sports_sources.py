@@ -74,7 +74,7 @@ def catalog(sport=None, region=None):
         'source_discovery': {
             'official_uefa_live': 'Consulta definitions y usa las métricas oficiales para PLAYER.',
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',
-            'official_jleague_live': 'Consulta tool_info para conocer el subconjunto de métricas integrado.',
+            'official_jleague_live': 'Usa metrics=all para consultar todos los rankings integrados; consulta tool_info para ver las métricas admitidas.',
         },
         'instruction': ('Usa el mismo conjunto de métricas para todas las ligas, copas y torneos de fútbol. '
                         'Relaciona los nombres del proveedor con las métricas comunes solo si su definición coincide. '

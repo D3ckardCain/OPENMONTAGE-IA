@@ -155,3 +155,5 @@ Si se solicitan goles y asistencias juntos, un jugador identificado por su enlac
 Las métricas `duels_won` y `clean_sheets` consultan los rankings visibles de duelos ganados y porterías a cero de J1, J2, J3 y Copa Levain. Puedes solicitar cualquiera de ellas sola o junto a otras métricas.
 
 En J.League, `yellow_cards` y `red_cards` están disponibles en los rankings visibles de J1, J2, J3 y Copa Levain. Si la fuente omite a un jugador, no deduzcas que recibió cero tarjetas.
+
+En J.League, `metrics="all"` consulta todos los rankings integrados, incluidas intercepciones, con el mismo conjunto para J1, J2, J3 y Copa Levain. Si falla un ranking, el expediente conserva las cifras verificadas de los demás y marca el fallo. Si el jugador no figura en un ranking visible, su cifra queda sin dato. Para exportar una pieza, usa una selección de hasta seis métricas verificadas para todos los jugadores.
