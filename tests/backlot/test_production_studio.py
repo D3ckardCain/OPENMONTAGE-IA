@@ -26,6 +26,23 @@ def test_create_state_and_policy(isolated):
     cp=studio.read_json(studio.project_path(pid)/'checkpoint_research.json')
     assert cp['artifacts']['decision_log']['decisions'][0]['selected']=='guided'
     assert 'De una idea a un video' in isolated.get('/studio').text
+
+
+@pytest.mark.parametrize('reference,expected',[
+    ('https://youtu.be/abcdefghijk?feature=share','https://www.youtube.com/watch?v=abcdefghijk'),
+    ('https://www.youtube.com/shorts/abcdefghijk','https://www.youtube.com/watch?v=abcdefghijk'),
+    ('https://www.youtube.com/@example',None),('https://external.invalid/video',None)])
+def test_reference_handoff_does_not_start_download_or_analysis(isolated,monkeypatch,reference,expected):
+    from lib import reference_analysis
+    def forbidden(*a,**k):raise AssertionError('Reading project state must not start media work')
+    monkeypatch.setattr(reference_analysis,'start',forbidden)
+    monkeypatch.setattr(reference_analysis,'download_reference',forbidden)
+    pid=studio.create_production({'title':'Referencia elegida','brief':'Crear una investigación original',
+        'pipeline':'animated-explainer','language':'es','reference':reference,'automatic':False})['project_id']
+    state=isolated.get('/api/studio/projects/'+pid).json()
+    assert state['reference_video_url']==expected
+    assert state['request']['reference']==reference
+    assert not (studio.project_path(pid)/'reference_analysis').exists()
     assert '/studio' in isolated.get('/').text
 
 def test_invalid_inputs_and_origin(isolated):

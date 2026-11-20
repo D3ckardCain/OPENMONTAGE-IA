@@ -98,6 +98,7 @@ def test_reference_download_and_local_analysis_controls(staged_backlot_server):
             'pipelines':[{'name':'animated-explainer','stages':[]}],
             'projects':[{'project_id':'video-fixture','title':'Fixture'}]}))
         page.route('**/api/studio/projects/video-fixture',lambda r:r.fulfill(json={
+            'reference_video_url':'https://www.youtube.com/watch?v=M2oOPhZtTdU',
             'request':{'title':'Fixture'},'job':{'status':'ready','message':'Ready','events':[]},
             'stages':[],'outputs':[],'artifacts':[],'board_url':'/p/video-fixture'}))
         page.route('**/api/studio/reference-video/video-fixture',lambda r:r.fulfill(json={
@@ -111,6 +112,7 @@ def test_reference_download_and_local_analysis_controls(staged_backlot_server):
         page.get_by_role('button',name='Referencias e imágenes',exact=True).click()
         assert page.locator('[data-pane=references]').is_visible()
         assert not page.locator('[data-pane=models]').is_visible()
+        assert page.locator('#reference-url').input_value()=='https://www.youtube.com/watch?v=M2oOPhZtTdU'
         page.locator('#reference-url').fill('https://youtu.be/M2oOPhZtTdU')
         page.locator('#reference-vision').uncheck()
         page.locator('#reference-summary').uncheck()

@@ -65,6 +65,9 @@ function showChannel(ch,index){
         const item=element('li',''),link=element('a',video.title||video.id);
         link.href=`https://www.youtube.com/watch?v=${encodeURIComponent(video.id)}`;link.target='_blank';link.rel='noopener noreferrer';
         const date=video.published_at?new Date(video.published_at):null;
+        const create=element('a','Crear producción con esta referencia','chip');
+        create.href='/studio?reference='+encodeURIComponent(link.href)+'&title='+encodeURIComponent((video.title||video.id).slice(0,150));
+        item.append(create,element('br',''));
         item.append(link,element('p',`${format(video.viewCount)} vistas acumuladas · Publicado: ${date&&!Number.isNaN(date.getTime())?date.toLocaleDateString('es-MX'):'fecha no disponible'} · Duración: ${video.duration_iso8601||'no disponible'} · Audio declarado: ${video.audio_language_declared||'no disponible'}`));list.append(item);
       }
       details.append(list,element('small','Vistas acumuladas de estas publicaciones; no vistas ganadas por el canal durante el periodo.'));card.append(details);

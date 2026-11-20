@@ -166,7 +166,11 @@ def production_state(pid):
     for f in sorted((p/'artifacts').glob('*.json')):
         if f.is_file() and not f.is_symlink():artifacts.append({'name':f.name,'url':f'/media/{pid}/artifacts/{f.name}'})
     outputs=[{'name':f.name,'url':f'/media/{pid}/renders/{f.name}'} for f in sorted((p/'renders').glob('*')) if f.is_file() and not f.is_symlink()]
-    return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,'final_delivery':read_json(p/'final_delivery.json'),'board_url':'/p/'+pid}
+    from lib.reference_analysis import youtube_url
+    try:reference_video_url=youtube_url(request.get('reference',''))
+    except ValueError:reference_video_url=None
+    return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,
+        'reference_video_url':reference_video_url,'final_delivery':read_json(p/'final_delivery.json'),'board_url':'/p/'+pid}
 
 
 def import_inventory(data):

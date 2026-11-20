@@ -44,6 +44,8 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         page.get_by_text('Ver publicaciones coincidentes',exact=True).click()
         assert page.get_by_role('link',name='Publicación reciente').get_attribute('href')=='https://www.youtube.com/watch?v=abcdefghijk'
         assert '150,000 vistas acumuladas' in page.locator('.channel').inner_text()
+        create=page.get_by_role('link',name='Crear producción con esta referencia',exact=True)
+        assert 'reference=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dabcdefghijk' in create.get_attribute('href')
         assert captured[0]['filters']['min_views']==1000000
         assert captured[0]['filters']['max_channel_age_days']==90
         assert captured[0]['filters']['min_subscribers']==1000

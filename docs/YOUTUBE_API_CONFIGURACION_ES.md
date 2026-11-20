@@ -11,3 +11,7 @@ Referencia oficial de cuotas, consultada el 19 de noviembre de 2026: https://dev
 No se presentan RPM, ingresos o monetización real de canales ajenos. Vistas por día sería una métrica derivada propia, no un campo oficial: no se añade en esta fase. Los agregados de muestra ya existentes tampoco equivalen a medidas oficiales de crecimiento. La implementación de nuevas métricas derivadas debe revisar el permiso aplicable del proyecto, sin afirmar que ya existe aprobación: https://developers.google.com/youtube/terms/developer-policies-guide y https://developers.google.com/youtube/terms/derived-metrics-policy .
 
 Las comprobaciones usan transportes simulados. No se suministró ni utilizó una clave real durante el desarrollo de esta fase, y no se guardan resultados anteriores como alternativa cuando falla la API.
+
+## De una publicación a producción
+
+Cada publicación coincidente del canal ofrece «Crear producción con esta referencia». Abre el formulario del estudio con título y URL, sin crear un proyecto automáticamente. Al crear el proyecto, su estado expone el enlace de video normalizado y el panel de referencias lo recupera una vez al seleccionar el proyecto. Las actualizaciones periódicas no reemplazan un enlace editado por el usuario. Las URLs de canal siguen siendo referencias de investigación; no se convierten en un video arbitrario. Consultar el proyecto no inicia descarga ni análisis.
