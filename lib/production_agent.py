@@ -241,7 +241,8 @@ class LocalAgent:
             if 'project_id' in inputs and inputs['project_id']!=self.pid:raise ValueError('La herramienta apunta a otro proyecto')
             self.event('tool','Ejecutando '+tool.name)
             result=tool.execute(inputs)
-            return {'success':result.success,'data':result.data,'error':result.error,'cost_usd':result.cost_usd}
+            return {'success':result.success,'data':result.data,'error':result.error,'cost_usd':result.cost_usd,
+                    'artifacts':list(result.artifacts or [])}
         if name=='wan_presets':
             from lib.wan_presets import catalog
             from lib.model_adapters import configuration
