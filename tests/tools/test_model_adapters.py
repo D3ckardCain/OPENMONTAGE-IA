@@ -187,3 +187,31 @@ def test_kokoro_does_not_require_unused_voices(isolated,monkeypatch):
     assert info['ready']
     assert 'voices/'+voices[0].name in info['optional_missing_files']
     assert voices[1].stem in info['available_voices']
+
+
+def test_html_weight_blocks_adapter_before_runtime_launch(isolated,monkeypatch):
+    from tools.models.local_adapters import model_minilm
+    model=fake_model(isolated,'minilm');adapters.configure('minilm',{'model_dir':str(model)})
+    weight=next(path for path in model.iterdir() if path.suffix in ('.safetensors','.bin'))
+    weight.write_text('<html>Access denied</html>')
+    monkeypatch.setattr(adapters,'dependency_probe',lambda *args:{module:True for module in args[1]})
+    monkeypatch.setattr(adapters.subprocess,'run',lambda *args,**kwargs:pytest.fail('Invalid weights must not start a process'))
+    report=adapters.diagnostics('minilm')
+    assert report['ready'] is False and weight.name in report['suspicious_files']
+    result=model_minilm().execute({'output_dir':str(isolated/'output'),'text':'fixture'})
+    assert result.success is False and 'HTML' in result.error
+
+
+def test_corrupt_optional_voice_preserves_other_voices_but_cannot_run(isolated,monkeypatch):
+    from tools.models.local_adapters import model_kokoro
+    model=fake_model(isolated,'kokoro');adapters.configure('kokoro',{'model_dir':str(model)})
+    voices=sorted((model/'voices').glob('*.pt'));voice=voices[0]
+    voice.write_text('version https://git-lfs.github.com/spec/v1\noid sha256:fixture')
+    monkeypatch.setattr(adapters,'dependency_probe',lambda *args:{module:True for module in args[1]})
+    monkeypatch.setattr(adapters.subprocess,'run',lambda *args,**kwargs:pytest.fail('Invalid voice must not start a process'))
+    report=adapters.diagnostics('kokoro')
+    assert report['ready'] is True
+    assert voice.stem not in report['available_voices']
+    assert 'voices/'+voice.name in report['suspicious_files']
+    result=model_kokoro().execute({'output_dir':str(isolated/'output'),'text':'fixture','language':voice.stem[0],'voice':voice.stem})
+    assert result.success is False and 'Voz local inválida' in result.error

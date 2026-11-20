@@ -121,12 +121,14 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.wait_for_function('document.querySelector("#wan-profile-list").textContent.includes("Selección actual: wan22-5b-t2v")')
         assert selected_profiles==[{'preset':'wan22-5b-t2v'}]
         bindings=[]
-        page.route('**/api/studio/adapters',lambda r:r.fulfill(json=[{'family':'kokoro','backend':'native','ready':False,'problems':['Falta runtime'],'configuration':{},'model_dir':None,'python_executable':'/runtime/python','available_voices':['ef_dora']}]))
+        page.route('**/api/studio/adapters',lambda r:r.fulfill(json=[{'family':'kokoro','backend':'native','ready':False,'problems':['Falta runtime'],'configuration':{},'model_dir':None,'python_executable':'/runtime/python','available_voices':['ef_dora'],'suspicious_files':['voices/ef_bad.pt'],'optional_missing_files':['voices/ef_bad.pt']}]))
         def save_binding(route):
             bindings.append(route.request.post_data_json);route.fulfill(json=bindings[-1])
         page.route('**/api/studio/adapters/kokoro',save_binding)
         page.get_by_role('button',name='Detectar adaptadores y dependencias').click()
         page.locator('#adapter-list summary').click()
+        assert 'Archivos sospechosos: voices/ef_bad.pt' in page.locator('#adapter-list').inner_text()
+        assert 'Recursos opcionales ausentes o rechazados' in page.locator('#adapter-list').inner_text()
         page.locator('#adapter-list [name=model_dir]').fill('/models/kokoro')
         page.get_by_role('button',name='Guardar adaptador',exact=True).click()
         page.wait_for_function('document.querySelector("#notice").textContent.includes("kokoro guardado")')

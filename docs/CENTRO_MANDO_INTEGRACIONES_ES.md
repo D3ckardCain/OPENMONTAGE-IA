@@ -97,3 +97,5 @@ La revisión identifica en la ruta lógica del catálogo los sufijos `.fdmdownlo
 ## Descargas que no contienen el modelo
 
 El diagnóstico lee como máximo los primeros 512 bytes de cada archivo esperado compatible para detectar páginas HTML, respuestas XML y punteros de Git LFS. Los muestra como sospechosos y bloquea la disponibilidad del adaptador antes de cargar pesos. La selección entre copias también considera estos problemas. No renombra, borra ni descarga automáticamente. No detecta toda corrupción ni certifica la estructura, integridad o calidad de archivos cuyo prefijo parezca normal.
+
+El panel de adaptadores muestra por separado los archivos sospechosos y los recursos opcionales ausentes o rechazados. Una voz Kokoro opcional inválida no inutiliza las demás voces; no se ofrece en la lista y una solicitud que intente usarla se bloquea antes de iniciar inferencia. La carpeta seleccionada aparece explícitamente en el diagnóstico.
