@@ -44,10 +44,24 @@ form.onsubmit=event=>{
     $('results').replaceChildren();$('scope').textContent='';$('query-plan-result').replaceChildren();$('status').textContent='Filtros aplicados. Pulsa Buscar canales para consultar.';
   }catch(error){$('filter-error').textContent=error.message;}
 };
+function productionLink(channel,video=null){
+ const reference=video?'https://www.youtube.com/watch?v='+encodeURIComponent(video.id):'https://www.youtube.com/channel/'+encodeURIComponent(channel.id);
+ const brief=[video?'Referencia de video para analizar localmente: '+reference:'Canal de inspiración: '+reference+'. Seleccionar primero una publicación concreta antes de analizar video.',
+  'Canal: '+(channel.title||channel.id),
+  video?'Tema de referencia: '+(video.title||video.id):'Investigar temas de sus publicaciones recientes y proponer un enfoque propio.',
+  video?'Vistas públicas acumuladas observadas en la búsqueda: '+format(video.viewCount)+'. No representan crecimiento medido ni garantizan viralidad.':'',
+  video?.audio_language_declared?'Idioma de audio declarado: '+video.audio_language_declared+'. Confirmarlo al analizar y proponer idiomas de destino distintos.':'Confirmar el idioma original antes de elegir idiomas de destino.',
+  'Crear un guion original con investigación adicional y fuentes verificables. Proponer estructura, ejemplos y material visual propios o autorizado para reutilizar.',
+  'Adaptar narración, subtítulos, títulos, miniaturas, música y referencias culturales a cada idioma. Comprobar licencias de los recursos.',
+  'No se han verificado ingresos, monetización ni RPM. Este encargo no inicia descargas, generación ni publicación.'
+ ].filter(Boolean).join('\n');
+ const query=new URLSearchParams({reference,title:('Nuevo enfoque: '+(video?.title||channel.title||channel.id)).slice(0,150),brief});
+ return '/studio?'+query.toString();
+}
 function showChannel(ch,index){
   const card=element('article','','channel');card.append(element('span',`CANAL ${index+1}`,'rank'));
   const h=element('h2',''),a=element('a',ch.title||ch.id);a.href=`https://www.youtube.com/channel/${encodeURIComponent(ch.id)}`;a.target='_blank';a.rel='noopener noreferrer';h.append(a);card.append(h);
-  const produce=element('a','Crear video a partir de este canal','chip');produce.href='/studio?reference='+encodeURIComponent(a.href)+'&title='+encodeURIComponent(ch.title||ch.id);card.append(produce);
+  const produce=element('a','Crear video a partir de este canal','chip');produce.href=productionLink(ch);card.append(produce);
   const metrics=element('div','','metrics');for(const [title,value] of [['Vistas totales',ch.viewCount],['Suscriptores',ch.subscriberCount_public_rounded]]){const metric=element('div','','metric');metric.append(element('strong',format(value)),element('span',title));metrics.append(metric);}card.append(metrics);
   const created=ch.created_at?new Date(ch.created_at):null;
   card.append(element('p',`Creado: ${created&&!Number.isNaN(created.getTime())?created.toLocaleDateString('es-MX'):'fecha no disponible'}`));
@@ -66,7 +80,7 @@ function showChannel(ch,index){
         link.href=`https://www.youtube.com/watch?v=${encodeURIComponent(video.id)}`;link.target='_blank';link.rel='noopener noreferrer';
         const date=video.published_at?new Date(video.published_at):null;
         const create=element('a','Crear producción con esta referencia','chip');
-        create.href='/studio?reference='+encodeURIComponent(link.href)+'&title='+encodeURIComponent((video.title||video.id).slice(0,150));
+        create.href=productionLink(ch,video);
         item.append(create,element('br',''));
         item.append(link,element('p',`${format(video.viewCount)} vistas acumuladas · Publicado: ${date&&!Number.isNaN(date.getTime())?date.toLocaleDateString('es-MX'):'fecha no disponible'} · Duración: ${video.duration_iso8601||'no disponible'} · Audio declarado: ${video.audio_language_declared||'no disponible'}`));list.append(item);
       }

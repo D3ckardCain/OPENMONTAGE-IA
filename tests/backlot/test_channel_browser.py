@@ -46,6 +46,12 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         assert '150,000 vistas acumuladas' in page.locator('.channel').inner_text()
         create=page.get_by_role('link',name='Crear producción con esta referencia',exact=True)
         assert 'reference=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dabcdefghijk' in create.get_attribute('href')
+        from urllib.parse import urlsplit,parse_qs
+        handoff=parse_qs(urlsplit(create.get_attribute('href')).query)
+        assert handoff['title'][0].startswith('Nuevo enfoque:')
+        assert 'guion original' in handoff['brief'][0]
+        assert 'Idioma de audio declarado: es' in handoff['brief'][0]
+        assert 'No se han verificado ingresos' in handoff['brief'][0]
         assert captured[0]['filters']['min_views']==1000000
         assert captured[0]['filters']['max_channel_age_days']==90
         assert captured[0]['filters']['min_subscribers']==1000

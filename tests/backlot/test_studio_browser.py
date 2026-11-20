@@ -23,7 +23,8 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         def action(route):
             actions.append(route.request.url.rsplit('/',1)[-1]);route.fulfill(json={'started':True})
         page.route('**/api/studio/projects/video-fixture/start',action)
-        page.goto(staged_backlot_server+'/studio?reference=https%3A%2F%2Fyoutube.com%2F%40fixture&title=Canal')
+        page.goto(staged_backlot_server+'/studio?reference=https%3A%2F%2Fyoutube.com%2F%40fixture&title=Canal&brief=Encargo+editable')
+        assert page.locator('#create [name=brief]').input_value()=='Encargo editable'
         assert page.locator('#create [name=reference]').input_value()=='https://youtube.com/@fixture'
         page.locator('#create [name=title]').fill('Animales originales')
         page.locator('#create [name=brief]').fill('Video educativo original de 60 segundos')
