@@ -50,3 +50,36 @@ window.matchApiUrl = 'https://match.uefa.com/';
  def test_cost_and_network(self):
   t=self.tool();self.assertEqual(t.estimate_cost({}),0);self.assertTrue(t.resource_profile.network_required);self.assertFalse(_is_cacheable(t,{'output_path':'x.json'}))
 if __name__=='__main__':unittest.main()
+
+
+def test_player_id_batches_recover_metrics_without_combining_teams(monkeypatch):
+ from types import SimpleNamespace
+ from tools.football.uefa import UEFAHTTPError
+
+ tool = OfficialUEFA()
+ requests = []
+ context = SimpleNamespace(competition='champions', competition_id='1', current_edition=2027,
+                           stats_url='https://compstats.uefa.com/')
+ monkeypatch.setattr(tool.client, 'context', lambda competition: context)
+
+ def request(ctx, scope, player_id, metrics):
+  requests.append(metrics)
+  assert scope['seasonYear'] == 2024 and scope['phase'] == 'TOURNAMENT'
+  if 'assists' in metrics:
+   raise UEFAHTTPError(500)
+  rows = [{'playerId': player_id, 'teamId': team, 'statistics': [
+      {'name': metric, 'value': value} for metric in metrics]} for team, value in [('10', '0'), ('20', '2')]]
+  return rows, {'url': 'https://compstats.uefa.com/' + metrics[0], 'consultado_utc': '2026-11-20'}
+
+ monkeypatch.setattr(tool.client, '_player_request', request)
+ result = tool.execute({'action': 'player', 'competition': 'champions', 'edition': 2024,
+                        'player_id': '100', 'metrics': ['goals', 'assists']})
+ assert result.success, result.error
+ assert requests == [['goals', 'assists'], ['goals'], ['assists']]
+ assert result.data['batch_query']['status'] == 'partial'
+ assert result.data['batch_query']['failed_batches'][0]['metrics'] == ['assists']
+ rows = result.data['registros']
+ assert [row['teamId'] for row in rows] == ['10', '20']
+ assert [row['statistics'][0]['value'] for row in rows] == ['0', '2']
+ assert all(row['metricas_no_disponibles'] == ['assists'] for row in rows)
+ assert all(row['fuente_por_metrica']['goals'] == result.data['consultas'][0] for row in rows)

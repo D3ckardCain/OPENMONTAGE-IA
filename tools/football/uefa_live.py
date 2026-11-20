@@ -197,13 +197,62 @@ class UEFA:
   if not str(player_id).isdigit():raise Unavailable('ID de jugador invalido')
   if not metrics or any(not re.fullmatch('[a-z][a-z0-9_]*',m) for m in metrics):raise Unavailable('Metricas invalidas')
   ctx=self.context(competition);scope=self.scope(ctx,edition,phase)
+  rows, source = self._player_request(ctx, scope, str(player_id), metrics)
+  result=self.pack(ctx,{**scope,'playerId':str(player_id),'metricas':metrics},rows,[source],'estadisticas_jugador_por_equipo_sin_sumar')
+  result['paginacion_agotada']=None
+  return result
+
+ def _player_request(self,ctx,scope,player_id,metrics):
   r=self.api(ctx,ctx.stats_url,'v2/player-statistics',{**scope,'playerId':player_id,'stats':','.join(metrics),'optionalFields':'PLAYER,TEAM'})
   if not isinstance(r.data,list):raise Unavailable('Respuesta individual no es lista')
   for item in r.data:
    if not isinstance(item,dict) or str(item.get('playerId'))!=str(player_id):raise Unavailable('Jugador devuelto no coincide')
    if not isinstance(item.get('statistics'),list):raise Unavailable('Estadisticas individuales incompletas')
-  result=self.pack(ctx,{**scope,'playerId':str(player_id),'metricas':metrics},r.data,[{'url':r.url,'consultado_utc':r.retrieved_at}],'estadisticas_jugador_por_equipo_sin_sumar')
-  result['paginacion_agotada']=None
+  return r.data, {'url':r.url,'consultado_utc':r.retrieved_at}
+
+ def player_by_batches(self, competition, edition, player_id, metrics, phase='TOURNAMENT'):
+  from tools.football.uefa_batches import checked_statistics, metric_batches, split_rejected_batch
+
+  if not str(player_id).isdigit() or not metrics or len(set(metrics)) != len(metrics) or any(
+      not re.fullmatch('[a-z][a-z0-9_]*', metric) for metric in metrics):
+   raise Unavailable('ID o métricas de jugador inválidos')
+  ctx = self.context(competition)
+  scope = self.scope(ctx, edition, phase)
+  pending = metric_batches(metrics)
+  teams, sources, failures = {}, [], []
+  splits = 0
+  while pending:
+   batch = pending.popleft()
+   try:
+    rows, source = self._player_request(ctx, scope, str(player_id), batch)
+    verified = {}
+    for row in rows:
+     team_id = str(row.get('teamId'))
+     if not team_id.isdigit() or team_id in verified:
+      raise Unavailable('UEFA devolvió un equipo ausente o duplicado')
+     verified[team_id] = (row, checked_statistics(row['statistics'], batch))
+   except (ValueError, OSError, KeyError, TypeError) as exc:
+    if split_rejected_batch(pending, batch, exc):
+     splits += 1
+     continue
+    failures.append({'metrics': batch, 'reason': str(exc)})
+    continue
+   sources.append(source)
+   for team_id, (row, stats) in verified.items():
+    merged = teams.setdefault(team_id, dict(row, statistics=[], fuente_por_metrica={}))
+    merged['statistics'].extend(stats.values())
+    merged['fuente_por_metrica'].update({metric:source for metric,item in stats.items() if item['value'] is not None})
+  if not sources:
+   raise Unavailable('UEFA no devolvió ningún lote verificable: ' + failures[0]['reason'])
+  records = list(teams.values())
+  for row in records:
+   row['metricas_no_disponibles'] = [metric for metric in metrics if metric not in row['fuente_por_metrica']]
+  result = self.pack(ctx, {**scope, 'playerId':str(player_id), 'metricas':metrics}, records, sources,
+                     'estadisticas_jugador_por_equipo_sin_sumar')
+  result['paginacion_agotada'] = None
+  incomplete = failures or not records or any(row['metricas_no_disponibles'] for row in records)
+  result['batch_query'] = {'status':'partial' if incomplete else 'complete',
+                           'failed_batches':failures, 'split_batches':splits}
   return result
  def historical(self,competition,entity,metric):
   if entity not in ('players','teams'):raise Unavailable('Entidad historica invalida')

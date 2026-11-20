@@ -1,5 +1,4 @@
 """Resolve names within a freshly queried UEFA ranking, without guessing IDs."""
-from collections import deque
 import re
 import unicodedata
 
@@ -61,8 +60,8 @@ def collectible_card(client,competition,edition,names,metrics,phase='TOURNAMENT'
 
 def complete_standard_report(client, report, metrics, competition, edition, phase='TOURNAMENT'):
     """Fetch small player-statistic batches after the ranking resolves identities."""
-    from decimal import Decimal, InvalidOperation
-    from tools.football.uefa import UEFAHTTPError, Unavailable
+    from tools.football.uefa import Unavailable
+    from tools.football.uefa_batches import checked_statistics, metric_batches, split_rejected_batch
 
     kind = report['tipo']
     if kind == 'resolucion_por_nombres':
@@ -87,7 +86,7 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
             else:
                 values[metric] = None
                 remaining.append(metric)
-        pending = deque(remaining[start:start + 8] for start in range(0, len(remaining), 8))
+        pending = metric_batches(remaining)
         while pending:
             batch = pending.popleft()
             try:
@@ -102,19 +101,9 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
                 origin, = detail['consultas']
                 if not origin.get('url') or not origin.get('consultado_utc'):
                     raise Unavailable('UEFA no confirmó la procedencia del lote')
-                found = {}
-                for item in matching[0]['statistics']:
-                    metric, raw = item['name'], item['value']
-                    if metric not in batch or metric in found:
-                        raise Unavailable('UEFA devolvió una métrica ajena o duplicada en el lote')
-                    if raw is not None and not Decimal(str(raw)).is_finite():
-                        raise Unavailable('UEFA devolvió un valor no finito')
-                    found[metric] = raw
-            except (ValueError, OSError, InvalidOperation, KeyError, TypeError) as exc:
-                if isinstance(exc, UEFAHTTPError) and exc.status in (400, 422, 500) and len(batch) > 1:
-                    midpoint = len(batch) // 2
-                    pending.appendleft(batch[midpoint:])
-                    pending.appendleft(batch[:midpoint])
+                found = checked_statistics(matching[0]['statistics'], batch)
+            except (ValueError, OSError, KeyError, TypeError) as exc:
+                if split_rejected_batch(pending, batch, exc):
                     split_batches += 1
                     continue
                 failures.append({'player_id': row['id'], 'team_id': row['team_id'],
@@ -122,7 +111,8 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
                 continue
             if origin not in report['consultas']:
                 report['consultas'].append(origin)
-            for metric, value in found.items():
+            for metric, item in found.items():
+                value = item['value']
                 if value is not None:
                     values[metric] = value
                     sources[metric] = origin
