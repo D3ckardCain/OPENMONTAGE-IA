@@ -11,3 +11,9 @@ Conserva las fechas, URLs, advertencias y alcance devueltos. Los servicios públ
 El productor ya dispone de `official_uefa_live` como herramienta de investigación. Esta sección añade la consulta directa; no genera ni publica videos. Las pruebas usan transportes y resultados simulados; no certifican disponibilidad actual de los endpoints.
 
 Al cambiar la acción se retiran los campos y parámetros anteriores. Al cambiar la competición se retira el resultado. Una respuesta que llegue después del cambio de selección no se presenta como si correspondiera a la nueva consulta.
+
+## Leer el resultado
+
+Cuando la fuente devuelve registros, el panel ofrece una tabla con los valores originales y nombres de métricas sin recalcularlos. Los valores nulos o ausentes se muestran como «Dato no disponible»; el cero se conserva como cero. El alcance, las advertencias y los enlaces oficiales de las consultas permanecen visibles.
+
+La tabla muestra hasta 100 filas y 24 columnas y avisa si es parcial. «Ver datos originales completos» conserva la respuesta íntegra para revisar otras estructuras o campos. Mostrar una tabla no amplía la cobertura del servicio ni acredita exactitud de carrera completa.

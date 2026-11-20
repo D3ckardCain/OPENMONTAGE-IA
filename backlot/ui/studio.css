@@ -2,3 +2,5 @@
 
 [hidden]{display:none!important}.studio-nav{display:grid;gap:6px;margin-bottom:28px}.studio-nav button{text-align:left;margin:0;width:100%;border-color:transparent}.studio-nav button[aria-current=page]{background:#163451;border-color:#388bfd;color:#a5d6ff}.workspace-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;font-weight:600}aside{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto}.studio-nav button:focus-visible{outline:2px solid #58a6ff;outline-offset:2px}@media(max-width:800px){aside{position:static;max-height:none}.studio-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace-heading{flex-wrap:wrap}}
 [data-pane=setup] p,[data-pane=setup] summary{overflow-wrap:anywhere}
+
+.football-table-wrap{max-width:100%;overflow:auto}.football-table-wrap table{border-collapse:collapse;min-width:100%;font-size:13px}.football-table-wrap th,.football-table-wrap td{border:1px solid #30363d;padding:9px;text-align:left;vertical-align:top;max-width:360px;overflow-wrap:anywhere}.football-table-wrap th{background:#21262d}

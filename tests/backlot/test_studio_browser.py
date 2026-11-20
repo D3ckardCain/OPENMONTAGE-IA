@@ -323,12 +323,17 @@ def test_official_football_queries_clear_old_results_on_failure(staged_backlot_s
         calls=[]
         def query(route):
             calls.append(route.request.post_data_json)
-            route.fulfill(json={'success':len(calls)==1,'data':{'fixture_stat':'fresh-result'} if len(calls)==1 else None,'error':'Fuente temporalmente no disponible','note':'Consulta sin respaldo antiguo'})
+            route.fulfill(json={'success':len(calls)==1,'data':{'fixture_stat':'fresh-result','fuente':'UEFA','registros':[{'nombre':'<img src=x onerror=alert(1)>','estadisticas':{'goals':0,'assists':None}}],'advertencia':'Alcance de prueba','consultas':[{'url':'https://www.uefa.com/fixture','consultado_utc':'fixture-time'}]} if len(calls)==1 else None,'error':'Fuente temporalmente no disponible','note':'Consulta sin respaldo antiguo'})
         page.route('**/api/studio/football/query',query)
         page.goto(staged_backlot_server+'/studio#football')
         page.locator('#football-load').click()
         page.locator('#football-query').click()
         page.wait_for_function('document.querySelector("#football-result").textContent.includes("fresh-result")')
+        assert page.locator('#football-result tbody tr').count()==1
+        assert page.locator('#football-result').get_by_role('cell',name='0',exact=True).count()==1
+        assert page.locator('#football-result').get_by_role('cell',name='Dato no disponible',exact=True).count()==1
+        assert page.locator('#football-result img').count()==0
+        assert page.get_by_role('link',name='Fuente oficial',exact=True).get_attribute('href')=='https://www.uefa.com/fixture'
         page.locator('#football-query').click()
         page.get_by_text('Fuente temporalmente no disponible',exact=True).wait_for()
         assert 'fresh-result' not in page.locator('#football-result').inner_text()
