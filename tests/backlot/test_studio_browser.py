@@ -88,6 +88,11 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         assert 'Ruta registrada; tamaño del catálogo desconocido' in page.locator('#resource-list').inner_text()
         assert 'D:/models/model.safetensors' in page.locator('#resource-list').inner_text()
         assert page.locator('#resource-list a').count()==0
+        page.route('**/api/studio/download-plan',lambda route:route.fulfill(json={'note':'Revisar inventarios','planned_files':1,'inventories':[{'Nombre':'ADATA','Serie':'A','Fecha':'fixture'},{'Nombre':'SEAGATE','Serie':'B','Fecha':'fixture'}],'filename_collisions_across_folders':[],'folders':[{'destination_folder':'D:/weights/model','files':[{'filename':'model.bin','url':'https://example.org/model.bin','size_bytes':None}]}],'without_download_url':[],'downloads_started':0}))
+        page.locator('#download-plan').click()
+        page.locator('#download-plan-result summary').click()
+        assert page.locator('#download-plan-result textarea').input_value()=='https://example.org/model.bin'
+        assert 'Guardar en: D:/weights/model' in page.locator('#download-plan-result').inner_text()
         page.get_by_role('button',name='Ver perfiles y modelo seleccionado').click()
         page.locator('#wan-profile-list summary').click()
         page.get_by_role('button',name='Seleccionar Wan 2.2 · 5B · texto a video',exact=True).click()

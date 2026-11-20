@@ -117,6 +117,10 @@ def create_studio_router():
             values.append({'at':studio.now(),'message':text})
             studio.save_json(p/'user_clarifications.json',values[-30:])
         return {'saved':True}
+    @router.get('/api/studio/download-plan')
+    def pending_download_plan():
+        from lib.download_plan import plan
+        return invoke(plan)
     @router.get('/api/studio/resources')
     def resources():return studio.resource_catalog()
     @router.get('/api/studio/integration-coverage')
