@@ -2,27 +2,34 @@
 from html import escape
 import json
 import math
+import re
 from pathlib import Path
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
-_LABELS={'Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
+_LABELS={'homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
 
 
 def render(report):
-    if report.get('source')!='FIFA' or report.get('ready_for_script') is not True:
-        raise ValueError('Se requiere un informe FIFA resuelto y sin métricas ausentes')
+    source=report.get('source')
+    if source not in ('FIFA','MLB') or report.get('ready_for_script') is not True:
+        raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
     if count is None or len(records)!=count: raise ValueError('Informe de postal o comparativa inválido')
     queries=report.get('queries')
     if not isinstance(queries,list) or not queries: raise ValueError('Faltan fuentes')
     scope=report.get('scope',{})
-    if not scope.get('season_id') or not scope.get('competition_id'): raise ValueError('Falta alcance')
+    if source=='FIFA' and (not scope.get('season_id') or not scope.get('competition_id')): raise ValueError('Falta alcance')
+    if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
     panels=[]
     for record in records:
         identity=record.get('identity',{})
-        if not identity.get('name') or not identity.get('fdh_player_id'): raise ValueError('Falta identidad oficial')
+        entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
+        if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
         if kind=='collectible_card':facts=record.get('facts',[])
+        elif source=='MLB':
+            origin=record.get('statistics_source',{})
+            facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
         else:
             facts=[{'metric':k,**v,'entity_id':record.get('entity_id'),'scope':scope,
                     'source_url':queries[-1].get('url'),'retrieved_at':queries[-1].get('retrieved_at')}
@@ -31,12 +38,16 @@ def render(report):
         seen=set()
         for fact in facts:
             value=fact.get('value');url=fact.get('source_url','')
-            if type(value) not in (int,float) or not math.isfinite(value):raise ValueError('Cifra ausente o inválida')
+            numeric=type(value) in (int,float) and math.isfinite(value)
+            original_rate=source=='MLB' and isinstance(value,str) and re.fullmatch(r'-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)',value)
+            if not (numeric or original_rate):raise ValueError('Cifra ausente o inválida')
             if not isinstance(fact.get('metric'),str) or fact['metric'] in seen:raise ValueError('Métrica inválida o repetida')
             seen.add(fact['metric'])
-            if fact.get('entity_id')!=identity['fdh_player_id'] or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
-            if not url.startswith('https://fdh-api.fifa.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
+            if fact.get('entity_id')!=entity or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
+            if not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
             if not any(q.get('url')==url and q.get('retrieved_at')==fact['retrieved_at'] for q in queries):raise ValueError('Fuente ajena al expediente')
+        if source=='MLB':
+            identity=dict(identity,team_name=[{'Description':(record.get('team') or {}).get('name','Temporada regular MLB')}])
         panels.append((identity,facts))
     if count==2 and [f['metric'] for f in panels[0][1]]!=[f['metric'] for f in panels[1][1]]:
         raise ValueError('Las métricas comparadas deben coincidir')
@@ -47,8 +58,8 @@ def render(report):
     parts=['<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">',
            '<metadata>'+escape(json.dumps(report,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
-           text(54,82,'FÚTBOL · '+('COMPARATIVA' if count==2 else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada'),24)]
+           text(54,82,('FÚTBOL · ' if source=='FIFA' else 'BÉISBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)
@@ -66,7 +77,7 @@ def render(report):
             y=490+n*105
             parts.append(text(x+26,y,_LABELS.get(fact['metric'],fact['metric']),22,'#8b949e'))
             parts.append(text(x+26,y+49,fact['value'],42))
-    parts += [text(54,1232,'Fuente: FIFA · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
+    parts += [text(54,1232,'Fuente: '+source+' · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
               text(54,1270,'Estadísticas de esta edición · Fuente oficial',20,'#8b949e'),'</svg>']
     return ''.join(parts)
 
@@ -99,7 +110,7 @@ def rasterize(svg, path):
 
 class SportsCard(BaseTool):
     name='sports_card_svg'
-    version='0.2.0'
+    version='0.3.0'
     provider='local'
     tier=ToolTier.CORE
     runtime=ToolRuntime.LOCAL

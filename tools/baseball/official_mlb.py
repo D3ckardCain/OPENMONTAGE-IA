@@ -92,7 +92,7 @@ class MLB:
             selected[metric]=value
         scope={'sport_id':1,'season':season,'group':group,'game_type':'R'}
         return self.pack('player_statistics',scope,[{'entity_id':player_id,'name':split.get('player',{}).get('fullName'),
-            'team':split.get('team'),'statistics':selected,'missing_metrics':[m for m in metrics if selected[m] is None]}],[query])
+            'statistics_source':dict(query),'team':split.get('team'),'statistics':selected,'missing_metrics':[m for m in metrics if selected[m] is None]}],[query])
 
     def compare_players(self,names,season,group,metrics):
         if not isinstance(names,list) or len(names)!=2:raise ValueError('Indicar dos nombres')
@@ -111,9 +111,27 @@ class MLB:
         return self.pack('player_comparison',reports[0]['scope'],rows,queries+[q for r in reports for q in r['queries']])|{'ready_for_script':not any(r['missing_metrics'] for r in rows)}
 
 
+    def collectible_card(self,name,season,group,metrics):
+        resolution=self.resolve_player(name)
+        result=resolution['records'][0]
+        if result['status']!='resolved':
+            return resolution|{'type':'card_blocked','ready_for_script':False}
+        identity=result['candidates'][0]
+        statistics=self.player_statistics(identity['entity_id'],season,group,metrics)
+        row=statistics['records'][0]
+        if row['name']!=identity['name']:raise ValueError('Identidad estadística inconsistente')
+        source=statistics['queries'][0]
+        facts=[{'metric':metric,'value':value,'entity_id':identity['entity_id'],
+                'scope':statistics['scope'].copy(),'source_url':source['url'],'retrieved_at':source['retrieved_at']}
+               for metric,value in row['statistics'].items()]
+        return self.pack('collectible_card',statistics['scope'],[{'identity':identity,'team':row['team'],
+            'facts':facts,'missing_metrics':row['missing_metrics'],'image':None,'image_rights':'not_provided'}],
+            resolution['queries']+statistics['queries'])|{'ready_for_script':not row['missing_metrics'],'rendered':False}
+
+
 class OfficialMLB(BaseTool):
     name='official_mlb_live'
-    version='0.1.0'
+    version='0.2.0'
     provider='mlb_official'
     tier=ToolTier.SOURCE
     runtime=ToolRuntime.LOCAL
@@ -129,7 +147,7 @@ class OfficialMLB(BaseTool):
     install_instructions='Python y HTTPS a MLB StatsAPI; sin claves ni API de pago. Cobertura inicial: MLB, temporada regular.'
     resource_profile=ResourceProfile(cpu_cores=1,ram_mb=256,vram_mb=0,disk_mb=0,network_required=True)
     input_schema={'type':'object','additionalProperties':False,'required':['action'],'properties':{
-        'action':{'enum':['resolve_player','player_statistics','compare_players']},
+        'action':{'enum':['resolve_player','player_statistics','compare_players','collectible_card']},
         'name':{'type':'string','minLength':1,'maxLength':150},
         'names':{'type':'array','minItems':2,'maxItems':2,'items':{'type':'string','minLength':1,'maxLength':150}},
         'player_id':{'type':'string','pattern':'^[0-9]{1,12}$'},'season':{'type':'integer','minimum':1876},
@@ -141,7 +159,7 @@ class OfficialMLB(BaseTool):
         try:
             validate(inputs,self.input_schema)
             action=inputs['action']
-            allowed={'resolve_player':{'name'},'player_statistics':{'player_id','season','group','metrics'},'compare_players':{'names','season','group','metrics'}}[action]
+            allowed={'resolve_player':{'name'},'collectible_card':{'name','season','group','metrics'},'player_statistics':{'player_id','season','group','metrics'},'compare_players':{'names','season','group','metrics'}}[action]
             if set(inputs)-allowed-{'action'}:raise ValueError('Parámetros no aplicables')
             data=getattr(self.client,action)(**{k:v for k,v in inputs.items() if k!='action'})
             return ToolResult(success=True,data=data,artifacts=[],cost_usd=0,from_cache=False)

@@ -16,7 +16,7 @@ Cada respuesta incluye URL y fecha, grupo, año y tipo de partido. Un valor ause
 
 Solo MLB y temporada regular (`gameType=R`). No promete carreras completas, postemporada, Statcast, boxeo ni otras ligas de béisbol. Si una respuesta contiene varios desgloses por equipos, bloquea la consulta agregada hasta validar el total oficial. No suma tasas ni innings. Si un jugador no tiene cifras en ese grupo/año, informa indisponibilidad; no lo transforma en una temporada con cero.
 
-El resultado está listo para investigación y guion cuando las identidades y métricas están presentes. La plantilla gráfica FIFA aún no admite informes MLB; falta integrar y probar la adaptación visual.
+El resultado está listo para investigación y guion cuando las identidades y métricas están presentes. La plantilla gráfica admite ahora informes MLB en SVG/PNG y como clips MP4, con audio local opcional. La acción `collectible_card` resuelve un nombre y prepara hechos con procedencia individual. Las comparativas usan la fuente estadística propia de cada jugador. Los textos conservan tasas e innings sin convertirlos a números decimales. Las pruebas usan datos sintéticos para verificar el flujo visual; no constituyen validación con los modelos TTS ni retratos reales.
 
 ## Comprobación
 
