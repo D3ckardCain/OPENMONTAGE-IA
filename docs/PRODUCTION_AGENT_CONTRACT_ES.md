@@ -94,3 +94,6 @@ Para una postal FIFA usa `official_fifa_live` con `action=collectible_card`, un 
 
 
 Para diseñar una postal o comparativa con los datos FIFA usa `sports_card_svg` (capacidad `sports_card_design`) con el informe completo devuelto por `collectible_card` o `compare_players`, sin reescribir sus cifras, y una ruta `.svg` dentro de `assets/`. La plantilla admite de una a seis métricas y genera un diseño tipográfico 1080×1350 sin retratos. Conserva el informe en metadata SVG. No acredita autenticidad criptográfica: valida coherencia y procedencia declarada del informe; obtén siempre el informe mediante el conector oficial durante esa producción. Revisa visualmente el SVG antes de integrarlo como recurso en la composición. El SVG no es un video ni una postal con retrato terminada.
+
+
+La herramienta `sports_card_svg` también acepta `output_path` con extensión `.png`. Exporta a 1080×1350 mediante Pillow, sin instalar un conversor SVG externo; requiere Arial o DejaVu Sans disponible en el sistema. El PNG incluye el expediente en `openmontage_evidence`. Usa el PNG resultante como imagen del proyecto para la composición de video; esto no ejecuta ni verifica por sí solo el render del video. La plantilla es tipográfica y no incluye retratos.

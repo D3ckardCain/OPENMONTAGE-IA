@@ -48,3 +48,27 @@ def test_comparison_requires_same_metrics():
     ET.fromstring(render(r))
     r['records'][1]['statistics']={'Assists':{'value':0}}
     with pytest.raises(ValueError):render(r)
+
+
+def test_png_export_has_dimensions_and_embedded_evidence(tmp_path):
+    from PIL import Image
+    import json
+    p=tmp_path/'card.png'
+    r=SportsCard().execute({'report':report(),'output_path':str(p)})
+    assert r.success,r.error
+    with Image.open(p) as im:
+        assert im.size==(1080,1350) and im.format=='PNG'
+        evidence=json.loads(im.info['openmontage_evidence'])
+        assert evidence['records'][0]['facts'][0]['value']==0
+        assert len(im.getcolors(1080*1350))>20
+
+
+def test_png_comparison_export(tmp_path):
+    from PIL import Image
+    r=report();r['type']='player_comparison'
+    r['records']=[{'identity':{'name':name,'player_id':pid,'fdh_player_id':fdh},'entity_id':fdh,'statistics':{'Goals':{'value':value}}}
+                  for name,pid,fdh,value in [('Jugador Uno','1','10',2),('Jugador Dos','2','20',0)]]
+    path=tmp_path/'comparison.png'
+    out=SportsCard().execute({'report':r,'output_path':str(path)})
+    assert out.success,out.error
+    with Image.open(path) as im:assert im.size==(1080,1350)

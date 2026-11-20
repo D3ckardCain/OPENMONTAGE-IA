@@ -48,7 +48,7 @@ def render(report):
            '<metadata>'+escape(json.dumps(report,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,'FÚTBOL · '+('COMPARATIVA' if count==2 else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,'Competición FIFA '+str(scope['competition_id'])+' · Edición '+str(scope['season_id']),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)
@@ -61,19 +61,45 @@ def render(report):
             lines[-1]=(lines[-1]+' '+word).strip()
         if len(lines)>3:raise ValueError('Nombre requiere otra plantilla')
         for n,line in enumerate(lines):parts.append(text(x+26,250+n*45,line,34))
-        parts.append(text(x+26,405,'ID FIFA '+identity['player_id'],21,'#8b949e'))
+        parts.append(text(x+26,405,next((v['Description'] for v in (identity.get('team_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas del torneo'),21,'#8b949e'))
         for n,fact in enumerate(facts):
             y=490+n*105
             parts.append(text(x+26,y,_LABELS.get(fact['metric'],fact['metric']),22,'#8b949e'))
             parts.append(text(x+26,y+49,fact['value'],42))
     parts += [text(54,1232,'Fuente: FIFA · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
-              text(54,1270,'Datos de esta edición. Sin puntuaciones de habilidad inventadas.',20,'#8b949e'),'</svg>']
+              text(54,1270,'Estadísticas de esta edición · Fuente oficial',20,'#8b949e'),'</svg>']
     return ''.join(parts)
+
+
+def rasterize(svg, path):
+    """Rasterize only our rect/text subset using core Pillow, without SVG plugins."""
+    import xml.etree.ElementTree as ET
+    from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
+    root=ET.fromstring(svg)
+    image=Image.new('RGB',(1080,1350),'#0d1117');draw=ImageDraw.Draw(image)
+    info=PngImagePlugin.PngInfo()
+    for node in root:
+        kind=node.tag.rsplit('}',1)[-1]
+        if kind=='metadata':
+            info.add_text('openmontage_evidence',node.text or '')
+        elif kind=='rect':
+            x=int(node.get('x',0));y=int(node.get('y',0))
+            box=(x,y,x+int(node.get('width')),y+int(node.get('height')))
+            draw.rounded_rectangle(box,radius=int(node.get('rx',0)),fill=node.get('fill'),outline=node.get('stroke'))
+        elif kind=='text':
+            size=int(node.get('font-size'));font=None
+            for candidate in ('DejaVuSans.ttf','arial.ttf'):
+                try:font=ImageFont.truetype(candidate,size);break
+                except OSError:pass
+            if font is None:raise ValueError('Se necesita una fuente TrueType DejaVu Sans o Arial para PNG')
+            draw.text((int(node.get('x')),int(node.get('y'))),node.text or '',font=font,fill=node.get('fill'),anchor='ls')
+        else:raise ValueError('Elemento no soportado por el rasterizador local')
+    image.save(path,format='PNG',pnginfo=info)
 
 
 class SportsCard(BaseTool):
     name='sports_card_svg'
-    version='0.1.0'
+    version='0.2.0'
     provider='local'
     tier=ToolTier.CORE
     runtime=ToolRuntime.LOCAL
@@ -81,7 +107,7 @@ class SportsCard(BaseTool):
     capability='sports_card_design'
     capabilities=['sports_card_design']
     dependencies=[]
-    install_instructions='SVG local, biblioteca estándar Python; sin modelos ni red.'
+    install_instructions='SVG local y PNG mediante Pillow (dependencia principal). PNG necesita Arial o DejaVu Sans; sin modelos ni red.'
     resource_profile=ResourceProfile(cpu_cores=1,ram_mb=128,vram_mb=0,disk_mb=1,network_required=False)
     input_schema={'type':'object','required':['report','output_path'],'additionalProperties':False,'properties':{
         'report':{'type':'object'},'output_path':{'type':'string','minLength':1}}}
@@ -90,8 +116,11 @@ class SportsCard(BaseTool):
         try:
             validate(inputs,self.input_schema)
             path=Path(inputs['output_path'])
-            if path.suffix.lower()!='.svg':raise ValueError('La salida debe ser SVG')
+            suffix=path.suffix.lower()
+            if suffix not in ('.svg','.png'):raise ValueError('La salida debe ser SVG o PNG')
             svg=render(inputs['report'])
-            path.parent.mkdir(parents=True,exist_ok=True);path.write_text(svg,encoding='utf-8')
-            return ToolResult(success=True,data={'output_path':str(path),'format':'svg','video_rendered':False},artifacts=[str(path)],cost_usd=0)
+            path.parent.mkdir(parents=True,exist_ok=True)
+            if suffix=='.svg':path.write_text(svg,encoding='utf-8')
+            else:rasterize(svg,path)
+            return ToolResult(success=True,data={'output_path':str(path),'format':suffix[1:],'video_rendered':False},artifacts=[str(path)],cost_usd=0)
         except Exception as exc:return ToolResult(success=False,error='SPORTS_CARD_REJECTED: '+str(exc),cost_usd=0)
