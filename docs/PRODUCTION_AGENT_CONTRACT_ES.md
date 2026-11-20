@@ -112,3 +112,6 @@ Para postales MLB usa `official_mlb_live` con `action=collectible_card`, `name`,
 
 
 La exportación deportiva verifica además H.264, yuv420p, 24 fps, una pista de video y la cantidad de pistas de audio esperada. Con narración exige AAC y comprueba que su duración no esté recortada (tolerancia técnica 60 ms). El expediente conserva SHA-256 y tamaño del MP4, junto con SHA-256 del informe fuente serializado. Estas huellas permiten comprobar integridad del archivo; no certifican la veracidad de las cifras ni reemplazan la revisión editorial, visual y final del pipeline.
+
+
+Para comparar jugadores UEFA por nombre usa `official_uefa_live` con `action=compare_players`, `competition`, `edition`, dos `names`, `metrics` y opcional `phase`. `resolve_players` permite de uno a diez nombres. Los IDs se toman del ranking oficial consultado en ese momento. Se normalizan acentos y mayúsculas, pero no se elige entre homónimos ni se suman filas por equipos. Si falta un nombre en el ranking, el resultado significa únicamente «no encontrado en este ranking», no ausencia del torneo. Solo usar para guion cuando `ready_for_script=true`. Las fuentes y alcance siguen el formato UEFA (`consultas`, `alcance`, `registros`); no enviarlo directamente al renderer FIFA/MLB, que todavía requiere adaptar y comprobar este formato.

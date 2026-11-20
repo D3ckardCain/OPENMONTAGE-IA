@@ -4,6 +4,8 @@ from tools.football.uefa_live import UEFA
 from tools.football.uefa import COMPETITIONS
 
 ACTIONS={
+ 'resolve_players':('competition','edition','names','metrics','phase'),
+ 'compare_players':('competition','edition','names','metrics','phase'),
  'ranking':('competition','edition','entity','metrics','phase','team_id','order'),
  'matches':('competition','edition','phase','team_id'),
  'match':('competition','match_id','lineups'),
@@ -21,7 +23,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.4.0'
+ version='0.5.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -39,6 +41,7 @@ class OfficialUEFA(BaseTool):
  input_schema={'type':'object','required':['action','competition'],'additionalProperties':False,'properties':{
   'action':{'type':'string','enum':list(ACTIONS)},
   'competition':{'type':'string','enum':list(COMPETITIONS)},
+  'names':{'type':'array','minItems':1,'maxItems':10,'items':{'type':'string','minLength':1,'maxLength':150}},
   'edition':{'type':'integer','minimum':1955},'entity':{'type':'string'},
   'metrics':{'type':'array','minItems':1,'uniqueItems':True,'items':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'}},
   'metric':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'},
@@ -57,7 +60,10 @@ class OfficialUEFA(BaseTool):
    extra=set(inputs)-set(allowed)-{'action'}
    if extra:raise ValueError('Parametros no aplicables: '+','.join(sorted(extra)))
    kwargs={k:inputs[k] for k in allowed if k in inputs}
-   data=getattr(self.client,action)(**kwargs)
+   if action in ('resolve_players','compare_players'):
+    from tools.football.uefa_names import resolve,compare
+    data=(resolve if action=='resolve_players' else compare)(self.client,**kwargs)
+   else:data=getattr(self.client,action)(**kwargs)
    return ToolResult(success=True,data=data,artifacts=[],cost_usd=0,from_cache=False)
   except Exception as exc:
    return ToolResult(success=False,error='UEFA_QUERY_REJECTED: '+str(exc),data={'fresh_query_failed':True,'stale_fallback':False},cost_usd=0,from_cache=False)
