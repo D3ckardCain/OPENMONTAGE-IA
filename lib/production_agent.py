@@ -32,6 +32,7 @@ def descriptor(name,description,properties=None,required=None):
         'type':'object','additionalProperties':False,'properties':properties or {},'required':required or []}}}
 
 TOOLS=[
+ descriptor('sports_sources','Localiza fuentes oficiales por deporte y región para comparativas y tarjetas. No contiene estadísticas ni certifica conectores pendientes.',{'sport':{'enum':['football','boxing','baseball']},'region':{'enum':['world','europe','americas','asia','africa','arab','oceania']}}),
  descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
  descriptor('project_translation','Lee una traducción local guardada por fragmentos antes de repetirla. Conserva la obligación de revisar idioma y adaptación cultural; no genera ni aprueba el guion.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
@@ -141,6 +142,9 @@ class LocalAgent:
         if not spec:raise ValueError('Llamada desconocida')
         validate(args,spec['parameters'])
         if name=='read_instruction':return self.instruction(args['path'])
+        if name=='sports_sources':
+            from lib.sports_sources import catalog
+            return catalog(**args)
         if name=='project_state':return studio.production_state(self.pid)
         if name=='reference_analysis':
             from lib.reference_analysis import read

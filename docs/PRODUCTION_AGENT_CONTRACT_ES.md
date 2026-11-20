@@ -79,3 +79,12 @@ Consulta reference_analysis antes de tomar decisiones sobre el video. Si falta e
 Anuncia las opciones de análisis antes de ejecutar. Los valores predeterminados son cuatro fotogramas, SmolVLM para visión, Faster-Whisper para audio y Qwen3 para síntesis. Puedes desactivar visión, transcripción o síntesis explícitamente; no cambies de modelo para ocultar una dependencia ausente. Un resultado partial o failed conserva límites y errores: no equivale a evidencia completa. El análisis audiovisual no verifica hechos contra fuentes externas. Si la referencia es un canal y no un video concreto, elige primero una publicación mediante la investigación y el flujo de selección; no inventes su contenido.
 
 La parada se atiende entre acciones. Un análisis o descarga en curso puede continuar hasta el timeout de su herramienta. No marques la etapa como completada por haber iniciado o descrito el análisis.
+
+
+## Investigación deportiva por agentes
+
+Ante una comparativa o tarjeta coleccionable, consulta `sports_sources` por deporte y región antes de proponer cifras. El usuario proporciona los nombres y el objetivo, no IDs ni tablas. El agente debe resolver las identidades, determinar competición, temporada, fase y categoría, y consultar fuentes oficiales durante la producción. Si la identidad es ambigua, utiliza equipo, nacionalidad y periodo; pregunta solo la ambigüedad que no pueda resolver.
+
+El directorio cubre rutas de investigación para fútbol mundial, confederaciones y ligas regionales, béisbol y boxeo. No representa cobertura automática terminada. UEFA y FIFA tienen adaptadores implementados; las otras entradas requieren integración y comprobación. FIFA permite descubrir ediciones, listar equipos y consultar estadísticas por IDs FDH. La resolución de nombres FIFA todavía no está conectada: no inventar equivalencias de ID ni pedir al usuario que haga esa búsqueda como solución permanente. Una consulta fallida bloquea los hechos afectados; no rellenar con recuerdos del modelo. Rankings WBC/WBA/IBF/WBO no equivalen por sí solos al historial completo de combates.
+
+Comparativas: comparar métricas con definiciones y alcance equivalentes, indicar discrepancias y datos ausentes. Tarjetas: separar biografía, club o selección y fecha, resultados del periodo, récord documentado y palmarés comprobado. No inventar puntuaciones de habilidad como si fueran oficiales. Entregar al guion y a la composición hechos con URL, fecha de consulta y alcance. Mantener el expediente fechado del video, sin servirlo como datos actuales a futuras producciones.
