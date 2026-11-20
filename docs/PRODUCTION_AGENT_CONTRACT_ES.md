@@ -150,4 +150,4 @@ Para goles o asistencias de los rankings visibles de las divisiones japonesas J1
 
 Si se solicitan goles y asistencias juntos, un jugador identificado por su enlace oficial en asistencias puede recuperar los goles de su perfil cuando falta en el ranking visible de goles. Se exige una única fila de la división y temporada solicitadas, con identidad confirmada. Se conserva el enlace del perfil como procedencia de los goles. Si faltan asistencias o hay varias filas de la misma división para el mismo año, la cifra queda sin resolver.
 
-La métrica `duels_won` añade duelos ganados desde el ranking visible de J1, J2, J3 y Copa Levain. Puedes solicitarla sola o con goles y asistencias.
+Las métricas `duels_won` y `clean_sheets` consultan los rankings visibles de duelos ganados y porterías a cero de J1, J2, J3 y Copa Levain. Puedes solicitar cualquiera de ellas sola o junto a otras métricas.

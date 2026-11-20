@@ -7,7 +7,7 @@ from pathlib import Path
 from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, profile_url, ranking_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
-_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
+_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','clean_sheets':'Porterías a cero','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
 
 
 def uefa_report(report):

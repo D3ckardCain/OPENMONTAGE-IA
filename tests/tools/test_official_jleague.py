@@ -176,9 +176,13 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     assert missing.data['records'][0]['statistics']['goals'] is None
 
 
-def test_duels_won_uses_its_own_ranking_and_label(official_page, monkeypatch):
-    url = jleague.ranking_url(2025, 'duels_won')
-    page = official_page.replace(jleague.ranking_url(2025, 'goals'), url).replace('Top scorers', 'Duels won')
+@pytest.mark.parametrize(('metric', 'title', 'label'), [
+    ('duels_won', 'Duels won', 'Duelos ganados'),
+    ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
+])
+def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch, metric, title, label):
+    url = jleague.ranking_url(2025, metric)
+    page = official_page.replace(jleague.ranking_url(2025, 'goals'), url).replace('Top scorers', title)
 
     def fetch(requested):
         assert requested == url
@@ -187,7 +191,7 @@ def test_duels_won_uses_its_own_ranking_and_label(official_page, monkeypatch):
     monkeypatch.setattr(jleague, 'fetch', fetch)
     result = jleague.OfficialJLeague().execute(
         {'action': 'compare_players', 'season': 2025, 'names': ['Example One', 'Example Two'],
-         'metrics': ['duels_won']})
+         'metrics': [metric]})
     assert result.success and result.data['ready_for_script']
-    assert result.data['records'][0]['statistics'] == {'duels_won': 21}
-    assert 'Duelos ganados' in render(result.data)
+    assert result.data['records'][0]['statistics'] == {metric: 21}
+    assert label in render(result.data)
