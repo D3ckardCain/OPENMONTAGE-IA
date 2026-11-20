@@ -48,3 +48,29 @@ def test_tool_dispatch_validation_and_failure_without_cache():
     assert t.execute(args).success
     assert not t.execute(dict(args,player_id='1')).success
     assert not t.execute(dict(args,names=['Mbappe'])).success
+
+
+def test_real_ranking_normalization_feeds_name_resolver(monkeypatch):
+    from types import SimpleNamespace
+    from tools.football.uefa_live import UEFA,Reply
+    client=UEFA(pause=0)
+    ctx=SimpleNamespace(competition='champions',competition_id='1',current_edition=2026,stats_url='https://compstats.uefa.com/',key='test')
+    monkeypatch.setattr(client,'context',lambda competition:ctx)
+    monkeypatch.setattr(client,'api',lambda *args:Reply([{'name':'goals','actors':['PLAYER']}],'https://compstats.uefa.com/definitions','2026-11-20'))
+    raw=[{'playerId':pid,'teamId':team,'player':{'id':pid,'internationalName':name},'statistics':[{'name':'goals','value':value}]}
+         for pid,team,name,value in [('1','10','Kylian Mbappé','8'),('2','20','Erling Haaland','6')]]
+    monkeypatch.setattr(client,'paginate',lambda *args:(raw,[{'url':'https://compstats.uefa.com/ranking','consultado_utc':'2026-11-20'}]))
+    result=client.compare_players('champions',2024,['Mbappe','Haaland'],['goals'])
+    assert result['ready_for_script']
+    assert [row['estadisticas']['goals'] for row in result['registros']]==['8','6']
+
+
+def test_shared_surname_needs_first_name_not_ranking_position():
+    c=Client();c.rows.append({'id':'3','team_id':'10','nombre':'Ethan Mbappé','estadisticas':{'goals':0},'metricas_no_disponibles':[]})
+    ambiguous=compare(c,'champions',2024,['Mbappe','Haaland'],['goals'])
+    assert ambiguous['tipo']=='comparativa_bloqueada'
+    assert ambiguous['registros'][0]['nombres_oficiales_para_aclarar']==['Kylian Mbappé','Ethan Mbappé']
+    assert ambiguous['diagnostico_identidad']['filas_consultadas']==3
+    exact=compare(c,'champions',2024,['Kylian Mbappe','Erling Haaland'],['goals'])
+    assert exact['ready_for_script']
+    assert exact['registros'][0]['id']=='1'

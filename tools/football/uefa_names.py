@@ -27,8 +27,10 @@ def resolve(client,competition,edition,names,metrics,phase='TOURNAMENT'):
             if target==alias or (' '+target+' ') in (' '+alias+' '):
                 candidates.append(row)
         results.append({'nombre_solicitado':name,'estado':'resolved' if len(candidates)==1 else 'ambiguous' if candidates else 'not_found_in_ranking',
-                        'candidatos':candidates})
+                        'candidatos':candidates,
+                        'nombres_oficiales_para_aclarar':list(dict.fromkeys(r['nombre'] for r in candidates)) if len(candidates)>1 else []})
     return {**report,'tipo':'resolucion_por_nombres','registros':results,
+            'diagnostico_identidad':{'filas_consultadas':len(records),'filas_con_nombre':sum(bool(r.get('nombre')) for r in records)},
             'poblacion_consultada':'ranking_de_las_metricas_solicitadas',
             'limite_identidad':'Ausencia en este ranking no demuestra ausencia del torneo. Filas múltiples por equipo no se suman ni se resuelven arbitrariamente.'}
 
