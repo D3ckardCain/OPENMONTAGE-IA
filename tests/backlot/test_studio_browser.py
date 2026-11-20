@@ -319,7 +319,7 @@ def test_official_football_queries_clear_old_results_on_failure(staged_backlot_s
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page()
         page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
-        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json={'coverage_note':'Solo UEFA','competitions':['champions'],'actions':[{'name':'definitions','fields':['competition'],'required':['competition']}]}))
+        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json={'coverage_note':'Solo UEFA','competitions':['champions'],'parameters':{'edition':{'type':'integer','minimum':1955},'player_id':{'type':'string'},'metrics':{'type':'array'},'phase':{'type':'string','enum':['TOURNAMENT','ALL']}},'actions':[{'name':'definitions','fields':['competition'],'required':['competition']},{'name':'player','fields':['competition','edition','player_id','metrics','phase'],'required':['competition','edition','player_id','metrics'],'defaults':{'phase':'TOURNAMENT'}}]}))
         calls=[]
         def query(route):
             calls.append(route.request.post_data_json)
@@ -333,4 +333,14 @@ def test_official_football_queries_clear_old_results_on_failure(staged_backlot_s
         page.get_by_text('Fuente temporalmente no disponible',exact=True).wait_for()
         assert 'fresh-result' not in page.locator('#football-result').inner_text()
         assert calls==[{'action':'definitions','competition':'champions'}]*2
+        page.locator('#football-action').select_option('player')
+        page.locator('[data-football-field=edition]').fill('2027')
+        page.locator('[data-football-field=player_id]').fill('12345')
+        page.locator('[data-football-field=metrics]').fill('goals, assists')
+        page.locator('[data-football-field=phase]').select_option('ALL')
+        page.locator('#football-query').click()
+        page.wait_for_function('document.querySelector("#football-query").disabled===false')
+        assert calls[-1]=={'action':'player','competition':'champions','edition':2027,'player_id':'12345','metrics':['goals','assists'],'phase':'ALL'}
+        page.locator('#football-action').select_option('definitions')
+        assert page.locator('[data-football-field]').count()==0
         browser.close()

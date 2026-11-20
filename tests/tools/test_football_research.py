@@ -4,7 +4,7 @@ from lib import football_research as football
 
 
 def test_schema_does_not_access_network(monkeypatch):
-    monkeypatch.setattr(football,'OfficialUEFA',lambda:pytest.fail('Schema must not query'))
+    monkeypatch.setattr(football.OfficialUEFA,'__init__',lambda self:pytest.fail('Schema must not query'))
     report=football.schema()
     assert 'champions' in report['competitions']
     assert next(item for item in report['actions'] if item['name']=='definitions')['required']==['competition']
