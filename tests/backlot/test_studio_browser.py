@@ -47,7 +47,7 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Iniciar / reanudar agentes').click()
         page.wait_for_function('document.querySelector("#status").textContent === "blocked"')
         assert actions==['start']
-        versions={'versions':[{'project_id':'version-en','language':'en','status':'existing'},{'project_id':'version-ko','language':'ko','status':'unavailable'}]}
+        versions={'summary':{'total':3,'rendered':1,'awaiting_human':0,'blocked':0,'unavailable':1},'versions':[{'project_id':'version-en','language':'en','status':'existing'},{'project_id':'version-ko','language':'ko','status':'unavailable'},{'project_id':'version-de','language':'de','status':'existing','job_status':'rendered','verification_status':'passed','final_copy_registered':True,'can_enqueue':False}]}
         batches=[]
         page.route('**/api/studio/language-versions/video-fixture',lambda route:route.fulfill(json=versions))
         def queue_versions(route):
@@ -57,6 +57,8 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.locator('#versions-load').click()
         page.get_by_role('checkbox',name='Seleccionar en',exact=True).check()
         assert page.get_by_role('checkbox',name='Seleccionar ko',exact=True).count()==0
+        assert page.get_by_role('checkbox',name='Seleccionar de',exact=True).count()==0
+        assert '3 versiones · 1 terminadas' in page.locator('#versions-result').inner_text()
         page.get_by_role('button',name='Añadir versiones seleccionadas a la cola',exact=True).click()
         page.wait_for_function('document.querySelector("#notice").textContent.includes("1 añadidas")')
         assert batches==[{'project_ids':['version-en']}]

@@ -19,3 +19,7 @@ Las pruebas usan creadores simulados y no validan narración, traducción ni ren
 «Revisar recursos de voz y traducción» consulta los adaptadores registrados de voz, traducción y transcripción. Revisa archivos y configuración sin ejecutar Python auxiliar, hacer peticiones a servidores ni cargar modelos. Muestra requisitos ausentes y módulos pendientes. «Archivos configurados» no certifica dependencias instaladas ni soporte de un idioma: habrá que comprobar voz, pronunciación y calidad con los modelos reales.
 
 La prueba de integración crea proyectos reales en carpetas temporales, comprueba checkpoints guiados, idiomas independientes, ausencia de renders y reutilización al repetir. No ejecuta inferencia.
+
+## Estado de las versiones
+
+La consulta de versiones guardadas muestra el estado del productor, su último mensaje, la verificación técnica guardada y si existe una copia final registrada. Resume las terminadas, bloqueadas, pendientes de aprobación y no disponibles. Una versión con el productor en estado `rendered` no se ofrece para añadir otra vez a la cola. Una copia registrada no confirma que su disco siga conectado; consulta «Videos finales» para comprobar disponibilidad. Los datos se actualizan al pulsar «Consultar versiones guardadas».

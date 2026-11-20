@@ -46,10 +46,21 @@ def list_versions(project_id):
     with studio.LOCK:
         ledger=studio.read_json(source/'language_versions.json',{'versions':{}})
         records=[dict(entry) for entry in ledger['versions'].values()]
+    summary={'total':len(records),'rendered':0,'awaiting_human':0,'blocked':0,'unavailable':0}
     for entry in records:
-        try:studio.project_path(entry['project_id']);entry['status']='existing'
-        except (OSError,ValueError):entry['status']='unavailable'
-    return {'versions':records,'generation_started':False}
+        try:
+            path=studio.project_path(entry['project_id']);entry['status']='existing'
+            job=studio.read_json(path/'job.json',{})
+            verification=studio.read_json(path/'render_verification.json',{})
+            delivery=studio.read_json(path/'final_delivery.json',{})
+            entry.update(job_status=job.get('status','unknown'),message=job.get('message',''),
+                updated_at=job.get('updated_at'),verification_status=verification.get('status','unknown'),
+                final_copy_registered=delivery.get('copied',False))
+            if entry['job_status'] in ('rendered','awaiting_human','blocked'):summary[entry['job_status']]+=1
+            entry['can_enqueue']=entry['job_status']!='rendered'
+        except (OSError,ValueError,KeyError,TypeError) as exc:
+            entry.update(status='unavailable',can_enqueue=False,message=str(exc)[:600]);summary['unavailable']+=1
+    return {'versions':records,'summary':summary,'generation_started':False}
 
 
 def local_requirements(project_id):

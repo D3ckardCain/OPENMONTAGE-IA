@@ -87,3 +87,33 @@ def test_requirements_do_not_probe_runtimes_or_certify_languages(source,monkeypa
     assert calls==['voice','translator']
     assert report['generation_started'] is False and report['network_requests_started']==0
     assert all(not item['language_support_verified'] and not item['runtime_checked'] for item in report['candidates'])
+
+
+def test_version_status_summary_preserves_evidence_without_starting_work(source):
+    from lib.language_versions import list_versions
+    result=create_versions('base',['en','ko','de'])
+    en,ko,de=[studio.project_path(entry['project_id']) for entry in result['versions']]
+    studio.save_json(en/'job.json',{'status':'rendered','message':'Terminado','updated_at':'fixture-time'})
+    studio.save_json(en/'render_verification.json',{'status':'passed'})
+    studio.save_json(en/'final_delivery.json',{'copied':True})
+    studio.save_json(ko/'job.json',{'status':'awaiting_human','message':'Revisa voz'})
+    studio.save_json(de/'job.json',{'status':'blocked','message':'Falta modelo'})
+    ledger=studio.project_path('base')/'language_versions.json';before=ledger.read_bytes()
+    report=list_versions('base')
+    assert report['summary']=={'total':3,'rendered':1,'awaiting_human':1,'blocked':1,'unavailable':0}
+    assert report['versions'][0]['can_enqueue'] is False
+    assert report['versions'][0]['verification_status']=='passed'
+    assert report['versions'][0]['final_copy_registered'] is True
+    assert report['versions'][1]['can_enqueue'] is True
+    assert report['versions'][1]['message']=='Revisa voz'
+    assert ledger.read_bytes()==before and len(source)==3
+
+
+def test_corrupt_version_does_not_hide_other_versions(source):
+    from lib.language_versions import list_versions
+    result=create_versions('base',['en','ko'])
+    (studio.project_path(result['versions'][0]['project_id'])/'job.json').write_text('{broken')
+    report=list_versions('base')
+    assert report['summary']['unavailable']==1
+    assert report['versions'][0]['can_enqueue'] is False
+    assert report['versions'][1]['status']=='existing'
