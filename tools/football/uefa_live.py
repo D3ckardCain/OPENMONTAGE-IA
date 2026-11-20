@@ -8,9 +8,9 @@ from html import unescape
 import argparse,json,re,time,urllib.request,urllib.error
 from urllib.parse import urlencode,urljoin,urlsplit
 try:
- from .uefa import COMPETITIONS,Unavailable,DOM,numeric
+ from .uefa import COMPETITIONS,Unavailable,DOM,numeric,competition_folders
 except ImportError:
- from uefa import COMPETITIONS,Unavailable,DOM,numeric
+ from uefa import COMPETITIONS,Unavailable,DOM,numeric,competition_folders
 
 @dataclass
 class Reply:
@@ -79,8 +79,7 @@ class UEFA:
    if len(values)!=1:raise Unavailable('Configuracion UEFA ausente o ambigua: '+name)
    return values.pop()
   folder=one('competitionFolder')
-  allowed={COMPETITIONS[competition],{'champions':'ucl','europa':'uel','conference':'uecl','supercup':'scup','qualifiers':'eq'}.get(competition,COMPETITIONS[competition])}
-  if folder not in allowed:raise Unavailable('Configuracion pertenece a otra competicion')
+  if folder not in competition_folders(competition):raise Unavailable('Configuracion pertenece a otra competicion')
   cid=one('competitionId');edition=int(one('currentSeason',True));key=one('apiKey')
   if not cid.isdigit():raise Unavailable('ID de competicion invalido')
   services=[one(n) for n in ('compStatsApiUrl','compApiUrl','matchApiUrl')]

@@ -8,6 +8,7 @@ from urllib.parse import urljoin, urlsplit, parse_qs
 
 COMPETITIONS = {
  'champions': 'uefachampionsleague',
+ 'women_champions': 'womenschampionsleague',
  'europa': 'uefaeuropaleague',
  'conference': 'uefaconferenceleague',
  'euro': 'uefaeuro',
@@ -16,6 +17,19 @@ COMPETITIONS = {
  'finalissima': 'finalissima',
  'qualifiers': 'european-qualifiers',
 }
+COMPETITION_FOLDER_ALIASES = {
+ 'champions': 'ucl',
+ 'women_champions': 'wucl',
+ 'europa': 'uel',
+ 'conference': 'uecl',
+ 'supercup': 'scup',
+ 'qualifiers': 'eq',
+}
+
+def competition_folders(competition):
+ folder = COMPETITIONS[competition]
+ return {folder, COMPETITION_FOLDER_ALIASES.get(competition, folder)}
+
 class Unavailable(ValueError): pass
 @dataclass
 class Node:
@@ -68,7 +82,7 @@ def parse_overview(html,competition,expected_season):
  if not re.fullmatch(r'\d{4}(?:/\d{2,4})?',expected_season):raise Unavailable('Edicion invalida')
  if season!=expected_season:raise Unavailable('Edicion solicitada '+expected_season+'; la pagina identifica '+season)
  folders=set(re.findall(r"window\.competitionFolder\s*=\s*['\"]([^'\"]+)['\"]",html))
- if folders and not folders.issubset({COMPETITIONS[competition],{'champions':'ucl','europa':'uel','conference':'uecl','supercup':'scup','qualifiers':'eq'}.get(competition,COMPETITIONS[competition])}):raise Unavailable('La pagina corresponde a otra competicion')
+ if folders and not folders.issubset(competition_folders(competition)):raise Unavailable('La pagina corresponde a otra competicion')
  base=source_url(competition,expected_season)
  rankings=[];keys=set()
  for card in root.walk('pk-data-card'):

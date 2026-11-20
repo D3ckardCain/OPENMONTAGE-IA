@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 from tools.football.official_uefa import OfficialUEFA
+from tools.football.uefa_live import Reply
 from tools.base_tool import _is_cacheable
 from tools.tool_registry import ToolRegistry
 class Stub:
@@ -12,6 +13,25 @@ class Integration(unittest.TestCase):
  def test_discoverable(self):
   from tools.football import official_uefa
   self.assertIn('official_uefa_live',ToolRegistry().register_module(official_uefa))
+ def test_womens_champions_uses_its_own_official_context(self):
+  tool = OfficialUEFA()
+  page = 'https://www.uefa.com/womenschampionsleague/history/'
+  config = """
+window.competitionFolder = 'wucl';
+window.competitionId = '28';
+window.currentSeason = 2027;
+window.apiKey = 'fixture';
+window.compStatsApiUrl = 'https://compstats.uefa.com/';
+window.compApiUrl = 'https://comp.uefa.com/';
+window.matchApiUrl = 'https://match.uefa.com/';
+"""
+  with patch.object(tool.client.transport, 'get', return_value=Reply(config, page, 'fixture')) as get:
+   context = tool.client.context('women_champions')
+   get.assert_called_once_with(page)
+  self.assertIn('women_champions', tool.input_schema['properties']['competition']['enum'])
+  self.assertEqual(context.competition_id, '28')
+  self.assertEqual(context.current_edition, 2027)
+
  def test_no_cached_statistics(self):
   t=self.tool();args={'action':'definitions','competition':'champions'}
   with patch.dict('os.environ',{'OPENMONTAGE_ASSET_CACHE':'1'}),patch('lib.asset_cache.get_default_asset_cache',side_effect=AssertionError('Cache forbidden')):

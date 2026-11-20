@@ -116,6 +116,8 @@ La exportación deportiva verifica además H.264, yuv420p, 24 fps, una pista de 
 
 Para comparar jugadores UEFA por nombre usa `official_uefa_live` con `action=compare_players`, `competition`, `edition`, dos `names`, `metrics` y opcional `phase`. `resolve_players` permite de uno a diez nombres. Los IDs se toman del ranking oficial consultado en ese momento. Se normalizan acentos y mayúsculas, pero no se elige entre homónimos ni se suman filas por equipos. Si falta un nombre en el ranking, el resultado significa únicamente «no encontrado en este ranking», no ausencia del torneo. Solo usar para guion cuando `ready_for_script=true`. Las fuentes y alcance siguen el formato UEFA (`consultas`, `alcance`, `registros`); el renderer admite comparativas UEFA cuando cada jugador conserva `fuente_estadisticas` con su página exacta, y edición y fase son explícitas.
 
+Para la UEFA Women’s Champions League usa `competition=women_champions`. La edición corresponde al año de cierre de temporada (`edition=2026` para 2025/26). El conector usa la configuración oficial de esa competición y conserva la procedencia en comparativas y postales.
+
 
 Si UEFA devuelve `ambiguous`, consulta `nombres_oficiales_para_aclarar`. Usa el nombre completo solo si la solicitud o evidencia del proyecto identifica a esa persona; no escoger al primero ni al de más goles. El diagnóstico incluye número de filas y filas con nombre para distinguir ambigüedad de perfiles ausentes. Un apellido puede corresponder a más de un jugador en la misma edición. Repetir una búsqueda con el nombre completo exige una consulta nueva; nunca resolverlo modificando manualmente el informe bloqueado.
 
