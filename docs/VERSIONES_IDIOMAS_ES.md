@@ -9,3 +9,7 @@ Las instrucciones requieren adaptar narración, subtítulos, títulos, miniatura
 No acepta el mismo idioma objetivo del proyecto base ni códigos repetidos. Eso no confirma el idioma original del video de referencia, que puede ser diferente. Repetir la solicitud reutiliza las versiones registradas para ese mismo encargo. Si falta una versión, se informa para evitar crear otra sin revisar. Los fallos parciales muestran qué idiomas se prepararon; no eliminan proyectos.
 
 Las pruebas usan creadores simulados y no validan narración, traducción ni render con modelos reales.
+
+## Organizar la producción
+
+«Consultar versiones guardadas» recupera los proyectos registrados incluso después de cerrar la app. Marca los idiomas deseados y pulsa «Añadir versiones seleccionadas a la cola». Admite hasta diez por lote. Valida todos los proyectos y la capacidad antes de guardar. Las versiones que ya estén en la cola se conservan sin duplicarlas ni reactivar bloqueos. Los registros no disponibles no pueden seleccionarse. Luego revisa la cola e inicia su ejecución expresamente; siguen aplicándose las aprobaciones por etapa.

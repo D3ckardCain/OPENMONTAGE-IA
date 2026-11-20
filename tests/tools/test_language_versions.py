@@ -59,3 +59,14 @@ def test_partial_failure_keeps_prepared_version_registered(source,monkeypatch):
     assert [entry['status'] for entry in result['versions']]==['created','failed']
     assert create_versions('base',['en'])['versions'][0]['status']=='existing'
     assert len(source)==1
+
+
+def test_list_versions_survives_reopening_and_marks_unavailable(source):
+    from lib.language_versions import list_versions
+    result=create_versions('base',['en','ko'])
+    assert len(list_versions('base')['versions'])==2
+    (studio.project_path(result['versions'][0]['project_id'])/'production_request.json').unlink()
+    report=list_versions('base')
+    assert [entry['status'] for entry in report['versions']]==['unavailable','existing']
+    assert report['generation_started'] is False
+    assert len(source)==2

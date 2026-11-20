@@ -226,3 +226,31 @@ def test_inspection_never_reports_ready_while_local_task_is_active(isolated,monk
     assert report['problems']
     assert report['worker_active'] is False
     assert report['generation_started'] is False
+
+
+def test_batch_enqueue_is_atomic_and_keeps_existing_status(isolated):
+    queue.enqueue('first');value=queue._load();value['items'][0]['status']='blocked';queue._save(value)
+    report=queue.enqueue_many(['first','second'])
+    assert report['added']==['second'] and report['existing']==['first']
+    assert report['generation_started'] is False
+    assert queue.read()['items'][0]['status']=='blocked'
+    before=queue._path().read_bytes()
+    with pytest.raises(FileNotFoundError):queue.enqueue_many(['second','missing'])
+    assert queue._path().read_bytes()==before
+
+
+def test_batch_rejects_duplicates_and_capacity_without_partial_save(isolated):
+    with pytest.raises(ValueError):queue.enqueue_many(['first','first'])
+    queue.enqueue('first');value=queue._load();value['items']=value['items']*100;queue._save(value)
+    before=queue._path().read_bytes()
+    with pytest.raises(ValueError,match='100'):queue.enqueue_many(['second'])
+    assert queue._path().read_bytes()==before
+
+
+def test_batch_api_adds_only_without_starting(isolated):
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    result=client.post('/api/studio/queue/enqueue-batch',json={'project_ids':['first','second']})
+    assert result.status_code==200 and result.json()['generation_started'] is False
+    assert client.post('/api/studio/queue/enqueue-batch',json={'project_ids':['first'],'start':True}).status_code==400

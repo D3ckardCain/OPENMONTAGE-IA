@@ -39,3 +39,14 @@ def create_versions(project_id,languages):
                 if created:failure['project_id']=created['project_id'];failure['message']+='; el proyecto se creó pero no se pudo registrar: revísalo antes de reintentar'
                 results.append(failure);break
     return {'versions':results,'generation_started':False,'media_copied':False,'automatic_approval':False}
+
+
+def list_versions(project_id):
+    source=studio.project_path(project_id)
+    with studio.LOCK:
+        ledger=studio.read_json(source/'language_versions.json',{'versions':{}})
+        records=[dict(entry) for entry in ledger['versions'].values()]
+    for entry in records:
+        try:studio.project_path(entry['project_id']);entry['status']='existing'
+        except (OSError,ValueError):entry['status']='unavailable'
+    return {'versions':records,'generation_started':False}

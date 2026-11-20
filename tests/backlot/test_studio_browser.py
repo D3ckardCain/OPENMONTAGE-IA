@@ -47,6 +47,20 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Iniciar / reanudar agentes').click()
         page.wait_for_function('document.querySelector("#status").textContent === "blocked"')
         assert actions==['start']
+        versions={'versions':[{'project_id':'version-en','language':'en','status':'existing'},{'project_id':'version-ko','language':'ko','status':'unavailable'}]}
+        batches=[]
+        page.route('**/api/studio/language-versions/video-fixture',lambda route:route.fulfill(json=versions))
+        def queue_versions(route):
+            batches.append(route.request.post_data_json);route.fulfill(json={'added':['version-en'],'existing':[],'generation_started':False})
+        page.route('**/api/studio/queue/enqueue-batch',queue_versions)
+        page.get_by_text('Preparar versiones en otros idiomas',exact=True).click()
+        page.locator('#versions-load').click()
+        page.get_by_role('checkbox',name='Seleccionar en',exact=True).check()
+        assert page.get_by_role('checkbox',name='Seleccionar ko',exact=True).count()==0
+        page.get_by_role('button',name='Añadir versiones seleccionadas a la cola',exact=True).click()
+        page.wait_for_function('document.querySelector("#notice").textContent.includes("1 añadidas")')
+        assert batches==[{'project_ids':['version-en']}]
+        assert actions==['start']
         selected_profiles=[]
         profiles={'presets':[{'id':'wan22-5b-t2v','label':'Wan 2.2 · 5B · texto a video','note':'Perfil local de prueba','required_models':['wan2.2_ti2v_5B_fp16.safetensors']}],'current':{'preset':'wan22-14b-t2v-4step'}}
         page.route('**/api/studio/wan-presets',lambda r:r.fulfill(json=profiles))

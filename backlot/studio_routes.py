@@ -51,6 +51,7 @@ def create_studio_router():
         if action in ('start','pause'):
             if data:raise HTTPException(400,'Esta acción no admite parámetros')
             return invoke(getattr(production_queue,action))
+        if action=='enqueue-batch' and set(data)=={'project_ids'}:return invoke(production_queue.enqueue_many,data['project_ids'])
         if action=='enqueue' and set(data)=={'project_id'} and isinstance(data['project_id'],str):return invoke(production_queue.enqueue,data['project_id'])
         if action=='retry' and set(data)=={'id'} and isinstance(data['id'],str):return invoke(production_queue.retry,data['id'])
         if action=='remove' and set(data)=={'id'} and isinstance(data['id'],str):return invoke(production_queue.edit,data['id'])
@@ -70,6 +71,10 @@ def create_studio_router():
             return invoke(studio.configure,data)
     @router.post('/api/studio/projects')
     async def create(request:Request):return invoke(studio.create_production,await body(request))
+    @router.get('/api/studio/language-versions/{pid}')
+    def language_versions_list(pid:str):
+        from lib.language_versions import list_versions
+        return invoke(list_versions,pid)
     @router.post('/api/studio/language-versions/{pid}')
     async def language_versions(pid:str,request:Request):
         from lib.language_versions import create_versions

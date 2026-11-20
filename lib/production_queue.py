@@ -194,3 +194,21 @@ def inspect():
     return {'ready':bool(pending) and storage['ready'] and not active and not local_task_active and all(item['ready'] for item in pending),
         'worker_active':active,'local_task_active':local_task_active,'problems':queue_problems,'storage':storage,'items':reports,'generation_started':False,
         'scope':'queue_and_storage_only','note':'Comprobación puntual; no ejecuta modelos, no comprueba su compatibilidad ni garantiza espacio suficiente para el render.'}
+
+
+def enqueue_many(project_ids):
+    """Validate a small batch before saving it once; existing records are retained."""
+    if not isinstance(project_ids,list) or not 1<=len(project_ids)<=10 or any(not isinstance(pid,str) for pid in project_ids):
+        raise ValueError('Selecciona entre 1 y 10 proyectos')
+    if len(set(project_ids))!=len(project_ids):raise ValueError('No repitas proyectos en el lote')
+    with LOCK:
+        value=_load();root=str(studio.PROJECTS_DIR.resolve());added=[];existing=[];records=[]
+        for pid in project_ids:
+            path=studio.project_path(pid)
+            if any(item['project_id']==pid and item['projects_root']==root for item in value['items']):existing.append(pid);continue
+            request=studio.read_json(path/'production_request.json')
+            records.append({'id':uuid.uuid4().hex,'project_id':pid,'title':request['title'],'projects_root':root,'status':'pending','added_at':studio.now()})
+            added.append(pid)
+        if len(value['items'])+len(records)>100:raise ValueError('El lote supera el límite de 100 registros de cola')
+        if records:value['items'].extend(records);_save(value)
+    return {'added':added,'existing':existing,'generation_started':False}
