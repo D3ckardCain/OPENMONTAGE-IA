@@ -142,6 +142,15 @@ def create_studio_router():
     def pending_download_plan():
         from lib.download_plan import plan
         return invoke(plan)
+    @router.get('/api/studio/football/schema')
+    def football_schema():
+        from lib.football_research import schema
+        return invoke(schema)
+    @router.post('/api/studio/football/query')
+    async def football_query(request:Request):
+        from lib.football_research import query
+        data=await body(request)
+        return await asyncio.to_thread(lambda:invoke(query,data))
     @router.get('/api/studio/resources')
     def resources():return studio.resource_catalog()
     @router.get('/api/studio/integration-coverage')

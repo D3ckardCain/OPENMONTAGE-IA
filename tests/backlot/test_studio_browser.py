@@ -312,3 +312,25 @@ def test_final_catalog_availability_errors_and_disconnected_disk(staged_backlot_
         assert 'No hay entregas' not in page.locator('#finals-result').inner_text()
         assert errors==[]
         browser.close()
+
+
+def test_official_football_queries_clear_old_results_on_failure(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
+        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json={'coverage_note':'Solo UEFA','competitions':['champions'],'actions':[{'name':'definitions','fields':['competition'],'required':['competition']}]}))
+        calls=[]
+        def query(route):
+            calls.append(route.request.post_data_json)
+            route.fulfill(json={'success':len(calls)==1,'data':{'fixture_stat':'fresh-result'} if len(calls)==1 else None,'error':'Fuente temporalmente no disponible','note':'Consulta sin respaldo antiguo'})
+        page.route('**/api/studio/football/query',query)
+        page.goto(staged_backlot_server+'/studio#football')
+        page.locator('#football-load').click()
+        page.locator('#football-query').click()
+        page.wait_for_function('document.querySelector("#football-result").textContent.includes("fresh-result")')
+        page.locator('#football-query').click()
+        page.get_by_text('Fuente temporalmente no disponible',exact=True).wait_for()
+        assert 'fresh-result' not in page.locator('#football-result').inner_text()
+        assert calls==[{'action':'definitions','competition':'champions'}]*2
+        browser.close()
