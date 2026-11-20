@@ -65,3 +65,7 @@ Antes de copiar al destino final se compara la huella con la del archivo verific
 El botón «Reintentar entrega verificada» recupera únicamente la copia al destino final. Requiere las etapas de producción completas, el informe técnico aprobado y una huella de las declaraciones de render sin cambios. Después vuelve a comprobar SHA-256 antes de copiar. Si cambió el informe o el video, exige verificar de nuevo; no vuelve a renderizar automáticamente.
 
 La copia se ejecuta fuera del hilo de atención HTTP. Durante ella se excluyen otras tareas locales y cambios de configuración. Puede tardar con archivos grandes. delivery_retry.json conserva el resultado del intento; los originales y las copias finales anteriores se conservan. Completar la entrega no publica el video.
+
+## Catálogo de videos finales
+
+La sección «Videos finales» consulta recibos de entrega y verificaciones guardadas de hasta 500 proyectos del disco de trabajo activo. Muestra la ruta final, su disponibilidad actual y permite abrir el proyecto. Un error de lectura en un proyecto no oculta los demás. Indica listas parciales. No recorre los discos de recursos, copia archivos ni carga modelos. La disponibilidad no equivale a una nueva comprobación de SHA-256 o calidad. Para proyectos de otro disco hay que seleccionar su raíz y reiniciar.

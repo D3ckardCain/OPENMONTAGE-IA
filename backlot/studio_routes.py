@@ -56,6 +56,10 @@ def create_studio_router():
         if action=='remove' and set(data)=={'id'} and isinstance(data['id'],str):return invoke(production_queue.edit,data['id'])
         if action=='move' and set(data)=={'id','direction'} and isinstance(data['id'],str) and isinstance(data['direction'],str):return invoke(production_queue.edit,data['id'],data['direction'])
         raise HTTPException(400,'Acción de cola inválida')
+    @router.get('/api/studio/finals')
+    def final_outputs_catalog():
+        from lib.final_catalog import catalog
+        return invoke(catalog)
     @router.get('/api/studio/runtime')
     async def runtime():return await asyncio.to_thread(studio.runtime_status)
     @router.post('/api/studio/settings')
