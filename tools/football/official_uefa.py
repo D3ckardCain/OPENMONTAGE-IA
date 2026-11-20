@@ -4,6 +4,7 @@ from tools.football.uefa_live import UEFA
 from tools.football.uefa import COMPETITIONS
 
 ACTIONS={
+ 'collectible_card':('competition','edition','names','metrics','phase'),
  'resolve_players':('competition','edition','names','metrics','phase'),
  'compare_players':('competition','edition','names','metrics','phase'),
  'ranking':('competition','edition','entity','metrics','phase','team_id','order'),
@@ -23,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.5.0'
+ version='0.6.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -60,9 +61,9 @@ class OfficialUEFA(BaseTool):
    extra=set(inputs)-set(allowed)-{'action'}
    if extra:raise ValueError('Parametros no aplicables: '+','.join(sorted(extra)))
    kwargs={k:inputs[k] for k in allowed if k in inputs}
-   if action in ('resolve_players','compare_players'):
-    from tools.football.uefa_names import resolve,compare
-    data=(resolve if action=='resolve_players' else compare)(self.client,**kwargs)
+   if action in ('resolve_players','compare_players','collectible_card'):
+    from tools.football.uefa_names import resolve,compare,collectible_card
+    data={'resolve_players':resolve,'compare_players':compare,'collectible_card':collectible_card}[action](self.client,**kwargs)
    else:data=getattr(self.client,action)(**kwargs)
    return ToolResult(success=True,data=data,artifacts=[],cost_usd=0,from_cache=False)
   except Exception as exc:

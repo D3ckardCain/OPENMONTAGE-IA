@@ -44,3 +44,15 @@ def compare(client,competition,edition,names,metrics,phase='TOURNAMENT'):
     if rows[0]['id']==rows[1]['id']:raise ValueError('La comparativa requiere jugadores distintos')
     return {**report,'tipo':'comparativa_jugadores','registros':rows,
             'ready_for_script':not any(r.get('metricas_no_disponibles') or any(r.get('estadisticas',{}).get(m) is None for m in metrics) for r in rows)}
+
+
+def collectible_card(client,competition,edition,names,metrics,phase='TOURNAMENT'):
+    if not isinstance(names,list) or len(names)!=1:raise ValueError('La postal requiere exactamente un jugador')
+    report=resolve(client,competition,edition,names,metrics,phase)
+    result=report['registros'][0]
+    if result['estado']!='resolved':
+        return {**report,'tipo':'postal_bloqueada','ready_for_script':False}
+    row=result['candidatos'][0]
+    missing=row.get('metricas_no_disponibles') or [m for m in metrics if row.get('estadisticas',{}).get(m) is None]
+    return {**report,'tipo':'postal_jugador','registros':[row],'ready_for_script':not missing,
+            'retrato':None,'permiso_retrato':'no_proporcionado','palmares':None,'puntuacion_habilidad':None,'rendered':False}

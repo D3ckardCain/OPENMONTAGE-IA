@@ -10,7 +10,7 @@ _LABELS={'goals':'Goles','assists':'Asistencias','homeRuns':'Jonrones','rbi':'Ca
 
 
 def uefa_report(report):
-    if report.get('tipo')!='comparativa_jugadores' or report.get('ready_for_script') is not True:
+    if report.get('tipo') not in ('comparativa_jugadores','postal_jugador') or report.get('ready_for_script') is not True:
         raise ValueError('Comparativa UEFA bloqueada o no admitida')
     sources=report.get('consultas',[])
     queries=[dict(q,retrieved_at=q.get('consultado_utc')) for q in sources]
@@ -21,7 +21,14 @@ def uefa_report(report):
             raise ValueError('Falta la página exacta de procedencia del jugador UEFA')
         rows.append({'entity_id':row['id'],'identity':{'entity_id':row['id'],'name':row['nombre']},
                      'statistics':row['estadisticas'],'statistics_source':dict(origin,retrieved_at=origin.get('consultado_utc'))})
-    return {'source':'UEFA','type':'player_comparison','ready_for_script':True,
+    if report['tipo']=='postal_jugador':
+        scope=report.get('alcance',{})
+        for row in rows:
+            origin=row['statistics_source']
+            row['facts']=[{'metric':metric,'value':value,'entity_id':row['entity_id'],'scope':scope,
+                           'source_url':origin['url'],'retrieved_at':origin['retrieved_at']}
+                          for metric,value in row['statistics'].items()]
+    return {'source':'UEFA','type':'collectible_card' if report['tipo']=='postal_jugador' else 'player_comparison','ready_for_script':True,
             'scope':report.get('alcance',{}),'queries':queries,'records':rows,
             'competition':report.get('competicion'),'original_report':report}
 

@@ -91,3 +91,21 @@ def test_pagination_attaches_correct_page_to_each_ranking_row(monkeypatch):
     assert len(queries)==3
     plain,_=client.paginate(None,'https://compstats.uefa.com/','ranking',{},lambda x:x['id'])
     assert '_openmontage_source' not in plain[0]
+
+
+def test_collectible_card_resolves_one_name_without_inventing_portrait_or_titles():
+    from tools.football.uefa_names import collectible_card
+    r=collectible_card(Client(),'champions',2024,['Kylian Mbappe'],['goals'])
+    assert r['tipo']=='postal_jugador' and r['ready_for_script']
+    assert r['registros'][0]['estadisticas']['goals']==0
+    assert r['retrato'] is None and r['palmares'] is None and r['puntuacion_habilidad'] is None
+    assert not r['rendered']
+    r=collectible_card(Client(),'champions',2024,['Unknown'],['goals'])
+    assert r['tipo']=='postal_bloqueada' and not r['ready_for_script']
+    with pytest.raises(ValueError):collectible_card(Client(),'champions',2024,['Mbappe','Haaland'],['goals'])
+
+
+def test_registered_uefa_card_action():
+    t=OfficialUEFA();t.client=Client()
+    r=t.execute({'action':'collectible_card','competition':'champions','edition':2024,'names':['Kylian Mbappe'],'metrics':['goals']})
+    assert r.success and r.data['ready_for_script']

@@ -28,3 +28,26 @@ def test_missing_page_or_ambiguous_scope_blocks_visual():
     with pytest.raises(ValueError):render(r)
     r=example();r['ready_for_script']=False
     with pytest.raises(ValueError):render(r)
+
+
+def test_individual_uefa_card_png(tmp_path):
+    from tools.graphics.sports_card import SportsCard
+    from PIL import Image
+    r=example();r['tipo']='postal_jugador';r['registros']=r['registros'][:1]
+    out=tmp_path/'uefa.png'
+    result=SportsCard().execute({'report':r,'output_path':str(out)})
+    assert result.success,result.error
+    with Image.open(out) as image:
+        assert image.size==(1080,1350)
+        assert 'original_report' in image.info['openmontage_evidence']
+
+
+def test_individual_uefa_card_video_with_synthetic_data(tmp_path,monkeypatch):
+    import shutil
+    from tools.graphics.sports_card_video import SportsCardVideo
+    if not shutil.which('ffmpeg') or not shutil.which('ffprobe'):pytest.skip('FFmpeg not installed')
+    monkeypatch.setattr('tools.graphics.sports_card_video.require_media',shutil.which)
+    r=example();r['tipo']='postal_jugador';r['registros']=r['registros'][:1]
+    result=SportsCardVideo().execute({'report':r,'output_path':str(tmp_path/'uefa.mp4'),'duration_seconds':1})
+    assert result.success,result.error
+    assert result.data['full_decode_passed']

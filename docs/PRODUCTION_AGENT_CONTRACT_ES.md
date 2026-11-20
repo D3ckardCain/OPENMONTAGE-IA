@@ -124,3 +124,6 @@ Comprobación real del 20-11-2026: Champions 2024, consulta por `Mbappe` y `Haal
 
 
 Validación real completada el 20-11-2026: comparación Champions 2024 por nombres completos `Kylian Mbappe` y `Erling Haaland`, métrica `goals`, devolvió ambas identidades y `ready_for_script=true`. La ambigüedad del apellido solo quedó resuelta. El ranking agrega ahora procedencia por página a cada fila (`fuente_estadisticas`). `sports_card_svg` y `sports_card_video` admiten el informe `comparativa_jugadores` UEFA con esas fuentes; bloquean versiones antiguas sin procedencia por jugador y fase omitida. La adaptación visual se comprobó con informes sintéticos; no equivale a producción final con retratos y voces reales.
+
+
+Postales UEFA: `official_uefa_live`, acción `collectible_card`, `competition`, `edition`, `names` con exactamente un nombre completo, `metrics` y fase opcional. Devuelve `postal_jugador` únicamente si la identidad se resuelve; los datos ausentes mantienen el bloqueo para guion/diseño. El informe funciona con `sports_card_svg` (SVG/PNG) y `sports_card_video` (MP4 con narración local opcional), manteniendo la página exacta de las cifras. No añade retrato, permiso de imagen, palmarés ni puntuaciones de habilidad. El flujo visual se comprobó con datos sintéticos, no con una nueva producción real de TTS/retratos.

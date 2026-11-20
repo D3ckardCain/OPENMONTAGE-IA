@@ -55,6 +55,9 @@ class UEFA:
   if not 1<=page_size<=50:raise ValueError('page_size debe ser 1..50')
   if not 1<=max_pages<=1000:raise ValueError('max_pages debe ser 1..1000')
   self.transport=transport or Transport();self.page_size=page_size;self.max_pages=max_pages;self.pause=pause
+ def collectible_card(self,competition,edition,names,metrics,phase='TOURNAMENT'):
+  from tools.football.uefa_names import collectible_card
+  return collectible_card(self,competition,edition,names,metrics,phase)
  def resolve_players(self,competition,edition,names,metrics,phase='TOURNAMENT'):
   from tools.football.uefa_names import resolve
   return resolve(self,competition,edition,names,metrics,phase)
