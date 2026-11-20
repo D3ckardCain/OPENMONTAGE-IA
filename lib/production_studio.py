@@ -202,10 +202,13 @@ def resource_catalog():
             items=[]
             for dest in group.get('files',[]):
                 e=entries[dest];matches=index.get(key(dest),[])
-                good=[m for m in matches if m['bytes']==e['size_bytes']]
+                expected=e.get('size_bytes')
+                good=[m for m in matches if expected is not None and m['bytes']==expected]
+                status='recorded_size_match' if good else 'recorded_path_size_unknown' if matches and expected is None else 'recorded_size_mismatch' if matches else 'not_recorded'
                 items.append({'name':e['path'],'destination_folder':str(Path(dest).parent),'filename':dest.replace('\\','/').split('/')[-1],
-                              'size_bytes':e['size_bytes'],'download_url':e.get('url'),'inventory_matches':good,
-                              'status':'recorded_size_match' if good else 'not_recorded','inference_verified':False})
+                              'size_bytes':expected,'download_url':e.get('url'),'inventory_matches':good,
+                              'inventory_path_matches':matches,'size_verified':bool(good),
+                              'status':status,'inference_verified':False})
             groups.append({'id':group['id'],'label':group.get('name',group['id']),'files':items,'source_catalog':path.name})
     return {'inventories':[{k:v for k,v in x.items() if k!='Ficheros'} for x in inventories], 'groups':groups,
             'notes':['Registro por ruta/tamaño, no prueba de instalación ni de inferencia.','Si no consta, revisa ambos discos antes de descargar.','No todos los modelos tienen adaptador de ejecución integrado.']}

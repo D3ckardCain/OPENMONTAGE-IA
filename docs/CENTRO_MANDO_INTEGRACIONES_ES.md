@@ -4,7 +4,7 @@ Estado: preparación; no se han ejecutado modelos ni aplicaciones reales en esta
 
 ## Modelos
 
-La matriz del panel incluye las 46 familias del catálogo: 31 motores nativos y 15 rutas ComfyUI. Todas las familias tienen receta de preparación; esto no acredita instalación ni inferencia. Los workflows API vinculados y las recetas todavía sin configurar se muestran por separado.
+La matriz del panel incluye las 47 familias del catálogo: 32 motores nativos y 15 rutas ComfyUI. Todas las familias tienen receta de preparación; esto no acredita instalación ni inferencia. Los workflows API vinculados y las recetas todavía sin configurar se muestran por separado.
 
 Se incluyen 20 plantillas de Comfy-Org y de los autores de sus integraciones, fijadas a una revisión, en tools/_comfyui/reference_templates. El manifiesto conserva origen y hash del blob. El botón «Preparar workflow sin generar» convierte el lienzo a API consultando únicamente /object_info. Expande subgrafos, conserva entradas expuestas, resuelve reroutes/bypasses inequívocos y elimina ramas ajenas a la salida elegida. Rechaza servicios externos, nodos ausentes, widgets ambiguos y parámetros sin binding. Guarda el grafo y sus bindings para el agente; nunca llama /prompt. Las plantillas siguen requiriendo revisar sus variantes frente a los pesos instalados. En particular, Hunyuan 720p no demuestra compatibilidad con pesos 480p; ACE Step 1 no sustituye a ACE Step 1.5.
 
@@ -44,7 +44,7 @@ Se ejecutan pruebas de contratos con datos sintéticos y procesos simulados. No 
 
 ## Preparación del equipo desde el panel
 
-La sección «Preparación del equipo» reúne un informe de las 46 familias, candidatos de carpetas de pesos, imports requeridos y sugerencias de entornos separados dentro de .runtimes en el disco de la app. Es un plan: no crea entornos ni acredita versiones instaladas. El informe se puede guardar y regenerar cuando cambien los discos.
+La sección «Preparación del equipo» reúne un informe de las 47 familias, candidatos de carpetas de pesos, imports requeridos y sugerencias de entornos separados dentro de .runtimes en el disco de la app. Es un plan: no crea entornos ni acredita versiones instaladas. El informe se puede guardar y regenerar cuando cambien los discos.
 
 La búsqueda de herramientas examina hasta 20 000 entradas y seis niveles en las carpetas elegidas. Omite pesos, bibliotecas voluminosas, enlaces y dependencias de programas. Puede ser parcial y lo indica; no es un inventario completo del disco. No inicia archivos. Los nombres coincidentes se presentan como candidatos y cada ruta se vincula mediante un botón explícito. No reemplaza configuraciones automáticamente ni usa instaladores como ejecutables.
 
@@ -71,3 +71,7 @@ La copia se ejecuta fuera del hilo de atención HTTP. Durante ella se excluyen o
 La sección «Videos finales» consulta recibos de entrega y verificaciones guardadas de hasta 500 proyectos del disco de trabajo activo. Muestra la ruta final, su disponibilidad actual y permite abrir el proyecto. Un error de lectura en un proyecto no oculta los demás. Indica listas parciales. No recorre los discos de recursos, copia archivos ni carga modelos. La disponibilidad no equivale a una nueva comprobación de SHA-256 o calidad. Para proyectos de otro disco hay que seleccionar su raíz y reiniciar.
 
 Si falta la raíz de proyectos, el catálogo muestra «disco no disponible» en vez de presentar el resultado como una colección vacía. Las pruebas de interfaz incluyen entregas disponibles, ausentes, listas parciales y recibos ilegibles con datos simulados.
+
+## Inventarios y tamaños desconocidos
+
+El catálogo distingue ruta y tamaño coincidentes, ruta registrada con tamaño de catálogo desconocido, tamaño distinto y archivo no registrado. Muestra las coincidencias de ambos inventarios con disco, ruta, tamaño observado y fecha. Una ruta registrada con tamaño desconocido o diferente requiere revisar el archivo; no se presenta como ausente ni ofrece una descarga directa. Ninguna coincidencia confirma integridad o instalación.

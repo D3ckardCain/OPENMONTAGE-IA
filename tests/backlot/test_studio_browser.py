@@ -82,6 +82,12 @@ def test_studio_creation_control_and_review(staged_backlot_server):
             selected_profiles.append(route.request.post_data_json);profiles['current']=selected_profiles[-1];route.fulfill(json=profiles['current'])
         page.route('**/api/studio/adapters/wan',select_profile)
         page.get_by_role('button',name='Modelos y discos',exact=True).click()
+        page.route('**/api/studio/resources',lambda route:route.fulfill(json={'notes':['Registro por inventario'],'inventories':[{'Nombre':'ADATA','Serie':'A','Fecha':'fixture'},{'Nombre':'SEAGATE','Serie':'B','Fecha':'fixture'}],'groups':[{'label':'MADLAD','files':[{'filename':'model.safetensors','destination_folder':'/models','status':'recorded_path_size_unknown','download_url':'https://example.org/duplicate','inventory_path_matches':[{'serial':'A','path':'D:/models/model.safetensors','bytes':123,'captured_at':'fixture'}]}]}]}))
+        page.locator('#catalog').click()
+        page.locator('#resource-list summary').click()
+        assert 'Ruta registrada; tamaño del catálogo desconocido' in page.locator('#resource-list').inner_text()
+        assert 'D:/models/model.safetensors' in page.locator('#resource-list').inner_text()
+        assert page.locator('#resource-list a').count()==0
         page.get_by_role('button',name='Ver perfiles y modelo seleccionado').click()
         page.locator('#wan-profile-list summary').click()
         page.get_by_role('button',name='Seleccionar Wan 2.2 · 5B · texto a video',exact=True).click()
