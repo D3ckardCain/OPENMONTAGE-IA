@@ -66,29 +66,80 @@ def parse_ranking(html, season, metric):
     return rows
 
 
+def profile_url(player_id):
+    if not re.fullmatch(r'[0-9]+', player_id):
+        raise ValueError('ID oficial J.League inválido')
+    return f'{BASE_URL}/en/player/{player_id}/'
+
+
+def profile_goals(html, player_id, name, season):
+    dom = DOM()
+    dom.feed(html)
+    canonical = dom.root.first('link', rel='canonical')
+    title = dom.root.first('title')
+    name_parts = normalized(name).split()
+    accepted_names = {normalized(name)}
+    # The English profiles sometimes put the family name first.
+    if len(name_parts) == 2:
+        accepted_names.add(' '.join(reversed(name_parts)))
+    if (not canonical or canonical.attrs.get('href') != profile_url(player_id)
+            or not title or normalized(title.text().split('|')[0]) not in accepted_names):
+        raise ValueError('El perfil J.League no acredita la identidad')
+    values = []
+    for table in dom.root.walk('table'):
+        headers = [[cell.text() for cell in row.walk('th')] for row in table.walk('tr') if row.first('th')]
+        if headers != [['Season', 'Club', 'League', 'League Cup', 'U-21'],
+                       ['App.', 'Goals', 'App.', 'Goals', 'App.', 'Goals']]:
+            continue
+        for row in table.walk('tr'):
+            cells = list(row.walk('td'))
+            if (len(cells) == 8 and cells[0].text() == str(season)
+                    and cells[1].text().endswith(' J1')):
+                values.append(cells[3].text())
+    if len(values) != 1 or not re.fullmatch(r'[0-9]+', values[0]):
+        raise ValueError('El perfil no acredita una única cifra de goles de J1 para la temporada')
+    return int(values[0])
+
+
 def make_report(rankings, names, scope, queries, kind):
-    records, unresolved = [], []
+    records, unresolved, profile_queries = [], [], []
     for name in names:
         key = normalized(name)
-        found = {}
+        found, missing = {}, {}
         for metric, rows in rankings.items():
             matches = [row for row in rows if normalized(row[0]) == key]
             if len(matches) == 1 and matches[0][1]:
                 found[metric] = matches[0]
                 continue
             reason = {0: 'not_in_visible_ranking', 1: 'official_id_missing'}.get(len(matches), 'ambiguous')
-            unresolved.append({'name': name, 'metric': metric, 'value': None, 'reason': reason})
+            missing[metric] = reason
         ids = {row[1] for row in found.values()}
         if len(ids) > 1:
             unresolved.append({'name': name, 'reason': 'conflicting_official_ids'})
             continue
         if not found:
+            unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
+                              for metric, reason in missing.items())
             continue
         official_name, player_id, _ = next(iter(found.values()))
+        sources = dict(queries)
+        if missing.get('goals') == 'not_in_visible_ranking':
+            try:
+                html, query = fetch(profile_url(player_id))
+                goals = profile_goals(html, player_id, official_name, scope['season'])
+            except (OSError, ValueError):
+                missing['goals'] = 'profile_goals_unverified'
+            else:
+                found['goals'] = (official_name, player_id, goals)
+                sources['goals'] = query
+                profile_queries.append(query)
+                del missing['goals']
+        unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
+                          for metric, reason in missing.items())
         facts = [
-            {'metric': metric, 'value': row[2], 'unit': metric, 'entity_id': player_id,
-             'scope': scope, 'source_url': queries[metric]['url'], 'retrieved_at': queries[metric]['retrieved_at']}
-            for metric, row in found.items()
+            {'metric': metric, 'value': found[metric][2], 'unit': metric, 'entity_id': player_id,
+             'scope': scope, 'source_url': sources[metric]['url'], 'retrieved_at': sources[metric]['retrieved_at']}
+            for metric in rankings if metric in found
         ]
         records.append({
             'entity_id': player_id,
@@ -99,7 +150,7 @@ def make_report(rankings, names, scope, queries, kind):
         })
     if len({row['entity_id'] for row in records}) != len(records):
         raise ValueError('La comparativa requiere dos jugadores distintos')
-    return {'source': 'J.League', 'type': kind, 'scope': scope, 'queries': list(queries.values()),
+    return {'source': 'J.League', 'type': kind, 'scope': scope, 'queries': list(queries.values()) + profile_queries,
             'records': records, 'unresolved': unresolved, 'ready_for_script': not unresolved,
             'visible_rows': len(next(iter(rankings.values()))) if len(rankings) == 1 else None,
             'visible_rows_by_metric': {metric: len(rows) for metric, rows in rankings.items()},
@@ -108,7 +159,7 @@ def make_report(rankings, names, scope, queries, kind):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.2.0'
+    version = '0.3.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL

@@ -65,6 +65,8 @@ def test_combined_metrics_keep_separate_sources_and_block_missing(official_page,
     assists = assists.replace('Example Two', 'Other Player')
 
     def fetch(url):
+        if url not in (goals_url, assists_url):
+            raise OSError('Profile unavailable')
         return (official_page if url == goals_url else assists), {'url': url, 'retrieved_at': '2026-11-20'}
 
     monkeypatch.setattr(jleague, 'fetch', fetch)
@@ -85,3 +87,40 @@ def test_combined_metrics_keep_separate_sources_and_block_missing(official_page,
     assert comparison.data['records'][1]['statistics'] == {'goals': 18, 'assists': None}
     with pytest.raises(ValueError):
         render(comparison.data)
+
+def test_goals_recovered_from_the_same_official_player_profile(official_page, monkeypatch):
+    goals_url = jleague.ranking_url(2025, 'goals')
+    assists_url = jleague.ranking_url(2025, 'assists')
+    player_url = jleague.profile_url('100')
+    profile = f"""
+    <link rel="canonical" href="{player_url}">
+    <title>One Example | Club | Official Website of J.LEAGUE</title>
+    <table><tr><th>Season</th><th>Club</th><th>League</th><th>League Cup</th><th>U-21</th></tr>
+    <tr><th>App.</th><th>Goals</th><th>App.</th><th>Goals</th><th>App.</th><th>Goals</th></tr>
+    <tr><td>2025</td><td><p>Club</p><span>J1</span></td><td>32</td><td>7</td>
+    <td>4</td><td>1</td><td>-</td><td>-</td></tr>
+    <tr><td>2025</td><td><p>Other Club</p><span>J2</span></td><td>2</td><td>3</td>
+    <td>0</td><td>0</td><td>-</td><td>-</td></tr></table>
+    """
+    pages = {
+        goals_url: official_page.replace('Example One', 'Other Player'),
+        assists_url: official_page.replace(goals_url, assists_url).replace('Top scorers', 'Assists'),
+        player_url: profile,
+    }
+
+    def fetch(url):
+        return pages[url], {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    inputs = {'action': 'collectible_card', 'season': 2025, 'names': ['Example One'],
+              'metrics': ['goals', 'assists']}
+    result = jleague.OfficialJLeague().execute(inputs)
+    assert result.success and result.data['ready_for_script']
+    goals = result.data['records'][0]['facts'][0]
+    assert (goals['value'], goals['source_url']) == (7, player_url)
+    assert 'Goles' in render(result.data)
+
+    pages[player_url] = profile.replace('One Example', 'Wrong Player')
+    result = jleague.OfficialJLeague().execute(inputs)
+    assert result.success and not result.data['ready_for_script']
+    assert result.data['records'][0]['statistics']['goals'] is None

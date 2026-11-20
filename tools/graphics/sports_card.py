@@ -4,7 +4,7 @@ import json
 import math
 import re
 from pathlib import Path
-from tools.football.official_jleague import METRICS as JLEAGUE_METRICS, ranking_url
+from tools.football.official_jleague import METRICS as JLEAGUE_METRICS, profile_url, ranking_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
 _LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
@@ -79,7 +79,12 @@ def render(report):
             if fact.get('entity_id')!=entity or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
             if source == 'J.League':
                 metric = fact['metric']
-                if metric not in JLEAGUE_METRICS or type(value) is not int or value < 0 or url != ranking_url(scope['season'], metric):
+                if metric not in JLEAGUE_METRICS or type(value) is not int or value < 0:
+                    raise ValueError('Cifra J1 inválida')
+                allowed = {ranking_url(scope['season'], metric)}
+                if metric == 'goals':
+                    allowed.add(profile_url(entity))
+                if url not in allowed:
                     raise ValueError('Cifra o fuente J1 inválida')
             elif not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://compstats.uefa.com/' if source=='UEFA' else 'https://www.wbaboxing.com/' if source=='WBA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
             if not fact.get('retrieved_at') or not any(q.get('url')==url and q.get('retrieved_at')==fact['retrieved_at'] for q in queries):raise ValueError('Fuente ajena al expediente')
