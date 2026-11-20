@@ -53,3 +53,9 @@ FramePack y MagiHuman tienen formularios para sus pesos auxiliares. El formulari
 El agente puede consultar local_setup_report para conocer requisitos de configuración sin sondear dependencias, ejecutar aplicaciones o cargar modelos.
 
 El diagnóstico principal reconoce FFmpeg mediante la ruta configurada aunque no esté en PATH. La presencia del archivo tampoco prueba su versión o funcionamiento.
+
+## Verificación de exportaciones
+
+Al finalizar, el productor usa las rutas configuradas de FFprobe y FFmpeg (con detección portable como alternativa cuando no hay ruta explícita). Comprueba que el render esté dentro del proyecto, tenga duración finita y positiva, dimensiones válidas, metadatos declarados compatibles y pistas de audio cuando se hayan declarado. Después intenta decodificar todo el video y su audio, sin reexportarlo, y calcula SHA-256. El informe render_verification.json conserva el resultado, incluso si falla.
+
+Antes de copiar al destino final se compara la huella con la del archivo verificado. Si el render cambió, se bloquea la entrega; los originales se conservan. La revisión es técnica: no certifica calidad visual, derechos ni exactitud de la narración. La decodificación consume CPU y lectura de disco y puede tardar en videos grandes; no carga modelos IA ni publica contenido.

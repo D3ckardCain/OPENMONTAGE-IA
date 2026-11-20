@@ -118,12 +118,13 @@ def test_clarifications_and_interrupted_resume_state(isolated):
 
 def test_export_verification_requires_real_video_stream(isolated,monkeypatch):
     pid=project();worker=agent.LocalAgent(pid)
+    monkeypatch.setattr('lib.render_verification.executable',lambda name:'/fixture/'+name)
     monkeypatch.setattr('lib.checkpoint.get_completed_stages',lambda *a:[s['name'] for s in worker.manifest['stages']])
     p=studio.project_path(pid)/'renders'/'fixture.mp4';p.parent.mkdir(exist_ok=True);p.write_bytes(b'not a video')
     studio.save_json(worker.artifact_path('render_report'),{'outputs':[{'path':str(p)}]})
     monkeypatch.setattr(agent.subprocess,'run',lambda *a,**k:SimpleNamespace(returncode=0,stdout=json.dumps({'format':{'duration':'1'},'streams':[{'codec_type':'audio'}]})))
     with pytest.raises(ValueError,match='video'):worker.verify_outputs()
-    monkeypatch.setattr(agent.subprocess,'run',lambda *a,**k:SimpleNamespace(returncode=0,stdout=json.dumps({'format':{'duration':'1'},'streams':[{'codec_type':'video'}]})))
+    monkeypatch.setattr(agent.subprocess,'run',lambda *a,**k:SimpleNamespace(returncode=0,stdout=json.dumps({'format':{'duration':'1'},'streams':[{'codec_type':'video','width':64,'height':64,'codec_name':'mpeg4'}]})))
     assert worker.verify_outputs()[0]['path']==str(p)
     p.unlink()
     with pytest.raises(ValueError,match='no existe'):worker.verify_outputs()
@@ -178,7 +179,10 @@ def test_automatic_agent_walks_pipeline_to_real_fixture_export(isolated):
         messages.append(call('read_instruction',{'path':'skills/'+stage['skill']+'.md'}))
         name=CANONICAL_STAGE_ARTIFACTS[stage['name']];artifact=sample_artifact(name)
         if name=='edit_decisions':artifact['render_runtime']='ffmpeg'
-        if name=='render_report':artifact['outputs'][0]['path']=str(output)
+        if name=='render_report':
+            artifact['outputs'][0].update(path=str(output),resolution='64x64',duration_seconds=0.2,fps=25,codec='mpeg4')
+            artifact['outputs'][0].pop('audio_codec',None)
+            artifact['outputs'][0].pop('file_size_bytes',None)
         messages.append(call('checkpoint',{'stage':stage['name'],'status':'completed','artifacts':{name:artifact}}))
     messages.append(call('finish',{'blocked':False,'message':'Synthetic fixture export verified'}))
     stream=iter(messages);worker._chat=lambda m,t:next(stream)

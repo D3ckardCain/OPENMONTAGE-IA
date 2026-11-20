@@ -130,17 +130,8 @@ class LocalAgent:
         if not required<=complete:raise ValueError('Quedan etapas de producción sin completar')
         report=studio.read_json(self.artifact_path('render_report'),{})
         outputs=report.get('outputs',[])
-        if not outputs:raise ValueError('No hay render_report con salidas')
-        for item in outputs:
-            p=Path(item['path'])
-            if not p.is_absolute():p=self.path/p
-            p=p.resolve();p.relative_to((self.path/'renders').resolve())
-            if not p.is_file() or p.stat().st_size==0:raise ValueError('El render declarado no existe')
-            probe=subprocess.run(['ffprobe','-v','error','-show_entries','format=duration:stream=codec_type','-of','json',str(p)],capture_output=True,text=True,timeout=20)
-            if probe.returncode:raise ValueError('Render no reconocible por ffprobe')
-            metadata=json.loads(probe.stdout)
-            if float(metadata['format']['duration'])<=0 or not any(x.get('codec_type')=='video' for x in metadata.get('streams',[])):raise ValueError('La salida no contiene un video de duración positiva')
-        return outputs
+        from lib.render_verification import verify
+        return verify(self.pid,outputs)
 
     def dispatch(self,name,args):
         spec=next((t['function'] for t in TOOLS if t['function']['name']==name),None)

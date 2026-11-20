@@ -17,7 +17,7 @@ def test_studio_creation_control_and_review(staged_backlot_server):
             captured.append(route.request.post_data_json)
             route.fulfill(json={'project_id':'video-fixture'})
         page.route('**/api/studio/projects',create)
-        state={'request':{'title':'Animales originales'},'job':{'status':'blocked','message':'Falta el runtime compatible','events':[{'at':'fixture','kind':'error','message':'Dependencia no disponible'}]},'stages':[{'name':'research','status':'in_progress'}],'artifacts':[{'name':'source_notes.json','url':'/media/video-fixture/artifacts/source_notes.json'}],'outputs':[],'board_url':'/p/video-fixture'}
+        state={'render_verification':{'status':'passed','outputs':[{'width':1080,'height':1920,'duration_seconds':60,'audio_streams':1,'full_decode_passed':True}]},'request':{'title':'Animales originales'},'job':{'status':'blocked','message':'Falta el runtime compatible','events':[{'at':'fixture','kind':'error','message':'Dependencia no disponible'}]},'stages':[{'name':'research','status':'in_progress'}],'artifacts':[{'name':'source_notes.json','url':'/media/video-fixture/artifacts/source_notes.json'}],'outputs':[],'board_url':'/p/video-fixture'}
         page.route('**/api/studio/projects/video-fixture',lambda r:r.fulfill(json=state))
         actions=[]
         def action(route):
@@ -33,6 +33,8 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         assert captured[0]['title']=='Animales originales'
         assert captured[0]['automatic'] is True
         assert 'Falta el runtime' in page.locator('#message').inner_text()
+        assert '1080×1920' in page.locator('#render-verification').inner_text()
+        assert 'no acredita calidad visual' in page.locator('#render-verification').inner_text()
         assert page.get_by_role('link',name='source_notes.json').count()==1
         assert page.locator('#outputs video').count()==0
         page.get_by_role('button',name='Iniciar / reanudar agentes').click()

@@ -29,7 +29,9 @@ def deliver(project_id,outputs):
         if not source.is_absolute():source=project/source
         source=source.resolve();source.relative_to((project/'renders').resolve())
         if not source.is_file() or not source.stat().st_size:raise ValueError('Falta el render verificado')
-        checksum=digest(source);dest=folder/(source.stem+'-'+checksum[:12]+source.suffix)
+        checksum=digest(source)
+        if item.get('verified_sha256') is not None and item['verified_sha256']!=checksum:raise ValueError('El render cambió después de su verificación; no se entregó')
+        dest=folder/(source.stem+'-'+checksum[:12]+source.suffix)
         if dest.is_symlink():raise ValueError('El archivo final no puede ser un enlace simbólico')
         if dest.exists():
             if digest(dest)!=checksum:raise ValueError('Hay un archivo distinto en el destino; no se sobrescribió')
