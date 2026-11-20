@@ -272,6 +272,8 @@ class LocalModelAdapter(BaseTool):
         from jsonschema import validate
         try:
             validate(inputs,self.input_schema)
+            from lib.model_languages import validate_request
+            validate_request(self.family,inputs)
             from lib.workflow_preparation import REQUIRED
             if self.family in ('longcat','longcat-avatar','magihuman','cogvideo','dwpose','lama','framepack','wan-camera','wan-control','wan-s2v'):
                 absent=[key for key in REQUIRED[self.family] if not inputs.get(key)]

@@ -39,7 +39,9 @@ def local_file(data,key):
 
 
 def qwen_language(value):
-    return {'en':'English','es':'Spanish','zh':'Chinese','ja':'Japanese','ko':'Korean','de':'German','fr':'French','ru':'Russian','pt':'Portuguese','it':'Italian'}.get(value,value)
+    try:from lib.model_languages import binding
+    except ImportError:from model_languages import binding
+    return binding('qwen-tts',value)
 
 
 def torch_setup(data):
@@ -54,6 +56,9 @@ def run(request):
     if request.get('source_dir'):
         source=Path(request['source_dir']);sys.path.insert(0,str(source));sys.path.insert(0,str(source/'third_party'/'Matcha-TTS'))
     if not m.is_dir():raise ValueError('Carpeta de pesos ausente')
+    try:from lib.model_languages import validate_request,binding
+    except ImportError:from model_languages import validate_request,binding
+    validate_request(family,data)
     if family in ('wan-camera','wan-control','wan-s2v','framepack'):
         try:from lib.original_model_engines import run as run_original
         except ImportError:from original_model_engines import run as run_original
@@ -114,8 +119,7 @@ def run(request):
         if not voice.is_absolute():voice=m/'voices'/(str(voice)+('.pt' if voice.suffix!='.pt' else ''))
         if not voice.is_file():raise ValueError('Falta la voz local '+str(voice))
         voice_tensor=torch.load(str(voice),map_location=device,weights_only=True)
-        languages={'en':'a','en-US':'a','en-GB':'b','es':'e','fr':'f','hi':'h','it':'i','pt':'p','ja':'j','zh':'z'}
-        lang=languages.get(data.get('language','en'),data.get('language','a'))
+        lang=binding('kokoro',data.get('language','en'))
         pipe=KPipeline(lang_code=lang,model=model,device=device)
         chunks=[item[2] for item in pipe(required(data,'text'),voice=voice_tensor,speed=data.get('speed',1)) if item[2] is not None]
         if not chunks:raise ValueError('Kokoro no produjo segmentos')

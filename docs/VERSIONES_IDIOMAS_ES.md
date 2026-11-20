@@ -31,3 +31,9 @@ Primero termina el análisis local en el proyecto base. Consulta sus versiones, 
 Solo admite versiones registradas con la misma referencia. Exige que no haya una tarea local activa. Conserva los análisis distintos ya existentes. Un informe parcial continúa siendo parcial: compartirlo no completa sus lagunas, traduce su contenido ni verifica sus afirmaciones. El productor puede consultar el informe guardado mediante su herramienta de análisis de referencia; solicitar expresamente un nuevo análisis seguirá ejecutándolo.
 
 El productor reutiliza la instantánea compartida cuando llama a su acción de análisis sin parámetros. Antes comprueba la huella del contenido y que la referencia del proyecto siga coincidiendo. No descarga ni carga modelos en ese caso. Con opciones de análisis explícitas solicita una ejecución nueva. Se mantienen los controles de tarea activa y parada. El panel de referencias muestra la procedencia y un enlace al proyecto base.
+
+## Correspondencias de idioma y voz
+
+Los adaptadores Kokoro y Qwen validan las correspondencias de idioma implementadas antes de cargar modelos. Los códigos regionales se normalizan al idioma base; Kokoro conserva la selección diferenciada `en-GB`. Esto no garantiza un acento regional. Una voz Kokoro con prefijo de otro idioma se rechaza antes de iniciar el proceso de inferencia, incluida la voz predeterminada inglesa si se pide español.
+
+La revisión de recursos muestra la correspondencia implementada cuando exista y avisa cuando el adaptador no tenga una. Los motores sin una tabla explícita continúan pendientes de comprobar; no se afirma compatibilidad universal. Esta validación no detecta el idioma real del texto ni sustituye la escucha de la voz generada.

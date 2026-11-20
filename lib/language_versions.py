@@ -67,14 +67,19 @@ def local_requirements(project_id):
     """Inspect configured local files without invoking runtimes or models."""
     from lib import model_adapters
     studio.project_path(project_id)
+    target=studio.read_json(studio.project_path(project_id)/'production_request.json').get('language')
     candidates=[]
     for family in model_adapters.CATALOG:
         capability=model_adapters.spec(family)['capability']
         if capability not in ('tts','translation','transcription'):continue
         try:
             report=model_adapters.diagnostics(family,probe=False)
+            from lib.model_languages import binding
+            try:language_binding=binding(family,target) if target else None;language_problem=None
+            except ValueError as exc:language_binding=None;language_problem=str(exc)
             candidates.append({'family':family,'capability':capability,
                 'files_configured':report['ready'],'model_dir':report.get('model_dir'),
+                'target_language':target,'language_binding':language_binding,'language_problem':language_problem,
                 'problems':report['problems'],'required_modules':report.get('required_modules',[]),
                 'language_support_verified':False,'runtime_checked':False})
         except (OSError,ValueError,KeyError,TypeError) as exc:
