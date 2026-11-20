@@ -43,3 +43,21 @@ def test_entity_choices_preserve_different_official_action_contracts():
     actions={item['name']:item for item in football.schema()['actions']}
     assert actions['ranking']['choices']['entity']==['player','team']
     assert actions['historical']['choices']['entity']==['players','teams']
+
+
+def test_followups_use_explicit_ids_and_preserve_player_scope():
+    data={'fuente':'UEFA','competicion':'champions','tipo':'ranking','alcance':{'entidad':'player','seasonYear':2027,'metricas':['goals'],'phase':'TOURNAMENT'},'registros':[{'id':'123','nombre':'Name is not used'}]}
+    prepared=football.followups(data)
+    assert prepared[0]['query']=={'action':'player','competition':'champions','player_id':'123','edition':2027,'metrics':['goals'],'phase':'TOURNAMENT'}
+    assert football.followups({**data,'registros':[{'nombre':'No official ID'}]})==[]
+    assert football.followups({**data,'tipo':'unknown'})==[]
+
+
+def test_team_and_match_followups_do_not_claim_historical_team_profile():
+    team={'fuente':'UEFA','competicion':'champions','tipo':'equipos','registros':[{'id':456}]}
+    result=football.followups(team)
+    assert result[0]['query']=={'action':'team','competition':'champions','team_id':'456'}
+    assert 'actual' in result[0]['label']
+    match={**team,'tipo':'partidos_por_union_de_fases'}
+    assert football.followups(match)[0]['query']['match_id']=='456'
+    assert football.followups({**team,'competicion':'unsupported'})==[]

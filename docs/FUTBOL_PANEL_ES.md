@@ -23,3 +23,7 @@ La tabla muestra hasta 100 filas y 24 columnas y avisa si es parcial. «Ver dato
 Después de consultar «Definiciones de métricas», las consultas con varias métricas ofrecen un selector con los nombres devueltos por UEFA para la entidad correspondiente (jugador o equipo). «Añadir métrica elegida» completa el campo sin duplicarla. No inventa traducciones de nombres técnicos. La selección de entidad distingue el contrato de ranking (`player/team`) del histórico (`players/teams`).
 
 Las definiciones permanecen solo en memoria de la página para esa competición. Cambiar competición las retira y limpia los campos; consultar de nuevo las definiciones invalida la lista anterior. Los rankings históricos de una sola métrica no usan estas sugerencias porque su ruta tiene otro contrato. La validación del servidor sigue comprobando las métricas antes de devolver estadísticas.
+
+## Consultas enlazadas por ID
+
+Las tablas de equipos, rankings y partidos pueden ofrecer «Preparar consulta» usando únicamente el ID que devolvió la fuente. Para jugadores mantiene la edición, métricas y fase del ranking; la ficha de equipo se señala como actual, no histórica. El botón rellena el formulario y no consulta automáticamente. Revisa los campos y pulsa «Consultar ahora». Si el tipo o la identidad son ambiguos, no se ofrece el enlace.

@@ -377,3 +377,25 @@ def test_football_definition_picker_uses_entity_and_competition_scope(staged_bac
         page.locator('#football-competition').select_option('europa')
         assert page.locator('[data-football-metric-picker]').count()==0
         browser.close()
+
+
+def test_official_id_followup_prepares_form_without_new_query(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
+        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json={'coverage_note':'Fixture','competitions':['champions'],'parameters':{'edition':{'type':'integer'},'player_id':{'type':'string'},'metrics':{'type':'array'}},'actions':[{'name':'definitions','fields':['competition'],'required':['competition']},{'name':'player','fields':['competition','edition','player_id','metrics'],'required':['competition','edition','player_id','metrics']}]}))
+        calls=[]
+        def query(route):
+            calls.append(route.request.post_data_json)
+            route.fulfill(json={'success':True,'note':'Fixture','data':{'fuente':'UEFA','registros':[{'id':'123','nombre':'Fixture player'}]},'followups':[{'row_index':0,'label':'Preparar jugador de prueba','query':{'action':'player','competition':'champions','edition':2027,'player_id':'123','metrics':['goals']}}]})
+        page.route('**/api/studio/football/query',query)
+        page.goto(staged_backlot_server+'/studio#football')
+        page.locator('#football-load').click();page.locator('#football-query').click()
+        page.get_by_role('button',name='Preparar jugador de prueba',exact=True).click()
+        assert page.locator('#football-action').input_value()=='player'
+        assert page.locator('[data-football-field=player_id]').input_value()=='123'
+        assert page.locator('[data-football-field=edition]').input_value()=='2027'
+        assert page.locator('[data-football-field=metrics]').input_value()=='goals'
+        assert len(calls)==1
+        browser.close()
