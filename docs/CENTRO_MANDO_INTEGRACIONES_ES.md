@@ -89,3 +89,7 @@ Cuando no coincide la ruta esperada pero sí el nombre y un tamaño conocido y p
 ## Copias del mismo modelo en varios discos
 
 La detección automática prefiere una copia con los archivos esperados presentes y no vacíos frente a otra incompleta de la misma carpeta de variante. Comprueba también los fragmentos declarados en índices de pesos. No compara contenido ni garantiza integridad o compatibilidad. No cambia entre variantes distintas y nunca sustituye una ruta `model_dir` configurada explícitamente. La preparación del equipo muestra archivos ausentes por candidato. No mueve ni elimina copias.
+
+## Temporales de descargas
+
+La revisión identifica en la ruta lógica del catálogo los sufijos `.fdmdownload`, `.fdmdownload.reserva`, `.part` y `.crdownload`. Los muestra como temporales, aunque su tamaño coincida con el archivo final; un temporal puede estar preasignado y no representar bytes descargados. No se considera instalado ni terminado. El plan de FDM excluye estos registros hasta revisarlos; la app no los renombra, borra ni intenta reanudar una cola de FDM. Los temporales guardados en otras carpetas pueden requerir revisión manual.

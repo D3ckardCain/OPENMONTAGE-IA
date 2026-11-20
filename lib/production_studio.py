@@ -207,12 +207,13 @@ def resource_catalog():
             for dest in group.get('files',[]):
                 e=entries[dest];matches=index.get(key(dest),[])
                 expected=e.get('size_bytes')
+                temporary=[record for suffix in ('.fdmdownload','.fdmdownload.reserva','.part','.crdownload') for record in index.get(key(dest)+suffix,[])]
                 good=[m for m in matches if expected is not None and m['bytes']==expected]
                 elsewhere=[m for m in by_file.get((key(dest).rsplit('/',1)[-1],expected),[]) if key(m['path'])!=key(dest)] if isinstance(expected,int) and expected>0 else []
-                status='recorded_size_match' if good else 'possible_elsewhere_size_match' if elsewhere else 'recorded_path_size_unknown' if matches and expected is None else 'recorded_size_mismatch' if matches else 'not_recorded'
+                status='recorded_size_match' if good else 'possible_elsewhere_size_match' if elsewhere else 'recorded_path_size_unknown' if matches and expected is None else 'recorded_size_mismatch' if matches else 'temporary_download_recorded' if temporary else 'not_recorded'
                 items.append({'name':e['path'],'destination_folder':str(Path(dest).parent),'filename':dest.replace('\\','/').split('/')[-1],
                               'size_bytes':expected,'download_url':e.get('url'),'inventory_matches':good,
-                              'inventory_path_matches':matches,'inventory_other_locations':elsewhere[:20],
+                              'inventory_path_matches':matches,'inventory_temporary_matches':temporary,'inventory_other_locations':elsewhere[:20],
                               'other_locations_count':len(elsewhere),'other_locations_partial':len(elsewhere)>20,'size_verified':bool(good),
                               'status':status,'inference_verified':False})
             groups.append({'id':group['id'],'label':group.get('name',group['id']),'files':items,'source_catalog':path.name})

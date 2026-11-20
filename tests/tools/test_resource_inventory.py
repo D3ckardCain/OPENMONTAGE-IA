@@ -39,3 +39,23 @@ def test_candidate_limit_and_case_insensitive_expected_path(setup):
     assert len(files[3]['inventory_other_locations'])==20
     assert files[3]['other_locations_count']==25 and files[3]['other_locations_partial'] is True
     assert any(match['serial']=='MANY' for match in files[0]['inventory_matches'])
+
+
+@pytest.mark.parametrize('suffix',['.fdmdownload','.fdmdownload.reserva','.part','.crdownload'])
+def test_temporaries_never_count_as_complete_even_at_expected_size(setup,suffix):
+    studio.import_inventory({'Serie':'FDM','Ficheros':[{'FullName':'D:/OPENMONTAJE-IA/DESCARGAS_MODELOS/model/missing.bin'+suffix,'Length':10}]})
+    item=studio.resource_catalog()['groups'][0]['files'][3]
+    assert item['status']=='temporary_download_recorded'
+    assert item['size_verified'] is False and item['inventory_matches']==[]
+    assert item['inventory_temporary_matches'][0]['path'].endswith(suffix)
+    from lib.download_plan import plan
+    report=plan()
+    assert report['planned_files']==0
+    assert report['excluded']['temporary_download_recorded']==1
+
+
+def test_completed_file_and_leftover_temporary_are_reported_separately(setup):
+    studio.import_inventory({'Serie':'FDM','Ficheros':[{'FullName':'D:/OPENMONTAJE-IA/DESCARGAS_MODELOS/model/known.bin.fdmdownload','Length':10}]})
+    item=studio.resource_catalog()['groups'][0]['files'][0]
+    assert item['status']=='recorded_size_match'
+    assert len(item['inventory_temporary_matches'])==1

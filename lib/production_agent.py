@@ -171,7 +171,7 @@ class LocalAgent:
                 group=next((g for g in data['groups'] if g['id']==args['group_id']),None)
                 if group is None:raise ValueError('Grupo de modelos desconocido')
                 return {'group':group,'notes':data['notes'],'inventories_imported':len(data['inventories'])}
-            statuses=('recorded_size_match','recorded_path_size_unknown','recorded_size_mismatch','possible_elsewhere_size_match','not_recorded')
+            statuses=('recorded_size_match','recorded_path_size_unknown','recorded_size_mismatch','possible_elsewhere_size_match','temporary_download_recorded','not_recorded')
             return {'inventories':data['inventories'],'notes':data['notes'],
                 'interpretation':'No registrado no significa ausente. Revisa ambos inventarios, candidatos y descargas posteriores antes de sugerir descargar.',
                 'groups':[{'id':g['id'],'label':g['label'],'files':len(g['files']),

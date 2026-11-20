@@ -269,7 +269,7 @@ def test_agent_can_read_language_resources_without_model_execution(isolated,monk
 
 
 def test_agent_inventory_summary_keeps_unknown_sizes_and_candidates(isolated,monkeypatch):
-    states=['recorded_size_match','recorded_path_size_unknown','recorded_size_mismatch','possible_elsewhere_size_match','not_recorded']
+    states=['recorded_size_match','recorded_path_size_unknown','recorded_size_mismatch','possible_elsewhere_size_match','temporary_download_recorded','not_recorded']
     monkeypatch.setattr(studio,'resource_catalog',lambda:{'inventories':[],'notes':[],'groups':[{'id':'fixture','label':'Fixture','files':[{'status':state} for state in states]}]})
     producer=agent.LocalAgent(project(),chat=lambda *args:None,cancel=threading.Event())
     result=producer.dispatch('model_catalog',{})
