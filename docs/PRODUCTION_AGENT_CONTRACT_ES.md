@@ -157,3 +157,7 @@ Las métricas `duels_won` y `clean_sheets` consultan los rankings visibles de du
 En J.League, `yellow_cards` y `red_cards` están disponibles en los rankings visibles de J1, J2, J3 y Copa Levain. Si la fuente omite a un jugador, no deduzcas que recibió cero tarjetas.
 
 En J.League, `metrics="all"` consulta todos los rankings integrados, incluidas intercepciones, con el mismo conjunto para J1, J2, J3 y Copa Levain. Si falla un ranking, el expediente conserva las cifras verificadas de los demás y marca el fallo. Si el jugador no figura en un ranking visible, su cifra queda sin dato. Para exportar una pieza, usa una selección de hasta seis métricas verificadas para todos los jugadores.
+
+El productor agrega `standard_statistics` a los informes de jugador de FIFA, UEFA y J.League. Los 54 campos son iguales para todas las competiciones de esos conectores. Una cifra solo se incorpora con equivalencia y procedencia comprobadas. Los campos restantes se conservan como `null`; las claves originales siguen disponibles en el informe.
+
+En UEFA, `metrics="standard"` en las consultas por nombre solicita las equivalencias comunes publicadas para jugadores. El productor conserva los campos faltantes, incluido cualquier campo sin equivalencia verificada.

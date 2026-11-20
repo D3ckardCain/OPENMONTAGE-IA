@@ -72,7 +72,7 @@ def catalog(sport=None, region=None):
         'missing_value': None,
         'metric_groups': {group: list(metrics) for group, metrics in FOOTBALL_METRIC_GROUPS.items()},
         'source_discovery': {
-            'official_uefa_live': 'Consulta definitions y usa las métricas oficiales para PLAYER.',
+            'official_uefa_live': 'Usa metrics=standard en consultas por nombre para solicitar las equivalencias comunes. Consulta definitions para detectar estadísticas oficiales adicionales de PLAYER.',
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',
             'official_jleague_live': 'Usa metrics=all para consultar todos los rankings integrados; consulta tool_info para ver las métricas admitidas.',
         },

@@ -62,3 +62,31 @@ def test_producer_preserves_output_boundary_and_no_cached_source_fallback(produc
     outside=tmp_path/'outside.png'
     with pytest.raises(ValueError):worker.dispatch('execute_tool',{'name':'sports_card_svg','inputs':{'report':{},'output_path':str(outside)}})
     assert not outside.exists()
+
+
+def test_player_reports_use_the_same_54_fields_with_provider_evidence():
+    from lib.football_statistics import add_standard_statistics
+    from lib.sports_sources import FOOTBALL_STANDARD_METRICS
+
+    fifa_source = {'url': 'https://fdh-api.fifa.com/fixture', 'retrieved_at': '2026-11-20'}
+    fifa = {'source': 'FIFA', 'type': 'player_comparison', 'queries': [fifa_source],
+            'records': [{'statistics': {'Goals': {'value': 0}, 'TimePlayed': {'value': 90}}}]}
+    uefa_source = {'url': 'https://compstats.uefa.com/fixture', 'consultado_utc': '2026-11-20'}
+    uefa = {'fuente': 'UEFA', 'tipo': 'comparativa_jugadores',
+            'registros': [{'estadisticas': {'attempts_on_target': '3'},
+                           'fuente_estadisticas': uefa_source}]}
+    jleague_url = 'https://www.jleague.jp/en/j1/stats/player/2025/score/search-list/'
+    jleague = {'source': 'J.League', 'type': 'collectible_card', 'records': [{
+        'statistics': {'goals': 7, 'assists': None},
+        'facts': [{'metric': 'goals', 'value': 7, 'unit': 'goals', 'source_url': jleague_url,
+                   'retrieved_at': '2026-11-20'}]}]}
+
+    rows = [add_standard_statistics(report)[key][0]['standard_statistics']
+            for report, key in [(fifa, 'records'), (uefa, 'registros'), (jleague, 'records')]]
+    assert all(tuple(row) == FOOTBALL_STANDARD_METRICS and len(row) == 54 for row in rows)
+    assert rows[0]['goals']['value'] == 0
+    assert rows[0]['minutes_played'] is None
+    assert rows[1]['shots_on_target']['source_metric'] == 'attempts_on_target'
+    assert rows[1]['shots_on_target']['source_url'] == uefa_source['url']
+    assert rows[2]['goals']['source_url'] == jleague_url
+    assert rows[2]['assists'] is None

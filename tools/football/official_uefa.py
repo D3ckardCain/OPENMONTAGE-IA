@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.6.0'
+ version='0.7.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -44,7 +44,7 @@ class OfficialUEFA(BaseTool):
   'competition':{'type':'string','enum':list(COMPETITIONS)},
   'names':{'type':'array','minItems':1,'maxItems':10,'items':{'type':'string','minLength':1,'maxLength':150}},
   'edition':{'type':'integer','minimum':1955},'entity':{'type':'string'},
-  'metrics':{'type':'array','minItems':1,'uniqueItems':True,'items':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'}},
+  'metrics':{'oneOf':[{'const':'standard'},{'type':'array','minItems':1,'uniqueItems':True,'items':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'}}]},
   'metric':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'},
   'phase':{'type':'string','enum':['TOURNAMENT','QUALIFYING','ALL']},
   'team_id':{'type':'string','pattern':'^[0-9]+$'},'player_id':{'type':'string','pattern':'^[0-9]+$'},
@@ -61,6 +61,14 @@ class OfficialUEFA(BaseTool):
    extra=set(inputs)-set(allowed)-{'action'}
    if extra:raise ValueError('Parametros no aplicables: '+','.join(sorted(extra)))
    kwargs={k:inputs[k] for k in allowed if k in inputs}
+   if kwargs.get('metrics')=='standard':
+    if action not in ('resolve_players','compare_players','collectible_card'):
+     raise ValueError('El conjunto común se aplica a consultas por nombre')
+    from lib.football_statistics import UEFA_NAMES
+    definitions=self.client.definitions(kwargs['competition'])['definiciones']
+    supported={entry['name'] for entry in definitions if 'PLAYER' in entry.get('actors', [])}
+    kwargs['metrics']=[name for name in UEFA_NAMES if name in supported]
+    if not kwargs['metrics']:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
    if action in ('resolve_players','compare_players','collectible_card'):
     from tools.football.uefa_names import resolve,compare,collectible_card
     data={'resolve_players':resolve,'compare_players':compare,'collectible_card':collectible_card}[action](self.client,**kwargs)

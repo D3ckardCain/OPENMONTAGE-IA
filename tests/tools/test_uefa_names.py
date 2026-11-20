@@ -109,3 +109,17 @@ def test_registered_uefa_card_action():
     t=OfficialUEFA();t.client=Client()
     r=t.execute({'action':'collectible_card','competition':'champions','edition':2024,'names':['Kylian Mbappe'],'metrics':['goals']})
     assert r.success and r.data['ready_for_script']
+
+
+def test_standard_queries_only_verified_player_metric_names():
+    tool = OfficialUEFA()
+    tool.client = Client()
+    tool.client.definitions = lambda competition: {'definiciones': [
+        {'name': 'goals', 'actors': ['PLAYER']},
+        {'name': 'attempts', 'actors': ['TEAM']},
+        {'name': 'unmapped_metric', 'actors': ['PLAYER']},
+    ]}
+    result = tool.execute({'action': 'compare_players', 'competition': 'champions', 'edition': 2024,
+                           'names': ['Mbappe', 'Haaland'], 'metrics': 'standard'})
+    assert result.success and result.data['ready_for_script']
+    assert tool.client.calls[0][3] == ['goals']
