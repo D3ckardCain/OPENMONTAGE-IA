@@ -21,3 +21,21 @@ def test_unknown_sizes_remain_registered_in_both_inventories(setup):
     assert files[0]['size_verified'] is True and len(files[0]['inventory_matches'])==2
     assert files[3]['inventory_path_matches']==[]
     assert all(not item['inference_verified'] for item in files)
+
+
+def test_other_locations_require_known_positive_size_and_do_not_claim_identity(setup):
+    studio.import_inventory({'Serie':'OTHER','Ficheros':[{'FullName':'E:/Downloads/missing.bin','Length':10},{'FullName':'E:/Downloads/unknown.bin','Length':10}]})
+    files=studio.resource_catalog()['groups'][0]['files']
+    candidate=files[3]
+    assert candidate['status']=='possible_elsewhere_size_match'
+    assert candidate['inventory_other_locations'][0]['path']=='E:/Downloads/missing.bin'
+    assert candidate['size_verified'] is False and candidate['inventory_matches']==[]
+    assert files[1]['inventory_other_locations']==[]
+
+
+def test_candidate_limit_and_case_insensitive_expected_path(setup):
+    studio.import_inventory({'Serie':'MANY','Ficheros':[{'FullName':f'E:/folder-{i}/missing.bin','Length':10} for i in range(25)]+[{'FullName':'E:/openmontaje-ia/descargas_modelos/model/KNOWN.BIN','Length':10}]})
+    files=studio.resource_catalog()['groups'][0]['files']
+    assert len(files[3]['inventory_other_locations'])==20
+    assert files[3]['other_locations_count']==25 and files[3]['other_locations_partial'] is True
+    assert any(match['serial']=='MANY' for match in files[0]['inventory_matches'])

@@ -75,3 +75,5 @@ Si falta la raíz de proyectos, el catálogo muestra «disco no disponible» en 
 ## Inventarios y tamaños desconocidos
 
 El catálogo distingue ruta y tamaño coincidentes, ruta registrada con tamaño de catálogo desconocido, tamaño distinto y archivo no registrado. Muestra las coincidencias de ambos inventarios con disco, ruta, tamaño observado y fecha. Una ruta registrada con tamaño desconocido o diferente requiere revisar el archivo; no se presenta como ausente ni ofrece una descarga directa. Ninguna coincidencia confirma integridad o instalación.
+
+Cuando no coincide la ruta esperada pero sí el nombre y un tamaño conocido y positivo, se muestran hasta veinte ubicaciones candidatas de los inventarios y el total encontrado. Se retiene la descarga directa hasta revisar la identidad. No se compara por nombre solo cuando el tamaño del catálogo es desconocido; nombres genéricos como `model.safetensors` no bastan. No se mueven archivos, se calculan hashes ni se considera que el modelo esté instalado.

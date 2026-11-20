@@ -191,10 +191,14 @@ def resource_catalog():
     inventories=[]
     for p in (CONFIG_DIR/'inventories').glob('*.json'):
         snapshot=read_json(p);inventories.append(snapshot)
-    def key(path):return path.replace('\\','/').split('OPENMONTAJE-IA/',1)[-1].casefold()
-    index={}
+    def key(path):return path.replace('\\','/').casefold().split('openmontaje-ia/',1)[-1]
+    index={};by_file={}
     for snap in inventories:
-        for f in snap['Ficheros']:index.setdefault(key(f['FullName']),[]).append({'serial':snap['Serie'],'path':f['FullName'],'bytes':f['Length'],'captured_at':snap['Fecha']})
+        for f in snap['Ficheros']:
+            normalized=key(f['FullName'])
+            record={'serial':snap['Serie'],'path':f['FullName'],'bytes':f['Length'],'captured_at':snap['Fecha']}
+            index.setdefault(normalized,[]).append(record)
+            by_file.setdefault((normalized.rsplit('/',1)[-1],f['Length']),[]).append(record)
     groups=[]
     for path in sorted((REPO_ROOT/'docs'/'models').glob('*.json')):
         manifest=read_json(path);entries={f['destination']:f for f in manifest.get('files',[])}
@@ -204,10 +208,12 @@ def resource_catalog():
                 e=entries[dest];matches=index.get(key(dest),[])
                 expected=e.get('size_bytes')
                 good=[m for m in matches if expected is not None and m['bytes']==expected]
-                status='recorded_size_match' if good else 'recorded_path_size_unknown' if matches and expected is None else 'recorded_size_mismatch' if matches else 'not_recorded'
+                elsewhere=[m for m in by_file.get((key(dest).rsplit('/',1)[-1],expected),[]) if key(m['path'])!=key(dest)] if isinstance(expected,int) and expected>0 else []
+                status='recorded_size_match' if good else 'possible_elsewhere_size_match' if elsewhere else 'recorded_path_size_unknown' if matches and expected is None else 'recorded_size_mismatch' if matches else 'not_recorded'
                 items.append({'name':e['path'],'destination_folder':str(Path(dest).parent),'filename':dest.replace('\\','/').split('/')[-1],
                               'size_bytes':expected,'download_url':e.get('url'),'inventory_matches':good,
-                              'inventory_path_matches':matches,'size_verified':bool(good),
+                              'inventory_path_matches':matches,'inventory_other_locations':elsewhere[:20],
+                              'other_locations_count':len(elsewhere),'other_locations_partial':len(elsewhere)>20,'size_verified':bool(good),
                               'status':status,'inference_verified':False})
             groups.append({'id':group['id'],'label':group.get('name',group['id']),'files':items,'source_catalog':path.name})
     return {'inventories':[{k:v for k,v in x.items() if k!='Ficheros'} for x in inventories], 'groups':groups,
