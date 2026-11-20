@@ -4,14 +4,20 @@ from lib.sports_sources import FOOTBALL_STANDARD_METRICS
 # Explicit equivalences only. In particular, do not infer minutes from an
 # undocumented time unit or translate a provider's xG model into another's.
 UEFA_NAMES = {
+    'matches_appearance': 'matches_played',
     'goals': 'goals', 'assists': 'assists', 'attempts': 'shots',
     'attempts_on_target': 'shots_on_target', 'attempts_off_target': 'shots_off_target',
     'attempts_blocked': 'shots_blocked', 'offsides': 'offsides',
+    'penalty_scored': 'penalty_goals', 'penalty_miss': 'penalties_missed',
+    'passes_long_attempted': 'long_balls_attempted', 'passes_long_completed': 'long_balls_completed',
+    'dribbling_successful': 'dribbles_completed',
     'passes_attempted': 'passes_attempted', 'passes_completed': 'passes_completed',
     'cross_attempted': 'crosses_attempted', 'cross_completed': 'crosses_completed',
     'aerialduel': 'aerial_duels_won', 'aerialduel_total': 'aerial_duels_contested',
     'recovered_ball': 'recoveries', 'tackles_won': 'tackles_won',
+    'clearance_completed': 'clearances', 'blocked': 'blocks',
     'clean_sheet': 'clean_sheets', 'goals_conceded': 'goals_conceded', 'saves': 'saves',
+    'saves_on_penalty': 'penalties_saved',
     'fouls_committed': 'fouls_committed', 'fouls_suffered': 'fouls_suffered',
     'yellow_cards': 'yellow_cards', 'red_cards': 'red_cards', 'top_speed': 'top_speed',
     'distance_covered': 'distance_covered', 'sprints': 'sprints',

@@ -161,3 +161,5 @@ En J.League, `metrics="all"` consulta todos los rankings integrados, incluidas i
 El productor agrega `standard_statistics` a los informes de jugador de FIFA, UEFA y J.League. Los 54 campos son iguales para todas las competiciones de esos conectores. Una cifra solo se incorpora con equivalencia y procedencia comprobadas. Los campos restantes se conservan como `null`; las claves originales siguen disponibles en el informe.
 
 En UEFA, `metrics="standard"` en las consultas por nombre solicita las equivalencias comunes publicadas para jugadores. El productor conserva los campos faltantes, incluido cualquier campo sin equivalencia verificada.
+
+La consulta común de UEFA incluye apariciones, goles y fallos de penalti, pases largos intentados y completados, regates completados, despejes completados, bloqueos defensivos y penaltis detenidos cuando la definición oficial los admite para jugadores.

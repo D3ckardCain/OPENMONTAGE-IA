@@ -73,7 +73,8 @@ def test_player_reports_use_the_same_54_fields_with_provider_evidence():
             'records': [{'statistics': {'Goals': {'value': 0}, 'TimePlayed': {'value': 90}}}]}
     uefa_source = {'url': 'https://compstats.uefa.com/fixture', 'consultado_utc': '2026-11-20'}
     uefa = {'fuente': 'UEFA', 'tipo': 'comparativa_jugadores',
-            'registros': [{'estadisticas': {'attempts_on_target': '3'},
+            'registros': [{'estadisticas': {'attempts_on_target': '3', 'matches_appearance': '12',
+                                           'penalty_scored': '2', 'clearance_completed': '8'},
                            'fuente_estadisticas': uefa_source}]}
     jleague_url = 'https://www.jleague.jp/en/j1/stats/player/2025/score/search-list/'
     jleague = {'source': 'J.League', 'type': 'collectible_card', 'records': [{
@@ -88,5 +89,8 @@ def test_player_reports_use_the_same_54_fields_with_provider_evidence():
     assert rows[0]['minutes_played'] is None
     assert rows[1]['shots_on_target']['source_metric'] == 'attempts_on_target'
     assert rows[1]['shots_on_target']['source_url'] == uefa_source['url']
+    assert rows[1]['matches_played']['value'] == '12'
+    assert rows[1]['penalty_goals']['source_metric'] == 'penalty_scored'
+    assert rows[1]['clearances']['value'] == '8'
     assert rows[2]['goals']['source_url'] == jleague_url
     assert rows[2]['assists'] is None
