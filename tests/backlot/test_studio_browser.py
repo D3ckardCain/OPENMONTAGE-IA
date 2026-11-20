@@ -66,6 +66,16 @@ def test_studio_creation_control_and_review(staged_backlot_server):
             batches.append(route.request.post_data_json);route.fulfill(json={'added':['version-en'],'existing':[],'generation_started':False})
         page.route('**/api/studio/queue/enqueue-batch',queue_versions)
         page.get_by_text('Preparar versiones en otros idiomas',exact=True).click()
+        language_saves=[]
+        def source_language(route):
+            if route.request.method=='POST':language_saves.append(route.request.post_data_json)
+            route.fulfill(json={'note':'Sugerencia, no verificación','detected_language':'en','confirmed_language':'en' if language_saves else None,'confirmation_outdated':False})
+        page.route('**/api/studio/reference-language/video-fixture',source_language)
+        page.locator('#source-language-load').click()
+        page.wait_for_function('document.querySelector("#source-language").value==="en"')
+        page.locator('#source-language-save').click()
+        page.wait_for_function('document.querySelector("#source-language-result").textContent.includes("Confirmado: en")')
+        assert language_saves==[{'language':'en'}]
         page.locator('#versions-load').click()
         page.get_by_role('checkbox',name='Seleccionar en',exact=True).check()
         assert page.get_by_role('checkbox',name='Seleccionar ko',exact=True).count()==0

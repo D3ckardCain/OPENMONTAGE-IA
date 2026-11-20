@@ -12,6 +12,9 @@ def create_versions(project_id,languages):
     with studio.LOCK:
         source=studio.project_path(project_id)
         request=studio.read_json(source/'production_request.json')
+        from lib.reference_language import read as source_language
+        confirmed=source_language(project_id)['confirmed_language']
+        if confirmed and any(code.lower().split('-')[0]==confirmed.lower().split('-')[0] for code in languages):raise ValueError('Excluye el idioma original confirmado: '+confirmed)
         if any(code.lower()==request['language'].lower() for code in languages):raise ValueError('Elige idiomas distintos del idioma objetivo del proyecto base')
         ledger=studio.read_json(source/'language_versions.json',{'versions':{}})
         fingerprint=hashlib.sha256(json.dumps({key:request.get(key) for key in ('title','brief','pipeline','reference','language')},sort_keys=True,ensure_ascii=False).encode()).hexdigest()

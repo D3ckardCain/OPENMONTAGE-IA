@@ -85,6 +85,19 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'project_ids'}:raise HTTPException(400,'Indica solo project_ids')
         return invoke(reuse,pid,data['project_ids'])
+    @router.get('/api/studio/reference-language/{pid}')
+    def reference_language_state(pid:str):
+        from lib.reference_language import read
+        return invoke(read,pid)
+    @router.post('/api/studio/reference-language/{pid}')
+    async def reference_language_confirm(pid:str,request:Request):
+        from lib.reference_language import confirm
+        from lib import reference_analysis
+        data=await body(request)
+        if set(data)!={'language'}:raise HTTPException(400,'Indica solo language')
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que termine la tarea local')
+            return invoke(confirm,pid,data['language'])
     @router.get('/api/studio/language-requirements/{pid}')
     def language_requirements(pid:str):
         from lib.language_versions import local_requirements

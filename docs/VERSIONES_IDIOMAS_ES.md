@@ -43,3 +43,7 @@ La revisión de recursos muestra la correspondencia implementada cuando exista y
 La revisión de recursos enumera las voces Kokoro presentes, no vacías y con el prefijo correspondiente al idioma objetivo. No incluye enlaces simbólicos. Si no hay coincidencias lo indica. Esto comprueba nombres y archivos, no la pronunciación ni la autenticidad del peso.
 
 El productor dispone de `language_resources` para consultar el mismo informe sin iniciar modelos y escoger una voz explícita de la lista. La herramienta no configura ni genera audio por sí sola; la generación conserva las instrucciones y revisiones habituales. Los otros motores siguen mostrando sus requisitos sin inventar un listado de voces.
+
+## Idioma original
+
+«Consultar idioma de la referencia» muestra el idioma sugerido por la transcripción, cuando exista. Puede fallar en material mixto o con poco diálogo. «Guardar idioma original» permite registrar el código elegido para ese análisis y referencia. Las versiones nuevas excluyen ese idioma y sus variantes regionales; el lote se valida antes de crear proyectos. Si cambia el análisis o la URL, la confirmación deja de aplicarse y se indica que está desactualizada. Sin confirmación se pueden preparar versiones, pero no se afirma que el idioma de origen haya sido excluido.

@@ -117,3 +117,11 @@ def test_corrupt_version_does_not_hide_other_versions(source):
     assert report['summary']['unavailable']==1
     assert report['versions'][0]['can_enqueue'] is False
     assert report['versions'][1]['status']=='existing'
+
+
+def test_confirmed_original_language_is_excluded_including_regional_variants(source):
+    from lib.reference_language import confirm
+    confirm('base','en')
+    with pytest.raises(ValueError,match='original confirmado'):create_versions('base',['ko','en-US'])
+    assert source==[]
+    assert create_versions('base',['ko'])['versions'][0]['status']=='created'
