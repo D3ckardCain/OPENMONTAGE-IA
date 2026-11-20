@@ -1,0 +1,1 @@
+"""Official baseball source adapters."""

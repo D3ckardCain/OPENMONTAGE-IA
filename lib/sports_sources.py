@@ -29,7 +29,7 @@ _ROWS = [
  ('south_africa','football','africa','PSL','https://www.psl.co.za/',''),
  ('morocco','football','africa','FRMF','https://frmf.ma/',''),
  ('egypt','football','africa','Egyptian Pro League','https://egyptianproleague.com/',''),
- ('mlb','baseball','americas','MLB','https://www.mlb.com/stats',''),
+ ('mlb','baseball','americas','MLB','https://www.mlb.com/stats','official_mlb_live'),
  ('npb','baseball','asia','NPB','https://npb.jp/',''),
  ('kbo','baseball','asia','KBO','https://www.koreabaseball.com/',''),
  ('wbsc','baseball','world','WBSC','https://www.wbsc.org/',''),
