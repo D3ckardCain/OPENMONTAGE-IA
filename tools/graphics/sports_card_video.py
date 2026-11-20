@@ -6,14 +6,41 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+from fractions import Fraction
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 from tools.graphics.sports_card import render, rasterize
 from lib.media_executables import require_media
 
 
+def file_digest(path):
+    digest=hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for chunk in iter(lambda:stream.read(1024*1024),b''):digest.update(chunk)
+    return digest.hexdigest()
+
+
+def inspect_streams(metadata,duration,narration_duration=None):
+    streams=metadata.get('streams',[])
+    videos=[s for s in streams if s.get('codec_type')=='video']
+    audios=[s for s in streams if s.get('codec_type')=='audio']
+    if len(videos)!=1 or len(audios)!=(1 if narration_duration is not None else 0):
+        raise ValueError('Cantidad de pistas distinta de la solicitada')
+    video=videos[0]
+    actual=float(metadata.get('format',{}).get('duration',0))
+    if not math.isfinite(actual) or abs(actual-duration)>.1 or (video.get('width'),video.get('height'))!=(720,1280):
+        raise ValueError('Resolución o duración del clip incorrecta')
+    if video.get('codec_name')!='h264' or video.get('pix_fmt')!='yuv420p' or Fraction(video.get('avg_frame_rate','0/1'))!=24:
+        raise ValueError('El clip no cumple H.264, yuv420p y 24 fps')
+    if audios:
+        audio=audios[0];length=float(audio.get('duration',0))
+        if audio.get('codec_name')!='aac' or not math.isfinite(length) or length<narration_duration-.06 or length>actual+.1:
+            raise ValueError('La narración exportada está incompleta o su formato no coincide')
+    return actual,bool(audios)
+
+
 class SportsCardVideo(BaseTool):
     name='sports_card_video'
-    version='0.2.0'
+    version='0.3.0'
     provider='local'
     tier=ToolTier.CORE
     runtime=ToolRuntime.LOCAL
@@ -41,7 +68,7 @@ class SportsCardVideo(BaseTool):
                 if audio.suffix.lower() not in ('.wav','.flac','.mp3','.m4a','.ogg') or not audio.is_file():
                     raise ValueError('La narración debe ser un archivo de audio local existente')
                 before=audio.stat()
-                checksum=hashlib.sha256(audio.read_bytes()).hexdigest()
+                checksum=file_digest(audio)
                 probe_audio=subprocess.run([ffprobe,'-v','error','-protocol_whitelist','file,pipe',
                     '-show_streams','-show_format','-of','json',str(audio)],capture_output=True,text=True,timeout=30)
                 if probe_audio.returncode:raise ValueError('No se pudo inspeccionar la narración')
@@ -74,21 +101,17 @@ class SportsCardVideo(BaseTool):
                 probe=subprocess.run([ffprobe,'-v','error','-show_streams','-show_format','-of','json',str(video)],capture_output=True,text=True,timeout=30)
                 if probe.returncode:raise ValueError('No se pudo inspeccionar el clip')
                 metadata=json.loads(probe.stdout)
-                streams=metadata.get('streams',[])
-                v=next((s for s in streams if s.get('codec_type')=='video'),{})
-                actual=float(metadata.get('format',{}).get('duration',0))
-                has_audio=any(s.get('codec_type')=='audio' for s in streams)
-                if has_audio!=bool(audio):raise ValueError('La pista de audio de la salida no coincide con lo solicitado')
-                if not math.isfinite(actual) or (v.get('width'),v.get('height'))!=(720,1280) or abs(actual-duration)>.1:
-                    raise ValueError('Resolución o duración del clip incorrecta')
+                actual,has_audio=inspect_streams(metadata,duration,audio_evidence['duration_seconds'] if audio_evidence else None)
                 decoded=subprocess.run([ffmpeg,'-nostdin','-v','error','-xerror','-i',str(video),'-f','null','-'],capture_output=True,text=True,timeout=60)
                 if decoded.returncode:raise ValueError('El clip no pasó la decodificación completa')
                 if audio:
                     after=audio.stat()
-                    if (before.st_size,before.st_mtime_ns)!=(after.st_size,after.st_mtime_ns) or hashlib.sha256(audio.read_bytes()).hexdigest()!=checksum:
+                    if (before.st_size,before.st_mtime_ns)!=(after.st_size,after.st_mtime_ns) or file_digest(audio)!=checksum:
                         raise ValueError('La narración cambió durante el render')
-                record={'report':inputs['report'],'narration':audio_evidence,'media':{'path':str(output),'duration_seconds':actual,
-                         'resolution':'720x1280','audio':has_audio,'full_decode_passed':True},
+                record={'report_sha256':hashlib.sha256(json.dumps(inputs['report'],sort_keys=True,ensure_ascii=False,allow_nan=False).encode('utf-8')).hexdigest(),'report':inputs['report'],'narration':audio_evidence,'media':{'path':str(output),'duration_seconds':actual,
+                         'resolution':'720x1280','audio':has_audio,'full_decode_passed':True,
+                         'fps':24,'video_codec':'h264','pixel_format':'yuv420p',
+                         'sha256':file_digest(video),'file_size_bytes':video.stat().st_size},
                         'role':'composition_segment','final_video_verified':False}
                 saved=folder/'evidence.json';saved.write_text(json.dumps(record,ensure_ascii=False,indent=2),encoding='utf-8')
                 # Never replace a previous render. The final production still goes through its normal gates.

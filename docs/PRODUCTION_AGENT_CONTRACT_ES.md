@@ -109,3 +109,6 @@ Para béisbol MLB descubre `official_mlb_live` (capacidad `baseball_statistics`)
 
 
 Para postales MLB usa `official_mlb_live` con `action=collectible_card`, `name`, `season`, `group` y `metrics`. Envía el informe sin alterar a `sports_card_svg` (SVG/PNG) o `sports_card_video` (MP4, audio local opcional). Los diseños indican béisbol, temporada regular y bateo/pitcheo, conservando tasas e innings como texto original. No recalculan esos valores ni afirman cobertura de otros torneos.
+
+
+La exportación deportiva verifica además H.264, yuv420p, 24 fps, una pista de video y la cantidad de pistas de audio esperada. Con narración exige AAC y comprueba que su duración no esté recortada (tolerancia técnica 60 ms). El expediente conserva SHA-256 y tamaño del MP4, junto con SHA-256 del informe fuente serializado. Estas huellas permiten comprobar integridad del archivo; no certifican la veracidad de las cifras ni reemplazan la revisión editorial, visual y final del pipeline.
