@@ -34,7 +34,7 @@ _ROWS = [
  ('kbo','baseball','asia','KBO','https://www.koreabaseball.com/',''),
  ('wbsc','baseball','world','WBSC','https://www.wbsc.org/',''),
  ('wbc','boxing','world','WBC','https://wbcboxing.com/en/ratings-en/',''),
- ('wba','boxing','world','WBA','https://www.wbaboxing.com/',''),
+ ('wba','boxing','world','WBA','https://www.wbaboxing.com/','official_wba_live'),
  ('ibf','boxing','world','IBF','https://www.ibf-usba-boxing.com/',''),
  ('wbo','boxing','world','WBO','https://wboboxing.com/',''),
 ]
