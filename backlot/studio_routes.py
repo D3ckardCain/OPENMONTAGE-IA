@@ -70,6 +70,12 @@ def create_studio_router():
             return invoke(studio.configure,data)
     @router.post('/api/studio/projects')
     async def create(request:Request):return invoke(studio.create_production,await body(request))
+    @router.post('/api/studio/language-versions/{pid}')
+    async def language_versions(pid:str,request:Request):
+        from lib.language_versions import create_versions
+        data=await body(request)
+        if set(data)!={'languages'}:raise HTTPException(400,'Indica solo languages')
+        return invoke(create_versions,pid,data['languages'])
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)
