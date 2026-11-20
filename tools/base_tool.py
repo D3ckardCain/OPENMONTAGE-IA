@@ -10,6 +10,7 @@ import functools
 import hashlib
 import inspect
 import json
+import math
 import os
 import platform
 import subprocess
@@ -142,6 +143,77 @@ class ToolResult:
     seed: Optional[int] = None
     model: Optional[str] = None
     from_cache: bool = False
+
+
+def zero_cost_block_reason(tool: "BaseTool") -> Optional[str]:
+    """Fork policy: remote/unknown backends are not execution candidates.
+
+    Selectors only delegate to other BaseTools, so each selected provider is
+    checked again. ComfyUI is held back until workflow nodes are validated:
+    a local ComfyUI server can still execute credit-consuming Partner Nodes.
+    This is a tool boundary, not a sandbox for arbitrary Python/subprocesses.
+    """
+    if tool.provider == "comfyui":
+        return "ComfyUI workflows require local-node validation before use."
+    if tool.runtime == ToolRuntime.HYBRID and tool.provider == "selector":
+        return None
+    if tool.runtime not in (ToolRuntime.LOCAL, ToolRuntime.LOCAL_GPU):
+        return "Only local backends are enabled; remote and unknown backends are blocked."
+    return None
+
+
+def _zero_cost_execute(fn: Callable) -> Callable:
+    """Enforce policy before cache, instrumentation, retries, or provider code."""
+    @functools.wraps(fn)
+    def wrapper(self, inputs: Any, *args: Any, **kwargs: Any):
+        reason = zero_cost_block_reason(self)
+        if reason is None:
+            try:
+                estimate = self.estimate_cost(inputs)
+                if isinstance(estimate, bool) or not isinstance(estimate, (int, float)):
+                    reason = "The estimated cost must be a finite numeric zero."
+                elif not math.isfinite(estimate) or estimate != 0:
+                    reason = "Only operations with an estimated cost of exactly USD 0 are enabled."
+            except Exception:
+                reason = "The operation has no verifiable zero-cost estimate."
+        if reason is not None:
+            return ToolResult(
+                success=False,
+                error=f"ZERO_COST_POLICY: {reason}",
+                data={"blocked_by": "zero_cost_policy", "tool": self.name},
+                cost_usd=0.0,
+            )
+        return fn(self, inputs, *args, **kwargs)
+    return wrapper
+
+
+def _zero_cost_status(fn: Callable) -> Callable:
+    @functools.wraps(fn)
+    def wrapper(self, *args: Any, **kwargs: Any):
+        if zero_cost_block_reason(self) is not None:
+            return ToolStatus.UNAVAILABLE
+        return fn(self, *args, **kwargs)
+    return wrapper
+
+
+def _zero_cost_info(fn: Callable) -> Callable:
+    @functools.wraps(fn)
+    def wrapper(self, *args: Any, **kwargs: Any):
+        if zero_cost_block_reason(self) is not None:
+            # Some overrides probe endpoints while enriching metadata. A blocked
+            # provider must remain inspectable without running those probes.
+            return BaseTool.get_info(self)
+        return fn(self, *args, **kwargs)
+    return wrapper
+
+
+def _zero_cost_dry_run(fn: Callable) -> Callable:
+    @functools.wraps(fn)
+    def wrapper(self, inputs: Any, *args: Any, **kwargs: Any):
+        if zero_cost_block_reason(self) is not None:
+            return BaseTool.dry_run(self, inputs)
+        return fn(self, inputs, *args, **kwargs)
+    return wrapper
 
 
 import threading as _threading
@@ -414,9 +486,18 @@ class BaseTool(ABC):
         super().__init_subclass__(**kwargs)
         impl = cls.__dict__.get("execute")
         if impl is not None and not getattr(impl, "__isabstractmethod__", False):
-            # Cache is outermost: a hit skips both the live call and its event
-            # emission. Instrumentation wraps the raw implementation beneath it.
-            cls.execute = _cache_execute(_instrument_execute(impl))
+            # Policy is outermost, including cache hits. Cache then wraps
+            # instrumentation and the raw provider implementation.
+            cls.execute = _zero_cost_execute(_cache_execute(_instrument_execute(impl)))
+        status_impl = cls.__dict__.get("get_status")
+        if status_impl is not None:
+            cls.get_status = _zero_cost_status(status_impl)
+        info_impl = cls.__dict__.get("get_info")
+        if info_impl is not None:
+            cls.get_info = _zero_cost_info(info_impl)
+        dry_run_impl = cls.__dict__.get("dry_run")
+        if dry_run_impl is not None:
+            cls.dry_run = _zero_cost_dry_run(dry_run_impl)
 
     # --- Identity (override in subclasses) ---
     name: str = ""
@@ -479,6 +560,8 @@ class BaseTool(ABC):
 
     def get_status(self) -> ToolStatus:
         """Check if this tool's dependencies are satisfied."""
+        if zero_cost_block_reason(self) is not None:
+            return ToolStatus.UNAVAILABLE
         try:
             self.check_dependencies()
             return ToolStatus.AVAILABLE
@@ -521,9 +604,11 @@ class BaseTool(ABC):
             "provider": self.provider,
             "stability": self.stability.value,
             "status": self.get_status().value,
+            "cost_policy": "zero_cost_local",
+            "cost_policy_block_reason": zero_cost_block_reason(self),
             "execution_mode": self.execution_mode.value,
             "determinism": self.determinism.value,
-            "runtime": self.runtime.value,
+            "runtime": getattr(self.runtime, "value", str(self.runtime)),
             "module_path": self.__class__.__module__,
             "usage_location": usage_location,
             "dependencies": self.dependencies,
@@ -610,6 +695,16 @@ class BaseTool(ABC):
 
     def dry_run(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Preflight check without side effects. Override for paid/publishing tools."""
+        reason = zero_cost_block_reason(self)
+        if reason is not None:
+            return {
+                "tool": self.name,
+                "estimated_cost_usd": None,
+                "cost_status": "blocked_by_policy",
+                "cost_policy_block_reason": reason,
+                "status": ToolStatus.UNAVAILABLE.value,
+                "would_execute": False,
+            }
         from tools.provider_pricing import PriceQuoteRequired
 
         quote_error = None
@@ -618,6 +713,15 @@ class BaseTool(ABC):
         except PriceQuoteRequired as exc:
             estimated_cost = None
             quote_error = str(exc)
+        except Exception:
+            estimated_cost = None
+            quote_error = "Unable to verify a zero-cost estimate."
+        zero_estimate = (
+            not isinstance(estimated_cost, bool)
+            and isinstance(estimated_cost, (int, float))
+            and math.isfinite(estimated_cost)
+            and estimated_cost == 0
+        )
         return {
             "tool": self.name,
             "estimated_cost_usd": estimated_cost,
@@ -625,7 +729,7 @@ class BaseTool(ABC):
             "quote_reason": quote_error,
             "estimated_runtime_seconds": self.estimate_runtime(inputs),
             "status": self.get_status().value,
-            "would_execute": True,
+            "would_execute": zero_estimate,
         }
 
     # ---- CLI helper ----

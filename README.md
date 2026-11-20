@@ -1,4 +1,6 @@
 <p align="center">
+
+> **OPENMONTAGE-IA — estado al 12/11/2026:** proyecto de adaptación local de costo cero. Fase actual: descargas, inventario y documentación; no se ha validado generación física ni publicación autónoma. Ver [estado consolidado](docs/ESTADO_PROYECTO.md), [descargas adicionales y licencias](docs/DESCARGAS_ADICIONALES.md) y [automatización con agentes](docs/AUTOMATIZACION_AGENTES.md).
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/monty-dark.svg">
     <img src="assets/monty-light.svg" alt="Monty the Clapper — the official mascot of OpenMontage" width="200">

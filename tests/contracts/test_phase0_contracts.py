@@ -256,12 +256,15 @@ class TestConfig:
     def test_load_defaults(self):
         config = OpenMontageConfig()
         assert config.llm.provider == "anthropic"
-        assert config.budget.mode.value == "warn"
+        assert config.budget.mode.value == "cap"
+        assert config.budget.total_usd == 0
+        assert config.budget.single_action_approval_usd == 0
         assert config.checkpoint.policy.value == "guided"
 
     def test_load_from_yaml(self):
         config = OpenMontageConfig.load()
-        assert config.budget.total_usd == 10.0
+        assert config.budget.total_usd == 0
+        assert config.budget.mode.value == "cap"
 
 
 # ---- Schemas ----

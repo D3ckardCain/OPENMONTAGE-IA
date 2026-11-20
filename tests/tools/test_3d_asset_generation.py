@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 
 import jsonschema
+import pytest
 
 from tools.base_tool import ToolStatus
 from tools.graphics import atlas_3d, fal_3d
@@ -15,18 +16,6 @@ from tools.graphics import blender_world
 from tools.graphics.blender_world import BlenderWorld, first_missing_frame
 from tools.graphics.fal_3d import Fal3D
 from tools.tool_registry import ToolRegistry
-
-
-class _Response:
-    def __init__(self, payload=None, content=b""):
-        self._payload = payload
-        self.content = content
-
-    def json(self):
-        return self._payload
-
-    def raise_for_status(self):
-        return None
 
 
 def test_registry_discovers_separate_3d_capabilities():
@@ -50,7 +39,9 @@ def test_atlas_cost_matrix_and_missing_key(monkeypatch, tmp_path):
     assert tool.estimate_cost({"texture": True, "texture_quality": "detailed", "geometry_quality": "detailed"}) == 0.66
     result = tool.execute({"prompt": "a cottage", "output_path": str(tmp_path / "cottage.glb")})
     assert not result.success
-    assert "key" in (result.error or "").lower()
+    assert result.data["blocked_by"] == "zero_cost_policy"
+    assert "ZERO_COST_POLICY" in result.error
+    assert not (tmp_path / "cottage.glb").exists()
 
 
 def test_fal_cost_matrix_and_input_validation(monkeypatch, tmp_path):
@@ -106,53 +97,26 @@ def test_asset_manifest_accepts_generated_mesh_type():
     }, schema)
 
 
-def test_atlas_success_downloads_glb_and_provenance(monkeypatch, tmp_path):
-    monkeypatch.setenv("ATLASCLOUD_API_KEY", "test-key")
-    monkeypatch.setattr(atlas_3d.time, "sleep", lambda _seconds: None)
-    monkeypatch.setattr(atlas_3d.requests, "post", lambda *args, **kwargs: _Response({"data": {"id": "pred-1"}}))
+@pytest.mark.parametrize("tool_cls,module,key", [
+    (Atlas3D, atlas_3d, "ATLASCLOUD_API_KEY"),
+    (Fal3D, fal_3d, "FAL_KEY"),
+])
+def test_cloud_mesh_credentials_never_enable_paid_generation(monkeypatch, tmp_path, tool_cls, module, key):
+    monkeypatch.setenv(key, "dummy-test-key")
 
-    def fake_get(url, **_kwargs):
-        if "prediction/pred-1" in url:
-            return _Response({"data": {"status": "completed", "files": [{
-                "type": "glb", "url": "https://cdn.example/asset.glb",
-            }]}})
-        return _Response(content=b"glb-bytes")
+    def forbidden(*args, **kwargs):
+        pytest.fail("Cloud mesh transport must not be reached under the zero-cost policy")
 
-    monkeypatch.setattr(atlas_3d.requests, "get", fake_get)
+    monkeypatch.setattr(module.requests, "post", forbidden)
+    monkeypatch.setattr(module.requests, "get", forbidden)
     output = tmp_path / "asset.glb"
-    result = Atlas3D().execute({"prompt": "a weathered cottage", "output_path": str(output)})
-    assert result.success, result.error
-    assert output.read_bytes() == b"glb-bytes"
-    provenance = json.loads(output.with_suffix(".provenance.json").read_text(encoding="utf-8"))
-    assert provenance["prediction_id"] == "pred-1"
-    assert provenance["model"] == "tripo-h3.1/text-to-3d"
-
-
-def test_fal_success_downloads_glb_and_provenance(monkeypatch, tmp_path):
-    monkeypatch.setenv("FAL_KEY", "test-key")
-    monkeypatch.setattr(fal_3d.time, "sleep", lambda _seconds: None)
-    monkeypatch.setattr(fal_3d.requests, "post", lambda *args, **kwargs: _Response({
-        "request_id": "req-1",
-        "status_url": "https://queue.example/status",
-        "response_url": "https://queue.example/result",
-    }))
-
-    def fake_get(url, **_kwargs):
-        if url.endswith("/status"):
-            return _Response({"status": "COMPLETED"})
-        if url.endswith("/result"):
-            return _Response({"model_urls": {"glb": {
-                "url": "https://cdn.example/asset.glb", "content_type": "model/gltf-binary",
-            }}})
-        return _Response(content=b"fal-glb")
-
-    monkeypatch.setattr(fal_3d.requests, "get", fake_get)
-    output = tmp_path / "fal-asset.glb"
-    result = Fal3D().execute({
+    tool = tool_cls()
+    assert tool.get_status() == ToolStatus.UNAVAILABLE
+    result = tool.execute({
         "operation": "text_to_3d", "prompt": "a stone bridge", "output_path": str(output),
     })
-    assert result.success, result.error
-    assert output.read_bytes() == b"fal-glb"
-    provenance = json.loads(output.with_suffix(".provenance.json").read_text(encoding="utf-8"))
-    assert provenance["request_id"] == "req-1"
-    assert provenance["provider"] == "fal"
+    assert not result.success
+    assert result.data["blocked_by"] == "zero_cost_policy"
+    assert result.cost_usd == 0
+    assert not output.exists()
+    assert not output.with_suffix(".provenance.json").exists()

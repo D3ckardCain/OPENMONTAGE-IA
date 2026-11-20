@@ -1,0 +1,33 @@
+{
+  "format_version": "0.1-design",
+  "status": "template_not_executed",
+  "episode_id": null,
+  "languages": [
+    "es",
+    "en"
+  ],
+  "source_media": [],
+  "claims": [],
+  "evidence": [],
+  "editorial_review": {
+    "status": "pending",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "presentation": {
+    "template_id": "verificacion-contexto-v1",
+    "sections": [
+      "lo_que_dijo",
+      "afirmacion",
+      "pruebas",
+      "contexto_relevante",
+      "conclusion",
+      "fuentes"
+    ],
+    "render_runtime": null
+  },
+  "publication": {
+    "status": "not_authorized_for_this_phase",
+    "outputs": []
+  }
+}
