@@ -111,3 +111,5 @@ La ruta del centro de mando se utiliza en el montaje FFmpeg de `video_compose`, 
 Los subprocesos de composición Node iniciados por VideoCompose y el CLI de HyperFrames reciben las carpetas de FFmpeg/FFprobe en su PATH privado. No cambia el entorno global ni instala paquetes. Esta conexión no instala Node, Remotion o HyperFrames y no acredita sus versiones. Los requisitos de cada motor siguen comprobándose por separado.
 
 La configuración multimedia también se usa en previews de personajes, medición de pistas de la biblioteca musical y ComfyUI Music, inspección de animaciones matemáticas, escalado y sondeo compartido de video. Manim recibe las rutas multimedia en su entorno privado. El cambio no instala Manim, Playwright ni modelos de música, y no inicia generación al comprobar rutas.
+
+Las pruebas del entorno privado identifican el proceso de composición concreto, sin asumir que es la primera llamada: la detección de ejecutables en Windows puede añadir llamadas auxiliares. También se prueba esa secuencia con detección simulada.

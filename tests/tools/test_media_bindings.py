@@ -55,7 +55,9 @@ def test_video_compose_passes_private_media_environment_to_node(bound,monkeypatc
         calls.append((command,kwargs));return SimpleNamespace(returncode=0,stdout='',stderr='')
     monkeypatch.setattr(base_tool.subprocess,'run',run)
     VideoCompose().run_command(['node','fixture.js'])
-    assert str(bound[0].parent) in calls[0][1]['env']['PATH']
+    node_calls=[call for call in calls if call[0][-1:] == ['fixture.js']]
+    assert len(node_calls)==1
+    assert str(bound[0].parent) in node_calls[0][1]['env']['PATH']
 
 
 def test_music_and_video_probes_use_configured_probe(bound,monkeypatch,tmp_path):
@@ -76,3 +78,21 @@ def test_music_and_video_probes_use_configured_probe(bound,monkeypatch,tmp_path)
     assert MathAnimate()._probe_output(source)['duration_seconds']==2.5
     _shared.probe_output(source)
     assert len(calls)==4 and all(command[0]==str(bound[1]) for command in calls)
+
+
+def test_media_environment_assertion_ignores_discovery_subprocesses(bound,monkeypatch):
+    from tools import base_tool
+    calls=[]
+    def run(command,**kwargs):
+        calls.append((command,kwargs));return SimpleNamespace(returncode=0,stdout='',stderr='')
+    def which(name):
+        run(['fixture-discovery',name],capture_output=True)
+        return None
+    monkeypatch.setattr(base_tool.subprocess,'run',run)
+    monkeypatch.setattr(base_tool.platform,'system',lambda:'Windows')
+    monkeypatch.setattr(base_tool.shutil,'which',which)
+    VideoCompose().run_command(['node','fixture.js'])
+    assert calls[0][0]==['fixture-discovery','node']
+    command,options=calls[-1]
+    assert command==['node','fixture.js']
+    assert str(bound[0].parent) in options['env']['PATH']
