@@ -44,3 +44,10 @@ def test_catalog_api(projects):
     response=TestClient(create_app(),base_url='http://127.0.0.1:4750').get('/api/studio/finals')
     assert response.status_code==200
     assert response.json()['generation_started'] is False
+
+
+def test_disconnected_project_root_is_not_reported_as_empty_catalog(projects,monkeypatch):
+    monkeypatch.setattr(studio,'PROJECTS_DIR',projects/'disconnected')
+    report=catalog()
+    assert report['root_available'] is False
+    assert report['projects']==[]

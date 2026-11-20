@@ -69,3 +69,5 @@ La copia se ejecuta fuera del hilo de atención HTTP. Durante ella se excluyen o
 ## Catálogo de videos finales
 
 La sección «Videos finales» consulta recibos de entrega y verificaciones guardadas de hasta 500 proyectos del disco de trabajo activo. Muestra la ruta final, su disponibilidad actual y permite abrir el proyecto. Un error de lectura en un proyecto no oculta los demás. Indica listas parciales. No recorre los discos de recursos, copia archivos ni carga modelos. La disponibilidad no equivale a una nueva comprobación de SHA-256 o calidad. Para proyectos de otro disco hay que seleccionar su raíz y reiniciar.
+
+Si falta la raíz de proyectos, el catálogo muestra «disco no disponible» en vez de presentar el resultado como una colección vacía. Las pruebas de interfaz incluyen entregas disponibles, ausentes, listas parciales y recibos ilegibles con datos simulados.

@@ -29,5 +29,5 @@ def catalog(limit=500):
         except (OSError,ValueError,KeyError,TypeError) as exc:
             errors.append({'project_id':marker.parent.name,'message':str(exc)[:600]})
     return {'projects':rows,'errors':errors,'scanned':scanned,'truncated':truncated,
-        'projects_root':str(studio.PROJECTS_DIR),'generation_started':False,
+        'projects_root':str(studio.PROJECTS_DIR),'root_available':studio.PROJECTS_DIR.is_dir(),'generation_started':False,
         'note':'Recibos guardados del disco de proyectos activo. Disponibilidad actual sin volver a verificar integridad o calidad; no recorre los discos de modelos.'}

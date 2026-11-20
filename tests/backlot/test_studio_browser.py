@@ -224,3 +224,28 @@ def test_queue_controls_inspection_and_progress(staged_backlot_server):
         assert calls==[('move',{'id':'second','direction':'up'}),('remove',{'id':'second'})]
         assert errors==[]
         browser.close()
+
+
+def test_final_catalog_availability_errors_and_disconnected_disk(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1280,'height':900})
+        errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
+        report={'root_available':True,'truncated':True,'note':'Disponibilidad sin verificar integridad','projects':[{'project_id':'first','title':'Mi video','verification_status':'passed','copied':True,'outputs':[{'path':'/finals/good.mp4','available':True},{'path':'/finals/missing.mp4','available':False}]}],'errors':[{'project_id':'broken','message':'Recibo ilegible'}]}
+        page.route('**/api/studio/finals',lambda route:route.fulfill(json=report))
+        page.goto(staged_backlot_server+'/studio#finals')
+        page.locator('#finals-load').click()
+        page.locator('#finals-result summary').click()
+        assert 'Disponible: /finals/good.mp4' in page.locator('#finals-result').inner_text()
+        assert 'No disponible: /finals/missing.mp4' in page.locator('#finals-result').inner_text()
+        assert 'Lista parcial' in page.locator('#finals-result').inner_text()
+        assert 'Recibo ilegible' in page.locator('#finals-result').inner_text()
+        page.set_viewport_size({'width':390,'height':844})
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        report.update(root_available=False,truncated=False,projects=[],errors=[])
+        page.locator('#finals-load').click()
+        page.get_by_text('El disco de proyectos no está disponible. Conéctalo para consultar los finales.',exact=True).wait_for()
+        assert 'No hay entregas' not in page.locator('#finals-result').inner_text()
+        assert errors==[]
+        browser.close()
