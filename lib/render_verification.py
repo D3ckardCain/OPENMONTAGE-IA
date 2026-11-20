@@ -2,11 +2,16 @@
 import json
 import math
 import re
+import hashlib
 import subprocess
 from pathlib import Path
 from lib import production_studio as studio
 from lib.reference_analysis import executable
 from lib.final_delivery import digest
+
+
+def declarations_digest(outputs):
+    return hashlib.sha256(json.dumps(outputs,sort_keys=True,allow_nan=False).encode()).hexdigest()
 
 
 def verify(project_id,outputs):
@@ -15,6 +20,7 @@ def verify(project_id,outputs):
     report_path=project/'render_verification.json'
     try:
         if not isinstance(outputs,list) or not outputs:raise ValueError('No hay render_report con salidas')
+        report['declared_outputs_sha256']=declarations_digest(outputs)
         probe=executable('ffprobe');decoder=executable('ffmpeg');verified=[];seen=set()
         for item in outputs:
             path=Path(item['path'])

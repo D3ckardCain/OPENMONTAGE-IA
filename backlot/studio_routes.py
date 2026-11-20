@@ -100,6 +100,24 @@ def create_studio_router():
     def storage():
         from lib.storage_layout import describe
         return invoke(describe,studio.REPO_ROOT,studio.PROJECTS_DIR)
+    @router.post('/api/studio/final-delivery/{pid}/retry')
+    async def retry_final_delivery(pid:str,request:Request):
+        from lib.final_delivery import retry_verified_delivery
+        from lib import reference_analysis
+        import threading
+        if await body(request):raise HTTPException(400,'La recuperación no admite rutas ni parámetros')
+        invoke(studio.project_path,pid)
+        token=threading.Event()
+        # Reserve the producer task slot, but do not start an AI agent. Locks
+        # protect only the reservation, never a potentially long disk copy.
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de recuperar la entrega')
+            agent.ACTIVE[pid]=(None,token)
+        try:
+            return await asyncio.to_thread(lambda:invoke(retry_verified_delivery,pid))
+        finally:
+            with agent.ACTIVE_LOCK:
+                if agent.ACTIVE.get(pid,(None,None))[1] is token:agent.ACTIVE.pop(pid,None)
     @router.get('/api/studio/storage/readiness')
     def storage_readiness():
         from lib.storage_layout import readiness

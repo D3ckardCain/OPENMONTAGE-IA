@@ -35,6 +35,12 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         assert 'Falta el runtime' in page.locator('#message').inner_text()
         assert '1080×1920' in page.locator('#render-verification').inner_text()
         assert 'no acredita calidad visual' in page.locator('#render-verification').inner_text()
+        recoveries=[]
+        def recover(route):recoveries.append(route.request.post_data_json);route.fulfill(json={'status':'completed','generation_started':False})
+        page.route('**/api/studio/final-delivery/video-fixture/retry',recover)
+        page.locator('#retry-final-delivery').click()
+        page.get_by_text('Entrega final recuperada sin volver a generar.',exact=True).wait_for()
+        assert recoveries==[{}]
         assert page.get_by_role('link',name='source_notes.json').count()==1
         assert page.locator('#outputs video').count()==0
         page.get_by_role('button',name='Iniciar / reanudar agentes').click()
