@@ -4,7 +4,7 @@ import json
 import math
 import re
 from pathlib import Path
-from tools.football.official_jleague import goals_url
+from tools.football.official_jleague import METRICS as JLEAGUE_METRICS, ranking_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
 _LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
@@ -58,8 +58,8 @@ def render(report):
         identity=record.get('identity',{})
         entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
         if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
-        if kind=='collectible_card':facts=record.get('facts',[])
-        elif source in ('MLB','UEFA','J.League'):
+        if kind=='collectible_card' or source=='J.League':facts=record.get('facts',[])
+        elif source in ('MLB','UEFA'):
             origin=record.get('statistics_source',{})
             facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
         else:
@@ -78,8 +78,9 @@ def render(report):
             seen.add(fact['metric'])
             if fact.get('entity_id')!=entity or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
             if source == 'J.League':
-                if fact['metric'] != 'goals' or type(value) is not int or value < 0 or url != goals_url(scope['season']):
-                    raise ValueError('Cifra o fuente de goles J1 inválida')
+                metric = fact['metric']
+                if metric not in JLEAGUE_METRICS or type(value) is not int or value < 0 or url != ranking_url(scope['season'], metric):
+                    raise ValueError('Cifra o fuente J1 inválida')
             elif not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://compstats.uefa.com/' if source=='UEFA' else 'https://www.wbaboxing.com/' if source=='WBA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
             if not fact.get('retrieved_at') or not any(q.get('url')==url and q.get('retrieved_at')==fact['retrieved_at'] for q in queries):raise ValueError('Fuente ajena al expediente')
         if source=='MLB':

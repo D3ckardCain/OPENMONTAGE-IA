@@ -8,7 +8,7 @@ from tools.tool_registry import ToolRegistry
 
 @pytest.fixture
 def official_page(monkeypatch):
-    url = jleague.goals_url(2025)
+    url = jleague.ranking_url(2025, 'goals')
     page = f'''
     <link rel="canonical" href="{url}">
     <title>2025 Season - Top scorers | J1 League Player Stats | Official Website of J.LEAGUE</title>
@@ -35,7 +35,7 @@ def test_source_discovery_and_comparison(official_page):
     assert result.cost_usd == 0 and not result.from_cache
     assert [row['statistics']['goals'] for row in result.data['records']] == [21, 18]
     assert 'J1 League · 2025' in render(result.data)
-    result.data['records'][0]['statistics_source']['url'] = jleague.goals_url(2024)
+    result.data['records'][0]['facts'][0]['source_url'] = jleague.ranking_url(2024, 'goals')
     with pytest.raises(ValueError, match='fuente'):
         render(result.data)
 
@@ -45,13 +45,43 @@ def test_unverified_identity_blocks_rendering(official_page, name, reason):
     result = jleague.OfficialJLeague().execute({'action': 'collectible_card', 'season': 2025, 'names': [name]})
     assert result.success and not result.data['ready_for_script']
     assert result.data['records'] == []
-    assert result.data['unresolved'] == [{'name': name, 'reason': reason}]
+    assert result.data['unresolved'] == [{'name': name, 'reason': reason, 'metric': 'goals', 'value': None}]
     with pytest.raises(ValueError):
         render(result.data)
 
 
 def test_rejects_wrong_season_and_inconsistent_visible_score(official_page):
     with pytest.raises(ValueError, match='temporada'):
-        jleague.parse_goals(official_page, 2024)
+        jleague.parse_ranking(official_page, 2024, 'goals')
     with pytest.raises(ValueError, match='Fila'):
-        jleague.parse_goals(official_page.replace('>21</p>', '>20</p>'), 2025)
+        jleague.parse_ranking(official_page.replace('>21</p>', '>20</p>'), 2025, 'goals')
+
+
+def test_combined_metrics_keep_separate_sources_and_block_missing(official_page, monkeypatch):
+    goals_url = jleague.ranking_url(2025, 'goals')
+    assists_url = jleague.ranking_url(2025, 'assists')
+    assists = official_page.replace(goals_url, assists_url).replace('Top scorers', 'Assists')
+    assists = assists.replace('score="21"', 'score="15"').replace('>21</p>', '>15</p>')
+    assists = assists.replace('Example Two', 'Other Player')
+
+    def fetch(url):
+        return (official_page if url == goals_url else assists), {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    tool = jleague.OfficialJLeague()
+    args = {'season': 2025, 'metrics': ['goals', 'assists']}
+    card = tool.execute(dict(args, action='collectible_card', names=['Example One']))
+    assert card.success and card.data['ready_for_script']
+    facts = card.data['records'][0]['facts']
+    assert [(f['metric'], f['value'], f['source_url']) for f in facts] == [
+        ('goals', 21, goals_url), ('assists', 15, assists_url)]
+    assert 'Asistencias' in render(card.data)
+    facts[1]['source_url'] = goals_url
+    with pytest.raises(ValueError, match='fuente'):
+        render(card.data)
+
+    comparison = tool.execute(dict(args, action='compare_players', names=['Example One', 'Example Two']))
+    assert comparison.success and not comparison.data['ready_for_script']
+    assert comparison.data['records'][1]['statistics'] == {'goals': 18, 'assists': None}
+    with pytest.raises(ValueError):
+        render(comparison.data)
