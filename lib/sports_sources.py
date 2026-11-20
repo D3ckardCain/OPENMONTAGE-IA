@@ -1,12 +1,22 @@
 """Agent-facing source routing. This directory never impersonates a live query."""
 from copy import deepcopy
 
-FOOTBALL_STANDARD_METRICS = (
-    'matches_played', 'minutes_played',
-    'goals', 'assists', 'shots', 'shots_on_target',
-    'duels_won', 'clean_sheets',
-    'yellow_cards', 'red_cards',
-)
+FOOTBALL_METRIC_GROUPS = {
+    'participation': ('matches_played', 'starts', 'substitute_appearances', 'minutes_played'),
+    'attack': ('goals', 'assists', 'shots', 'shots_on_target', 'shots_off_target', 'shots_blocked',
+               'penalties_taken', 'penalty_goals', 'penalties_missed', 'offsides', 'big_chances_missed', 'expected_goals'),
+    'creation_and_passing': ('chances_created', 'big_chances_created', 'key_passes', 'expected_assists',
+                             'passes_attempted', 'passes_completed', 'pass_accuracy', 'crosses_attempted',
+                             'crosses_completed', 'long_balls_attempted', 'long_balls_completed',
+                             'touches', 'dribbles_attempted', 'dribbles_completed'),
+    'defence_and_duels': ('duels_contested', 'duels_won', 'aerial_duels_contested', 'aerial_duels_won',
+                          'tackles_attempted', 'tackles_won', 'interceptions', 'recoveries',
+                          'clearances', 'blocks', 'own_goals'),
+    'goalkeeping': ('clean_sheets', 'goals_conceded', 'saves', 'save_percentage', 'penalties_saved'),
+    'discipline': ('fouls_committed', 'fouls_suffered', 'yellow_cards', 'second_yellow_cards', 'red_cards'),
+    'physical': ('distance_covered', 'sprints', 'top_speed'),
+}
+FOOTBALL_STANDARD_METRICS = tuple(metric for group in FOOTBALL_METRIC_GROUPS.values() for metric in group)
 
 
 # Entry points are source locations, not promises of API availability or coverage.
@@ -60,8 +70,16 @@ def catalog(sport=None, region=None):
     football_contract = {
         'metrics': list(FOOTBALL_STANDARD_METRICS),
         'missing_value': None,
+        'metric_groups': {group: list(metrics) for group, metrics in FOOTBALL_METRIC_GROUPS.items()},
+        'source_discovery': {
+            'official_uefa_live': 'Consulta definitions y usa las métricas oficiales para PLAYER.',
+            'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',
+            'official_jleague_live': 'Consulta tool_info para conocer el subconjunto de métricas integrado.',
+        },
         'instruction': ('Usa el mismo conjunto de métricas para todas las ligas, copas y torneos de fútbol. '
                         'Relaciona los nombres del proveedor con las métricas comunes solo si su definición coincide. '
+                        'Conserva toda métrica adicional publicada en el expediente con su clave original y procedencia. '
+                        'Aplica cada métrica comparable nueva al mismo catálogo común de todas las competiciones. '
                         'Si falta una cifra o no aplica al jugador, conserva su campo con null. '
                         'Si el usuario pide una métrica concreta, puedes consultar ese subconjunto. '
                         'Si la pieza visual tiene un límite de espacio, muestra el mismo subconjunto para todos '

@@ -123,10 +123,11 @@ class FIFA:
         requested = player_ids or list(parsed)
         if any(pid not in parsed for pid in requested):
             raise ValueError('Jugador ausente de la edición; no sustituir por cero')
+        selected = metrics if metrics is not None else list(dict.fromkeys(
+            metric for pid in requested for metric in parsed[pid]))
         rows = []
         for pid in requested:
             values = parsed[pid]
-            selected = metrics or list(values)
             rows.append({'entity_id': pid, 'identity_namespace': 'FIFA_FDH', 'name': None,
                          'statistics': {m: values.get(m, {'value': None, 'source_flag': None, 'unit': None}) for m in selected},
                          'missing_metrics': [m for m in selected if m not in values or values[m]['value'] is None]})
@@ -226,7 +227,7 @@ class FIFA:
         return self.pack('player_resolution', teams['scope'], results,
                          teams['queries'] + [query for rows, query in squads])
 
-    def compare_players(self, competition_id, season_id, subjects, metrics):
+    def compare_players(self, competition_id, season_id, subjects, metrics=None):
         if not isinstance(subjects, list) or len(subjects) != 2:
             raise ValueError('La comparativa requiere exactamente dos jugadores')
         identities = self.resolve_players(competition_id, season_id, subjects)
@@ -247,7 +248,7 @@ class FIFA:
         stats['ready_for_script'] = not any(row['missing_metrics'] for row in stats['records'])
         return stats
 
-    def collectible_card(self, competition_id, season_id, subjects, metrics):
+    def collectible_card(self, competition_id, season_id, subjects, metrics=None):
         """Fresh evidence for one card, not a rendered image or permission grant."""
         if not isinstance(subjects, list) or len(subjects) != 1:
             raise ValueError('La postal requiere exactamente un jugador')

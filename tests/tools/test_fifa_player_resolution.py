@@ -114,3 +114,21 @@ def test_card_requires_one_subject_and_is_dispatched_by_registered_tool():
     assert tool.execute(args).success
     args['subjects'].append({'name':'Mbappe'})
     assert not tool.execute(args).success
+
+
+def test_full_fifa_comparison_preserves_the_same_published_fields_for_both_players():
+    feed = Feed()
+    feed.stats['100'].append(['Assists', 1, True])
+    feed.stats['200'].append(['Shots', 4, True])
+    tool = OfficialFIFA()
+    tool.client = FIFA(feed)
+    result = tool.execute({
+        'action': 'compare_players', 'competition_id': '17', 'season_id': '22',
+        'subjects': [{'name': 'Messi'}, {'name': 'Mbappe'}],
+    })
+
+    assert result.success, result.error
+    first, second = (record['statistics'] for record in result.data['records'])
+    assert list(first) == list(second) == ['Goals', 'Assists', 'Shots']
+    assert [first['Assists']['value'], second['Shots']['value']] == [1, 4]
+    assert first['Shots']['value'] is None and second['Assists']['value'] is None
