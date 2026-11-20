@@ -12,6 +12,7 @@ from tools.research.youtube_channel_batch import YouTubeChannelBatch
 def create_channel_router():
     router = APIRouter()
     busy = asyncio.Semaphore(2)
+    active_queries=0
 
     @router.get('/channels')
     async def channel_page():
@@ -19,9 +20,44 @@ def create_channel_router():
 
     @router.get('/api/research/channels/status')
     async def channel_status():
-        return JSONResponse({'configured':bool(os.environ.get('YOUTUBE_API_KEY'))},headers={'Cache-Control':'no-store'})
+        from tools.research.youtube_credentials import get_key
+        return JSONResponse({'configured':bool(get_key())},headers={'Cache-Control':'no-store'})
+
+    @router.get('/api/research/channels/configuration')
+    def configuration():
+        from tools.research.youtube_credentials import status
+        return JSONResponse(status(),headers={'Cache-Control':'no-store'})
+
+    async def local_body(request,limit):
+        if request.headers.get('origin') not in (None,str(request.base_url).rstrip('/')):raise HTTPException(403,'Origen no permitido')
+        if request.headers.get('content-type','').split(';')[0]!='application/json':raise HTTPException(415,'Usa JSON')
+        raw=bytearray()
+        async for chunk in request.stream():
+            raw.extend(chunk)
+            if len(raw)>limit:raise HTTPException(413,'Solicitud demasiado grande')
+        try:
+            value=json.loads(raw)
+            if not isinstance(value,dict):raise ValueError()
+            return value
+        except (ValueError,UnicodeError):raise HTTPException(400,'Objeto JSON requerido')
+
+    @router.post('/api/research/channels/configuration')
+    async def configure_api(request:Request):
+        from tools.research.youtube_credentials import configure
+        data=await local_body(request,2048)
+        if active_queries:raise HTTPException(409,'Espera a que terminen las búsquedas antes de cambiar la clave')
+        try:return JSONResponse(configure(data),headers={'Cache-Control':'no-store'})
+        except ValueError:raise HTTPException(400,'Formato de clave inválido')
+
+    @router.post('/api/research/channels/plan')
+    async def query_plan(request:Request):
+        from tools.research.youtube_query_plan import plan
+        data=await local_body(request,16384)
+        try:return JSONResponse(plan(data),headers={'Cache-Control':'no-store'})
+        except Exception:raise HTTPException(422,'Consulta o filtros inválidos')
 
     async def run_query(request: Request, tool_class):
+        nonlocal active_queries
         if request.headers.get('origin') not in (None,str(request.base_url).rstrip('/')):
             raise HTTPException(403,'Origen no permitido')
         if request.headers.get('content-type','').split(';')[0] != 'application/json':
@@ -43,7 +79,9 @@ def create_channel_router():
         if busy.locked():
             raise HTTPException(429,'Ya hay dos búsquedas en curso')
         async with busy:
-            result=await asyncio.to_thread(tool_class().execute,inputs)
+            active_queries+=1
+            try:result=await asyncio.to_thread(tool_class().execute,inputs)
+            finally:active_queries-=1
         if not result.success:
             failure=result.data.get('failure')
             if failure:

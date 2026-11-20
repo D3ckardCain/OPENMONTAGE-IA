@@ -19,7 +19,7 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
                 'results':[{'id':'UC'+'a'*22,'title':'<img src=x onerror=alert(1)>',
                     'viewCount':2000000,'subscriberCount_public_rounded':10000,'videoCount':30,
                     'content_review':{'matching_publication_views_sum':150000,'matched':2,'inspected':10,'sample_requested':10,'matching_publications':[{'id':'abcdefghijk','title':'Publicación reciente','viewCount':150000,'published_at':'2026-11-13T00:00:00Z','duration_iso8601':'PT10M','audio_language_declared':'es'}]}}],
-                'scope':{'candidate_discovery':route.request.post_data_json.get('filters',{}).get('discovery_mode','channels'),'candidate_channels':50,'lookup_mode':'handle' if route.request.post_data_json['query'].startswith('@') else 'keywords','content_filter_scope':'recent_upload_sample'},'excluded':{}})
+                'scope':{'candidate_discovery':'direct_identity' if route.request.post_data_json['query'].startswith('@') else route.request.post_data_json.get('filters',{}).get('discovery_mode','channels'),'candidate_channels':50,'lookup_mode':'handle' if route.request.post_data_json['query'].startswith('@') else 'keywords','content_filter_scope':'recent_upload_sample'},'excluded':{}})
         page.route('**/api/research/channels',respond)
         page.goto(staged_backlot_server+'/channels')
         page.get_by_role('button',name='Filtros',exact=False).click()
@@ -118,4 +118,42 @@ def test_channel_filters_results_and_mobile(staged_backlot_server):
         assert 'geografía' in page.locator('#scope').inner_text()
         assert page.locator('.channel').count()==1
         assert 'animales' in page.locator('.channel').inner_text()
+        browser.close()
+
+
+def test_youtube_session_configuration_and_request_preview(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch();page=browser.new_page(viewport={'width':1280,'height':900})
+        errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/research/channels/status',lambda r:r.fulfill(json={'configured':False}))
+        configured=[];planned=[]
+        def configure(route):
+            configured.append(route.request.post_data_json)
+            route.fulfill(json={'configured':bool(configured[-1]['api_key']),'source':'session','key_verified':False})
+        def plan(route):
+            planned.append(route.request.post_data_json)
+            route.fulfill(json={'maximum_requests_before_budget':{'search':1,'channels':1,'playlistItems':50,'videos':51},
+                'batch_request_limit':None,'notes':['No se ha consultado YouTube.']})
+        page.route('**/api/research/channels/configuration',configure)
+        page.route('**/api/research/channels/plan',plan)
+        page.goto(staged_backlot_server+'/channels')
+        page.get_by_text('Configurar YouTube Data API',exact=True).click()
+        page.locator('#youtube-api-key').fill('fixture_private_api_key_123456789')
+        page.get_by_role('button',name='Usar clave en esta sesión',exact=True).click()
+        page.get_by_text('Clave configurada para esta sesión; todavía sin verificar.',exact=True).wait_for()
+        assert page.locator('#youtube-api-key').input_value()==''
+        assert len(configured)==1
+        page.locator('#query').fill('animales')
+        page.locator('#query-plan').click()
+        page.get_by_text('No se ha consultado YouTube.',exact=True).wait_for()
+        assert planned[0]['filters']['published_within']=='month'
+        assert planned[0]['filters']['discovery_mode']=='recent_publications'
+        page.locator('#query').fill('geografía')
+        assert page.locator('#query-plan-result').inner_text()==''
+        page.get_by_role('button',name='Olvidar clave de sesión',exact=True).click()
+        page.get_by_text('No hay una clave configurada.',exact=True).wait_for()
+        assert configured[-1]=={'api_key':''}
+        page.set_viewport_size({'width':390,'height':844})
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert errors==[]
         browser.close()

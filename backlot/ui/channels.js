@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const dialog = $('filters'), form = $('filter-form');
-let applied = {pages:1,max_requests:300,filters:{sample_size:10}};
+let applied = {pages:1,max_requests:300,filters:{sample_size:10,published_within:'month',discovery_mode:'recent_publications',sort_by:'matching_publication_views'}};
 let snapshot = [];
 const numeric = ['min_views','max_views','max_channel_age_days','min_subscribers','max_subscribers','min_minutes','max_minutes','min_publication_views','min_matching_publications','pages','sample_size','max_requests'];
 const format = value => value === null || value === undefined ? 'No disponible' : new Intl.NumberFormat('es-MX').format(value);
@@ -41,7 +41,7 @@ form.onsubmit=event=>{
     const n=Object.entries(applied.filters).filter(([key,value])=>key!=='sample_size' && key!=='sort_by' && key!=='discovery_mode' && value!=='any' && !(key==='min_matching_publications'&&value===1) && !(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;
     $('filter-count').textContent=n?`(${n})`:'';
     // Old results must not appear as if the new filters have been searched.
-    $('results').replaceChildren();$('scope').textContent='';$('status').textContent='Filtros aplicados. Pulsa Buscar canales para consultar.';
+    $('results').replaceChildren();$('scope').textContent='';$('query-plan-result').replaceChildren();$('status').textContent='Filtros aplicados. Pulsa Buscar canales para consultar.';
   }catch(error){$('filter-error').textContent=error.message;}
 };
 function showChannel(ch,index){
@@ -108,3 +108,26 @@ $('search').onsubmit=async event=>{
   finally{$('submit').disabled=false;$('open-filters').disabled=false;}
 };
 fetch('/api/research/channels/status').then(r=>r.json()).then(data=>{$('configuration').textContent=data.configured?'Clave local presente · se comprobará al buscar':'Pendiente: configurar la clave local de YouTube API. No se muestran datos de ejemplo.';}).catch(()=>{$('configuration').textContent='No se pudo comprobar la configuración.';});
+
+async function configureYouTubeKey(value){
+ const response=await fetch('/api/research/channels/configuration',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:value})});
+ const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo configurar la clave');
+ $('youtube-api-key').value='';
+ $('youtube-key-status').textContent=result.configured?(result.source==='session'?'Clave configurada para esta sesión; todavía sin verificar.':'Se utiliza la clave del entorno local; todavía sin verificar.'):'No hay una clave configurada.';
+ $('configuration').textContent=result.configured?'Clave presente · se comprobará al buscar':'Pendiente: configurar YouTube API.';
+}
+$('youtube-key-form').onsubmit=async event=>{event.preventDefault();try{await configureYouTubeKey($('youtube-api-key').value);}catch(error){$('youtube-key-status').textContent=error.message;}};
+$('youtube-key-clear').onclick=async()=>{try{await configureYouTubeKey('');}catch(error){$('youtube-key-status').textContent=error.message;}};
+$('query-plan').onclick=async()=>{
+ try{
+  const queries=$('query').value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);
+  if(!queries.length)throw Error('Escribe al menos un tema o canal.');
+  const response=await fetch('/api/research/channels/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queries,...applied})});
+  const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo preparar la consulta');
+  const box=$('query-plan-result');box.replaceChildren(element('p','Previsión sin consultar YouTube · cuota restante del proyecto desconocida'));
+  for(const [name,value] of Object.entries(result.maximum_requests_before_budget))box.append(element('p',name+': hasta '+value+' solicitudes'));
+  box.append(element('p',result.batch_request_limit===null?'Consulta individual: límite por páginas y tiempo de búsqueda.':'Límite del lote: '+result.batch_request_limit+' solicitudes. El consumo puede ser menor.'),element('p',result.notes.join(' ')));
+ }catch(error){$('query-plan-result').textContent=error.message;}
+};
+
+$('query').addEventListener('input',()=>$('query-plan-result').replaceChildren());

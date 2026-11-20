@@ -48,7 +48,8 @@ class Filters:
 
 class YouTube:
     def __init__(self,key=None,transport=None):
-        self.key=key or os.environ.get('YOUTUBE_API_KEY')
+        from .youtube_credentials import get_key
+        self.key=key or get_key()
         if not self.key:raise YouTubeFailure('MISSING_KEY')
         self.transport=transport;self.calls={}
     def get(self,resource,**params):

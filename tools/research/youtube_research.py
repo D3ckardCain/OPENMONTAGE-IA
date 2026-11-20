@@ -1,6 +1,6 @@
 """Official public YouTube research; no earnings inference or persistent cache."""
 from jsonschema import validate
-from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
+from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile,ToolStatus
 from .youtube_client import YouTube, Filters
 
 class YouTubeResearch(BaseTool):
@@ -16,7 +16,10 @@ class YouTubeResearch(BaseTool):
     idempotency_key_fields = []
     side_effects = ["read_youtube_data_api"]
     resource_profile = ResourceProfile(network_required=True)
-    install_instructions = "Set YOUTUBE_API_KEY locally. No paid API fallback."
+    install_instructions = "Configura la clave desde /channels para esta sesión o usa YOUTUBE_API_KEY en el entorno local. No hay alternativa de pago."
+    def get_status(self):
+        from .youtube_credentials import get_key
+        return ToolStatus.AVAILABLE if get_key() else ToolStatus.UNAVAILABLE
     input_schema = {"type":"object", "additionalProperties":False,
         "required":["mode","query"], "properties":{
         "mode":{"enum":["search","channel"]}, "query":{"type":"string","minLength":1},
