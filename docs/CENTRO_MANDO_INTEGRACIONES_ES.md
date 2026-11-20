@@ -85,3 +85,7 @@ Cuando no coincide la ruta esperada pero sí el nombre y un tamaño conocido y p
 ## Inventarios para el productor
 
 `model_catalog` devuelve en su resumen los recuentos de todos los estados de inventario, incluidos tamaño desconocido y candidatos en otras ubicaciones. `model_download_plan` exige un grupo concreto y devuelve solamente su lista revisable, usando al menos dos inventarios. Ninguna de estas herramientas inicia descargas ni considera que un archivo no registrado esté necesariamente ausente.
+
+## Copias del mismo modelo en varios discos
+
+La detección automática prefiere una copia con los archivos esperados presentes y no vacíos frente a otra incompleta de la misma carpeta de variante. Comprueba también los fragmentos declarados en índices de pesos. No compara contenido ni garantiza integridad o compatibilidad. No cambia entre variantes distintas y nunca sustituye una ruta `model_dir` configurada explícitamente. La preparación del equipo muestra archivos ausentes por candidato. No mueve ni elimina copias.

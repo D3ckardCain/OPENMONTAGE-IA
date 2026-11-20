@@ -128,9 +128,35 @@ def model_candidates(family):
     return list(dict.fromkeys(result))
 
 
+def model_copy_status(family,path):
+    path=Path(path);missing=[];problems=[];checked=0
+    try:
+        if not path.is_dir():return {'path':str(path),'available':False,'complete_files':False,'missing_files':[],'problems':['Carpeta no disponible']}
+        for relative in expected_files(family,path):
+            if family=='kokoro' and relative.startswith('voices/'):continue
+            if not relative.lower().endswith(('.json','.safetensors','.bin','.pth','.pt','.onnx','.model','.pdiparams','.yml','.yaml','.py','.txt','.tiktoken')):continue
+            checked+=1;item=path/relative
+            if not item.is_file() or not item.stat().st_size:missing.append(relative)
+        for index in path.glob('*.index.json'):
+            try:
+                for filename in set(studio.read_json(index).get('weight_map',{}).values()):
+                    item=(path/filename).resolve();item.relative_to(path.resolve());checked+=1
+                    if not item.is_file() or not item.stat().st_size:missing.append(filename)
+            except (ValueError,TypeError,KeyError):problems.append('Índice inválido: '+index.name)
+    except OSError as exc:problems.append(str(exc)[:400])
+    return {'path':str(path),'available':True,'complete_files':checked>0 and not missing and not problems,
+        'missing_files':sorted(set(missing)),'problems':problems,'inference_verified':False}
+
+
 def resolve_model(family):
     candidates=model_candidates(family)
-    return next((p for p in candidates if p.is_dir()),None)
+    first=next((p for p in candidates if p.is_dir()),None)
+    if first is None or configuration(family).get('model_dir'):return first
+    # Only prefer complete copies of the SAME catalog variant. Never choose a
+    # different repository/variant merely because it has more files.
+    for path in candidates:
+        if path.name==first.name and model_copy_status(family,path)['complete_files']:return path
+    return first
 
 
 def expected_files(family,model):

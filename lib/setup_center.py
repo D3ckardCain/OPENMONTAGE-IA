@@ -81,7 +81,7 @@ def environment_plan(family):
     if family in source_keys:
         source=studio.read_json(studio.REPO_ROOT/'docs/runtime_sources.json')[source_keys[family]]
     return {'family':family,'backend':spec['backend'],'configuration':cfg,
-        'model_candidates':[{'path':str(p),'available':p.is_dir()} for p in adapters.model_candidates(family)],
+        'model_candidates':[adapters.model_copy_status(family,p) for p in adapters.model_candidates(family)],
         'selected_model_dir':info.get('model_dir'),'problems':info['problems'],
         'python_executable':cfg.get('python_executable') or sys.executable,
         'suggested_environment_dir':str(root),'suggested_python_path':str(expected),
