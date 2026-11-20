@@ -31,6 +31,13 @@ def competition_folders(competition):
  return {folder, COMPETITION_FOLDER_ALIASES.get(competition, folder)}
 
 class Unavailable(ValueError): pass
+
+
+class UEFAHTTPError(Unavailable):
+ def __init__(self,status):
+  self.status=status
+  super().__init__('Servicio UEFA devolvio HTTP '+str(status)+'; sin respaldo antiguo')
+
 @dataclass
 class Node:
  tag: str

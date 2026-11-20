@@ -8,9 +8,9 @@ from html import unescape
 import argparse,json,re,time,urllib.request,urllib.error
 from urllib.parse import urlencode,urljoin,urlsplit
 try:
- from .uefa import COMPETITIONS,Unavailable,DOM,numeric,competition_folders
+ from .uefa import COMPETITIONS,Unavailable,DOM,numeric,competition_folders,UEFAHTTPError
 except ImportError:
- from uefa import COMPETITIONS,Unavailable,DOM,numeric,competition_folders
+ from uefa import COMPETITIONS,Unavailable,DOM,numeric,competition_folders,UEFAHTTPError
 
 @dataclass
 class Reply:
@@ -37,7 +37,7 @@ class Transport:
     data=json.loads(text) if 'json' in kind else text
     return Reply(data,r.url,datetime.now(timezone.utc).isoformat(),r.headers.get('Date'),r.headers.get('Age'))
   except urllib.error.HTTPError as e:
-   raise Unavailable('Servicio UEFA devolvio HTTP '+str(e.code)+'; sin respaldo antiguo') from None
+   raise UEFAHTTPError(e.code) from None
 
 @dataclass
 class Context:

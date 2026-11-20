@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.8.0'
+ version='0.9.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL

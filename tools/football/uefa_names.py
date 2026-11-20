@@ -1,4 +1,5 @@
 """Resolve names within a freshly queried UEFA ranking, without guessing IDs."""
+from collections import deque
 import re
 import unicodedata
 
@@ -61,7 +62,7 @@ def collectible_card(client,competition,edition,names,metrics,phase='TOURNAMENT'
 def complete_standard_report(client, report, metrics, competition, edition, phase='TOURNAMENT'):
     """Fetch small player-statistic batches after the ranking resolves identities."""
     from decimal import Decimal, InvalidOperation
-    from tools.football.uefa import Unavailable
+    from tools.football.uefa import UEFAHTTPError, Unavailable
 
     kind = report['tipo']
     if kind == 'resolucion_por_nombres':
@@ -74,6 +75,7 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
     scope_keys = ('competitionId', 'seasonYear', 'phase')
     scope = {key: report['alcance'][key] for key in scope_keys}
     failures = []
+    split_batches = 0
     for row in records:
         values = row['estadisticas']
         sources = row['fuente_por_metrica'] = {}
@@ -85,8 +87,9 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
             else:
                 values[metric] = None
                 remaining.append(metric)
-        for start in range(0, len(remaining), 8):
-            batch = remaining[start:start + 8]
+        pending = deque(remaining[start:start + 8] for start in range(0, len(remaining), 8))
+        while pending:
+            batch = pending.popleft()
             try:
                 detail = client.player(competition, edition, row['id'], batch, phase)
                 if any(detail['alcance'][key] != value for key, value in scope.items()):
@@ -108,6 +111,12 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
                         raise Unavailable('UEFA devolvió un valor no finito')
                     found[metric] = raw
             except (ValueError, OSError, InvalidOperation, KeyError, TypeError) as exc:
+                if isinstance(exc, UEFAHTTPError) and exc.status in (400, 422, 500) and len(batch) > 1:
+                    midpoint = len(batch) // 2
+                    pending.appendleft(batch[midpoint:])
+                    pending.appendleft(batch[:midpoint])
+                    split_batches += 1
+                    continue
                 failures.append({'player_id': row['id'], 'team_id': row['team_id'],
                                  'metrics': batch, 'reason': str(exc)})
                 continue
@@ -121,7 +130,8 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
     report['alcance']['metricas'] = metrics
     incomplete = bool(failures) or any(row['metricas_no_disponibles'] for row in records)
     report['standard_query'] = {'status': 'partial' if incomplete else 'complete',
-                                'requested_metrics': metrics, 'failed_batches': failures}
+                                'requested_metrics': metrics, 'failed_batches': failures,
+                                'split_batches': split_batches}
     if kind != 'resolucion_por_nombres':
         report['ready_for_script'] = not incomplete
     return report

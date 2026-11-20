@@ -127,7 +127,7 @@ def test_standard_queries_only_verified_player_metric_names():
 
 def test_standard_merges_successful_batches_and_keeps_exact_provenance():
     from lib.football_statistics import UEFA_NAMES, add_standard_statistics
-    from tools.football.uefa import Unavailable
+    from tools.football.uefa import UEFAHTTPError
     from tools.graphics.sports_card import render
 
     class BatchClient(Client):
@@ -144,7 +144,7 @@ def test_standard_merges_successful_batches_and_keeps_exact_provenance():
         def player(self, competition, edition, player_id, metrics, phase):
             self.batches.append((competition, edition, player_id, metrics, phase))
             if 'matches_appearance' in metrics:
-                raise Unavailable('Servicio UEFA devolvio HTTP 500; sin respaldo antiguo')
+                raise UEFAHTTPError(500)
             url = f'https://compstats.uefa.com/player?player={player_id}&batch={metrics[0]}'
             team_id = next(row['team_id'] for row in self.rows if row['id'] == player_id)
             if 'cross_attempted' in metrics:
@@ -161,11 +161,18 @@ def test_standard_merges_successful_batches_and_keeps_exact_provenance():
     assert result.success and not result.data['ready_for_script']
     assert result.data['standard_query']['status'] == 'partial'
     assert len(result.data['standard_query']['failed_batches']) == 4
+    assert result.data['standard_query']['split_batches'] > 0
+    isolated = [batch for batch in result.data['standard_query']['failed_batches']
+                if batch['metrics'] == ['matches_appearance']]
+    assert len(isolated) == 2
+    assert all('equipo resuelto' in batch['reason']
+               for batch in result.data['standard_query']['failed_batches'] if batch not in isolated)
     assert tool.client.calls[0][3] == ['goals']
     assert all(1 <= len(batch[3]) <= 8 and batch[4] == 'TOURNAMENT' for batch in tool.client.batches)
     row = add_standard_statistics(result.data)['registros'][0]
     assert row['standard_statistics']['goals']['value'] == 0
     assert row['standard_statistics']['matches_played'] is None
+    assert row['standard_statistics']['assists']['value'] == '4'
     assert row['standard_statistics']['crosses_attempted'] is None
     assert row['standard_statistics']['aerial_duels_contested']['source_url'].startswith(
         'https://compstats.uefa.com/player?player=1&batch=')
