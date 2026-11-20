@@ -84,3 +84,33 @@ def test_missing_metric_not_ready_and_tool_dispatch():
 def test_one_unavailable_squad_does_not_become_not_found():
     f=Feed();f.players['2']=None
     with pytest.raises(ValueError):FIFA(f).resolve_players('17','22',[{'name':'messi'}])
+
+
+def test_card_facts_have_individual_provenance_and_no_invented_ratings():
+    feed=Feed();r=FIFA(feed).collectible_card('17','22',[{'name':'Messi','team_name':'ARG'}],['Goals'])
+    assert r['ready_for_script'] and r['rendered'] is False
+    card=r['records'][0];fact=card['facts'][0]
+    assert card['identity']['name']=='Lionel MESSI'
+    assert fact['value']==0 and fact['entity_id']=='100'
+    assert fact['source_url'].endswith('/season/99/players.json')
+    assert fact['retrieved_at'] and fact['scope']['season_id']=='22'
+    assert card['skill_rating'] is None and card['trophies'] is None
+    assert card['image'] is None and card['career_record'] is None
+
+
+def test_card_missing_metric_blocks_and_ambiguous_name_never_queries_stats():
+    feed=Feed();r=FIFA(feed).collectible_card('17','22',[{'name':'Messi'}],['Assists'])
+    assert not r['ready_for_script']
+    assert r['records'][0]['facts'][0]['value'] is None
+    feed=Feed();feed.players['2']=[player('21','Other Messi',team='2')]
+    r=FIFA(feed).collectible_card('17','22',[{'name':'Messi'}],['Goals'])
+    assert r['type']=='card_blocked'
+    assert not any('/players.json' in u for u in feed.calls)
+
+
+def test_card_requires_one_subject_and_is_dispatched_by_registered_tool():
+    tool=OfficialFIFA();tool.client=FIFA(Feed())
+    args={'action':'collectible_card','competition_id':'17','season_id':'22','subjects':[{'name':'Messi'}],'metrics':['Goals']}
+    assert tool.execute(args).success
+    args['subjects'].append({'name':'Mbappe'})
+    assert not tool.execute(args).success

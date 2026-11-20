@@ -40,3 +40,8 @@ Cada resultado contiene URLs, hora UTC, alcance y advertencias. Un expediente gu
 - https://fdh-api.fifa.com/v1/stats/season/255711/players.json
 
 41 pruebas locales pasaron al incorporar identificación y comparativas, cubriendo también el directorio deportivo, UEFA y su capa de consulta. El workflow de conectores incluye ahora las nuevas pruebas para Windows y Linux.
+
+
+## Postales coleccionables
+
+`collectible_card` acepta un sujeto por nombre y las métricas de una edición. Ejecuta consultas nuevas y devuelve biografía de plantilla y hechos con URL, fecha de consulta, ID y alcance por cifra. No calcula edades actuales a partir de datos históricos ni atribuye récords completos, trofeos o puntuaciones de habilidad. Imagen y derechos permanecen pendientes. Es un insumo para guion/diseño, no una imagen renderizada.

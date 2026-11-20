@@ -246,3 +246,29 @@ class FIFA:
         stats['identity_warning'] = 'Nombres y vínculo FDH obtenidos de las plantillas oficiales de esta edición.'
         stats['ready_for_script'] = not any(row['missing_metrics'] for row in stats['records'])
         return stats
+
+    def collectible_card(self, competition_id, season_id, subjects, metrics):
+        """Fresh evidence for one card, not a rendered image or permission grant."""
+        if not isinstance(subjects, list) or len(subjects) != 1:
+            raise ValueError('La postal requiere exactamente un jugador')
+        identities = self.resolve_players(competition_id, season_id, subjects)
+        resolved = identities['records'][0]
+        if resolved['status'] != 'resolved':
+            return {**identities, 'type': 'card_blocked', 'ready_for_script': False,
+                    'reason': 'Identidad ausente o ambigua; no crear una postal atribuida.'}
+        identity = resolved['candidates'][0]
+        if identity['fdh_player_id'] is None:
+            raise ValueError('Falta vínculo estadístico FDH oficial')
+        stats = self.player_statistics(competition_id, season_id, [identity['fdh_player_id']], metrics)
+        record = stats['records'][0]
+        source = stats['queries'][-1]
+        # No inferred age, career totals, skill rating, trophy count or image rights.
+        facts = [{'metric': metric, **value, 'entity_id': record['entity_id'],
+                  'scope': stats['scope'].copy(), 'source_url': source['url'],
+                  'retrieved_at': source['retrieved_at']} for metric, value in record['statistics'].items()]
+        return self.pack('collectible_card', stats['scope'], [{
+            'identity': identity, 'facts': facts, 'missing_metrics': record['missing_metrics'],
+            'image': None, 'image_rights': 'not_provided', 'career_record': None,
+            'skill_rating': None, 'trophies': None}], identities['queries'] + stats['queries']) | {
+                'ready_for_script': not record['missing_metrics'], 'rendered': False,
+                'usage': 'Datos fechados de una edición para una postal original. No reutilizar como cifras actuales en otra producción. El diseño y las imágenes se preparan después.'}
