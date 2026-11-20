@@ -40,6 +40,10 @@ def create_studio_router():
     def production_queue_state():
         from lib.production_queue import read
         return invoke(read)
+    @router.get('/api/studio/queue/inspect')
+    def production_queue_inspection():
+        from lib.production_queue import inspect
+        return invoke(inspect)
     @router.post('/api/studio/queue/{action}')
     async def production_queue_action(action:str,request:Request):
         from lib import production_queue

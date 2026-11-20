@@ -134,3 +134,32 @@ def start():
         value['status']='running';_save(value);PAUSE.clear()
         WORKER=threading.Thread(target=_run,daemon=True,name='production-queue');WORKER.start()
     return {'started':True,'publication_authorized':False}
+
+
+def inspect():
+    """Read-only snapshot, not a model compatibility or generation guarantee."""
+    from lib.storage_layout import readiness
+    with LOCK:
+        value=_load()
+        active=WORKER is not None
+        items=[dict(item) for item in value['items']]
+    storage=readiness(studio.REPO_ROOT,studio.PROJECTS_DIR)
+    reports=[]
+    for item in items:
+        problems=[];job_status=None
+        if Path(item['projects_root']).resolve()!=studio.PROJECTS_DIR.resolve():
+            problems.append('El proyecto pertenece a otra raíz de trabajo; selecciona el disco original y reinicia')
+        else:
+            try:
+                path=studio.project_path(item['project_id'])
+                job_status=studio.read_json(path/'job.json',{}).get('status')
+                if job_status=='awaiting_human':problems.append('La etapa requiere aprobación desde el proyecto')
+            except (ValueError,OSError) as exc:problems.append(str(exc))
+        if item['status'] not in ('pending','completed'):
+            problems.append('Revisa el registro y vuelve a ponerlo pendiente antes de continuar')
+        reports.append({'id':item['id'],'title':item['title'],'status':item['status'],
+            'job_status':job_status,'problems':problems,'ready':not problems})
+    pending=[item for item in reports if item['status']!='completed']
+    return {'ready':bool(pending) and storage['ready'] and not active and all(item['ready'] for item in pending),
+        'worker_active':active,'storage':storage,'items':reports,'generation_started':False,
+        'scope':'queue_and_storage_only','note':'Comprobación puntual; no ejecuta modelos, no comprueba su compatibilidad ni garantiza espacio suficiente para el render.'}

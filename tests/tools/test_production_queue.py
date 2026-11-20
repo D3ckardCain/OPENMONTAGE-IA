@@ -146,3 +146,43 @@ def test_edit_api_validates_input_without_deleting_project(isolated):
     assert client.post('/api/studio/queue/remove',json={'id':identifier,'delete':True}).status_code==400
     assert client.post('/api/studio/queue/remove',json={'id':identifier}).json()['project_files_deleted'] is False
     assert (studio.PROJECTS_DIR/'second/production_request.json').is_file()
+
+
+def test_inspection_is_read_only_and_detects_missing_projects_and_gates(isolated,monkeypatch):
+    from lib import storage_layout
+    monkeypatch.setattr(storage_layout,'readiness',lambda *args:{'ready':True,'problems':[]})
+    monkeypatch.setattr(agent,'start',lambda *args:pytest.fail('inspection started production'))
+    queue.enqueue('first');queue.enqueue('second')
+    before=(studio.CONFIG_DIR/'production_queue.json').read_bytes()
+    assert queue.inspect()['ready'] is True
+    studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'awaiting_human'})
+    (studio.PROJECTS_DIR/'second/production_request.json').unlink()
+    report=queue.inspect()
+    assert report['ready'] is False
+    assert 'aprobación' in report['items'][0]['problems'][0]
+    assert report['items'][1]['problems']
+    assert (studio.CONFIG_DIR/'production_queue.json').read_bytes()==before
+
+
+def test_inspection_covers_disks_empty_queue_and_interrupted_records(isolated,monkeypatch):
+    from lib import storage_layout
+    monkeypatch.setattr(storage_layout,'readiness',lambda *args:{'ready':False,'problems':['Videos finales: disco desconectado']})
+    assert queue.inspect()['ready'] is False
+    queue.enqueue('first');value=queue._load();value['items'][0]['projects_root']=str(isolated/'elsewhere');value['items'][0]['status']='interrupted';queue._save(value)
+    report=queue.inspect()
+    assert len(report['items'][0]['problems'])==2
+    assert report['storage']['problems']==['Videos finales: disco desconectado']
+    assert report['generation_started'] is False
+
+
+def test_inspection_api_does_not_mutate_queue(isolated,monkeypatch):
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    from lib import storage_layout
+    monkeypatch.setattr(storage_layout,'readiness',lambda *args:{'ready':True,'problems':[]})
+    queue.enqueue('first');before=queue._path().read_bytes()
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.get('/api/studio/queue/inspect')
+    assert response.status_code==200
+    assert response.json()['ready'] is True
+    assert queue._path().read_bytes()==before

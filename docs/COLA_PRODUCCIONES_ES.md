@@ -19,3 +19,7 @@ Pruebas sintéticas de persistencia, ejecución secuencial, pausa, recuperación
 ## Orden y limpieza
 
 Con la cola detenida, **Subir** y **Bajar** cambian la prioridad de un trabajo pendiente. **Retirar de la cola** elimina únicamente su registro: conserva el proyecto, checkpoints y resultados. Puedes retirar registros terminados para liberar espacio en la lista de 100. Ninguno de estos controles inicia producción. Mientras el controlador está activo, espera a que termine después de solicitar pausa.
+
+## Comprobación previa
+
+**Comprobar cola sin ejecutar** consulta la disponibilidad del disco de trabajo y del destino final configurado, la raíz original de cada proyecto, su existencia y las aprobaciones pendientes. No modifica los registros ni inicia modelos. El informe es una fotografía del momento: no certifica modelos, permisos de escritura ni espacio suficiente para una producción. Los controles del productor se repiten al iniciar cada trabajo.
