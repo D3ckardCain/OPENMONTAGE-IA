@@ -166,7 +166,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.10.0'
+    version = '0.11.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
@@ -204,14 +204,14 @@ class OfficialJLeague(BaseTool):
             season = inputs['season']
             competition = inputs.get('competition', 'j1')
             selection = inputs.get('metrics', ['goals'])
-            all_metrics = selection == 'all'
+            metrics = list(METRICS) if selection == 'all' else selection
             rankings, queries, failed_metrics = {}, {}, {}
-            for metric in METRICS if all_metrics else selection:
+            for metric in metrics:
                 try:
                     html, query = fetch(ranking_url(season, metric, competition))
                     rankings[metric] = parse_ranking(html, season, metric, competition)
                 except (OSError, ValueError) as exc:
-                    if not all_metrics:
+                    if len(metrics) == 1:
                         raise
                     rankings[metric] = []
                     failed_metrics[metric] = str(exc)

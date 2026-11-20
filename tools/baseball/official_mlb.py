@@ -102,13 +102,26 @@ class MLB:
             return self.pack('comparison_blocked',{'season':season,'group':group,'game_type':'R'},[r['records'][0] for r in resolved],queries)|{'ready_for_script':False}
         identities=[r['records'][0]['candidates'][0] for r in resolved]
         if identities[0]['entity_id']==identities[1]['entity_id']:raise ValueError('La comparativa requiere dos jugadores distintos')
-        reports=[self.player_statistics(p['entity_id'],season,group,metrics) for p in identities]
-        rows=[]
-        for identity,report in zip(identities,reports):
-            row=report['records'][0]
-            if row['name']!=identity['name']:raise ValueError('Nombre estadístico distinto del resuelto')
-            rows.append(row|{'identity':identity})
-        return self.pack('player_comparison',reports[0]['scope'],rows,queries+[q for r in reports for q in r['queries']])|{'ready_for_script':not any(r['missing_metrics'] for r in rows)}
+        rows, failures = [], []
+        scope = {'sport_id': 1, 'season': season, 'group': group, 'game_type': 'R'}
+        for identity in identities:
+            player_id = identity['entity_id']
+            try:
+                report = self.player_statistics(player_id, season, group, metrics)
+            except OSError as exc:
+                failures.append({'player_id': player_id, 'reason': str(exc)})
+                rows.append({'entity_id': player_id, 'name': identity['name'], 'identity': identity,
+                             'statistics': dict.fromkeys(metrics), 'missing_metrics': list(metrics)})
+                continue
+            row = report['records'][0]
+            if row['name'] != identity['name']:
+                raise ValueError('Nombre estadístico distinto del resuelto')
+            rows.append(row | {'identity': identity})
+            queries.extend(report['queries'])
+        if len(failures) == len(identities):
+            raise ValueError('No se pudieron consultar las estadísticas de ninguno de los jugadores MLB')
+        return self.pack('player_comparison', scope, rows, queries) | {
+            'ready_for_script': not any(row['missing_metrics'] for row in rows), 'failed_players': failures}
 
 
     def collectible_card(self,name,season,group,metrics):
@@ -131,7 +144,7 @@ class MLB:
 
 class OfficialMLB(BaseTool):
     name='official_mlb_live'
-    version='0.2.0'
+    version='0.3.0'
     provider='mlb_official'
     tier=ToolTier.SOURCE
     runtime=ToolRuntime.LOCAL

@@ -199,7 +199,8 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
     assert label in render(result.data)
 
 
-def test_all_rankings_retains_results_after_one_source_failure(official_page, monkeypatch):
+@pytest.mark.parametrize('selection', ['all', ['goals', 'red_cards', 'interceptions']])
+def test_multi_metric_queries_retain_results_after_one_source_failure(official_page, monkeypatch, selection):
     goals_url = jleague.ranking_url(2025, 'goals')
     pages = {
         jleague.ranking_url(2025, metric):
@@ -215,12 +216,12 @@ def test_all_rankings_retains_results_after_one_source_failure(official_page, mo
 
     monkeypatch.setattr(jleague, 'fetch', fetch)
     result = jleague.OfficialJLeague().execute({
-        'action': 'collectible_card', 'season': 2025, 'names': ['Example One'], 'metrics': 'all',
+        'action': 'collectible_card', 'season': 2025, 'names': ['Example One'], 'metrics': selection,
     })
     assert result.success and not result.data['ready_for_script']
     assert set(result.data['failed_metrics']) == {'red_cards'}
     record = result.data['records'][0]
-    assert list(record['statistics']) == list(jleague.METRICS)
+    assert list(record['statistics']) == (list(jleague.METRICS) if selection == 'all' else selection)
     assert record['statistics']['red_cards'] is None
     assert record['statistics']['interceptions'] == 21
     assert all(fact['source_url'] != failed_url for fact in record['facts'])

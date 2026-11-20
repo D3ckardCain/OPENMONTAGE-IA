@@ -2,6 +2,7 @@ from copy import deepcopy
 import pytest
 from tools.football.official_uefa import OfficialUEFA
 from tools.football.uefa_names import resolve,compare
+from lib.football_statistics import UEFA_NAMES
 
 
 class Client:
@@ -125,8 +126,9 @@ def test_standard_queries_only_verified_player_metric_names():
     assert tool.client.calls[0][3] == ['goals']
 
 
-def test_standard_merges_successful_batches_and_keeps_exact_provenance():
-    from lib.football_statistics import UEFA_NAMES, add_standard_statistics
+@pytest.mark.parametrize('selection', ['standard', list(UEFA_NAMES)])
+def test_multi_metric_query_merges_batches_and_keeps_exact_provenance(selection):
+    from lib.football_statistics import add_standard_statistics
     from tools.football.uefa import UEFAHTTPError
     from tools.graphics.sports_card import render
 
@@ -157,7 +159,7 @@ def test_standard_merges_successful_batches_and_keeps_exact_provenance():
     tool = OfficialUEFA()
     tool.client = BatchClient()
     result = tool.execute({'action': 'compare_players', 'competition': 'champions', 'edition': 2024,
-                           'names': ['Mbappe', 'Haaland'], 'metrics': 'standard'})
+                           'names': ['Mbappe', 'Haaland'], 'metrics': selection})
     assert result.success and not result.data['ready_for_script']
     assert result.data['standard_query']['status'] == 'partial'
     assert len(result.data['standard_query']['failed_batches']) == 4

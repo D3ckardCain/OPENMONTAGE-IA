@@ -77,7 +77,7 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
     failures = []
     split_batches = 0
     for row in records:
-        values = row['estadisticas']
+        values = row['estadisticas'] = {metric: row['estadisticas'].get(metric) for metric in metrics}
         sources = row['fuente_por_metrica'] = {}
         remaining = []
         for metric in metrics:

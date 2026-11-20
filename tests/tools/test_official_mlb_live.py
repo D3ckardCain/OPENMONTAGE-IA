@@ -68,3 +68,20 @@ def test_validation_and_failures_have_no_old_data():
     assert not r.success and not r.data['stale_fallback']
     assert not t.execute({'action':'resolve_player','name':'One','output_path':'x.json'}).success
     with pytest.raises(ValueError):Transport().get('../evil',{})
+
+
+def test_comparison_retains_the_other_player_when_one_statistics_request_fails():
+    class PartialFeed(Feed):
+        def get(self, path, params):
+            if path == 'people/1/stats':
+                raise OSError('MLB unavailable')
+            return super().get(path, params)
+
+    report = MLB(PartialFeed()).compare_players(['One', 'Two'], 2024, 'hitting', ['homeRuns'])
+    assert not report['ready_for_script']
+    assert report['failed_players'] == [{'player_id': '1', 'reason': 'MLB unavailable'}]
+    first, second = report['records']
+    assert first['statistics']['homeRuns'] is None
+    assert 'statistics_source' not in first
+    assert second['statistics']['homeRuns'] == 0
+    assert second['statistics_source'] in report['queries']
