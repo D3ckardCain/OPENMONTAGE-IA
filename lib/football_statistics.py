@@ -53,7 +53,10 @@ def add_standard_statistics(report):
     source = report.get('source') or report.get('fuente')
     if source == 'UEFA' and report.get('tipo') in ('comparativa_jugadores', 'postal_jugador'):
         for row in report['registros']:
-            standard_values(row, {}, row['estadisticas'], UEFA_NAMES, row.get('fuente_estadisticas') or {})
+            facts = {metric: {'source_url': origin['url'], 'retrieved_at': origin['consultado_utc']}
+                     for metric, origin in row.get('fuente_por_metrica', {}).items()}
+            standard_values(row, facts, row['estadisticas'], UEFA_NAMES,
+                            {} if 'fuente_por_metrica' in row else row.get('fuente_estadisticas') or {})
     elif source in ('FIFA', 'J.League') and report.get('type') in (
             'player_statistics', 'player_comparison', 'collectible_card'):
         for row in report['records']:

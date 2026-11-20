@@ -20,15 +20,20 @@ def uefa_report(report, selected=False):
         origin=row.get('fuente_estadisticas')
         if not isinstance(origin,dict) or origin not in sources:
             raise ValueError('Falta la página exacta de procedencia del jugador UEFA')
-        rows.append({'entity_id':row['id'],'identity':{'entity_id':row['id'],'name':row['nombre']},
-                     'statistics':row['estadisticas'],'statistics_source':dict(origin,retrieved_at=origin.get('consultado_utc'))})
-    if report['tipo']=='postal_jugador':
         scope=report.get('alcance',{})
-        for row in rows:
-            origin=row['statistics_source']
-            row['facts']=[{'metric':metric,'value':value,'entity_id':row['entity_id'],'scope':scope,
-                           'source_url':origin['url'],'retrieved_at':origin['retrieved_at']}
-                          for metric,value in row['statistics'].items()]
+        facts=[]
+        for metric,value in row['estadisticas'].items():
+            metric_origin=row.get('fuente_por_metrica',{}).get(metric)
+            if 'fuente_por_metrica' not in row:
+                metric_origin=origin
+            if value is not None and metric_origin not in sources:
+                raise ValueError('Falta procedencia del lote UEFA')
+            metric_origin=metric_origin or {}
+            facts.append({'metric':metric,'value':value,'entity_id':row['id'],'scope':scope,
+                          'source_url':metric_origin.get('url'),'retrieved_at':metric_origin.get('consultado_utc')})
+        rows.append({'entity_id':row['id'],'identity':{'entity_id':row['id'],'name':row['nombre']},
+                     'statistics':row['estadisticas'],'statistics_source':dict(origin,retrieved_at=origin.get('consultado_utc')),
+                     'facts':facts})
     return {'source':'UEFA','type':'collectible_card' if report['tipo']=='postal_jugador' else 'player_comparison','ready_for_script':report.get('ready_for_script'),
             'scope':report.get('alcance',{}),'queries':queries,'records':rows,
             'competition':report.get('competicion'),'original_report':report}
@@ -64,8 +69,8 @@ def render(report, metrics=None):
         identity=record.get('identity',{})
         entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
         if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
-        if kind=='collectible_card' or source=='J.League':facts=record.get('facts',[])
-        elif source in ('MLB','UEFA'):
+        if kind=='collectible_card' or source in ('J.League','UEFA'):facts=record.get('facts',[])
+        elif source=='MLB':
             origin=record.get('statistics_source',{})
             facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
         else:

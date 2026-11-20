@@ -56,3 +56,72 @@ def collectible_card(client,competition,edition,names,metrics,phase='TOURNAMENT'
     missing=row.get('metricas_no_disponibles') or [m for m in metrics if row.get('estadisticas',{}).get(m) is None]
     return {**report,'tipo':'postal_jugador','registros':[row],'ready_for_script':not missing,
             'retrato':None,'permiso_retrato':'no_proporcionado','palmares':None,'puntuacion_habilidad':None,'rendered':False}
+
+
+def complete_standard_report(client, report, metrics, competition, edition, phase='TOURNAMENT'):
+    """Fetch small player-statistic batches after the ranking resolves identities."""
+    from decimal import Decimal, InvalidOperation
+    from tools.football.uefa import Unavailable
+
+    kind = report['tipo']
+    if kind == 'resolucion_por_nombres':
+        records = [row['candidatos'][0] for row in report['registros'] if row['estado'] == 'resolved']
+    elif kind in ('comparativa_jugadores', 'postal_jugador'):
+        records = report['registros']
+    else:
+        return report
+
+    scope_keys = ('competitionId', 'seasonYear', 'phase')
+    scope = {key: report['alcance'][key] for key in scope_keys}
+    failures = []
+    for row in records:
+        values = row['estadisticas']
+        sources = row['fuente_por_metrica'] = {}
+        remaining = []
+        for metric in metrics:
+            if values.get(metric) is not None:
+                if row.get('fuente_estadisticas'):
+                    sources[metric] = row['fuente_estadisticas']
+            else:
+                values[metric] = None
+                remaining.append(metric)
+        for start in range(0, len(remaining), 8):
+            batch = remaining[start:start + 8]
+            try:
+                detail = client.player(competition, edition, row['id'], batch, phase)
+                if any(detail['alcance'][key] != value for key, value in scope.items()):
+                    raise Unavailable('UEFA devolvió un lote de otra competición, edición o fase')
+                matching = [item for item in detail['registros']
+                            if str(item.get('playerId')) == row['id']
+                            and str(item.get('teamId')) == row['team_id']]
+                if len(matching) != 1:
+                    raise Unavailable('UEFA no confirmó una fila del equipo resuelto')
+                origin, = detail['consultas']
+                if not origin.get('url') or not origin.get('consultado_utc'):
+                    raise Unavailable('UEFA no confirmó la procedencia del lote')
+                found = {}
+                for item in matching[0]['statistics']:
+                    metric, raw = item['name'], item['value']
+                    if metric not in batch or metric in found:
+                        raise Unavailable('UEFA devolvió una métrica ajena o duplicada en el lote')
+                    if raw is not None and not Decimal(str(raw)).is_finite():
+                        raise Unavailable('UEFA devolvió un valor no finito')
+                    found[metric] = raw
+            except (ValueError, OSError, InvalidOperation, KeyError, TypeError) as exc:
+                failures.append({'player_id': row['id'], 'team_id': row['team_id'],
+                                 'metrics': batch, 'reason': str(exc)})
+                continue
+            if origin not in report['consultas']:
+                report['consultas'].append(origin)
+            for metric, value in found.items():
+                if value is not None:
+                    values[metric] = value
+                    sources[metric] = origin
+        row['metricas_no_disponibles'] = [metric for metric in metrics if values[metric] is None]
+    report['alcance']['metricas'] = metrics
+    incomplete = bool(failures) or any(row['metricas_no_disponibles'] for row in records)
+    report['standard_query'] = {'status': 'partial' if incomplete else 'complete',
+                                'requested_metrics': metrics, 'failed_batches': failures}
+    if kind != 'resolucion_por_nombres':
+        report['ready_for_script'] = not incomplete
+    return report

@@ -125,27 +125,48 @@ def test_standard_queries_only_verified_player_metric_names():
     assert tool.client.calls[0][3] == ['goals']
 
 
-def test_standard_retries_with_fresh_core_metrics_only_after_http_failure():
+def test_standard_merges_successful_batches_and_keeps_exact_provenance():
+    from lib.football_statistics import UEFA_NAMES, add_standard_statistics
     from tools.football.uefa import Unavailable
+    from tools.graphics.sports_card import render
 
-    class PartialClient(Client):
+    class BatchClient(Client):
+        def __init__(self):
+            super().__init__()
+            for row in self.rows:
+                row['fuente_estadisticas'] = {'url': 'https://compstats.uefa.com/fixture',
+                                             'consultado_utc': '2026-11-20'}
+            self.batches = []
+
         def definitions(self, competition):
-            return {'definiciones': [
-                {'name': 'goals', 'actors': ['PLAYER']},
-                {'name': 'matches_appearance', 'actors': ['PLAYER']},
-            ]}
+            return {'definiciones': [{'name': name, 'actors': ['PLAYER']} for name in UEFA_NAMES]}
 
-        def ranking(self, *args):
-            if 'matches_appearance' in args[3]:
+        def player(self, competition, edition, player_id, metrics, phase):
+            self.batches.append((competition, edition, player_id, metrics, phase))
+            if 'matches_appearance' in metrics:
                 raise Unavailable('Servicio UEFA devolvio HTTP 500; sin respaldo antiguo')
-            return super().ranking(*args)
+            url = f'https://compstats.uefa.com/player?player={player_id}&batch={metrics[0]}'
+            team_id = next(row['team_id'] for row in self.rows if row['id'] == player_id)
+            if 'cross_attempted' in metrics:
+                team_id = '999'
+            return {'alcance': {'competitionId': '1', 'seasonYear': edition, 'phase': phase},
+                    'registros': [{'playerId': player_id, 'teamId': team_id,
+                                   'statistics': [{'name': metric, 'value': '4'} for metric in metrics]}],
+                    'consultas': [{'url': url, 'consultado_utc': '2026-11-20'}]}
 
     tool = OfficialUEFA()
-    tool.client = PartialClient()
+    tool.client = BatchClient()
     result = tool.execute({'action': 'compare_players', 'competition': 'champions', 'edition': 2024,
                            'names': ['Mbappe', 'Haaland'], 'metrics': 'standard'})
     assert result.success and not result.data['ready_for_script']
-    assert result.data['tipo'] == 'comparativa_jugadores'
     assert result.data['standard_query']['status'] == 'partial'
-    assert result.data['standard_query']['queried_metrics'] == ['goals']
-    assert [r['estadisticas']['goals'] for r in result.data['registros']] == [0, 3]
+    assert len(result.data['standard_query']['failed_batches']) == 4
+    assert tool.client.calls[0][3] == ['goals']
+    assert all(1 <= len(batch[3]) <= 8 and batch[4] == 'TOURNAMENT' for batch in tool.client.batches)
+    row = add_standard_statistics(result.data)['registros'][0]
+    assert row['standard_statistics']['goals']['value'] == 0
+    assert row['standard_statistics']['matches_played'] is None
+    assert row['standard_statistics']['crosses_attempted'] is None
+    assert row['standard_statistics']['aerial_duels_contested']['source_url'].startswith(
+        'https://compstats.uefa.com/player?player=1&batch=')
+    assert 'Goles' in render(result.data, ['goals', 'aerialduel_total'])

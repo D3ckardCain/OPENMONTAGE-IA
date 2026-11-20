@@ -1,7 +1,7 @@
 """Free public UEFA data adapter. No output artifacts or reusable data cache."""
 from tools.base_tool import BaseTool,ToolResult,ToolTier,ToolRuntime,ToolStability,ResourceProfile
 from tools.football.uefa_live import UEFA
-from tools.football.uefa import COMPETITIONS, Unavailable
+from tools.football.uefa import COMPETITIONS
 
 ACTIONS={
  'collectible_card':('competition','edition','names','metrics','phase'),
@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.7.0'
+ version='0.8.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -73,19 +73,15 @@ class OfficialUEFA(BaseTool):
    if action in ('resolve_players','compare_players','collectible_card'):
     from tools.football.uefa_names import resolve,compare,collectible_card
     query={'resolve_players':resolve,'compare_players':compare,'collectible_card':collectible_card}[action]
-    try:
+    if standard:
+     from tools.football.uefa_names import complete_standard_report
+     requested=kwargs.pop('metrics')
+     anchor=['goals'] if 'goals' in requested else requested[:1]
+     data=query(self.client,metrics=anchor,**kwargs)
+     data=complete_standard_report(self.client,data,requested,
+                                   kwargs['competition'],kwargs['edition'],kwargs.get('phase','TOURNAMENT'))
+    else:
      data=query(self.client,**kwargs)
-    except Unavailable as exc:
-     if not standard or not str(exc).startswith(('Servicio UEFA devolvio HTTP 400;', 'Servicio UEFA devolvio HTTP 500;')):
-      raise
-     requested=kwargs['metrics']
-     core=[metric for metric in ('goals','assists','attempts_on_target') if metric in requested]
-     if not core or len(core)==len(requested):raise
-     kwargs['metrics']=core
-     data=query(self.client,**kwargs)
-     data['standard_query']={'status':'partial','requested_metrics':requested,'queried_metrics':core,
-                             'reason':str(exc)}
-     data['ready_for_script']=False
    else:data=getattr(self.client,action)(**kwargs)
    return ToolResult(success=True,data=data,artifacts=[],cost_usd=0,from_cache=False)
   except Exception as exc:
