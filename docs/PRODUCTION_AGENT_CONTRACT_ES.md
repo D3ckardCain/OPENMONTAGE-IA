@@ -139,3 +139,6 @@ Liga saudí: `official_spl_source_status` comprueba la página oficial por defec
 
 
 Integración comprobada a través de `LocalAgent.dispatch`: descubrir fuente WBA y capacidad, consultar por nombre, conservar informe dentro del proyecto y exportarlo a PNG sin reescribir métricas. La respuesta `execute_tool` incluye ahora `artifacts` además de datos/estado/coste, para que el productor reciba las rutas declaradas por cada herramienta. Las pruebas usan el productor real y herramientas reales, con respuesta web simulada; no prueban todavía las decisiones de un modelo Ollama ni la generación TTS. Se verifican también instrucciones de etapa antes de ejecutar, rutas de salida dentro del proyecto y errores de red sin respaldo antiguo.
+
+
+Antes de exportar consulta `tool_info`. `sports_card_svg.output_readiness` separa SVG (sin motor de fuentes local) de PNG (Pillow y Arial/DejaVu Sans). `sports_card_video.export_readiness` indica disponibilidad de PNG y rutas FFmpeg/ffprobe configuradas; si faltan, la herramienta figura como no disponible antes de ejecutarse. Son comprobaciones de presencia/configuración, no certifican codificadores ni calidad de render. No descargan ni instalan archivos ni cargan modelos. Explica el requisito ausente; no recomiendes volver a descargar un ejecutable que ya existe y solo requiere corregir su ruta.

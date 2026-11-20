@@ -150,6 +150,12 @@ class SportsCard(BaseTool):
     resource_profile=ResourceProfile(cpu_cores=1,ram_mb=128,vram_mb=0,disk_mb=1,network_required=False)
     input_schema={'type':'object','required':['report','output_path'],'additionalProperties':False,'properties':{
         'report':{'type':'object'},'output_path':{'type':'string','minLength':1}}}
+    def get_info(self):
+        from lib.sports_export_requirements import png_requirements
+        info=super().get_info()
+        info['output_readiness']={'svg':{'available':True,'missing':[]},'png':png_requirements()}
+        return info
+
     def execute(self,inputs):
         from jsonschema import validate
         try:

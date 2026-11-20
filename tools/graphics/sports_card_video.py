@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 from fractions import Fraction
-from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
+from tools.base_tool import DependencyError, BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 from tools.graphics.sports_card import render, rasterize
 from lib.media_executables import require_media
 
@@ -54,6 +54,17 @@ class SportsCardVideo(BaseTool):
         'report':{'type':'object'},'output_path':{'type':'string','minLength':1},
         'audio_path':{'type':'string','minLength':1},
         'duration_seconds':{'type':'number','minimum':1,'maximum':30}}}
+
+    def check_dependencies(self):
+        from lib.sports_export_requirements import video_requirements
+        report=video_requirements()
+        if not report['available']:raise DependencyError('; '.join(report['missing']))
+
+    def get_info(self):
+        from lib.sports_export_requirements import video_requirements
+        info=super().get_info()
+        info['export_readiness']=video_requirements()
+        return info
 
     def execute(self,inputs):
         from jsonschema import validate
