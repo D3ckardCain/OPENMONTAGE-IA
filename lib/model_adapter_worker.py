@@ -170,9 +170,15 @@ def run(request):
         try:from lib.translation_segments import segments
         except ImportError:from translation_segments import segments
         chunks=segments(required(data,'text'),tokenizer,token+' ')
-        model=T5ForConditionalGeneration.from_pretrained(str(m),local_files_only=True,use_safetensors=True).to(device).eval()
-        translated=[]
-        for chunk in chunks:
+        try:from lib import translation_progress
+        except ImportError:import translation_progress
+        key=translation_progress.fingerprint(m,language,chunks,data.get('max_new_tokens',512))
+        progress_path=out/('madlad-progress-'+key[:16]+'.json')
+        translated=translation_progress.load(progress_path,key,chunks)
+        resumed=len(translated)
+        model=None
+        if resumed<len(chunks):model=T5ForConditionalGeneration.from_pretrained(str(m),local_files_only=True,use_safetensors=True).to(device).eval()
+        for chunk in chunks[resumed:]:
             inputs=tokenizer(token+' '+chunk['text'],return_tensors='pt',truncation=False).to(device)
             if inputs['input_ids'].shape[-1]>512:raise ValueError('El tokenizer produjo un fragmento demasiado largo; no se truncó')
             with torch.inference_mode():ids=model.generate(**inputs,max_new_tokens=data.get('max_new_tokens',512))
@@ -180,8 +186,9 @@ def run(request):
             last=ids[0][-1];last=last.item() if hasattr(last,'item') else last
             if eos is not None and last!=eos:raise ValueError('Traducción posiblemente cortada en el fragmento '+str(chunk['index'])+'; aumenta max_new_tokens o divide el trabajo')
             translated.append({**chunk,'translation':tokenizer.batch_decode(ids,skip_special_tokens=True)[0]})
+            translation_progress.save(progress_path,key,translated)
         return report({'text':'\n'.join(chunk['translation'] for chunk in translated),'segments':translated,
-            'language':language,'source_fully_segmented':True,'quality_review_required':True})
+            'language':language,'source_fully_segmented':True,'resumed_segments':resumed,'progress_path':str(progress_path),'quality_review_required':True})
     if family=='m2m100':
         from transformers import M2M100ForConditionalGeneration,M2M100Tokenizer
         tokenizer=M2M100Tokenizer.from_pretrained(str(m),local_files_only=True);tokenizer.src_lang=required(data,'source_language')

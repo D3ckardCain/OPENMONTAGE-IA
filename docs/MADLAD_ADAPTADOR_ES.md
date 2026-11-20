@@ -9,3 +9,9 @@ Se usa `local_files_only=True` y `use_safetensors=True`; GGUF no es compatible c
 Fuente de implementación: https://huggingface.co/google/madlad400-3b-mt , revisión fa184c675da0b5c9e1c8694fccd4e12e2d422094. La ficha documenta T5 y el prefijo de idioma. Los tamaños exactos y hashes no se han recogido en este catálogo y se marcan desconocidos; no se puede declarar coincidencia por tamaño con los inventarios.
 
 La preparación aumenta el catálogo a 47 familias (32 motores nativos). Las pruebas usan objetos simulados: falta probar los pesos reales y evaluar traducción por idioma.
+
+## Recuperar una traducción
+
+El motor guarda cada fragmento completado mediante reemplazo atómico. Al ejecutar de nuevo el mismo trabajo reutiliza esos fragmentos, incluida una ejecución ya terminada que no vuelve a cargar el modelo. La huella incluye texto, fragmentación, idioma, límite de salida, ruta del modelo y nombres/tamaños/fechas de sus archivos relevantes. Un cambio crea un registro distinto; los anteriores se conservan. Los metadatos no son una verificación criptográfica de los pesos.
+
+Cerrar y abrir la app no inicia traducción automáticamente. La recuperación requiere volver a ejecutar la herramienta con el mismo directorio de salida. Los checkpoints no sustituyen la revisión lingüística del resultado.
