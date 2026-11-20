@@ -14,7 +14,8 @@ ROW_CLASS = 'm-ranking-player-list-item'
 DIVISIONS = ('j1', 'j2', 'j3')
 COMPETITIONS = {division: (f'{division.upper()} League', 'league') for division in DIVISIONS}
 COMPETITIONS['leaguecup'] = ('Levain Cup', 'cup')
-METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists')}
+METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
+           'duels_won': ('duels_won', 'Duels won')}
 
 
 def ranking_url(season, metric, competition='j1'):
@@ -162,7 +163,7 @@ def make_report(rankings, names, scope, queries, kind):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.6.0'
+    version = '0.7.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL

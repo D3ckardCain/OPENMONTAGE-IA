@@ -174,3 +174,20 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     missing = tool.execute(dict(inputs, names=['Example Two']))
     assert missing.success and not missing.data['ready_for_script']
     assert missing.data['records'][0]['statistics']['goals'] is None
+
+
+def test_duels_won_uses_its_own_ranking_and_label(official_page, monkeypatch):
+    url = jleague.ranking_url(2025, 'duels_won')
+    page = official_page.replace(jleague.ranking_url(2025, 'goals'), url).replace('Top scorers', 'Duels won')
+
+    def fetch(requested):
+        assert requested == url
+        return page, {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    result = jleague.OfficialJLeague().execute(
+        {'action': 'compare_players', 'season': 2025, 'names': ['Example One', 'Example Two'],
+         'metrics': ['duels_won']})
+    assert result.success and result.data['ready_for_script']
+    assert result.data['records'][0]['statistics'] == {'duels_won': 21}
+    assert 'Duelos ganados' in render(result.data)
