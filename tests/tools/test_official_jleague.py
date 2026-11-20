@@ -179,6 +179,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
 @pytest.mark.parametrize(('metric', 'title', 'label'), [
     ('duels_won', 'Duels won', 'Duelos ganados'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
+    ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
+    ('red_cards', 'Red cards', 'Tarjetas rojas'),
 ])
 def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch, metric, title, label):
     url = jleague.ranking_url(2025, metric)

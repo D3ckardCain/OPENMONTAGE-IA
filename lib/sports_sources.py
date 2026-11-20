@@ -1,7 +1,12 @@
 """Agent-facing source routing. This directory never impersonates a live query."""
 from copy import deepcopy
 
-FOOTBALL_STANDARD_METRICS = ('goals', 'assists', 'duels_won', 'clean_sheets')
+FOOTBALL_STANDARD_METRICS = (
+    'matches_played', 'minutes_played',
+    'goals', 'assists', 'shots', 'shots_on_target',
+    'duels_won', 'clean_sheets',
+    'yellow_cards', 'red_cards',
+)
 
 
 # Entry points are source locations, not promises of API availability or coverage.
@@ -58,7 +63,9 @@ def catalog(sport=None, region=None):
         'instruction': ('Usa el mismo conjunto de métricas para todas las ligas, copas y torneos de fútbol. '
                         'Relaciona los nombres del proveedor con las métricas comunes solo si su definición coincide. '
                         'Si falta una cifra o no aplica al jugador, conserva su campo con null. '
-                        'Si el usuario pide una métrica concreta, puedes consultar ese subconjunto.'),
+                        'Si el usuario pide una métrica concreta, puedes consultar ese subconjunto. '
+                        'Si la pieza visual tiene un límite de espacio, muestra el mismo subconjunto para todos '
+                        'los jugadores y conserva el expediente completo.'),
     }
     return deepcopy(dict(sources=rows,complete_global_coverage=False,statistics_included=False,
         football_standard=football_contract if sport in (None, 'football') else None,

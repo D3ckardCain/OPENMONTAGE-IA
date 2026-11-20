@@ -15,7 +15,8 @@ DIVISIONS = ('j1', 'j2', 'j3')
 COMPETITIONS = {division: (f'{division.upper()} League', 'league') for division in DIVISIONS}
 COMPETITIONS['leaguecup'] = ('Levain Cup', 'cup')
 METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
-           'duels_won': ('duels_won', 'Duels won'), 'clean_sheets': ('clean_sheet', 'Clean sheets')}
+           'duels_won': ('duels_won', 'Duels won'), 'clean_sheets': ('clean_sheet', 'Clean sheets'),
+           'yellow_cards': ('yellow_count', 'Yellow cards'), 'red_cards': ('red_count', 'Red cards')}
 
 
 def ranking_url(season, metric, competition='j1'):
@@ -163,7 +164,7 @@ def make_report(rankings, names, scope, queries, kind):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.8.0'
+    version = '0.9.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
