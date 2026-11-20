@@ -21,3 +21,7 @@ Cerrar y abrir la app no inicia traducción automáticamente. La recuperación r
 En Producción, despliega «Traducir un guion con MADLAD local». Pega el texto e inicia la tarea explícitamente. Se usa CPU, el idioma objetivo del proyecto y su carpeta `translations/madlad`. El control de trabajo local impide simultanearla con productores, análisis y entregas. Usa «Consultar traducción guardada» para revisar estado y copiar el resultado. No sustituye el guion aprobado ni inicia producción.
 
 Si la app se cerró, la consulta indica interrupción sin reanudar. Reenvía el mismo texto para recuperar fragmentos compatibles. El modelo se ejecuta como una acción local: no se promete cancelación a mitad de un fragmento. Las pruebas del panel y la tarea usan el motor simulado, sin pesos reales.
+
+## Consulta desde el productor
+
+El estado del proyecto incluye un resumen de su traducción guardada, sin inyectar el guion entero en cada consulta. La herramienta `project_translation` permite leer hasta veinte fragmentos por página y 24 000 caracteres de origen más destino. Devuelve el siguiente offset para continuar y recuerda que falta revisar calidad. No sustituye artefactos ni inicia traducción. Una tarea de traducción antigua no aparece como activa por el mero hecho de que haya otro productor trabajando en el mismo proyecto.

@@ -287,3 +287,15 @@ def test_agent_download_plan_requires_group_and_never_starts_download(isolated,m
     result=producer.dispatch('model_download_plan',{'group_id':'madlad'})
     assert calls==['madlad'] and result['downloads_started']==0
     with pytest.raises(Exception):producer.dispatch('model_download_plan',{})
+
+
+def test_producer_can_consult_saved_translation_without_regeneration(isolated):
+    pid=project();path=studio.project_path(pid)
+    studio.save_json(path/'translation_task.json',{'status':'completed','language':'es','text':'fixture translation','segments':[{'index':0,'translation':'fixture translation'}]})
+    producer=agent.LocalAgent(pid,chat=lambda *args:None,cancel=threading.Event())
+    report=producer.dispatch('project_translation',{'offset':0,'limit':1})
+    assert report['segments'][0]['translation']=='fixture translation'
+    state=isolated.get('/api/studio/projects/'+pid).json()
+    assert state['translation']['saved_translation_available'] is True
+    assert 'text' not in state['translation']
+    assert not agent.ACTIVE

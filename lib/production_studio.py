@@ -169,7 +169,9 @@ def production_state(pid):
     from lib.reference_analysis import youtube_url
     try:reference_video_url=youtube_url(request.get('reference',''))
     except ValueError:reference_video_url=None
+    from lib.project_translation import summary as translation_summary
     return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,
+        'translation':translation_summary(pid),
         'reference_video_url':reference_video_url,'render_verification':read_json(p/'render_verification.json'),
         'delivery_retry':read_json(p/'delivery_retry.json'),
         'final_delivery':read_json(p/'final_delivery.json'),'board_url':'/p/'+pid}

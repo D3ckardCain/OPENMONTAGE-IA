@@ -34,6 +34,7 @@ def descriptor(name,description,properties=None,required=None):
 TOOLS=[
  descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
+ descriptor('project_translation','Lee una traducción local guardada por fragmentos antes de repetirla. Conserva la obligación de revisar idioma y adaptación cultural; no genera ni aprueba el guion.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
  descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
  descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
  descriptor('reference_analysis','Lee el análisis local del video de referencia: transcripción, fotogramas, observaciones y límites. No inventa verificaciones externas.'),
@@ -157,6 +158,9 @@ class LocalAgent:
         if name=='project_comfy_jobs':
             from lib.comfy_job_records import project_jobs
             return project_jobs(self.pid)
+        if name=='project_translation':
+            from lib.project_translation import read_for_agent
+            return read_for_agent(self.pid,args.get('offset',0),args.get('limit',10))
         if name=='project_source_image':
             from lib.production_input_image import current_image
             return {'project_id':self.pid,'image':current_image(self.pid),

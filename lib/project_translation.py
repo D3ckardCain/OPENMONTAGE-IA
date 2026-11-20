@@ -7,7 +7,9 @@ def read(project_id):
     path=studio.project_path(project_id)
     report=studio.read_json(path/'translation_task.json',{'status':'not_started'})
     with agent.ACTIVE_LOCK:
-        if report.get('status')=='running' and project_id not in agent.ACTIVE:
+        active=agent.ACTIVE.get(project_id)
+        translation_active=bool(active and active[0] is not None and getattr(active[0],'name','')=='project-translation')
+        if report.get('status')=='running' and not translation_active:
             return {**report,'status':'interrupted','message':'La tarea se interrumpió; reenvía el mismo texto para recuperar fragmentos guardados'}
     return report
 
@@ -42,3 +44,27 @@ def start(project_id,data):
         except Exception:
             agent.ACTIVE.pop(project_id,None);raise
     return {'started':True,'language':language,'device':'cpu','production_started':False}
+
+
+def summary(project_id):
+    report=read(project_id)
+    return {'status':report['status'],'language':report.get('language'),
+        'segments_count':len(report.get('segments',[])),'saved_translation_available':report['status']=='completed',
+        'quality_review_required':True,'message':report.get('message','')}
+
+
+def read_for_agent(project_id,offset=0,limit=10):
+    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=20:raise ValueError('Usa offset no negativo y limit de 1 a 20')
+    report=read(project_id);result=summary(project_id)
+    if report['status']!='completed':return {**result,'segments':[],'next_offset':None}
+    segments=report.get('segments') or ([{'index':0,'translation':report.get('text','')}] if report.get('text') else [])
+    selected=[];used=0;end=offset
+    for item in segments[offset:offset+limit]:
+        size=len(str(item.get('translation','')))+len(str(item.get('text','')))
+        if used+size>24000:
+            if not selected:raise ValueError('Fragmento demasiado grande para esta consulta; revísalo desde el panel')
+            break
+        selected.append(item);used+=size;end+=1
+    return {**result,'segments_count':len(segments),'segments':selected,
+        'offset':offset,'next_offset':end if end<len(segments) else None,
+        'note':'Traducción guardada, pendiente de revisión lingüística y cultural. No sustituye un guion aprobado ni inicia trabajo.'}

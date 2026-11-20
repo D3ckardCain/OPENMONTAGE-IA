@@ -53,3 +53,27 @@ def test_translation_api_rejects_external_paths_and_does_not_start_on_get(projec
     assert client.get('/api/studio/translation/fixture').json()['status']=='not_started'
     assert client.post('/api/studio/translation/fixture',json={'text':'Hi','output_dir':'elsewhere'}).status_code==400
     assert not (project/'translation_task.json').exists()
+
+
+def test_saved_translation_is_paged_without_starting_work(project):
+    studio.save_json(project/'translation_task.json',{'status':'completed','language':'ko','segments':[{'index':i,'text':'original','translation':str(i)} for i in range(25)]})
+    first=translation.read_for_agent('fixture',0,10)
+    assert len(first['segments'])==10 and first['next_offset']==10
+    last=translation.read_for_agent('fixture',20,10)
+    assert len(last['segments'])==5 and last['next_offset'] is None
+    assert first['quality_review_required'] is True and not agent.ACTIVE
+    assert 'segments' not in translation.summary('fixture')
+
+
+def test_unrelated_producer_does_not_make_stale_translation_look_running(project):
+    studio.save_json(project/'translation_task.json',{'status':'running'})
+    agent.ACTIVE['fixture']=(None,threading.Event())
+    assert translation.read('fixture')['status']=='interrupted'
+    assert translation.read_for_agent('fixture')['segments']==[]
+
+
+def test_agent_page_size_is_bounded(project):
+    studio.save_json(project/'translation_task.json',{'status':'completed','segments':[{'index':i,'translation':'x'*10000} for i in range(5)]})
+    result=translation.read_for_agent('fixture')
+    assert len(result['segments'])==2 and result['next_offset']==2
+    with pytest.raises(ValueError):translation.read_for_agent('fixture',limit=21)
