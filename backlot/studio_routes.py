@@ -71,6 +71,12 @@ def create_studio_router():
             return invoke(studio.configure,data)
     @router.post('/api/studio/projects')
     async def create(request:Request):return invoke(studio.create_production,await body(request))
+    @router.post('/api/studio/reference-reuse/{pid}')
+    async def reuse_reference_analysis(pid:str,request:Request):
+        from lib.reference_reuse import reuse
+        data=await body(request)
+        if set(data)!={'project_ids'}:raise HTTPException(400,'Indica solo project_ids')
+        return invoke(reuse,pid,data['project_ids'])
     @router.get('/api/studio/language-requirements/{pid}')
     def language_requirements(pid:str):
         from lib.language_versions import local_requirements

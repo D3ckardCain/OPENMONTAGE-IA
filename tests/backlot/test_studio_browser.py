@@ -62,6 +62,13 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Añadir versiones seleccionadas a la cola',exact=True).click()
         page.wait_for_function('document.querySelector("#notice").textContent.includes("1 añadidas")')
         assert batches==[{'project_ids':['version-en']}]
+        shared=[]
+        def share_analysis(route):
+            shared.append(route.request.post_data_json);route.fulfill(json={'versions':[{'project_id':'version-en','status':'shared'}],'generation_started':False})
+        page.route('**/api/studio/reference-reuse/video-fixture',share_analysis)
+        page.get_by_role('button',name='Compartir análisis base con las seleccionadas',exact=True).click()
+        page.wait_for_function('document.querySelector("#notice").textContent.includes("version-en: shared")')
+        assert shared==[{'project_ids':['version-en']}]
         page.route('**/api/studio/language-requirements/video-fixture',lambda route:route.fulfill(json={'note':'No certifica soporte de idioma','candidates':[{'family':'fixture-voice','capability':'tts','files_configured':False,'problems':['Falta voz local'],'required_modules':['fixture_module']}]}))
         page.locator('#versions-requirements').click()
         page.locator('#versions-requirements-result summary').click()

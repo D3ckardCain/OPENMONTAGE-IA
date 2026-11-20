@@ -23,3 +23,9 @@ La prueba de integración crea proyectos reales en carpetas temporales, comprueb
 ## Estado de las versiones
 
 La consulta de versiones guardadas muestra el estado del productor, su último mensaje, la verificación técnica guardada y si existe una copia final registrada. Resume las terminadas, bloqueadas, pendientes de aprobación y no disponibles. Una versión con el productor en estado `rendered` no se ofrece para añadir otra vez a la cola. Una copia registrada no confirma que su disco siga conectado; consulta «Videos finales» para comprobar disponibilidad. Los datos se actualizan al pulsar «Consultar versiones guardadas».
+
+## Compartir análisis de referencia
+
+Primero termina el análisis local en el proyecto base. Consulta sus versiones, marca las deseadas y pulsa «Compartir análisis base con las seleccionadas». Se guarda una instantánea JSON del informe: transcripción, observaciones, lagunas y procedencia. No copia el video ni fotogramas. Las rutas del informe siguen apuntando al proyecto original; consérvalo conectado si necesitas abrir esos recursos.
+
+Solo admite versiones registradas con la misma referencia. Exige que no haya una tarea local activa. Conserva los análisis distintos ya existentes. Un informe parcial continúa siendo parcial: compartirlo no completa sus lagunas, traduce su contenido ni verifica sus afirmaciones. El productor puede consultar el informe guardado mediante su herramienta de análisis de referencia; solicitar expresamente un nuevo análisis seguirá ejecutándolo.
