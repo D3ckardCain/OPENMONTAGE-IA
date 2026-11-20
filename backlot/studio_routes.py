@@ -36,6 +36,20 @@ def create_studio_router():
         for f in studio.PROJECTS_DIR.glob('*/production_request.json'):
             r=studio.read_json(f);projects.append({'project_id':r['project_id'],'title':r['title']})
         return {'settings':studio.settings(),'pipelines':studio.pipelines(),'projects':projects}
+    @router.get('/api/studio/queue')
+    def production_queue_state():
+        from lib.production_queue import read
+        return invoke(read)
+    @router.post('/api/studio/queue/{action}')
+    async def production_queue_action(action:str,request:Request):
+        from lib import production_queue
+        data=await body(request)
+        if action in ('start','pause'):
+            if data:raise HTTPException(400,'Esta acción no admite parámetros')
+            return invoke(getattr(production_queue,action))
+        if action=='enqueue' and set(data)=={'project_id'} and isinstance(data['project_id'],str):return invoke(production_queue.enqueue,data['project_id'])
+        if action=='retry' and set(data)=={'id'} and isinstance(data['id'],str):return invoke(production_queue.retry,data['id'])
+        raise HTTPException(400,'Acción de cola inválida')
     @router.get('/api/studio/runtime')
     async def runtime():return await asyncio.to_thread(studio.runtime_status)
     @router.post('/api/studio/settings')
