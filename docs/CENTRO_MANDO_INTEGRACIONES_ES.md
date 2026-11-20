@@ -99,3 +99,7 @@ La revisión identifica en la ruta lógica del catálogo los sufijos `.fdmdownlo
 El diagnóstico lee como máximo los primeros 512 bytes de cada archivo esperado compatible para detectar páginas HTML, respuestas XML y punteros de Git LFS. Los muestra como sospechosos y bloquea la disponibilidad del adaptador antes de cargar pesos. La selección entre copias también considera estos problemas. No renombra, borra ni descarga automáticamente. No detecta toda corrupción ni certifica la estructura, integridad o calidad de archivos cuyo prefijo parezca normal.
 
 El panel de adaptadores muestra por separado los archivos sospechosos y los recursos opcionales ausentes o rechazados. Una voz Kokoro opcional inválida no inutiliza las demás voces; no se ofrece en la lista y una solicitud que intente usarla se bloquea antes de iniciar inferencia. La carpeta seleccionada aparece explícitamente en el diagnóstico.
+
+## Blender: ruta única para escenas y escritorio
+
+La ruta Blender guardada en «Aplicaciones» se usa también por `blender_world`, el motor local de escenas y animación ya registrado. Una ruta explícita inexistente o inválida bloquea su disponibilidad; no cambia silenciosamente a otro Blender de PATH. Sin ruta en el centro de mando conserva las alternativas de entorno, portable y PATH existentes. Guardar la ruta no ejecuta Blender ni certifica su versión. La apertura de archivos `.blend` sigue disponible; el motor automatizado usa sus propias operaciones y requisitos de revisión.

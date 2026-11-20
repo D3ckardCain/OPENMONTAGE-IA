@@ -12,7 +12,7 @@ CATALOG={
  'avogadro':{'label':'Avogadro','purpose':'Preparar estructuras moleculares','executables':['avogadro2.exe','avogadro.exe'],'extensions':['.cml','.xyz','.mol','.sdf','.pdb'],'mode':'desktop'},
  'openmodelica':{'label':'OpenModelica','purpose':'Modelar y simular sistemas físicos','executables':['OMEdit.exe'],'extensions':['.mo'],'mode':'desktop'},
  'solvespace':{'label':'SolveSpace','purpose':'Diseñar geometría y mecanismos','executables':['solvespace.exe','solvespace_single_core_x64.exe'],'extensions':['.slvs'],'mode':'desktop'},
- 'blender':{'label':'Blender','purpose':'Crear escenas y animación 3D','executables':['blender.exe','blender'],'extensions':['.blend'],'mode':'desktop'},
+ 'blender':{'label':'Blender','automation_tools':['blender_world'],'purpose':'Crear escenas y animación 3D','executables':['blender.exe','blender'],'extensions':['.blend'],'mode':'desktop'},
  'freecad':{'label':'FreeCAD','purpose':'Preparar modelos CAD','executables':['FreeCAD.exe','FreeCAD'],'extensions':['.FCStd'],'mode':'desktop'},
  'qgis':{'label':'QGIS','purpose':'Preparar mapas y escenas geográficas','executables':['qgis-bin.exe','qgis'],'extensions':['.qgs','.qgz'],'mode':'desktop'},
 }
@@ -31,7 +31,7 @@ def catalog():
             path=Path(executable) if executable else None
             child=CHILDREN.get(key)
             result.append({'id':key,**item,'executable':executable,'configured':bool(executable),
-                'file_found':bool(path and path.is_file()),'integration':'managed_pipeline' if item['mode']=='managed_cli' else 'project_file_handoff',
+                'file_found':bool(path and path.is_file()),'integration':'managed_pipeline' if item['mode']=='managed_cli' else 'managed_scene_workflow_and_project_file_handoff' if item.get('automation_tools') else 'project_file_handoff',
                 'inference_verified':False,'running_managed_process':bool(child and child.poll() is None)})
     return result
 
