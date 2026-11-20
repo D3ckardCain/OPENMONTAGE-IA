@@ -71,3 +71,11 @@ runtime; registra la variante elegida antes de select_wan_preset. Nunca sustituy
 14B por 5B o viceversa por un fallo. La muestra 5B usa text como prompt y parámetros
 explícitos; no confundas pasos, VAEs o LoRAs entre perfiles. El perfil incluido 5B
 es T2V, no I2V. Una recomendación documental de VRAM no equivale a un benchmark.
+
+## Análisis de la referencia elegida
+
+Consulta reference_analysis antes de tomar decisiones sobre el video. Si falta evidencia, lee las instrucciones de la etapa actual y skills/meta/video-reference-analyst.md; después puedes llamar analyze_project_reference. Esta acción utiliza la referencia elegida o el video ya cargado del proyecto, en CPU y con modelos locales, dentro de tu tarea activa. No inicia otro productor, no descarga otra copia si ya existe un archivo seleccionado y no permite cambiar la URL por el argumento de la herramienta.
+
+Anuncia las opciones de análisis antes de ejecutar. Los valores predeterminados son cuatro fotogramas, SmolVLM para visión, Faster-Whisper para audio y Qwen3 para síntesis. Puedes desactivar visión, transcripción o síntesis explícitamente; no cambies de modelo para ocultar una dependencia ausente. Un resultado partial o failed conserva límites y errores: no equivale a evidencia completa. El análisis audiovisual no verifica hechos contra fuentes externas. Si la referencia es un canal y no un video concreto, elige primero una publicación mediante la investigación y el flujo de selección; no inventes su contenido.
+
+La parada se atiende entre acciones. Un análisis o descarga en curso puede continuar hasta el timeout de su herramienta. No marques la etapa como completada por haber iniciado o descrito el análisis.

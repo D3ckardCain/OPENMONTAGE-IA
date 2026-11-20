@@ -37,6 +37,9 @@ TOOLS=[
  descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
  descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
  descriptor('reference_analysis','Lee el análisis local del video de referencia: transcripción, fotogramas, observaciones y límites. No inventa verificaciones externas.'),
+ descriptor('analyze_project_reference','Analiza la referencia seleccionada dentro de la tarea del productor, con motores locales en CPU. Reutiliza el video guardado; no cambia la referencia ni verifica hechos externos.',{
+     'frames':{'type':'integer','minimum':1,'maximum':12},'vision':{'type':'boolean'},'transcribe':{'type':'boolean'},
+     'summary':{'type':'boolean'},'vision_model':{'enum':['smolvlm','qwen-vl']}}),
  descriptor('resource_status','Consulta servidores, GPU y carpetas de recursos; no descarga pesos.'),
  descriptor('model_catalog','Consulta catálogo e inventarios; group_id devuelve archivos, carpetas y URLs sin descargarlos.',{'group_id':{'type':'string'}}),
  descriptor('project_files','Lista archivos existentes del proyecto, sin leer recursos externos.'),
@@ -148,6 +151,16 @@ class LocalAgent:
         if name=='reference_analysis':
             from lib.reference_analysis import read
             return read(self.pid)
+        if name=='analyze_project_reference':
+            stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+            definition=next((s for s in self.manifest['stages'] if s['name']==stage),{})
+            if 'skills/'+definition.get('skill','')+'.md' not in self.reads or 'skills/meta/video-reference-analyst.md' not in self.reads:
+                raise ValueError('Lee primero las instrucciones de la etapa y del análisis de referencias')
+            from lib.reference_analysis import run_for_producer
+            self.event('reference_analysis','Analizando referencia elegida con motores locales en CPU')
+            report=run_for_producer(self.pid,args,self.cancel)
+            self.event('reference_analysis','Análisis de referencia: '+report['status'])
+            return report
         if name=='project_comfy_jobs':
             from lib.comfy_job_records import project_jobs
             return project_jobs(self.pid)

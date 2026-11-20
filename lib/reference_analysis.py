@@ -171,7 +171,7 @@ def analyze(project_id,source,options,output):
     return report
 
 
-def start(project_id,data):
+def prepare_request(project_id,data):
     if set(data)-{'frames','vision','transcribe','summary','vision_model','url'}:raise ValueError('Opciones desconocidas')
     data=dict(data);url=data.pop('url',None)
     if url is not None:url=youtube_url(url)
@@ -186,6 +186,26 @@ def start(project_id,data):
     if not url and not source.is_file():raise ValueError('Carga el video de referencia o indica su enlace de YouTube')
     if url:
         for name in ('ffmpeg','ffprobe','yt-dlp','deno'):executable(name)
+    return path,source,url,options
+
+
+def execute_reference(project_id,path,source,url,options,output):
+    try:
+        selected=source
+        if url:
+            studio.save_json(path/'reference_analysis.json',{'status':'downloading','source_url':url,'device':'cpu','cost_usd':0})
+            selected=download_reference(project_id,url,output)
+            studio.save_json(output/'source.json',{'url':url,'downloaded_at':studio.now()})
+            studio.save_json(path/'reference_source.json',{'path':selected.relative_to(path).as_posix(),'url':url})
+        return analyze(project_id,selected,options,output)
+    except Exception as exc:
+        report={'status':'failed','error':str(exc)[:1800],'source_url':url,'cost_usd':0}
+        studio.save_json(path/'reference_analysis.json',report);studio.save_json(output/'report.json',report)
+        return report
+
+
+def start(project_id,data):
+    path,source,url,options=prepare_request(project_id,data)
     from lib import production_agent
     with production_agent.ACTIVE_LOCK,LOCK:
         if ACTIVE or production_agent.ACTIVE:raise ValueError('Hay una tarea local activa; espera antes de iniciar el análisis')
@@ -193,18 +213,34 @@ def start(project_id,data):
         ACTIVE.add(project_id)
         studio.save_json(path/'reference_analysis.json',{'status':'queued','options':options})
     def worker():
-        try:
-            selected=source
-            if url:
-                studio.save_json(path/'reference_analysis.json',{'status':'downloading','source_url':url,'device':'cpu','cost_usd':0})
-                selected=download_reference(project_id,url,output)
-                studio.save_json(output/'source.json',{'url':url,'downloaded_at':studio.now()})
-                studio.save_json(path/'reference_source.json',{'path':selected.relative_to(path).as_posix(),'url':url})
-            analyze(project_id,selected,options,output)
-        except Exception as exc:
-            report={'status':'failed','error':str(exc)[:1800],'source_url':url,'cost_usd':0}
-            studio.save_json(path/'reference_analysis.json',report);studio.save_json(output/'report.json',report)
+        try:execute_reference(project_id,path,source,url,options,output)
         finally:
             with LOCK:ACTIVE.discard(project_id)
     threading.Thread(target=worker,daemon=True).start()
     return {'started':True,'device':'cpu','cost_usd':0}
+
+
+def run_for_producer(project_id,data,cancel):
+    """Synchronous action of the sole registered producer, not a second worker."""
+    if 'url' in data:raise ValueError('Usa la referencia elegida del proyecto, no una URL nueva')
+    from lib import production_agent
+    path=studio.project_path(project_id);source=selected_source(project_id)
+    options=dict(data)
+    if not source.is_file():
+        request=studio.read_json(path/'production_request.json')
+        try:options['url']=youtube_url(request.get('reference',''))
+        except ValueError:raise ValueError('Elige una publicación de referencia o carga su video; un canal no identifica un video concreto') from None
+    path,source,url,options=prepare_request(project_id,options)
+    with production_agent.ACTIVE_LOCK,LOCK:
+        owner=production_agent.ACTIVE.get(project_id)
+        if not owner or owner[1] is not cancel or len(production_agent.ACTIVE)!=1:raise ValueError('El análisis requiere el productor activo de este proyecto')
+        if ACTIVE:raise ValueError('Ya hay un análisis de referencia activo')
+        if cancel.is_set():raise ValueError('El productor recibió una solicitud de parada')
+        output=path/'reference_analysis'/('run-'+uuid.uuid4().hex[:12]);output.mkdir(parents=True)
+        ACTIVE.add(project_id)
+        studio.save_json(path/'reference_analysis.json',{'status':'queued','owner':'producer','options':options})
+    try:
+        if cancel.is_set():raise ValueError('Detenido antes de analizar la referencia')
+        return execute_reference(project_id,path,source,url,options,output)
+    finally:
+        with LOCK:ACTIVE.discard(project_id)

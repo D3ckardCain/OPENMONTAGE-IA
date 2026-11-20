@@ -100,3 +100,9 @@ y conserva la prueba de interfaz para ejecutarla en un runner compatible.
 La fuente seleccionada se registra por proyecto. Repetir el análisis utiliza el
 video descargado o cargado más recientemente, sin volver a descargarlo ni usar
 por accidente una referencia anterior. Se rechazan rutas fuera del proyecto.
+
+## Uso por el productor local
+
+El productor dispone de analyze_project_reference, además de la consulta reference_analysis. La ejecución es síncrona dentro de su tarea y exige las instrucciones de la etapa y del analista de referencias. Reutiliza el archivo seleccionado si está presente; de otro modo utiliza exclusivamente el enlace de video guardado en la solicitud. No decide por sí sola qué publicación de un canal elegir.
+
+Se mantiene la exclusión entre productores y análisis: solo el propietario activo del proyecto puede usar esta ruta; otras tareas y cambios de configuración siguen bloqueados. El slot de análisis se libera tanto en éxito como en error. Las pruebas de esta integración emplean motores y descargas simulados; no acreditan la calidad del análisis con pesos reales.
