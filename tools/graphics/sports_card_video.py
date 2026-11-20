@@ -1,5 +1,7 @@
-"""Silent local video segment from a sourced sports card; no GPU or publishing."""
+"""Optional narrated local video segment from a sourced sports card; no GPU or publishing."""
 import json
+import hashlib
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -11,7 +13,7 @@ from lib.media_executables import require_media
 
 class SportsCardVideo(BaseTool):
     name='sports_card_video'
-    version='0.1.0'
+    version='0.2.0'
     provider='local'
     tier=ToolTier.CORE
     runtime=ToolRuntime.LOCAL
@@ -23,6 +25,7 @@ class SportsCardVideo(BaseTool):
     resource_profile=ResourceProfile(cpu_cores=2,ram_mb=512,vram_mb=0,disk_mb=64,network_required=False)
     input_schema={'type':'object','required':['report','output_path'],'additionalProperties':False,'properties':{
         'report':{'type':'object'},'output_path':{'type':'string','minLength':1},
+        'audio_path':{'type':'string','minLength':1},
         'duration_seconds':{'type':'number','minimum':1,'maximum':30}}}
 
     def execute(self,inputs):
@@ -32,6 +35,25 @@ class SportsCardVideo(BaseTool):
             svg=render(inputs['report'])
             duration=inputs.get('duration_seconds',6)
             ffmpeg=require_media('ffmpeg');ffprobe=require_media('ffprobe')
+            audio=None;audio_evidence=None
+            if inputs.get('audio_path'):
+                audio=Path(inputs['audio_path']).resolve()
+                if audio.suffix.lower() not in ('.wav','.flac','.mp3','.m4a','.ogg') or not audio.is_file():
+                    raise ValueError('La narración debe ser un archivo de audio local existente')
+                before=audio.stat()
+                checksum=hashlib.sha256(audio.read_bytes()).hexdigest()
+                probe_audio=subprocess.run([ffprobe,'-v','error','-protocol_whitelist','file,pipe',
+                    '-show_streams','-show_format','-of','json',str(audio)],capture_output=True,text=True,timeout=30)
+                if probe_audio.returncode:raise ValueError('No se pudo inspeccionar la narración')
+                am=json.loads(probe_audio.stdout)
+                if not any(s.get('codec_type')=='audio' for s in am.get('streams',[])):
+                    raise ValueError('La narración no contiene pista de audio')
+                length=float(am.get('format',{}).get('duration',0))
+                if not math.isfinite(length) or not 1<=length<=30:raise ValueError('Narración fuera del intervalo 1–30 segundos; dividirla en segmentos')
+                if 'duration_seconds' in inputs and duration<length:raise ValueError('La duración recortaría la narración')
+                if 'duration_seconds' not in inputs:duration=min(30,math.ceil(length*24)/24)
+                audio_evidence={'path':str(audio),'sha256':checksum,'duration_seconds':length}
+            if not math.isfinite(duration):raise ValueError('Duración inválida')
             output=Path(inputs['output_path']).absolute()
             if output.suffix.lower()!='.mp4':raise ValueError('La salida debe ser MP4')
             evidence=output.with_suffix('.evidence.json')
@@ -42,7 +64,10 @@ class SportsCardVideo(BaseTool):
                 rasterize(svg,png)
                 filters='scale=720:900,pad=720:1280:0:190:color=0x0d1117,fade=t=in:st=0:d=0.25,fade=t=out:st='+str(duration-.25)+':d=0.25'
                 command=[ffmpeg,'-nostdin','-v','error','-loop','1','-framerate','24','-i',str(png),
-                         '-vf',filters,'-t',str(duration),'-an','-c:v','libx264','-threads','2',
+                         *(['-protocol_whitelist','file,pipe','-i',str(audio)] if audio else []),
+                         '-vf',filters,'-t',str(duration),
+                         *(['-map','0:v:0','-map','1:a:0','-af','apad','-c:a','aac','-b:a','128k'] if audio else ['-an']),
+                         '-c:v','libx264','-threads','2',
                          '-preset','veryfast','-pix_fmt','yuv420p','-movflags','+faststart','-n',str(video)]
                 result=subprocess.run(command,capture_output=True,text=True,timeout=180)
                 if result.returncode:raise ValueError('FFmpeg: '+result.stderr[-1000:])
@@ -52,12 +77,18 @@ class SportsCardVideo(BaseTool):
                 streams=metadata.get('streams',[])
                 v=next((s for s in streams if s.get('codec_type')=='video'),{})
                 actual=float(metadata.get('format',{}).get('duration',0))
-                if (v.get('width'),v.get('height'))!=(720,1280) or abs(actual-duration)>.1:
+                has_audio=any(s.get('codec_type')=='audio' for s in streams)
+                if has_audio!=bool(audio):raise ValueError('La pista de audio de la salida no coincide con lo solicitado')
+                if not math.isfinite(actual) or (v.get('width'),v.get('height'))!=(720,1280) or abs(actual-duration)>.1:
                     raise ValueError('Resolución o duración del clip incorrecta')
                 decoded=subprocess.run([ffmpeg,'-nostdin','-v','error','-xerror','-i',str(video),'-f','null','-'],capture_output=True,text=True,timeout=60)
                 if decoded.returncode:raise ValueError('El clip no pasó la decodificación completa')
-                record={'report':inputs['report'],'media':{'path':str(output),'duration_seconds':actual,
-                         'resolution':'720x1280','audio':False,'full_decode_passed':True},
+                if audio:
+                    after=audio.stat()
+                    if (before.st_size,before.st_mtime_ns)!=(after.st_size,after.st_mtime_ns) or hashlib.sha256(audio.read_bytes()).hexdigest()!=checksum:
+                        raise ValueError('La narración cambió durante el render')
+                record={'report':inputs['report'],'narration':audio_evidence,'media':{'path':str(output),'duration_seconds':actual,
+                         'resolution':'720x1280','audio':has_audio,'full_decode_passed':True},
                         'role':'composition_segment','final_video_verified':False}
                 saved=folder/'evidence.json';saved.write_text(json.dumps(record,ensure_ascii=False,indent=2),encoding='utf-8')
                 # Never replace a previous render. The final production still goes through its normal gates.
