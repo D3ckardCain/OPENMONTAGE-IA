@@ -33,7 +33,7 @@ def fake_model(root,family):
 def test_registry_discovers_concrete_family_tools_without_importing_weights(isolated):
     from tools.tool_registry import ToolRegistry
     reg=ToolRegistry();reg.discover('tools.models')
-    assert len(reg.list_all())==46
+    assert len(reg.list_all())==47
     assert reg.get('model_kokoro').capability=='tts'
     assert reg.get('model_wan').capability=='video_generation'
     assert reg.get('model_m2m100').estimate_cost({})==0

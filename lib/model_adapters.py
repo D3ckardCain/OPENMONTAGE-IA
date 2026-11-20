@@ -26,6 +26,7 @@ NATIVE={
  'kokoro':('tts',['torch','kokoro','soundfile']),
  'faster-whisper':('transcription',['faster_whisper']),
  'm2m100':('translation',['torch','transformers','sentencepiece']),
+ 'madlad':('translation',['torch','transformers','sentencepiece']),
  'minilm':('text_embeddings',['sentence_transformers']),
  'siglip':('image_text_similarity',['torch','transformers','PIL']),
  'grounding-dino':('object_detection',['torch','transformers','PIL']),

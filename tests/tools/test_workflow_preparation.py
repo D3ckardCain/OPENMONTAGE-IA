@@ -80,7 +80,7 @@ def test_constant_switch_does_not_require_unselected_models():
 def test_all_catalogued_families_have_implemented_workflow_recipes():
     rows=prep.recipes()
     assert {r['family'] for r in rows}==set(adapters.CATALOG)
-    assert sum(r['engine']=='native' for r in rows)==31
+    assert sum(r['engine']=='native' for r in rows)==32
     assert all(r['preparation_implemented'] for r in rows)
     assert all(r['required_inputs'] and not r['inference_verified'] for r in rows)
     assert all((prep.TEMPLATES/r['reference']['file']).is_file() for r in rows if r['recipe_kind']=='canvas_compiler')

@@ -29,7 +29,7 @@ REQUIRED={
  'minilm':['text'],'siglip':['input_path','labels'],'grounding-dino':['input_path','text'],
  'florence':['input_path'],'birefnet':['input_path'],'qwen3':['text'],
  'qwen-vl':['input_path','text'],'smolvlm':['input_path','text'],'depth':['input_path'],
- 'ocr-latin':['input_path'],'ocr-det':['input_path'],'m2m100':['text','source_language','language'],
+ 'ocr-latin':['input_path'],'ocr-det':['input_path'],'m2m100':['text','source_language','language'],'madlad':['text','language'],
  'kokoro':['text','voice'],'qwen-tts':['text','voice','language'],
  'voice-design':['text','instruction','language'],'aligner':['input_path','text','language'],
  'chatterbox':['text'],'cosyvoice':['text','reference_audio','reference_text'],

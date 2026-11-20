@@ -217,7 +217,7 @@ def test_studio_cli_opens_actual_studio_url(monkeypatch):
 def test_adapter_settings_and_diagnostics_are_reachable_in_studio(isolated,monkeypatch):
     from lib import model_adapters
     monkeypatch.setattr(model_adapters,'diagnostics',lambda family:{'family':family,'ready':False,'inference_verified':False})
-    assert len(isolated.get('/api/studio/adapters').json())==46
+    assert len(isolated.get('/api/studio/adapters').json())==47
     cfg={'python_executable':__import__('sys').executable,'model_dir':str(studio.CONFIG_DIR/'weights')}
     assert isolated.post('/api/studio/adapters/kokoro',json=cfg).status_code==200
     assert model_adapters.configuration('kokoro')['model_dir']==cfg['model_dir']

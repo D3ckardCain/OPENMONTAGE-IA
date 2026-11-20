@@ -10,8 +10,8 @@ def test_coverage_includes_every_catalogued_family_without_probing(tmp_path,monk
     monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
     report=coverage()
     assert {x['family'] for x in report['models']}==set(CATALOG)
-    assert report['total']==46 and report['native_workers']==31
-    assert report['prepared_recipes']==46
+    assert report['total']==47 and report['native_workers']==32
+    assert report['prepared_recipes']==47
     assert all(x['workflow_recipe']['preparation_implemented'] for x in report['models'])
     assert not any(x['inference_verified'] for x in report['models'])
     assert all(x['next_step'] for x in report['models'])

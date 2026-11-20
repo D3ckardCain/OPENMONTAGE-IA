@@ -161,6 +161,17 @@ def run(request):
         image_path=out/'depth.png'
         if not cv2.imwrite(str(image_path),scaled):raise ValueError('No se pudo escribir el mapa')
         return {'success':True,'outputs':[str(raw),str(image_path)],'relative_depth':True}
+    if family=='madlad':
+        from transformers import T5ForConditionalGeneration,T5Tokenizer
+        tokenizer=T5Tokenizer.from_pretrained(str(m),local_files_only=True)
+        language=required(data,'language')
+        token='<2'+language+'>'
+        if tokenizer.convert_tokens_to_ids(token)==tokenizer.unk_token_id:raise ValueError('Idioma objetivo no presente en el tokenizer MADLAD: '+language)
+        inputs=tokenizer(token+' '+required(data,'text'),return_tensors='pt',truncation=False).to(device)
+        if inputs['input_ids'].shape[-1]>512:raise ValueError('Divide el texto en segmentos de hasta 512 tokens para MADLAD; no se truncó el contenido')
+        model=T5ForConditionalGeneration.from_pretrained(str(m),local_files_only=True,use_safetensors=True).to(device).eval()
+        with torch.inference_mode():ids=model.generate(**inputs,max_new_tokens=data.get('max_new_tokens',512))
+        return report({'text':tokenizer.batch_decode(ids,skip_special_tokens=True)[0],'language':language,'quality_review_required':True})
     if family=='m2m100':
         from transformers import M2M100ForConditionalGeneration,M2M100Tokenizer
         tokenizer=M2M100Tokenizer.from_pretrained(str(m),local_files_only=True);tokenizer.src_lang=required(data,'source_language')
