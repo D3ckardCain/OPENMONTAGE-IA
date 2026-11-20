@@ -1,6 +1,9 @@
 """Agent-facing source routing. This directory never impersonates a live query."""
 from copy import deepcopy
 
+FOOTBALL_STANDARD_METRICS = ('goals', 'assists', 'duels_won', 'clean_sheets')
+
+
 # Entry points are source locations, not promises of API availability or coverage.
 _ROWS = [
  ('uefa','football','europe','UEFA','https://www.uefa.com/','official_uefa_live'),
@@ -49,7 +52,16 @@ def catalog(sport=None, region=None):
         rows.append(dict(id=ident,sport=kind,region=area,name=label,url=url,
             connector=tool or None,status='source_inspection_only' if tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
             coverage_verified=False))
+    football_contract = {
+        'metrics': list(FOOTBALL_STANDARD_METRICS),
+        'missing_value': None,
+        'instruction': ('Usa el mismo conjunto de métricas para todas las ligas, copas y torneos de fútbol. '
+                        'Relaciona los nombres del proveedor con las métricas comunes solo si su definición coincide. '
+                        'Si falta una cifra o no aplica al jugador, conserva su campo con null. '
+                        'Si el usuario pide una métrica concreta, puedes consultar ese subconjunto.'),
+    }
     return deepcopy(dict(sources=rows,complete_global_coverage=False,statistics_included=False,
+        football_standard=football_contract if sport in (None, 'football') else None,
         instruction='El agente resuelve nombres e IDs, consulta en el momento y conserva fuente, fecha y alcance. Un directorio no es un conector. No pedir al usuario que busque estadísticas. Si no hay acceso comprobado, declarar bloqueo; no inventar ni reutilizar datos antiguos.',
         output_contract={'formats':['player_comparison','collectible_card'],
             'required_scope':['sport','competition','season_or_period','phase','category'],
