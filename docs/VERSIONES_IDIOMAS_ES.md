@@ -13,3 +13,9 @@ Las pruebas usan creadores simulados y no validan narración, traducción ni ren
 ## Organizar la producción
 
 «Consultar versiones guardadas» recupera los proyectos registrados incluso después de cerrar la app. Marca los idiomas deseados y pulsa «Añadir versiones seleccionadas a la cola». Admite hasta diez por lote. Valida todos los proyectos y la capacidad antes de guardar. Las versiones que ya estén en la cola se conservan sin duplicarlas ni reactivar bloqueos. Los registros no disponibles no pueden seleccionarse. Luego revisa la cola e inicia su ejecución expresamente; siguen aplicándose las aprobaciones por etapa.
+
+## Recursos locales
+
+«Revisar recursos de voz y traducción» consulta los adaptadores registrados de voz, traducción y transcripción. Revisa archivos y configuración sin ejecutar Python auxiliar, hacer peticiones a servidores ni cargar modelos. Muestra requisitos ausentes y módulos pendientes. «Archivos configurados» no certifica dependencias instaladas ni soporte de un idioma: habrá que comprobar voz, pronunciación y calidad con los modelos reales.
+
+La prueba de integración crea proyectos reales en carpetas temporales, comprueba checkpoints guiados, idiomas independientes, ausencia de renders y reutilización al repetir. No ejecuta inferencia.

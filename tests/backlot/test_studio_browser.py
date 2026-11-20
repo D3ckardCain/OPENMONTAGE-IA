@@ -60,6 +60,11 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Añadir versiones seleccionadas a la cola',exact=True).click()
         page.wait_for_function('document.querySelector("#notice").textContent.includes("1 añadidas")')
         assert batches==[{'project_ids':['version-en']}]
+        page.route('**/api/studio/language-requirements/video-fixture',lambda route:route.fulfill(json={'note':'No certifica soporte de idioma','candidates':[{'family':'fixture-voice','capability':'tts','files_configured':False,'problems':['Falta voz local'],'required_modules':['fixture_module']}]}))
+        page.locator('#versions-requirements').click()
+        page.locator('#versions-requirements-result summary').click()
+        assert 'Falta voz local' in page.locator('#versions-requirements-result').inner_text()
+        assert 'fixture_module' in page.locator('#versions-requirements-result').inner_text()
         assert actions==['start']
         selected_profiles=[]
         profiles={'presets':[{'id':'wan22-5b-t2v','label':'Wan 2.2 · 5B · texto a video','note':'Perfil local de prueba','required_models':['wan2.2_ti2v_5B_fp16.safetensors']}],'current':{'preset':'wan22-14b-t2v-4step'}}

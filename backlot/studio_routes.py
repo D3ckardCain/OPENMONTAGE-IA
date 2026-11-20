@@ -71,6 +71,10 @@ def create_studio_router():
             return invoke(studio.configure,data)
     @router.post('/api/studio/projects')
     async def create(request:Request):return invoke(studio.create_production,await body(request))
+    @router.get('/api/studio/language-requirements/{pid}')
+    def language_requirements(pid:str):
+        from lib.language_versions import local_requirements
+        return invoke(local_requirements,pid)
     @router.get('/api/studio/language-versions/{pid}')
     def language_versions_list(pid:str):
         from lib.language_versions import list_versions

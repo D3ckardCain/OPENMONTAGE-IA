@@ -50,3 +50,24 @@ def list_versions(project_id):
         try:studio.project_path(entry['project_id']);entry['status']='existing'
         except (OSError,ValueError):entry['status']='unavailable'
     return {'versions':records,'generation_started':False}
+
+
+def local_requirements(project_id):
+    """Inspect configured local files without invoking runtimes or models."""
+    from lib import model_adapters
+    studio.project_path(project_id)
+    candidates=[]
+    for family in model_adapters.CATALOG:
+        capability=model_adapters.spec(family)['capability']
+        if capability not in ('tts','translation','transcription'):continue
+        try:
+            report=model_adapters.diagnostics(family,probe=False)
+            candidates.append({'family':family,'capability':capability,
+                'files_configured':report['ready'],'model_dir':report.get('model_dir'),
+                'problems':report['problems'],'required_modules':report.get('required_modules',[]),
+                'language_support_verified':False,'runtime_checked':False})
+        except (OSError,ValueError,KeyError,TypeError) as exc:
+            candidates.append({'family':family,'capability':capability,'files_configured':False,
+                'problems':[str(exc)[:600]],'language_support_verified':False,'runtime_checked':False})
+    return {'candidates':candidates,'generation_started':False,'network_requests_started':0,
+        'note':'Revisión de archivos y configuración. No prueba dependencias, compatibilidad de idioma, voz, calidad ni rendimiento. El productor debe elegir un motor compatible antes de generar.'}

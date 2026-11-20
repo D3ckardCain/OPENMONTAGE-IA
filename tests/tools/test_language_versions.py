@@ -70,3 +70,20 @@ def test_list_versions_survives_reopening_and_marks_unavailable(source):
     assert [entry['status'] for entry in report['versions']]==['unavailable','existing']
     assert report['generation_started'] is False
     assert len(source)==2
+
+
+def test_requirements_do_not_probe_runtimes_or_certify_languages(source,monkeypatch):
+    from lib import model_adapters
+    from lib.language_versions import local_requirements
+    monkeypatch.setattr(model_adapters,'CATALOG',{'voice':{},'translator':{},'video':{}})
+    monkeypatch.setattr(model_adapters,'spec',lambda family:{'capability':{'voice':'tts','translator':'translation','video':'video_generation'}[family]})
+    calls=[]
+    def diagnostics(family,probe):
+        assert probe is False
+        calls.append(family)
+        return {'ready':True,'model_dir':'/fixture','problems':[],'required_modules':['fixture']}
+    monkeypatch.setattr(model_adapters,'diagnostics',diagnostics)
+    report=local_requirements('base')
+    assert calls==['voice','translator']
+    assert report['generation_started'] is False and report['network_requests_started']==0
+    assert all(not item['language_support_verified'] and not item['runtime_checked'] for item in report['candidates'])

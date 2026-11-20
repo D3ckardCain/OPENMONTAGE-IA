@@ -236,3 +236,20 @@ def test_agent_can_inspect_and_bind_only_project_workflows(isolated,monkeypatch)
     assert bound['workflow_path']==str(path)
     with pytest.raises(ValueError):worker.dispatch('bind_workflow',{'family':'wan','path':str(studio.CONFIG_DIR/'outside.json'),'output_node':'1'})
     with pytest.raises(ValueError):worker.dispatch('bind_workflow',{'family':'kokoro','path':str(path),'output_node':'1'})
+
+
+def test_real_language_projects_have_guided_checkpoints_and_independent_workspaces(isolated):
+    parent=project()
+    response=isolated.post('/api/studio/language-versions/'+parent,json={'languages':['en','ko']})
+    assert response.status_code==200
+    versions=response.json()['versions']
+    assert len({entry['project_id'] for entry in versions})==2
+    for entry in versions:
+        path=studio.project_path(entry['project_id'])
+        state=isolated.get('/api/studio/projects/'+entry['project_id']).json()
+        assert state['request']['language']==entry['language']
+        assert state['request']['automatic'] is False and state['request']['publish_authorized'] is False
+        assert state['job']['status']=='ready' and state['outputs']==[]
+        checkpoint=studio.read_json(path/'checkpoint_research.json')
+        assert checkpoint['artifacts']['decision_log']['decisions'][0]['selected']=='guided'
+    assert isolated.post('/api/studio/language-versions/'+parent,json={'languages':['en','ko']}).json()['versions'][0]['status']=='existing'
