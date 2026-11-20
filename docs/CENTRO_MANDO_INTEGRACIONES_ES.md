@@ -103,3 +103,7 @@ El panel de adaptadores muestra por separado los archivos sospechosos y los recu
 ## Blender: ruta única para escenas y escritorio
 
 La ruta Blender guardada en «Aplicaciones» se usa también por `blender_world`, el motor local de escenas y animación ya registrado. Una ruta explícita inexistente o inválida bloquea su disponibilidad; no cambia silenciosamente a otro Blender de PATH. Sin ruta en el centro de mando conserva las alternativas de entorno, portable y PATH existentes. Guardar la ruta no ejecuta Blender ni certifica su versión. La apertura de archivos `.blend` sigue disponible; el motor automatizado usa sus propias operaciones y requisitos de revisión.
+
+## FFmpeg y FFprobe en montaje y análisis
+
+La ruta del centro de mando se utiliza en el montaje FFmpeg de `video_compose`, sus operaciones auxiliares y las herramientas `audio_probe` y `audio_energy`. Comparten detección con el análisis de referencias y la verificación final. Una ruta explícita que falta no se sustituye silenciosamente por otra de PATH. Esta conexión no implica que todos los motores de terceros o procesos Node utilicen ya esa ruta; sus requisitos siguen separados. No se modifica PATH del sistema ni se ejecuta un instalador.

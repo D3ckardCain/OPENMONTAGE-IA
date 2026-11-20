@@ -13,6 +13,8 @@ Key use cases:
 
 from __future__ import annotations
 
+from lib.media_executables import find_media
+
 import json
 import re
 import shutil
@@ -97,7 +99,7 @@ class AudioEnergy(BaseTool):
     side_effects = []
 
     def get_status(self) -> ToolStatus:
-        if shutil.which("ffmpeg"):
+        if find_media("ffmpeg"):
             return ToolStatus.AVAILABLE
         return ToolStatus.UNAVAILABLE
 
@@ -109,9 +111,9 @@ class AudioEnergy(BaseTool):
         if not input_path.exists():
             return ToolResult(success=False, error=f"File not found: {input_path}")
 
-        ffmpeg = shutil.which("ffmpeg")
+        ffmpeg = find_media("ffmpeg")
         if not ffmpeg:
-            return ToolResult(success=False, error="ffmpeg not found on PATH")
+            return ToolResult(success=False, error="Configura FFmpeg en el Estudio")
 
         threshold_lufs = inputs.get("energy_threshold_lufs", -40)
         video_duration = inputs.get("video_duration_seconds")
@@ -121,9 +123,9 @@ class AudioEnergy(BaseTool):
         # ------------------------------------------------------------------
         # Step 1: Get audio duration
         # ------------------------------------------------------------------
-        ffprobe = shutil.which("ffprobe")
+        ffprobe = find_media("ffprobe")
         if not ffprobe:
-            return ToolResult(success=False, error="ffprobe not found on PATH")
+            return ToolResult(success=False, error="Configura FFprobe en el Estudio")
 
         try:
             probe_result = subprocess.run(
