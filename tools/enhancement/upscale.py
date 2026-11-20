@@ -7,6 +7,8 @@ and reassembled into the output file.
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, require_media
+
 import shutil
 import tempfile
 import time
@@ -227,7 +229,7 @@ class Upscale(BaseTool):
 
             # Extract frames
             self.run_command([
-                "ffmpeg", "-y",
+                require_media("ffmpeg"), "-y",
                 "-i", str(input_path),
                 str(frames_dir / "frame_%06d.png"),
             ])
@@ -243,7 +245,7 @@ class Upscale(BaseTool):
 
             # Reassemble with ffmpeg, copy audio from original
             reassemble_cmd = [
-                "ffmpeg", "-y",
+                require_media("ffmpeg"), "-y",
                 "-framerate", str(fps),
                 "-i", str(upscaled_dir / "frame_%06d.png"),
                 "-i", str(input_path),
@@ -340,12 +342,12 @@ class Upscale(BaseTool):
         """Extract frame rate from video using ffprobe."""
         import json
 
-        if not shutil.which("ffprobe"):
+        if not find_media("ffprobe"):
             return 30.0  # safe default
 
         try:
             proc = self.run_command([
-                "ffprobe", "-v", "quiet",
+                require_media("ffprobe"), "-v", "quiet",
                 "-print_format", "json",
                 "-show_streams",
                 str(video_path),

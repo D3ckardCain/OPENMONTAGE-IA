@@ -56,3 +56,23 @@ def test_video_compose_passes_private_media_environment_to_node(bound,monkeypatc
     monkeypatch.setattr(base_tool.subprocess,'run',run)
     VideoCompose().run_command(['node','fixture.js'])
     assert str(bound[0].parent) in calls[0][1]['env']['PATH']
+
+
+def test_music_and_video_probes_use_configured_probe(bound,monkeypatch,tmp_path):
+    from tools.audio.music_library import MusicLibrary
+    from tools.audio.comfyui_music import ComfyUIMusic
+    from tools.graphics.math_animate import MathAnimate
+    from tools.enhancement.upscale import Upscale
+    from tools.video import _shared
+    calls=[]
+    source=tmp_path/'fixture.mp4';source.write_bytes(b'fixture')
+    def run(command,**kwargs):
+        calls.append(command)
+        if '-show_entries' in command:return SimpleNamespace(returncode=0,stdout='2.5',stderr='')
+        return SimpleNamespace(returncode=0,stdout='{"format":{"duration":"2.5"},"streams":[]}',stderr='')
+    monkeypatch.setattr(_shared.subprocess,'run',run)
+    assert MusicLibrary._probe_duration(source)==2.5
+    assert ComfyUIMusic._probe_duration(source)==2.5
+    assert MathAnimate()._probe_output(source)['duration_seconds']==2.5
+    _shared.probe_output(source)
+    assert len(calls)==4 and all(command[0]==str(bound[1]) for command in calls)
