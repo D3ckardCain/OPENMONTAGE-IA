@@ -35,3 +35,11 @@ def test_download_plan_api_is_read_only(monkeypatch):
     response=TestClient(create_app(),base_url='http://127.0.0.1:4750').get('/api/studio/download-plan')
     assert response.status_code==200
     assert response.json()['downloads_started']==0
+
+
+def test_plan_can_be_scoped_to_one_model_and_rejects_unknown_group(monkeypatch):
+    monkeypatch.setattr(studio,'resource_catalog',fixture_catalog)
+    report=plan('two')
+    assert report['planned_files']==1
+    assert report['folders'][0]['files'][0]['family']=='two'
+    with pytest.raises(ValueError,match='desconocido'):plan('missing')

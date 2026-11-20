@@ -41,6 +41,7 @@ TOOLS=[
      'frames':{'type':'integer','minimum':1,'maximum':12},'vision':{'type':'boolean'},'transcribe':{'type':'boolean'},
      'summary':{'type':'boolean'},'vision_model':{'enum':['smolvlm','qwen-vl']}}),
  descriptor('resource_status','Consulta servidores, GPU y carpetas de recursos; no descarga pesos.'),
+ descriptor('model_download_plan','Prepara una lista revisable de un modelo usando al menos dos inventarios. Excluye rutas registradas y candidatos en otras ubicaciones. No descarga, no instala y no demuestra ausencia actual.',{'group_id':{'type':'string'}},['group_id']),
  descriptor('model_catalog','Consulta catálogo e inventarios; group_id devuelve archivos, carpetas y URLs sin descargarlos.',{'group_id':{'type':'string'}}),
  descriptor('project_files','Lista archivos existentes del proyecto, sin leer recursos externos.'),
  descriptor('read_project_file','Lee un archivo de texto del proyecto.',{'path':{'type':'string'}},['path']),
@@ -161,13 +162,23 @@ class LocalAgent:
             return {'project_id':self.pid,'image':current_image(self.pid),
                     'usage':'Para WAN I2V usa project_id de este proyecto y text en execute_tool. La imagen se transfiere solo al ejecutar. No inventes server_image.'}
         if name=='resource_status':return studio.runtime_status()
+        if name=='model_download_plan':
+            from lib.download_plan import plan
+            return plan(args['group_id'])
         if name=='model_catalog':
             data=studio.resource_catalog()
             if args.get('group_id'):
                 group=next((g for g in data['groups'] if g['id']==args['group_id']),None)
                 if group is None:raise ValueError('Grupo de modelos desconocido')
                 return {'group':group,'notes':data['notes'],'inventories_imported':len(data['inventories'])}
-            return {'inventories':data['inventories'],'notes':data['notes'],'groups':[{'id':g['id'],'label':g['label'],'files':len(g['files']),'recorded':sum(f['status']=='recorded_size_match' for f in g['files'])} for g in data['groups']]}
+            statuses=('recorded_size_match','recorded_path_size_unknown','recorded_size_mismatch','possible_elsewhere_size_match','not_recorded')
+            return {'inventories':data['inventories'],'notes':data['notes'],
+                'interpretation':'No registrado no significa ausente. Revisa ambos inventarios, candidatos y descargas posteriores antes de sugerir descargar.',
+                'groups':[{'id':g['id'],'label':g['label'],'files':len(g['files']),
+                    'recorded':sum(f['status']=='recorded_size_match' for f in g['files']),
+                    'inventory_status_counts':{status:sum(f['status']==status for f in g['files']) for status in statuses}}
+                    for g in data['groups']]}
+
         if name=='project_files':
             paths=[]
             for p in self.path.rglob('*'):

@@ -266,3 +266,24 @@ def test_agent_can_read_language_resources_without_model_execution(isolated,monk
     result=producer.dispatch('language_resources',{})
     assert result['candidates'][0]['matching_local_voices']==['ef_dora']
     assert seen==[pid] and result['generation_started'] is False
+
+
+def test_agent_inventory_summary_keeps_unknown_sizes_and_candidates(isolated,monkeypatch):
+    states=['recorded_size_match','recorded_path_size_unknown','recorded_size_mismatch','possible_elsewhere_size_match','not_recorded']
+    monkeypatch.setattr(studio,'resource_catalog',lambda:{'inventories':[],'notes':[],'groups':[{'id':'fixture','label':'Fixture','files':[{'status':state} for state in states]}]})
+    producer=agent.LocalAgent(project(),chat=lambda *args:None,cancel=threading.Event())
+    result=producer.dispatch('model_catalog',{})
+    assert result['groups'][0]['inventory_status_counts']=={state:1 for state in states}
+    assert result['groups'][0]['recorded']==1
+    assert 'no significa ausente' in result['interpretation']
+
+
+def test_agent_download_plan_requires_group_and_never_starts_download(isolated,monkeypatch):
+    from lib import download_plan
+    calls=[]
+    def plan(group_id):calls.append(group_id);return {'downloads_started':0,'planned_files':1}
+    monkeypatch.setattr(download_plan,'plan',plan)
+    producer=agent.LocalAgent(project(),chat=lambda *args:None,cancel=threading.Event())
+    result=producer.dispatch('model_download_plan',{'group_id':'madlad'})
+    assert calls==['madlad'] and result['downloads_started']==0
+    with pytest.raises(Exception):producer.dispatch('model_download_plan',{})

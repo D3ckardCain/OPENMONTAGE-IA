@@ -81,3 +81,7 @@ Cuando no coincide la ruta esperada pero sí el nombre y un tamaño conocido y p
 ## Lista revisable para FDM
 
 «Preparar lista de descargas pendientes» requiere al menos dos inventarios con series distintas. Agrupa únicamente archivos no registrados, separa la carpeta de destino de los enlaces completos y avisa de nombres repetidos entre carpetas. Excluye registros coincidentes, tamaños desconocidos con ruta registrada y candidatos en otras ubicaciones. No inicia descargas ni importa datos en FDM. Revisa los discos y las fechas mostrados, así como las descargas posteriores del chat: ausencia en inventarios no prueba ausencia actual. Los enlaces se presentan en cuadros de texto para copiar por carpeta; no se genera un archivo `.fdd`.
+
+## Inventarios para el productor
+
+`model_catalog` devuelve en su resumen los recuentos de todos los estados de inventario, incluidos tamaño desconocido y candidatos en otras ubicaciones. `model_download_plan` exige un grupo concreto y devuelve solamente su lista revisable, usando al menos dos inventarios. Ninguna de estas herramientas inicia descargas ni considera que un archivo no registrado esté necesariamente ausente.

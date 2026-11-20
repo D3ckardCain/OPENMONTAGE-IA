@@ -4,13 +4,17 @@ from urllib.parse import urlsplit
 from lib import production_studio as studio
 
 
-def plan():
+def plan(group_id=None):
     catalog=studio.resource_catalog()
     inventories=catalog['inventories']
     if len({item['Serie'] for item in inventories})<2:
         raise ValueError('Importa al menos dos inventarios de discos distintos antes de preparar descargas')
+    groups=catalog['groups']
+    if group_id is not None:
+        groups=[group for group in groups if group['id']==group_id]
+        if not groups:raise ValueError('Grupo de modelos desconocido')
     folders={};seen=set();excluded=Counter();needs_url=[]
-    for group in catalog['groups']:
+    for group in groups:
         for item in group['files']:
             if item['status']!='not_recorded':excluded[item['status']]+=1;continue
             url=item.get('download_url');parsed=urlsplit(url or '')
