@@ -17,3 +17,9 @@ Al cambiar la acción se retiran los campos y parámetros anteriores. Al cambiar
 Cuando la fuente devuelve registros, el panel ofrece una tabla con los valores originales y nombres de métricas sin recalcularlos. Los valores nulos o ausentes se muestran como «Dato no disponible»; el cero se conserva como cero. El alcance, las advertencias y los enlaces oficiales de las consultas permanecen visibles.
 
 La tabla muestra hasta 100 filas y 24 columnas y avisa si es parcial. «Ver datos originales completos» conserva la respuesta íntegra para revisar otras estructuras o campos. Mostrar una tabla no amplía la cobertura del servicio ni acredita exactitud de carrera completa.
+
+## Elegir métricas de la fuente
+
+Después de consultar «Definiciones de métricas», las consultas con varias métricas ofrecen un selector con los nombres devueltos por UEFA para la entidad correspondiente (jugador o equipo). «Añadir métrica elegida» completa el campo sin duplicarla. No inventa traducciones de nombres técnicos. La selección de entidad distingue el contrato de ranking (`player/team`) del histórico (`players/teams`).
+
+Las definiciones permanecen solo en memoria de la página para esa competición. Cambiar competición las retira y limpia los campos; consultar de nuevo las definiciones invalida la lista anterior. Los rankings históricos de una sola métrica no usan estas sugerencias porque su ruta tiene otro contrato. La validación del servidor sigue comprobando las métricas antes de devolver estadísticas.

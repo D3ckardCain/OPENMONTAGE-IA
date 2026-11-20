@@ -37,3 +37,9 @@ def test_football_routes_use_existing_schema_validation(monkeypatch):
     reply=client.post('/api/studio/football/query',json={'action':'definitions','competition':'champions','output_path':'stats.json'})
     assert reply.status_code==200 and reply.json()['success'] is False
     assert reply.json()['data'] is None
+
+
+def test_entity_choices_preserve_different_official_action_contracts():
+    actions={item['name']:item for item in football.schema()['actions']}
+    assert actions['ranking']['choices']['entity']==['player','team']
+    assert actions['historical']['choices']['entity']==['players','teams']

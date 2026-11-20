@@ -14,7 +14,8 @@ def schema():
         signature=inspect.signature(getattr(UEFA,name))
         required=[key for key,param in signature.parameters.items() if key!='self' and param.default is inspect.Parameter.empty]
         actions.append({'name':name,'fields':list(fields),'required':required,
-            'defaults':{key:param.default for key,param in signature.parameters.items() if key!='self' and param.default is not inspect.Parameter.empty}})
+            'defaults':{key:param.default for key,param in signature.parameters.items() if key!='self' and param.default is not inspect.Parameter.empty},
+            'choices':{'entity':['player','team']} if name=='ranking' else {'entity':['players','teams']} if name=='historical' else {}})
     return {'provider':'UEFA','competitions':list(COMPETITIONS),'actions':actions,'parameters':OfficialUEFA.input_schema['properties'],
         'persistent_statistics':False,'coverage_note':'Solo competiciones cubiertas por este conector UEFA; no todas las ligas ni FIFA o CONMEBOL.'}
 
