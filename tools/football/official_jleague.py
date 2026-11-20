@@ -11,7 +11,7 @@ BASE_URL = 'https://www.jleague.jp'
 ROW_CLASS = 'm-ranking-player-list-item'
 
 
-DIVISIONS = ('j1', 'j2')
+DIVISIONS = ('j1', 'j2', 'j3')
 METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists')}
 
 
@@ -160,7 +160,7 @@ def make_report(rankings, names, scope, queries, kind):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.4.0'
+    version = '0.5.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
