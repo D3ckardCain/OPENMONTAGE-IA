@@ -50,6 +50,26 @@ def retry(identifier):
     return {'queued':True,'generation_started':False}
 
 
+def edit(identifier, direction=None):
+    """Remove a queue record or move it one slot; never touch project files."""
+    with LOCK:
+        if WORKER is not None:raise ValueError('Pausa y espera al trabajo activo antes de modificar la cola')
+        read()
+        value=_load()
+        index=next((i for i,item in enumerate(value['items']) if item['id']==identifier),None)
+        if index is None:raise ValueError('Registro de cola inexistente')
+        if direction is None:
+            value['items'].pop(index)
+        else:
+            if direction not in ('up','down'):raise ValueError('Dirección inválida')
+            if value['items'][index]['status']!='pending':raise ValueError('Solo se pueden mover trabajos pendientes')
+            target=index+(-1 if direction=='up' else 1)
+            if not 0<=target<len(value['items']):raise ValueError('El trabajo ya está en el extremo de la cola')
+            value['items'][index],value['items'][target]=value['items'][target],value['items'][index]
+        value['status']='paused';value['message']='Cola actualizada; no se inició generación';_save(value)
+    return {'updated':True,'generation_started':False,'project_files_deleted':False}
+
+
 def pause():
     PAUSE.set()
     with LOCK:

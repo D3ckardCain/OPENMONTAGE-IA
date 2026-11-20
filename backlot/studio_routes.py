@@ -49,6 +49,8 @@ def create_studio_router():
             return invoke(getattr(production_queue,action))
         if action=='enqueue' and set(data)=={'project_id'} and isinstance(data['project_id'],str):return invoke(production_queue.enqueue,data['project_id'])
         if action=='retry' and set(data)=={'id'} and isinstance(data['id'],str):return invoke(production_queue.retry,data['id'])
+        if action=='remove' and set(data)=={'id'} and isinstance(data['id'],str):return invoke(production_queue.edit,data['id'])
+        if action=='move' and set(data)=={'id','direction'} and isinstance(data['id'],str) and isinstance(data['direction'],str):return invoke(production_queue.edit,data['id'],data['direction'])
         raise HTTPException(400,'Acción de cola inválida')
     @router.get('/api/studio/runtime')
     async def runtime():return await asyncio.to_thread(studio.runtime_status)

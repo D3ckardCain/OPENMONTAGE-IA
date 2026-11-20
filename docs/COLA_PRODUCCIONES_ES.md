@@ -15,3 +15,7 @@ Cada registro conserva la raíz original de proyectos. Para trabajos en otro dis
 ## Validación
 
 Pruebas sintéticas de persistencia, ejecución secuencial, pausa, recuperación, aprobaciones y API. No certifican los modelos, los discos físicos ni la calidad de los videos. Las pruebas con los modelos reales permanecen pendientes.
+
+## Orden y limpieza
+
+Con la cola detenida, **Subir** y **Bajar** cambian la prioridad de un trabajo pendiente. **Retirar de la cola** elimina únicamente su registro: conserva el proyecto, checkpoints y resultados. Puedes retirar registros terminados para liberar espacio en la lista de 100. Ninguno de estos controles inicia producción. Mientras el controlador está activo, espera a que termine después de solicitar pausa.

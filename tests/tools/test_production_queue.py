@@ -111,3 +111,38 @@ def test_queue_api_does_not_start_on_enqueue(isolated):
     assert client.post('/api/studio/queue/enqueue',json={'project_id':'first'}).json()['generation_started'] is False
     assert client.get('/api/studio/queue').json()['items'][0]['project_id']=='first'
     assert client.post('/api/studio/queue/start',json={'automatic':True}).status_code==400
+
+
+def test_edit_preserves_files_and_changes_execution_order(isolated,monkeypatch):
+    started=fake_producer(monkeypatch)
+    queue.enqueue('first');queue.enqueue('second')
+    identifier=queue.read()['items'][1]['id']
+    queue.edit(identifier,'up');queue.start();wait()
+    assert started==['second','first']
+    assert queue.edit(identifier)['project_files_deleted'] is False
+    assert (studio.PROJECTS_DIR/'second/production_request.json').is_file()
+    assert (studio.PROJECTS_DIR/'second/job.json').is_file()
+    assert len(queue.read()['items'])==1
+
+
+def test_edit_rejects_active_invalid_and_nonpending_records(isolated,monkeypatch):
+    queue.enqueue('first');identifier=queue.read()['items'][0]['id']
+    with pytest.raises(ValueError,match='extremo'):queue.edit(identifier,'up')
+    with pytest.raises(ValueError,match='Dirección'):queue.edit(identifier,'bad')
+    with pytest.raises(ValueError,match='inexistente'):queue.edit('missing')
+    monkeypatch.setattr(queue,'WORKER',object())
+    with pytest.raises(ValueError,match='Pausa'):queue.edit(identifier)
+    monkeypatch.setattr(queue,'WORKER',None)
+    value=queue._load();value['items'][0]['status']='blocked';queue._save(value)
+    with pytest.raises(ValueError,match='pendientes'):queue.edit(identifier,'down')
+
+
+def test_edit_api_validates_input_without_deleting_project(isolated):
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    queue.enqueue('first');queue.enqueue('second');identifier=queue.read()['items'][1]['id']
+    assert client.post('/api/studio/queue/move',json={'id':identifier,'direction':'up'}).status_code==200
+    assert client.post('/api/studio/queue/remove',json={'id':identifier,'delete':True}).status_code==400
+    assert client.post('/api/studio/queue/remove',json={'id':identifier}).json()['project_files_deleted'] is False
+    assert (studio.PROJECTS_DIR/'second/production_request.json').is_file()
