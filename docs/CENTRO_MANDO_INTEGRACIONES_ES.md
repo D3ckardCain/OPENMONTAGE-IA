@@ -107,3 +107,5 @@ La ruta Blender guardada en «Aplicaciones» se usa también por `blender_world`
 ## FFmpeg y FFprobe en montaje y análisis
 
 La ruta del centro de mando se utiliza en el montaje FFmpeg de `video_compose`, sus operaciones auxiliares y las herramientas `audio_probe` y `audio_energy`. Comparten detección con el análisis de referencias y la verificación final. Una ruta explícita que falta no se sustituye silenciosamente por otra de PATH. Esta conexión no implica que todos los motores de terceros o procesos Node utilicen ya esa ruta; sus requisitos siguen separados. No se modifica PATH del sistema ni se ejecuta un instalador.
+
+Los subprocesos de composición Node iniciados por VideoCompose y el CLI de HyperFrames reciben las carpetas de FFmpeg/FFprobe en su PATH privado. No cambia el entorno global ni instala paquetes. Esta conexión no instala Node, Remotion o HyperFrames y no acredita sus versiones. Los requisitos de cada motor siguen comprobándose por separado.

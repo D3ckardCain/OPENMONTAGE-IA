@@ -30,7 +30,7 @@ the agent to re-ask the user rather than substituting a different engine.
 
 from __future__ import annotations
 
-from lib.media_executables import find_media, require_media
+from lib.media_executables import find_media, require_media, media_environment
 
 import contextlib
 import json
@@ -247,6 +247,10 @@ class VideoCompose(BaseTool):
         if not (composer_dir / "node_modules").exists():
             return False
         return True
+
+    def run_command(self, cmd, *, timeout=None, cwd=None, env=None):
+        child_env=media_environment(env)
+        return super().run_command(cmd,timeout=timeout,cwd=cwd,env=child_env)
 
     def _ffmpeg_available(self) -> bool:
         """Check the configured or detected local FFmpeg binary."""

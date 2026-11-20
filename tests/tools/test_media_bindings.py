@@ -37,3 +37,22 @@ def test_missing_explicit_path_does_not_fallback(bound,monkeypatch):
     bound[0].unlink()
     assert find_media('ffmpeg') is None
     with pytest.raises(ValueError):require_media('ffmpeg')
+
+
+def test_child_environment_contains_configured_media_without_mutating_path(bound,monkeypatch):
+    import os
+    from lib.media_executables import media_environment
+    monkeypatch.setenv('PATH','fixture-original')
+    result=media_environment()
+    assert result['PATH'].split(os.pathsep)[0]==str(bound[0].parent)
+    assert os.environ['PATH']=='fixture-original'
+
+
+def test_video_compose_passes_private_media_environment_to_node(bound,monkeypatch):
+    from tools import base_tool
+    calls=[]
+    def run(command,**kwargs):
+        calls.append((command,kwargs));return SimpleNamespace(returncode=0,stdout='',stderr='')
+    monkeypatch.setattr(base_tool.subprocess,'run',run)
+    VideoCompose().run_command(['node','fixture.js'])
+    assert str(bound[0].parent) in calls[0][1]['env']['PATH']
