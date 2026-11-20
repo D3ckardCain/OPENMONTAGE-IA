@@ -2,6 +2,8 @@
 import json
 import math
 import re
+import unicodedata
+from concurrent.futures import ThreadPoolExecutor
 import urllib.request
 from datetime import datetime, timezone
 from urllib.parse import urlencode, urlsplit
@@ -132,3 +134,115 @@ class FIFA:
         report = self.pack('player_statistics', scope, rows, [query, source])
         report['identity_warning'] = 'Este feed contiene IDs FDH, no nombres. Resolver identidad con evidencia oficial; no asumir equivalencia con IDs de otras fuentes. Unidades no documentadas permanecen null.'
         return report
+
+
+    @staticmethod
+    def names(values):
+        if not isinstance(values, list): raise ValueError('Nombres FIFA inválidos')
+        result = []
+        for item in values:
+            if not isinstance(item, dict) or not isinstance(item.get('Description'), str):
+                raise ValueError('Nombre FIFA mal formado')
+            if item['Description'].strip(): result.append(item['Description'])
+        return result
+
+    @staticmethod
+    def normalize(value):
+        if not isinstance(value, str) or not 1 <= len(value.strip()) <= 150:
+            raise ValueError('Nombre requerido, máximo 150 caracteres')
+        text = ''.join(c for c in unicodedata.normalize('NFKD', value.casefold()) if not unicodedata.combining(c))
+        return ' '.join(re.findall(r'[^\W_]+', text, re.UNICODE))
+
+    def _squad(self, competition_id, season_id, team_id):
+        team_id = identifier(team_id)
+        data, query = self.get('teams/' + team_id + '/squad?' + urlencode({
+            'idCompetition': competition_id, 'idSeason': season_id}))
+        if not isinstance(data, dict) or (data.get('IdCompetition'), data.get('IdSeason'), data.get('IdTeam')) != (competition_id, season_id, team_id):
+            raise ValueError('Plantilla pertenece a otro equipo, edición o competición')
+        if not isinstance(data.get('Players'), list) or not data['Players']:
+            raise ValueError('Plantilla vacía o no estructurada')
+        rows = []; seen = set()
+        for player in data['Players']:
+            if not isinstance(player, dict) or player.get('IdTeam') != team_id or player.get('IdSeason') != season_id:
+                raise ValueError('Jugador fuera de la plantilla solicitada')
+            pid = identifier(player.get('IdPlayer'))
+            if pid in seen: raise ValueError('Jugador duplicado en la plantilla')
+            seen.add(pid)
+            names = self.names(player.get('PlayerName'))
+            if not names: raise ValueError('Jugador sin nombre oficial')
+            aliases = names + self.names(player.get('ShortName', []))
+            fdh = (player.get('Properties') or {}).get('IdIFES')
+            if fdh is not None: identifier(fdh)
+            rows.append({'player_id': pid, 'fdh_player_id': fdh, 'name': names[0],
+                         'aliases': list(dict.fromkeys(aliases)), 'team_id': team_id,
+                         'team_name': data.get('TeamName'), 'country': player.get('IdCountry'),
+                         'birth_date': player.get('BirthDate'), 'jersey': player.get('JerseyNum'),
+                         'position': player.get('PositionLocalized'), 'identity_source': query})
+        return rows, query
+
+    def squad(self, competition_id, season_id, team_id):
+        scope, query = self.scope(competition_id, season_id)
+        rows, source = self._squad(competition_id, season_id, team_id)
+        return self.pack('squad', {**scope, 'team_id': team_id}, rows, [query, source])
+
+    def resolve_players(self, competition_id, season_id, subjects):
+        if not isinstance(subjects, list) or not 1 <= len(subjects) <= 10:
+            raise ValueError('Indicar entre uno y diez nombres')
+        normalized = []
+        for subject in subjects:
+            if not isinstance(subject, dict) or set(subject) - {'name', 'team_name'}:
+                raise ValueError('Sujeto inválido')
+            name = self.normalize(subject.get('name'))
+            team = self.normalize(subject['team_name']) if subject.get('team_name') else None
+            if not name: raise ValueError('Nombre vacío')
+            normalized.append((name, team))
+        teams = self.teams(competition_id, season_id)
+        if not teams['records'] or len(teams['records']) > 64:
+            raise ValueError('Lista de equipos vacía o excesiva; no resolver parcialmente')
+        selected = set()
+        for name, team in normalized:
+            matches = [row for row in teams['records'] if team is None or team in {
+                self.normalize(n) for n in self.names(row.get('Name')) + [row.get('Abbreviation') or row['IdTeam']]}]
+            if not matches: raise ValueError('Equipo solicitado no identificado en la edición')
+            selected.update(row['IdTeam'] for row in matches)
+        # Bounded network concurrency; one failed squad invalidates the lookup.
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            squads = list(pool.map(lambda tid: self._squad(competition_id, season_id, tid), sorted(selected)))
+        players = [row for rows, query in squads for row in rows]
+        results = []
+        for subject, (name, team) in zip(subjects, normalized):
+            candidates = []
+            for row in players:
+                if team is not None:
+                    original = next(t for t in teams['records'] if t['IdTeam'] == row['team_id'])
+                    team_aliases = self.names(original.get('Name')) + [original.get('Abbreviation') or original['IdTeam']]
+                    if team not in {self.normalize(n) for n in team_aliases}: continue
+                aliases = [self.normalize(n) for n in row['aliases']]
+                if any(name == alias or (' ' + name + ' ') in (' ' + alias + ' ') for alias in aliases):
+                    candidates.append(row)
+            # Never choose the first candidate of an ambiguous surname.
+            status = 'resolved' if len(candidates) == 1 else 'ambiguous' if candidates else 'not_found'
+            results.append({'requested': subject, 'status': status, 'candidates': candidates})
+        return self.pack('player_resolution', teams['scope'], results,
+                         teams['queries'] + [query for rows, query in squads])
+
+    def compare_players(self, competition_id, season_id, subjects, metrics):
+        if not isinstance(subjects, list) or len(subjects) != 2:
+            raise ValueError('La comparativa requiere exactamente dos jugadores')
+        identities = self.resolve_players(competition_id, season_id, subjects)
+        if any(row['status'] != 'resolved' for row in identities['records']):
+            return {**identities, 'type': 'comparison_blocked', 'ready_for_script': False,
+                    'reason': 'Identidad ausente o ambigua; no producir cifras atribuidas.'}
+        players = [row['candidates'][0] for row in identities['records']]
+        ids = [row['fdh_player_id'] for row in players]
+        if None in ids or len(set(ids)) != 2:
+            raise ValueError('Falta vínculo FDH oficial o se pidió el mismo jugador dos veces')
+        stats = self.player_statistics(competition_id, season_id, ids, metrics)
+        for row, player in zip(stats['records'], players):
+            if row['entity_id'] != player['fdh_player_id']: raise ValueError('Identidad estadística inconsistente')
+            row['name'] = player['name']; row['identity'] = player
+        stats['queries'] = identities['queries'] + stats['queries']
+        stats['type'] = 'player_comparison'
+        stats['identity_warning'] = 'Nombres y vínculo FDH obtenidos de las plantillas oficiales de esta edición.'
+        stats['ready_for_script'] = not any(row['missing_metrics'] for row in stats['records'])
+        return stats
