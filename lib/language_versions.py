@@ -77,13 +77,18 @@ def local_requirements(project_id):
             from lib.model_languages import binding
             try:language_binding=binding(family,target) if target else None;language_problem=None
             except ValueError as exc:language_binding=None;language_problem=str(exc)
+            matching_voices=[]
+            if family=='kokoro' and target and language_binding:
+                from lib.model_languages import local_voices
+                matching_voices=local_voices(target,report.get('model_dir'))
             candidates.append({'family':family,'capability':capability,
                 'files_configured':report['ready'],'model_dir':report.get('model_dir'),
                 'target_language':target,'language_binding':language_binding,'language_problem':language_problem,
+                'matching_local_voices':matching_voices,
                 'problems':report['problems'],'required_modules':report.get('required_modules',[]),
                 'language_support_verified':False,'runtime_checked':False})
         except (OSError,ValueError,KeyError,TypeError) as exc:
             candidates.append({'family':family,'capability':capability,'files_configured':False,
                 'problems':[str(exc)[:600]],'language_support_verified':False,'runtime_checked':False})
-    return {'candidates':candidates,'generation_started':False,'network_requests_started':0,
+    return {'target_language':target,'candidates':candidates,'generation_started':False,'network_requests_started':0,
         'note':'Revisión de archivos y configuración. No prueba dependencias, compatibilidad de idioma, voz, calidad ni rendimiento. El productor debe elegir un motor compatible antes de generar.'}

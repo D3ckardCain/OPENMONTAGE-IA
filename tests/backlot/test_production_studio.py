@@ -253,3 +253,16 @@ def test_real_language_projects_have_guided_checkpoints_and_independent_workspac
         checkpoint=studio.read_json(path/'checkpoint_research.json')
         assert checkpoint['artifacts']['decision_log']['decisions'][0]['selected']=='guided'
     assert isolated.post('/api/studio/language-versions/'+parent,json={'languages':['en','ko']}).json()['versions'][0]['status']=='existing'
+
+
+def test_agent_can_read_language_resources_without_model_execution(isolated,monkeypatch):
+    from lib import language_versions
+    pid=project();seen=[]
+    def resources(project_id):
+        seen.append(project_id)
+        return {'target_language':'es','candidates':[{'family':'kokoro','matching_local_voices':['ef_dora']}],'generation_started':False}
+    monkeypatch.setattr(language_versions,'local_requirements',resources)
+    producer=agent.LocalAgent(pid,chat=lambda *args:None,cancel=threading.Event())
+    result=producer.dispatch('language_resources',{})
+    assert result['candidates'][0]['matching_local_voices']==['ef_dora']
+    assert seen==[pid] and result['generation_started'] is False

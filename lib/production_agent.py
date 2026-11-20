@@ -52,6 +52,7 @@ TOOLS=[
  descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
  descriptor('wan_presets','Lee perfiles WAN locales y su configuración actual.'),
  descriptor('select_wan_preset','Selecciona explícitamente el perfil WAN previamente anunciado y registra el cambio; no descarga modelos.',{'preset':{'enum':['wan22-5b-t2v','wan22-14b-t2v-4step','wan22-14b-i2v-4step']}},['preset']),
+ descriptor('language_resources','Consulta archivos locales de voz, traducción y transcripción para el idioma objetivo. Para Kokoro devuelve nombres de voces con prefijo compatible; usa uno de ellos explícitamente. No carga modelos ni certifica pronunciación.'),
  descriptor('adapter_status','Diagnóstico del adaptador, pesos locales y dependencias; no descarga.',{'family':{'type':'string'}},['family']),
  descriptor('comfy_nodes','Consulta esquemas y modelos registrados en nodos ComfyUI concretos.',{'classes':{'type':'array','items':{'type':'string'},'maxItems':12}},['classes']),
  descriptor('bind_workflow','Vincula un workflow API ya creado dentro del proyecto a una familia de modelos.',{'family':{'type':'string'},'path':{'type':'string'},'output_node':{'type':'string'}},['family','path','output_node']),
@@ -231,6 +232,9 @@ class LocalAgent:
             value=configure('wan',{'preset':args['preset']})
             self.event('adapter','Perfil WAN seleccionado explícitamente: '+args['preset'])
             return value
+        if name=='language_resources':
+            from lib.language_versions import local_requirements
+            return local_requirements(self.pid)
         if name=='adapter_status':
             from lib.model_adapters import diagnostics,CATALOG
             if args['family'] not in CATALOG:raise ValueError('Familia desconocida')

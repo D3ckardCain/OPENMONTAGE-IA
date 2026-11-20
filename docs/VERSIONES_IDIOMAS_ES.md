@@ -37,3 +37,9 @@ El productor reutiliza la instantánea compartida cuando llama a su acción de a
 Los adaptadores Kokoro y Qwen validan las correspondencias de idioma implementadas antes de cargar modelos. Los códigos regionales se normalizan al idioma base; Kokoro conserva la selección diferenciada `en-GB`. Esto no garantiza un acento regional. Una voz Kokoro con prefijo de otro idioma se rechaza antes de iniciar el proceso de inferencia, incluida la voz predeterminada inglesa si se pide español.
 
 La revisión de recursos muestra la correspondencia implementada cuando exista y avisa cuando el adaptador no tenga una. Los motores sin una tabla explícita continúan pendientes de comprobar; no se afirma compatibilidad universal. Esta validación no detecta el idioma real del texto ni sustituye la escucha de la voz generada.
+
+## Voces locales y agentes
+
+La revisión de recursos enumera las voces Kokoro presentes, no vacías y con el prefijo correspondiente al idioma objetivo. No incluye enlaces simbólicos. Si no hay coincidencias lo indica. Esto comprueba nombres y archivos, no la pronunciación ni la autenticidad del peso.
+
+El productor dispone de `language_resources` para consultar el mismo informe sin iniciar modelos y escoger una voz explícita de la lista. La herramienta no configura ni genera audio por sí sola; la generación conserva las instrucciones y revisiones habituales. Los otros motores siguen mostrando sus requisitos sin inventar un listado de voces.

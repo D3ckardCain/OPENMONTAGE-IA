@@ -29,3 +29,12 @@ def validate_request(family,data):
         voice=Path(data.get('voice','af_heart')).stem
         if not voice or voice[0]!=target:
             raise ValueError('La voz Kokoro '+voice+' no corresponde al idioma '+language+'; selecciona una voz local con prefijo '+target)
+
+
+def local_voices(language,model_dir):
+    """List matching nonempty Kokoro files; filenames do not certify quality."""
+    target=binding('kokoro',language)
+    if not model_dir:return []
+    folder=Path(model_dir)/'voices'
+    return [path.stem for path in sorted(folder.glob('*.pt'))
+        if path.name.startswith(target) and path.is_file() and not path.is_symlink() and path.stat().st_size>0]
