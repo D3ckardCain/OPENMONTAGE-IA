@@ -47,6 +47,18 @@ def test_studio_creation_control_and_review(staged_backlot_server):
         page.get_by_role('button',name='Iniciar / reanudar agentes').click()
         page.wait_for_function('document.querySelector("#status").textContent === "blocked"')
         assert actions==['start']
+        translation_calls=[]
+        def translate(route):
+            if route.request.method=='POST':
+                translation_calls.append(route.request.post_data_json);route.fulfill(json={'started':True,'production_started':False})
+            else:route.fulfill(json={'status':'completed','language':'ko','text':'fixture translated script','resumed_segments':1})
+        page.route('**/api/studio/translation/video-fixture',translate)
+        page.get_by_text('Traducir un guion con MADLAD local',exact=True).click()
+        page.locator('#translation-text').fill('Original script')
+        page.locator('#translation-start').click()
+        page.get_by_role('textbox',name='Guion traducido',exact=True).wait_for()
+        assert page.get_by_role('textbox',name='Guion traducido',exact=True).input_value()=='fixture translated script'
+        assert translation_calls==[{'text':'Original script'}]
         versions={'summary':{'total':3,'rendered':1,'awaiting_human':0,'blocked':0,'unavailable':1},'versions':[{'project_id':'version-en','language':'en','status':'existing'},{'project_id':'version-ko','language':'ko','status':'unavailable'},{'project_id':'version-de','language':'de','status':'existing','job_status':'rendered','verification_status':'passed','final_copy_registered':True,'can_enqueue':False}]}
         batches=[]
         page.route('**/api/studio/language-versions/video-fixture',lambda route:route.fulfill(json=versions))

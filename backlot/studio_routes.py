@@ -71,6 +71,14 @@ def create_studio_router():
             return invoke(studio.configure,data)
     @router.post('/api/studio/projects')
     async def create(request:Request):return invoke(studio.create_production,await body(request))
+    @router.get('/api/studio/translation/{pid}')
+    def project_translation_state(pid:str):
+        from lib.project_translation import read
+        return invoke(read,pid)
+    @router.post('/api/studio/translation/{pid}')
+    async def project_translation_start(pid:str,request:Request):
+        from lib.project_translation import start
+        return invoke(start,pid,await body(request,250000))
     @router.post('/api/studio/reference-reuse/{pid}')
     async def reuse_reference_analysis(pid:str,request:Request):
         from lib.reference_reuse import reuse
