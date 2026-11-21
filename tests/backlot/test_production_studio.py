@@ -336,7 +336,7 @@ def test_qatar_edition_preview_uses_explicit_metrics(isolated, monkeypatch):
     report = dict(source='AS', type='player_comparison', scope=scope, queries=queries, records=rows,
                   ready_for_script=True, failed_metrics={}, unresolved=[])
     monkeypatch.setattr(world_cup_edition_desk, 'compare_edition',
-                        lambda players: {'report': report, 'display_metrics': ['goals', 'shots']})
+                        lambda players, edition: {'report': report, 'display_metrics': ['goals', 'shots']})
     path = '/api/studio/football/round-goals'
     result = isolated.post(path, json={'round': 'edition', 'players': [
         {'name': 'Messi', 'team': 'Argentina'}, {'name': 'Mbappé', 'team': 'France'},

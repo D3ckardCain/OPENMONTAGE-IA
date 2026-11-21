@@ -161,28 +161,41 @@ def create_studio_router():
         from lib.football_research import query
         data=await body(request)
         return await asyncio.to_thread(lambda:invoke(query,data))
+    @router.get('/api/studio/football/desk-editions')
+    def football_desk_editions():
+        from lib.world_cup_edition_desk import DEFAULT_EDITION, edition_options
+        return {'default': DEFAULT_EDITION, 'editions': edition_options()}
+
     @router.post('/api/studio/football/round-goals')
     async def football_round_goals(request: Request):
         from jsonschema import ValidationError, validate
         from lib.world_cup_rounds import PROPERTIES
         from lib.world_cup_open_goals import compare
         from tools.graphics.sports_card import render
+        from lib.world_cup_edition_desk import DEFAULT_EDITION, EDITIONS, compare_edition
 
         data = await body(request)
         try:
-            properties = {**PROPERTIES, 'round': {'enum': ['edition', *PROPERTIES['round']['enum']]}}
+            properties = {**PROPERTIES, 'round': {'enum': ['edition', *PROPERTIES['round']['enum']]},
+                          'edition': {'enum': list(EDITIONS)}}
+            edition = data.get('edition', DEFAULT_EDITION)
+            if data.get('round') == 'edition' and edition != DEFAULT_EDITION:
+                players = PROPERTIES['players']
+                properties['players'] = {**players, 'items': {**players['items'], 'required': ['name']}}
             validate(data, {'type': 'object', 'properties': properties,
                             'required': ['round', 'players'], 'additionalProperties': False})
         except ValidationError as exc:
             raise HTTPException(400, exc.message) from exc
         if data['round'] == 'edition':
-            from lib.world_cup_edition_desk import compare_edition
-            result = await asyncio.to_thread(lambda: invoke(compare_edition, data['players']))
+            call = lambda: invoke(compare_edition, data['players'], edition)
+            result = await asyncio.to_thread(call)
             report = result['report']
             return {**result, 'export_token': round_signature(report) if result['display_metrics'] else None}
 
+        if edition != DEFAULT_EDITION:
+            raise HTTPException(400, 'El desglose por ronda está disponible para Qatar 2022')
         try:
-            report = await asyncio.to_thread(lambda: invoke(lambda: compare(**data)))
+            report = await asyncio.to_thread(lambda: invoke(lambda: compare(data['round'], data['players'])))
         except OSError as exc:
             raise HTTPException(502, 'No se pudo consultar OpenFootball') from exc
         preview = invoke(render, report, ['goals']) if report['ready_for_script'] else None
@@ -209,6 +222,10 @@ def create_studio_router():
             raise HTTPException(400, exc.message) from exc
         return report, metrics
 
+    def round_filename(report, extension):
+        scope = report['scope']
+        return f"{scope['competition']}-{scope['season']}-{scope.get('round', scope['phase'])}.{extension}"
+
     @router.post('/api/studio/football/round-goals/preview')
     async def football_round_preview(request: Request):
         from tools.graphics.sports_card import render
@@ -230,7 +247,7 @@ def create_studio_router():
             if not result.success:
                 raise HTTPException(422, result.error)
             return FileResponse(output, media_type='video/mp4',
-                                filename=f"qatar-2022-{report['scope'].get('round', 'edicion')}.mp4",
+                                filename=round_filename(report, 'mp4'),
                                 background=BackgroundTask(folder.cleanup))
         except Exception:
             folder.cleanup()

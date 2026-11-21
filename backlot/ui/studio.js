@@ -295,6 +295,27 @@ const orderedTeams = Object.entries(roundTeams).sort((a, b) => a[1].localeCompar
 for (const field of ['first_team', 'second_team']) {
  for (const [id, label] of orderedTeams) roundForm.elements[field].add(new Option(label, id));
 }
+const editionPicker = roundForm.elements.edition;
+const qatarEdition = editionPicker.value;
+api('football/desk-editions').then(({editions}) => {
+ const current = editionPicker.value;
+ editionPicker.replaceChildren(...editions.map(item => new Option(item.label, item.id)));
+ editionPicker.value = current;
+}).catch(error => notice(error.message));
+editionPicker.addEventListener('change', () => {
+ const qatar = editionPicker.value === qatarEdition;
+ const round = roundForm.elements.round;
+ round.value = 'edition';
+ round.disabled = !qatar;
+ for (const key of ['first', 'second']) {
+  const team = roundForm.elements[key + '_team'];
+  const club = roundForm.elements[key + '_club'];
+  team.disabled = !qatar;
+  team.closest('label').hidden = !qatar;
+  club.disabled = qatar;
+  club.closest('label').hidden = qatar;
+ }
+});
 let roundPreviewUrl = null;
 function clearRoundResult(message) {
  if (roundPreviewUrl) URL.revokeObjectURL(roundPreviewUrl);
@@ -310,13 +331,17 @@ roundForm.addEventListener('submit', async event => {
  event.preventDefault();
  const request = ++roundRequest;
  const form = new FormData(roundForm);
- const value = key => form.get(key).trim();
- const players = ['first', 'second'].map(key => ({name: value(key + '_name'), team: value(key + '_team')}));
+ const value = key => (form.get(key) || '').trim();
+ const edition = value('edition');
+ const players = ['first', 'second'].map(key => {
+  const team = value(key + (edition === qatarEdition ? '_team' : '_club'));
+  return {...(team ? {team} : {}), name: value(key + '_name')};
+ });
  const button = roundForm.querySelector('button[type=submit]');
  clearRoundResult('Consultando la fuente de estadísticas…');
  button.disabled = true;
  try {
-  const {report, preview_svg, export_token, metric_matrix, display_metrics, errors, failed_metrics} = await api('football/round-goals', {round: value('round'), players});
+  const {report, preview_svg, export_token, metric_matrix, display_metrics, errors, failed_metrics} = await api('football/round-goals', {round: form.get('round') || 'edition', edition, players});
   if (request !== roundRequest) return;
   clearRoundResult('');
   if (!report) {
@@ -414,7 +439,8 @@ roundForm.addEventListener('submit', async event => {
     image.alt = 'Postal de comparativa de goles';
     image.className = 'football-round-preview';
     const download = link('Descargar postal SVG', roundPreviewUrl);
-    download.download = 'qatar-2022-' + (report.scope.round || 'edicion') + '.svg';
+    const basename = [report.scope.competition, report.scope.season, report.scope.round || report.scope.phase].join('-');
+    download.download = basename + '.svg';
     const video = node('button', 'Descargar clip MP4');
     video.type = 'button';
     const status = node('p', '');
@@ -432,7 +458,7 @@ roundForm.addEventListener('submit', async event => {
       if (request !== roundRequest || revision !== previewRevision) return;
       const url = URL.createObjectURL(blob);
       const file = link('Clip MP4', url);
-      file.download = 'qatar-2022-' + (report.scope.round || 'edicion') + '.mp4';
+      file.download = basename + '.mp4';
       document.body.append(file);
       file.click();
       file.remove();
