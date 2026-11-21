@@ -5,6 +5,7 @@ import math
 import re
 from pathlib import Path
 from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, expanded_ranking_url, profile_url, ranking_url, season_label
+from tools.football.official_mls import METRICS as MLS_METRICS, SCOPE as MLS_SCOPE, SOURCE_URL as MLS_SOURCE_URL
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
 _LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','penalty_goals':'Penaltis marcados','fouls_committed':'Faltas cometidas','fouls_suffered':'Faltas recibidas','assists':'Asistencias','duels_won':'Duelos ganados','aerial_duels_won':'Duelos aéreos ganados','interceptions':'Intercepciones','clearances':'Despejes','blocks':'Bloqueos','tackles':'Entradas','clean_sheets':'Porterías a cero','saves':'Paradas','goals_conceded':'Goles recibidos','save_percentage':'Porcentaje de paradas','save_percentage_inside_box':'Paradas a tiros desde el área','save_percentage_outside_box':'Paradas a tiros desde fuera','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','passes_attempted':'Pases intentados','passes_in_own_half':'Pases en campo propio','passes_in_opposition_half':'Pases en campo rival','pass_accuracy_own_half':'Precisión en campo propio','pass_accuracy_opposition_half':'Precisión en campo rival','long_balls_completed':'Pases largos completados','dribbles_attempted':'Regates intentados','dribble_success_rate':'Éxito de regate','long_pass_accuracy':'Precisión de pase largo','touches':'Toques de balón','recoveries':'Recuperaciones','crosses_attempted':'Centros intentados','cross_success_rate':'Éxito de centro','tackle_success_rate':'Éxito de entrada','aerial_duel_success_rate':'Éxito en duelos aéreos','chances_created':'Ocasiones creadas','through_balls':'Pases filtrados','through_ball_success_rate':'Éxito de pase filtrado','shot_conversion_rate':'Conversión de tiro','shots_per_game':'Tiros por partido','passes_per_game':'Pases por partido','chances_created_per_game':'Ocasiones por partido','saves_per_game':'Paradas por partido','distance_covered':'Distancia recorrida','top_speed':'Velocidad máxima','expected_goals':'Goles esperados (xG)','expected_goals_excl_pk':'xG sin penaltis','sprints':'Sprints','pass_accuracy':'Precisión de pase','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
@@ -47,7 +48,7 @@ def render(report, metrics=None):
     if report.get('fuente')=='UEFA':report=uefa_report(report, selected=metrics is not None)
     source=report.get('source')
     allow_partial = metrics is not None and source in ('FIFA', 'UEFA', 'J.League')
-    if source not in ('FIFA','MLB','UEFA','WBA','J.League') or (not allow_partial and report.get('ready_for_script') is not True):
+    if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS') or (not allow_partial and report.get('ready_for_script') is not True):
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
@@ -59,6 +60,8 @@ def render(report, metrics=None):
     if source=='UEFA' and (not scope.get('competitionId') or not scope.get('seasonYear') or not scope.get('phase')):raise ValueError('Falta alcance UEFA explícito')
     if source=='WBA' and (scope.get('category')!='men' or not re.fullmatch(r'[0-9]{4}-(0[1-9]|1[0-2])',str(scope.get('as_of_month',''))) or not scope.get('division') or kind!='collectible_card'):raise ValueError('Alcance WBA no admitido')
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
+    if source == 'MLS' and scope != MLS_SCOPE:
+        raise ValueError('Alcance MLS no admitido')
     if source == 'J.League':
         competition = JLEAGUE_COMPETITIONS.get(scope.get('competition'))
         if (not competition or scope.get('phase') != competition[1] or scope.get('category') != 'men'):
@@ -69,7 +72,7 @@ def render(report, metrics=None):
         identity=record.get('identity',{})
         entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
         if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
-        if kind=='collectible_card' or source in ('J.League','UEFA'):facts=record.get('facts',[])
+        if kind=='collectible_card' or source in ('J.League','UEFA','MLS'):facts=record.get('facts',[])
         elif source=='MLB':
             origin=record.get('statistics_source',{})
             facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
@@ -107,8 +110,13 @@ def render(report, metrics=None):
                     allowed.add(expanded_url)
                 if url not in allowed:
                     raise ValueError('Cifra o fuente J.League inválida')
+            elif source == 'MLS':
+                if fact['metric'] not in MLS_METRICS or type(value) is not int or value < 0 or url != MLS_SOURCE_URL:
+                    raise ValueError('Cifra o fuente MLS inválida')
             elif not isinstance(url,str) or not url.startswith('https://fdh-api.fifa.com/' if source=='FIFA' else 'https://compstats.uefa.com/' if source=='UEFA' else 'https://www.wbaboxing.com/' if source=='WBA' else 'https://statsapi.mlb.com/') or not fact.get('retrieved_at'):raise ValueError('Falta procedencia de la cifra')
             if not fact.get('retrieved_at') or not any(q.get('url')==url and q.get('retrieved_at')==fact['retrieved_at'] for q in queries):raise ValueError('Fuente ajena al expediente')
+        if source=='MLS':
+            identity=dict(identity,team_name=[{'Description':record['club']}])
         if source=='MLB':
             identity=dict(identity,team_name=[{'Description':(record.get('team') or {}).get('name','Temporada regular MLB')}])
         panels.append((identity,facts))
@@ -123,7 +131,7 @@ def render(report, metrics=None):
            '<metadata>'+escape(json.dumps(evidence,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)

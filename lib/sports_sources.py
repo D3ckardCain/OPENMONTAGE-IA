@@ -40,7 +40,7 @@ _ROWS = [
  ('saudi','football','arab','Saudi Pro League','https://www.spl.com.sa/en/stats','official_spl_source_status'),
  ('uae','football','arab','UAE Pro League','https://www.uaeproleague.ae/',''),
  ('qatar','football','arab','Qatar Stars League','https://www.qsl.qa/',''),
- ('mls','football','americas','MLS','https://www.mlssoccer.com/',''),
+ ('mls','football','americas','MLS','https://www.mlssoccer.com/','official_mls_live'),
  ('ligamx','football','americas','Liga MX','https://ligamx.net/',''),
  ('brasil','football','americas','CBF','https://www.cbf.com.br/',''),
  ('argentina','football','americas','Liga Profesional','https://www.ligaprofesional.ar/',''),
@@ -72,6 +72,7 @@ def catalog(sport=None, region=None):
         'missing_value': None,
         'metric_groups': {group: list(metrics) for group, metrics in FOOTBALL_METRIC_GROUPS.items()},
         'source_discovery': {
+            'official_mls_live': 'Consulta por nombre las cifras de los goleadores por club de la temporada regular 2025. El catálogo de jugadores completo queda pendiente.',
             'official_uefa_live': 'Usa metrics=standard en consultas por nombre para solicitar las equivalencias comunes. Consulta definitions para detectar estadísticas oficiales adicionales de PLAYER.',
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',
             'official_jleague_live': 'Usa metrics=all para consultar todos los rankings integrados; consulta tool_info para ver las métricas admitidas.',

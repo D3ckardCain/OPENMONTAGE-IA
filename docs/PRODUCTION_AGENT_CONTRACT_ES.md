@@ -231,3 +231,5 @@ J.League admite los promedios oficiales por partido de tiros, pases, ocasiones c
 J.League admite el porcentaje de paradas ante tiros desde dentro del área (`save_percentage_inside_box`) y desde fuera (`save_percentage_outside_box`) en J1, J2, J3 y Copa Levain. El expediente conserva cada zona y su fuente junto al porcentaje general.
 
 J.League ofrece volumen y precisión de pase en campo propio y campo rival. El informe conserva las cuatro cifras por separado con la zona y el ranking oficial de cada una.
+
+El conector `official_mls_live` resuelve nombres y consulta goles, asistencias, partidos y minutos de los máximos goleadores por club que aparecen en el informe oficial MLS de temporada regular 2025. El productor aplica la plantilla común. Las demás cifras quedan sin dato. La fuente cubre los jugadores incluidos en ese informe y los separa de playoffs y otras temporadas.
