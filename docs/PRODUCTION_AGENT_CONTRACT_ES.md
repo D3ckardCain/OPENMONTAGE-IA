@@ -223,3 +223,5 @@ El ranking ampliado japonés también sirve para recuperar goles de temporada an
 J.League incorpora el porcentaje de regates exitosos (`dribble_success_rate`) y la precisión de pase largo (`long_pass_accuracy`) como cifras adicionales del proveedor. Mantén sus porcentajes de origen y evita inferir conteos exactos a partir de tasas redondeadas. Los rankings ampliados alternativos no ofrecen rutas verificadas para 2026/27.
 
 J.League incorpora los porcentajes de éxito de centro, entrada y duelo aéreo como métricas adicionales del proveedor. El informe conserva la definición de cada tasa. Los porcentajes publicados no acreditan por sí solos los conteos exactos de acciones completadas.
+
+J.League incorpora pases filtrados, su porcentaje de éxito y conversión de tiro como cifras adicionales del proveedor. El ranking de conversión usa goles divididos entre tiros según la definición oficial. Conserva esta definición y la fuente en cada cifra.

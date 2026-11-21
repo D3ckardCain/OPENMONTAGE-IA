@@ -207,6 +207,9 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('cross_success_rate', 'Cross success rate', 'Éxito de centro'),
     ('tackle_success_rate', 'Tackle success rate', 'Éxito de entrada'),
     ('aerial_duel_success_rate', 'Aerial duel success rate', 'Éxito en duelos aéreos'),
+    ('through_balls', 'Through balls', 'Pases filtrados'),
+    ('through_ball_success_rate', 'Through ball success rate', 'Éxito de pase filtrado'),
+    ('shot_conversion_rate', 'Shot accuracy', 'Conversión de tiro'),
     ('touches', 'Ball touches', 'Toques de balón'),
     ('recoveries', 'Ball recoveries', 'Recuperaciones'),
     ('expected_goals', 'Expected Goals', 'Goles esperados (xG)'),
@@ -263,7 +266,8 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
         elif metric == 'expected_goals_excl_pk':
             assert stats['expected_goals'] is None
         elif metric in ('dribble_success_rate', 'long_pass_accuracy', 'cross_success_rate',
-                        'tackle_success_rate', 'aerial_duel_success_rate'):
+                        'tackle_success_rate', 'aerial_duel_success_rate', 'through_balls',
+                        'through_ball_success_rate', 'shot_conversion_rate'):
             assert metric not in stats
         else:
             assert stats[metric]['provider_definition'] == fact['provider_definition']
