@@ -90,24 +90,35 @@ def test_ranking_batches_preserve_order_and_join_by_player_and_team(monkeypatch)
 
  tool = OfficialUEFA()
  calls = []
+ preparations = []
+ context = object()
+ scope = {'seasonYear': 2024, 'phase': 'TOURNAMENT'}
+ supported = {'goals', 'assists', 'saves'}
 
- def ranking(competition, edition, entity, metrics, phase, team_id, order):
+ def prepare(competition, edition, entity, phase, team_id, order):
+  preparations.append((competition, edition, entity, phase, team_id, order))
+  return context, scope, supported
+
+ def ranking(ctx, batch_scope, definitions, entity, metrics, team_id, order):
+  assert ctx is context and batch_scope is scope and definitions is supported
   calls.append(metrics)
   if 'saves' in metrics:
    raise UEFAHTTPError(500)
   source = {'url': 'https://compstats.uefa.com/' + metrics[0], 'consultado_utc': '2026-11-20'}
   entries = [('1', '10', 8), ('2', '20', 3)] if metrics == ['goals'] else [
       ('2', '20', 5), ('1', '999', 100), ('1', '10', 0)]
-  return {'alcance': {'seasonYear': edition, 'phase': phase, 'metricas': metrics},
+  return {'alcance': {**scope, 'metricas': metrics},
           'consultas': [source], 'registros': [
               {'id': pid, 'team_id': team, 'estadisticas': {metrics[0]: value},
                'fuente_estadisticas': source, 'posicion': position}
               for position, (pid, team, value) in enumerate(entries, 1)]}
 
- monkeypatch.setattr(tool.client, 'ranking', ranking)
+ monkeypatch.setattr(tool.client, '_ranking_context', prepare)
+ monkeypatch.setattr(tool.client, '_ranking_request', ranking)
  result = tool.execute({'action': 'ranking', 'competition': 'champions', 'edition': 2024,
                         'entity': 'player', 'metrics': ['goals', 'assists', 'saves']})
  assert result.success, result.error
+ assert len(preparations) == 1
  assert calls == [['goals'], ['assists', 'saves'], ['assists'], ['saves']]
  first, second = result.data['registros']
  assert [(r['id'], r['posicion']) for r in (first, second)] == [('1', 1), ('2', 2)]

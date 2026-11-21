@@ -121,16 +121,23 @@ class UEFA:
  def pack(ctx,scope,rows,requests,kind):
   return dict(fuente='UEFA',competicion=ctx.competition,tipo=kind,alcance=scope,registros=rows,consultas=requests,fase_solicitada=scope.get('phase'),fase_omitida_no_acredita_union=scope.get('phase') is None,paginacion_agotada=True,cobertura_historica_no_garantizada=True,advertencia='La consulta es nueva; no garantiza actualizacion instantanea ni cobertura de otras competiciones. Validar antes de publicar.')
  def ranking(self,competition,edition,entity,metrics,phase='TOURNAMENT',team_id=None,order='DESC'):
+  ctx, scope, supported = self._ranking_context(competition, edition, entity, phase, team_id, order)
+  return self._ranking_request(ctx, scope, supported, entity, metrics, team_id, order)
+
+ def _ranking_context(self, competition, edition, entity, phase, team_id, order):
   if entity not in ('player','team'):raise Unavailable('Entidad debe ser player o team')
   if order not in ('ASC','DESC'):raise Unavailable('Orden invalido')
-  if not metrics or any(not re.fullmatch('[a-z][a-z0-9_]*',m) for m in metrics):raise Unavailable('Metricas invalidas')
-  if len(set(metrics))!=len(metrics):raise Unavailable('Metrica duplicada')
+  if team_id is not None and not str(team_id).isdigit():raise Unavailable('team_id invalido')
   ctx=self.context(competition);scope=self.scope(ctx,edition,phase)
   defs=self.api(ctx,ctx.stats_url,'v2/definitions',{}).data
   if not isinstance(defs,list):raise Unavailable('Definiciones no estructuradas')
   supported={d.get('name') for d in defs if isinstance(d,dict) and entity.upper() in d.get('actors',[])}
+  return ctx, scope, supported
+
+ def _ranking_request(self, ctx, scope, supported, entity, metrics, team_id, order):
+  if not metrics or any(not re.fullmatch('[a-z][a-z0-9_]*',m) for m in metrics):raise Unavailable('Metricas invalidas')
+  if len(set(metrics))!=len(metrics):raise Unavailable('Metrica duplicada')
   if any(m not in supported for m in metrics):raise Unavailable('Metrica no definida por UEFA para '+entity+': '+','.join(m for m in metrics if m not in supported))
-  if team_id is not None and not str(team_id).isdigit():raise Unavailable('team_id invalido')
   params={**scope,'stats':','.join(metrics),'order':order,'teamId':team_id,'optionalFields':'PLAYER,TEAM'}
   def ident(item):
    pid=item.get('playerId') if entity=='player' else item.get('teamId')
@@ -164,8 +171,9 @@ class UEFA:
 
   if not metrics or len(set(metrics)) != len(metrics):
    raise Unavailable('Métricas inválidas o duplicadas')
+  ctx, scope, supported = self._ranking_context(competition, edition, entity, phase, team_id, order)
   anchor = metrics[0]
-  report = self.ranking(competition, edition, entity, [anchor], phase, team_id, order)
+  report = self._ranking_request(ctx, scope, supported, entity, [anchor], team_id, order)
   rows = {(row['id'], row['team_id']): row for row in report['registros']}
   for row in rows.values():
    row['estadisticas'].update(dict.fromkeys(metrics[1:]))
@@ -179,7 +187,7 @@ class UEFA:
   while pending and rows:
    batch = pending.popleft()
    try:
-    detail = self.ranking(competition, edition, entity, batch, phase, team_id, order)
+    detail = self._ranking_request(ctx, scope, supported, entity, batch, team_id, order)
     if any(detail['alcance'][key] != value for key,value in report['alcance'].items() if key != 'metricas'):
      raise Unavailable('El lote de ranking corresponde a otro alcance')
    except (ValueError, OSError) as exc:
