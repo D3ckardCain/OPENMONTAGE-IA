@@ -9,6 +9,7 @@ from tools.football.official_bundesliga import OfficialBundesliga, SEASON as DFL
 from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, OfficialJLeague
 from tools.football.official_mls import OfficialMLS, SCOPE as MLS_SCOPE
 from tools.football.official_ofc import OfficialOFC, SCOPE as OFC_SCOPE
+from tools.football.official_premier import OfficialPremier, SCOPE as PREMIER_SCOPE
 
 TEAM_LABELS = {
     'Belgium': 'Bélgica', 'Brazil': 'Brasil', 'Cameroon': 'Camerún', 'Canada': 'Canadá',
@@ -40,6 +41,8 @@ STANDALONE_EDITIONS = {
         ('Copa de Naciones OFC 2024', OfficialOFC),
     (MLS_SCOPE['competition'], MLS_SCOPE['season'], MLS_SCOPE['phase']):
         ('MLS 2025 · Temporada regular', OfficialMLS),
+    (PREMIER_SCOPE['competition'], PREMIER_SCOPE['season'], PREMIER_SCOPE['phase']):
+        ('Premier League 2024/25 · hasta jornada 29', OfficialPremier),
 }
 STANDALONE_EDITIONS.update({
     (competition, 2025, phase): (f'{label} 2025', OfficialJLeague)

@@ -3,6 +3,22 @@ from tools.football.ligamx import RANKINGS, ranking_urls, tournament_scope
 from tools.football.official_jleague import METRICS as JLEAGUE_METRICS
 
 
+def test_premier_desk_preserves_matchweek_and_source(monkeypatch):
+    from lib.world_cup_edition_desk import compare_edition
+    from tools.football.official_premier import OfficialPremier, URL
+
+    monkeypatch.setattr(OfficialPremier, 'read_rankings', lambda self: ({
+        'goals': {'a': ('A', 'AAA', 4), 'b': ('B', 'BBB', 3)},
+        'assists': {'a': ('A', 'AAA', 2), 'b': ('B', 'BBB', 1)},
+    }, []))
+    result = compare_edition([{'name': 'A', 'team': ''}, {'name': 'B', 'team': ''}],
+                             'premier:2024-2025:regular_season')
+    assert result['report']['scope']['through_matchweek'] == 29
+    assert result['report']['queries'][0]['url'] == URL
+    assert {'goals', 'assists'} <= set(result['display_metrics'])
+    assert result['report']['ready_for_script']
+
+
 def test_jleague_merges_metric_batches_with_source_evidence():
     calls = []
     scope = {'competition': 'j1', 'season': 2025, 'phase': 'regular_season'}

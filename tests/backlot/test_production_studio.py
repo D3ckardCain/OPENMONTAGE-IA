@@ -371,3 +371,6 @@ def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     editions = {option['id']: option for option in data['editions']}
     for key in ('j1:2025:league', 'j2:2025:league', 'j3:2025:league', 'leaguecup:2025:cup'):
         assert editions[key]['team_filter'] is False
+    premier = editions['premier:2024-2025:regular_season']
+    assert premier['team_filter'] is True
+    assert 'jornada 29' in premier['label']
