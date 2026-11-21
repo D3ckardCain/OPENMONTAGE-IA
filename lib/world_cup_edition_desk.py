@@ -6,6 +6,7 @@ from tools.football.ligamx import ASCompetition, LigaMX, TOURNAMENTS
 from tools.football.eredivisie import Eredivisie, SCOPE as EREDIVISIE_SCOPE
 from tools.football.official_asian_cup import OfficialAsianCup, SCOPE as ASIAN_SCOPE
 from tools.football.official_bundesliga import OfficialBundesliga, SEASON as DFL_SEASON
+from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, OfficialJLeague
 from tools.football.official_mls import OfficialMLS, SCOPE as MLS_SCOPE
 from tools.football.official_ofc import OfficialOFC, SCOPE as OFC_SCOPE
 
@@ -40,12 +41,17 @@ STANDALONE_EDITIONS = {
     (MLS_SCOPE['competition'], MLS_SCOPE['season'], MLS_SCOPE['phase']):
         ('MLS 2025 · Temporada regular', OfficialMLS),
 }
+STANDALONE_EDITIONS.update({
+    (competition, 2025, phase): (f'{label} 2025', OfficialJLeague)
+    for competition, (label, phase) in JLEAGUE_COMPETITIONS.items()
+})
+NAME_ONLY = {'bundesliga', 'bundesliga_2', *JLEAGUE_COMPETITIONS}
 for key, (label, _) in STANDALONE_EDITIONS.items():
     EDITIONS[':'.join(map(str, key))] = (key, label)
 
 
 def edition_options():
-    return [{'id': key, 'label': item[1], 'team_filter': item[0][0] not in ('bundesliga', 'bundesliga_2')}
+    return [{'id': key, 'label': item[1], 'team_filter': item[0][0] not in NAME_ONLY}
             for key, item in EDITIONS.items()]
 
 
@@ -54,7 +60,7 @@ def compare_edition(players, edition=DEFAULT_EDITION):
     args = {'season': season}
     if (competition, season, phase) in STANDALONE_EDITIONS:
         tool = STANDALONE_EDITIONS[(competition, season, phase)][1]()
-        if isinstance(tool, OfficialBundesliga):
+        if isinstance(tool, (OfficialBundesliga, OfficialJLeague)):
             args['competition'] = competition
     elif competition in CG_COMPETITIONS:
         tool = ClassificacaoLeague()
@@ -75,8 +81,8 @@ def compare_edition(players, edition=DEFAULT_EDITION):
     names = []
     for player in players:
         team = player.get('team', '').strip()
-        if team and isinstance(tool, OfficialBundesliga):
-            raise ValueError('Las clasificaciones DFL identifican por nombre publicado')
+        if team and competition in NAME_ONLY:
+            raise ValueError('Esta fuente identifica por el nombre publicado')
         if edition == DEFAULT_EDITION:
             team = TEAM_LABELS.get(team, team)
         name = player['name'].strip()

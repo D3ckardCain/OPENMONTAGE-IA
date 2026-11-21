@@ -350,3 +350,10 @@ def test_qatar_edition_preview_uses_explicit_metrics(isolated, monkeypatch):
     assert '>Goles<' not in preview.json()['preview_svg']
     payload['metrics'] = ['saves']
     assert isolated.post(path + '/preview', json=payload).status_code == 400
+
+
+def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
+    data = isolated.get('/api/studio/football/desk-editions').json()
+    editions = {option['id']: option for option in data['editions']}
+    for key in ('j1:2025:league', 'j2:2025:league', 'j3:2025:league', 'leaguecup:2025:cup'):
+        assert editions[key]['team_filter'] is False

@@ -207,7 +207,7 @@ def create_studio_router():
         from jsonschema import ValidationError, validate
         from tools.graphics.sports_card import METRIC_SELECTION
 
-        data = await body(request, limit=64000)
+        data = await body(request, limit=256000)
         report, token = data.get('report'), data.get('export_token')
         metrics = data.get('metrics', ['goals'])
         if (set(data) - {'report', 'export_token', 'metrics'} or not isinstance(report, dict)
