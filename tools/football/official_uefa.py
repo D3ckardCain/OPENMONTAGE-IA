@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.11.0'
+ version='0.12.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -88,6 +88,8 @@ class OfficialUEFA(BaseTool):
      data=query(self.client,**kwargs)
    elif action=='player' and isinstance(selection,list) and len(selection)>1:
     data=self.client.player_by_batches(**kwargs)
+   elif action=='ranking' and isinstance(selection,list) and len(selection)>1:
+    data=self.client.ranking_by_batches(**kwargs)
    else:data=getattr(self.client,action)(**kwargs)
    return ToolResult(success=True,data=data,artifacts=[],cost_usd=0,from_cache=False)
   except Exception as exc:

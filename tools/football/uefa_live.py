@@ -158,6 +158,55 @@ class UEFA:
    if profile.get('id') and str(profile['id'])!=str(item.get('playerId') if entity=='player' else item.get('teamId')):raise Unavailable('ID de perfil incompatible')
    rows.append({'id':str(item.get('playerId') if entity=='player' else item.get('teamId')),'team_id':str(item['teamId']) if item.get('teamId') else None,'nombre':profile.get('internationalName'),'fuente_estadisticas':item.get('_openmontage_source'),'estadisticas':{m:values.get(m) for m in metrics},'metricas_no_disponibles':missing,'posicion':item.get('rank')})
   return self.pack(ctx,{**scope,'entidad':entity,'metricas':metrics,'orden':order,'teamId':team_id},rows,requests,'ranking')
+ def ranking_by_batches(self, competition, edition, entity, metrics, phase='TOURNAMENT',
+                        team_id=None, order='DESC'):
+  from tools.football.uefa_batches import metric_batches, split_rejected_batch
+
+  if not metrics or len(set(metrics)) != len(metrics):
+   raise Unavailable('Métricas inválidas o duplicadas')
+  anchor = metrics[0]
+  report = self.ranking(competition, edition, entity, [anchor], phase, team_id, order)
+  rows = {(row['id'], row['team_id']): row for row in report['registros']}
+  for row in rows.values():
+   row['estadisticas'].update(dict.fromkeys(metrics[1:]))
+   row['fuente_por_metrica'] = {}
+   if row['estadisticas'][anchor] is not None and row['fuente_estadisticas']:
+    row['fuente_por_metrica'][anchor] = row['fuente_estadisticas']
+
+  pending = metric_batches(metrics[1:])
+  failures = []
+  splits = 0
+  while pending and rows:
+   batch = pending.popleft()
+   try:
+    detail = self.ranking(competition, edition, entity, batch, phase, team_id, order)
+    if any(detail['alcance'][key] != value for key,value in report['alcance'].items() if key != 'metricas'):
+     raise Unavailable('El lote de ranking corresponde a otro alcance')
+   except (ValueError, OSError) as exc:
+    if split_rejected_batch(pending, batch, exc):
+     splits += 1
+     continue
+    failures.append({'metrics': batch, 'reason': str(exc)})
+    continue
+   report['consultas'].extend(detail['consultas'])
+   for extra in detail['registros']:
+    row = rows.get((extra['id'], extra['team_id']))
+    origin = extra['fuente_estadisticas']
+    if row is None or not origin or origin not in detail['consultas']:
+     continue
+    for metric,value in extra['estadisticas'].items():
+     if value is not None:
+      row['estadisticas'][metric] = value
+      row['fuente_por_metrica'][metric] = origin
+
+  for row in rows.values():
+   row['metricas_no_disponibles'] = [metric for metric in metrics if row['estadisticas'][metric] is None]
+  report['alcance']['metricas'] = metrics
+  partial = failures or not rows or any(row['metricas_no_disponibles'] for row in rows.values())
+  report['batch_query'] = {'status': 'partial' if partial else 'complete', 'ranking_metric': anchor,
+                           'failed_batches': failures, 'split_batches': splits}
+  return report
+
  def matches(self,competition,edition,phase='ALL',team_id=None):
   if phase=='ALL':
    reports=[self.matches(competition,edition,p,team_id) for p in ('TOURNAMENT','QUALIFYING')]
