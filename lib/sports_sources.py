@@ -30,7 +30,8 @@ _ROWS = [
  ('ofc','football','oceania','OFC','https://www.oceaniafootball.com/',''),
  ('premier','football','europe','Premier League','https://www.premierleague.com/',''),
  ('laliga','football','europe','LaLiga','https://www.laliga.com/',''),
- ('bundesliga','football','europe','Bundesliga','https://www.bundesliga.com/',''),
+ ('bundesliga','football','europe','Bundesliga','https://www.bundesliga.com/','official_bundesliga_live'),
+ ('bundesliga_2','football','europe','2. Bundesliga','https://www.bundesliga.com/en/2bundesliga','official_bundesliga_live'),
  ('serie_a','football','europe','Serie A','https://www.legaseriea.it/',''),
  ('ligue1','football','europe','Ligue 1','https://ligue1.com/',''),
  ('portugal','football','europe','Liga Portugal','https://www.ligaportugal.pt/',''),
@@ -72,6 +73,7 @@ def catalog(sport=None, region=None):
         'missing_value': None,
         'metric_groups': {group: list(metrics) for group, metrics in FOOTBALL_METRIC_GROUPS.items()},
         'source_discovery': {
+            'official_bundesliga_live': 'Consulta por nombre los rankings públicos de goles, asistencias y tiros de 2024/25 en ambas divisiones alemanas.',
             'official_mls_live': 'Consulta por nombre las cifras de los goleadores por club de la temporada regular 2025. El catálogo de jugadores completo queda pendiente.',
             'official_uefa_live': 'Usa metrics=standard en consultas por nombre para solicitar las equivalencias comunes. Consulta definitions para detectar estadísticas oficiales adicionales de PLAYER.',
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',

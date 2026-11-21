@@ -5,6 +5,7 @@ import math
 import re
 from pathlib import Path
 from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, expanded_ranking_url, profile_url, ranking_url, season_label
+from tools.football.official_bundesliga import COMPETITIONS as DFL_COMPETITIONS, METRICS as DFL_METRICS, SEASON as DFL_SEASON, page_url as dfl_url
 from tools.football.official_mls import METRICS as MLS_METRICS, SCOPE as MLS_SCOPE, SOURCE_URL as MLS_SOURCE_URL
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
@@ -48,7 +49,7 @@ def render(report, metrics=None):
     if report.get('fuente')=='UEFA':report=uefa_report(report, selected=metrics is not None)
     source=report.get('source')
     allow_partial = metrics is not None and source in ('FIFA', 'UEFA', 'J.League')
-    if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS') or (not allow_partial and report.get('ready_for_script') is not True):
+    if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS','DFL') or (not allow_partial and report.get('ready_for_script') is not True):
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
@@ -62,6 +63,14 @@ def render(report, metrics=None):
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
     if source == 'MLS' and scope != MLS_SCOPE:
         raise ValueError('Alcance MLS no admitido')
+    if source == 'DFL':
+        if (scope.get('competition') not in DFL_COMPETITIONS or scope.get('season') != DFL_SEASON
+                or scope.get('phase') != 'regular_season' or scope.get('category') != 'men'):
+            raise ValueError('Alcance DFL no admitido')
+        dfl_label = 'Bundesliga' if scope['competition'] == 'bundesliga' else '2. Bundesliga'
+        if metrics is None:
+            shared = set.intersection(*(set(record.get('statistics', {})) for record in records))
+            metrics = [metric for metric in DFL_METRICS if metric in shared]
     if source == 'J.League':
         competition = JLEAGUE_COMPETITIONS.get(scope.get('competition'))
         if (not competition or scope.get('phase') != competition[1] or scope.get('category') != 'men'):
@@ -72,7 +81,7 @@ def render(report, metrics=None):
         identity=record.get('identity',{})
         entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
         if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
-        if kind=='collectible_card' or source in ('J.League','UEFA','MLS'):facts=record.get('facts',[])
+        if kind=='collectible_card' or source in ('J.League','UEFA','MLS','DFL'):facts=record.get('facts',[])
         elif source=='MLB':
             origin=record.get('statistics_source',{})
             facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
@@ -110,6 +119,11 @@ def render(report, metrics=None):
                     allowed.add(expanded_url)
                 if url not in allowed:
                     raise ValueError('Cifra o fuente J.League inválida')
+            elif source == 'DFL':
+                metric = fact['metric']
+                if (metric not in DFL_METRICS or type(value) is not int or value < 0
+                        or url != dfl_url(scope['competition'], metric)):
+                    raise ValueError('Cifra o fuente DFL inválida')
             elif source == 'MLS':
                 if fact['metric'] not in MLS_METRICS or type(value) is not int or value < 0 or url != MLS_SOURCE_URL:
                     raise ValueError('Cifra o fuente MLS inválida')
@@ -131,7 +145,7 @@ def render(report, metrics=None):
            '<metadata>'+escape(json.dumps(evidence,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else dfl_label+' · 2024/25' if source=='DFL' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)
