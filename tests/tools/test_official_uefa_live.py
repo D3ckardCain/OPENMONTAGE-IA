@@ -154,3 +154,36 @@ def test_player_history_batches_keep_season_and_team_separate(monkeypatch):
  assert rows[0]['fuente_por_metrica']['assists'] == result.data['consultas'][1]
  assert result.data['batch_query']['failed_batches'][0]['metrics'] == ['saves']
  assert result.data['incluye_previas'] is None
+
+
+def test_uefa_history_standard_uses_official_definitions_and_metric_sources(monkeypatch):
+ from lib.football_statistics import add_standard_statistics
+
+ tool = OfficialUEFA()
+ monkeypatch.setattr(tool.client, 'definitions', lambda competition: {'definiciones': [
+     {'name': 'goals', 'actors': ['PLAYER']},
+     {'name': 'assists', 'actors': ['PLAYER']},
+     {'name': 'attempts', 'actors': ['TEAM']},
+ ]})
+ sources = {
+     metric: {'url': f'https://compstats.uefa.com/{metric}', 'consultado_utc': '2026-11-20'}
+     for metric in ('goals', 'assists')
+ }
+
+ def query(competition, player_id, metrics):
+  assert metrics == ['goals', 'assists']
+  return {'fuente': 'UEFA', 'desglose_por_temporada_equipo': [
+      {'seasonYear': '2024', 'teamId': '20', 'statistics': [
+          {'name': 'goals', 'value': '0'}, {'name': 'assists', 'value': '2'}],
+       'fuente_por_metrica': sources}]}
+
+ monkeypatch.setattr(tool.client, 'player_history_by_batches', query)
+ result = tool.execute({'action': 'player_history', 'competition': 'champions',
+                        'player_id': '100', 'metrics': 'standard'})
+ assert result.success, result.error
+ row = add_standard_statistics(result.data)['desglose_por_temporada_equipo'][0]
+ stats = row['standard_statistics']
+ assert len(stats) == 54 and stats['shots'] is None
+ assert stats['goals']['value'] == '0' and stats['assists']['value'] == '2'
+ assert stats['goals']['source_url'] == sources['goals']['url']
+ assert stats['assists']['source_url'] == sources['assists']['url']

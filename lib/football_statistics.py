@@ -48,15 +48,33 @@ def standard_values(row, facts, values, names, source):
     row['standard_statistics'] = fields
 
 
+def normalize_uefa_row(row, values, source):
+    by_metric = row.get('fuente_por_metrica', {})
+    facts = {metric: {'source_url': origin['url'], 'retrieved_at': origin['consultado_utc']}
+             for metric, origin in by_metric.items()}
+    standard_values(row, facts, values, UEFA_NAMES,
+                    {} if 'fuente_por_metrica' in row else source)
+
+
 def add_standard_statistics(report):
     """Keep the original report and source-specific metrics for existing exporters."""
     source = report.get('source') or report.get('fuente')
     if source == 'UEFA' and report.get('tipo') in ('comparativa_jugadores', 'postal_jugador'):
         for row in report['registros']:
-            facts = {metric: {'source_url': origin['url'], 'retrieved_at': origin['consultado_utc']}
-                     for metric, origin in row.get('fuente_por_metrica', {}).items()}
-            standard_values(row, facts, row['estadisticas'], UEFA_NAMES,
-                            {} if 'fuente_por_metrica' in row else row.get('fuente_estadisticas') or {})
+            normalize_uefa_row(row, row['estadisticas'], row.get('fuente_estadisticas') or {})
+    elif source == 'UEFA':
+        if 'desglose_por_temporada_equipo' in report:
+            rows = report['desglose_por_temporada_equipo']
+            provenance = report
+        elif report.get('tipo') == 'estadisticas_jugador_por_equipo_sin_sumar':
+            rows = report['registros']
+            provenance = report['consultas'][0]
+        else:
+            return report
+        for row in rows:
+            values = {item['name']: item for item in row.get('statistics', [])
+                      if isinstance(item, dict) and 'name' in item}
+            normalize_uefa_row(row, values, provenance)
     elif source in ('FIFA', 'J.League') and report.get('type') in (
             'player_statistics', 'player_comparison', 'collectible_card'):
         for row in report['records']:

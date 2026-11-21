@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.13.0'
+ version='0.14.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -64,21 +64,24 @@ class OfficialUEFA(BaseTool):
    selection=kwargs.get('metrics')
    standard=selection=='standard'
    named=action in ('resolve_players','compare_players','collectible_card')
-   if standard and not named:
-    raise ValueError('El conjunto común se aplica a consultas por nombre')
+   if standard:
+    if not named and action not in ('player','player_history'):
+     raise ValueError('El conjunto común se aplica a consultas de jugador')
+    from lib.football_statistics import UEFA_NAMES
+   if standard or named and isinstance(selection,list) and len(selection)>1:
+    definitions=self.client.definitions(kwargs['competition'])['definiciones']
+    supported={entry['name'] for entry in definitions if 'PLAYER' in entry.get('actors', [])}
+    if standard:
+     selection=[name for name in UEFA_NAMES if name in supported]
+     if not selection:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
+     kwargs['metrics']=selection
+    elif set(selection)-supported:
+     raise ValueError('Métrica UEFA no definida para jugadores')
    if named:
     from tools.football.uefa_names import resolve,compare,collectible_card,complete_standard_report
     query={'resolve_players':resolve,'compare_players':compare,'collectible_card':collectible_card}[action]
     if standard or isinstance(selection,list) and len(selection)>1:
-     definitions=self.client.definitions(kwargs['competition'])['definiciones']
-     supported={entry['name'] for entry in definitions if 'PLAYER' in entry.get('actors', [])}
-     if standard:
-      from lib.football_statistics import UEFA_NAMES
-      requested=[name for name in UEFA_NAMES if name in supported]
-      if not requested:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
-     else:
-      requested=selection
-      if set(requested)-supported:raise ValueError('Métrica UEFA no definida para jugadores')
+     requested=selection
      kwargs.pop('metrics')
      anchor=['goals'] if 'goals' in supported else requested[:1]
      data=query(self.client,metrics=anchor,**kwargs)
