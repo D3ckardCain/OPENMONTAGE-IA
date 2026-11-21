@@ -315,3 +315,37 @@ def test_split_season_is_distinct_from_the_jleague_special_edition(official_page
     assert jleague.parse_ranking(special, 2026, 'goals')[0][2] == 21
     with pytest.raises(ValueError, match='temporada'):
         jleague.parse_ranking(special.replace('2026 Special Season', '2026/27 Season'), 2026, 'goals')
+
+
+def test_expanded_assists_joins_by_official_id_and_reuses_one_response(official_page, monkeypatch):
+    goals_url = jleague.ranking_url(2025, 'goals')
+    assists_url = jleague.ranking_url(2025, 'assists')
+    expanded_url = jleague.expanded_assists_url(2025, 'j1')
+    assists = official_page.replace(goals_url, assists_url).replace('Top scorers', 'Assists')
+    assists = assists.replace('Example One', 'Different Player').replace('Example Two', 'Other Player')
+    expanded = '''
+    <link rel="canonical" href="https://www.jleague.jp/stats/j1/player/2025/all/assist/">
+    <title>【公式】2025シーズンのアシスト総数:J1リーグの個人スタッツ</title>
+    <a href="/sp/player/200/"><div class="ranking_stats">4 <span>ASSISTS</span></div></a>
+    <a href="/sp/player/100/"><div class="ranking_stats_1">5 <span>ASSISTS</span></div></a>
+    <a href="/sp/player/999/"><div class="ranking_stats">50 <span>ASSISTS</span></div></a>
+    '''
+    pages = {goals_url: official_page, assists_url: assists, expanded_url: expanded}
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        return pages[url], {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    result = jleague.OfficialJLeague().execute({
+        'action': 'compare_players', 'season': 2025, 'names': ['Example One', 'Example Two'],
+        'metrics': ['goals', 'assists'],
+    })
+    assert result.success and result.data['ready_for_script']
+    assert calls == [goals_url, assists_url, expanded_url]
+    assert [row['statistics']['assists'] for row in result.data['records']] == [5, 4]
+    assert all(row['facts'][1]['source_url'] == expanded_url for row in result.data['records'])
+    assert 'Asistencias' in render(result.data)
+    with pytest.raises(ValueError, match='temporada'):
+        jleague.parse_expanded_assists(expanded, 2024, 'j1')

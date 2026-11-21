@@ -169,8 +169,45 @@ def profile_goals(html, player_id, name, season, competition='j1'):
     return int(values[0])
 
 
+def expanded_assists_url(season, competition):
+    if type(season) is not int or season == 2026 or competition not in COMPETITIONS:
+        return None
+    season = season_key(season, competition)
+    return f'{BASE_URL}/sp/stats/{competition}/player/{season}/all/assist/?mode=pc'
+
+
+def parse_expanded_assists(html, season, competition):
+    dom = DOM()
+    dom.feed(html)
+    canonical = dom.root.first('link', rel='canonical')
+    title = dom.root.first('title')
+    expected = f'{BASE_URL}/stats/{competition}/player/{season}/all/assist/'
+    if (not canonical or canonical.attrs.get('href') != expected
+            or not title or not title.text().startswith(f'【公式】{season}シーズンのアシスト総数:')):
+        raise ValueError('El ranking ampliado no acredita la temporada o las asistencias')
+
+    values, duplicates = {}, set()
+    for link in dom.root.walk('a'):
+        player = re.fullmatch(r'/sp/player/([0-9]+)/', link.attrs.get('href') or '')
+        if not player:
+            continue
+        score = next((node for node in link.walk('div')
+                      if re.fullmatch(r'ranking_stats(?:_[123])?', node.attrs.get('class') or '')), None)
+        value = re.fullmatch(r'([0-9]+) ASSISTS', score.text()) if score else None
+        if not value:
+            continue
+        player_id = player[1]
+        if player_id in values:
+            duplicates.add(player_id)
+        values[player_id] = int(value[1])
+    return {player_id: value for player_id, value in values.items() if player_id not in duplicates}
+
+
 def make_report(rankings, names, scope, queries, kind, failed_metrics):
-    records, unresolved, profile_queries = [], [], []
+    records, unresolved, extra_queries = [], [], []
+    expanded = None
+    expanded_query = None
+    expanded_url = expanded_assists_url(scope['season'], scope['competition']) if 'assists' in rankings else None
     for name in names:
         key = normalized(name)
         found, missing = {}, {}
@@ -205,8 +242,21 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
             else:
                 found['goals'] = (official_name, player_id, goals)
                 sources['goals'] = query
-                profile_queries.append(query)
+                extra_queries.append(query)
                 del missing['goals']
+        if expanded_url and missing.get('assists') == 'not_in_visible_ranking':
+            if expanded is None:
+                try:
+                    html, query = fetch(expanded_url)
+                    expanded = parse_expanded_assists(html, scope['season'], scope['competition'])
+                    expanded_query = query
+                    extra_queries.append(query)
+                except (OSError, ValueError):
+                    expanded = {}
+            if player_id in expanded:
+                found['assists'] = (official_name, player_id, expanded[player_id])
+                sources['assists'] = expanded_query
+                del missing['assists']
         unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
                           for metric, reason in missing.items())
         definitions = dict(METRIC_DEFINITIONS)
@@ -228,7 +278,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
         })
     if len({row['entity_id'] for row in records}) != len(records):
         raise ValueError('La comparativa requiere dos jugadores distintos')
-    return {'source': 'J.League', 'type': kind, 'scope': scope, 'queries': list(queries.values()) + profile_queries,
+    return {'source': 'J.League', 'type': kind, 'scope': scope, 'queries': list(queries.values()) + extra_queries,
             'records': records, 'unresolved': unresolved, 'ready_for_script': not unresolved,
             'visible_rows': len(next(iter(rankings.values()))) if len(rankings) == 1 else None,
             'visible_rows_by_metric': {metric: None if metric in failed_metrics else len(rows) for metric, rows in rankings.items()},
@@ -238,7 +288,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.24.0'
+    version = '0.25.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
