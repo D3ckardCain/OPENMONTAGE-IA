@@ -15,7 +15,7 @@ El panel actual de fútbol expone consultas UEFA. El agente ya puede consultar v
 
 ### Desglose por ronda de Qatar 2022
 
-El agente puede consultar partidos jugados, goles y tiros en grupos, octavos, cuartos, semifinal, tercer puesto y final. Verifica el calendario de 64 partidos y contrasta los eventos de los encuentros consultados con el marcador. Incluye prórroga y deja fuera las tandas de penaltis al contar goles y tiros. El informe conserva las URLs por partido y el nombre StatsBomb. Esta consulta está disponible para investigación. La exportación visual del desglose sigue pendiente de integrar la atribución visible y la selección de métricas.
+El agente puede consultar partidos jugados, goles y tiros en grupos, octavos, cuartos, semifinal, tercer puesto y final. Verifica el calendario de 64 partidos y contrasta los eventos de los encuentros consultados con el marcador. Incluye prórroga y deja fuera las tandas de penaltis al contar goles y tiros. El informe conserva las URLs por partido y el nombre StatsBomb. Esta consulta está disponible para investigación. La selección de métricas permite revisar las cifras con sus fuentes. La licencia de StatsBomb Open Data, cláusulas 1.2.2 y 1.4, excluye la explotación comercial y exige el logotipo al publicar análisis. El informe queda fuera de los exportadores. Para las piezas del canal se requiere una fuente apta para ese uso.
 
 ## Modelos candidatos
 

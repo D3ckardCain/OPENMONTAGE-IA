@@ -5,9 +5,12 @@ from datetime import datetime, timezone
 import urllib.request
 
 from lib.football_statistics import standard_values
+from lib.sports_sources import FOOTBALL_STANDARD_METRICS
 from tools.football.official_premier import NoRedirect
 from tools.football.uefa_names import normalized
 
+LICENSE = 'https://github.com/hudl/open-data/blob/master/LICENSE.pdf'
+RESEARCH_METRICS = ('matches_played', 'goals', 'shots')
 BASE = 'https://raw.githubusercontent.com/statsbomb/open-data/master/data/'
 CALENDAR = BASE + 'matches/43/106.json'
 ROUNDS = {
@@ -115,7 +118,9 @@ def compare(round, players, read=fetch):
                 'records': records, 'unresolved': unresolved, 'queries': queries,
                 'coverage': 'Partidos, goles y tiros. Incluye prórroga y excluye la tanda de penaltis.',
                 'attribution_url': 'https://github.com/statsbomb/open-data#terms--conditions',
-                'export_available': False}
+                'license_url': LICENSE, 'commercial_use_allowed': False,
+                'export_available': False, 'standard_metrics': list(FOOTBALL_STANDARD_METRICS),
+                'review_metrics': list(RESEARCH_METRICS) if len(records) == 2 else []}
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise ValueError('No se pudo verificar la ronda de Qatar 2022: ' + str(exc)) from exc
 
@@ -127,3 +132,24 @@ def validate_calendar(matches):
             or any(match['competition']['competition_id'] != 43 or match['season']['season_id'] != 106
                    or type(match['match_id']) is not int or match['match_id'] <= 0 or match['match_status'] != 'available' for match in matches)):
         raise ValueError('El calendario de la edición está incompleto o no coincide')
+
+
+
+def select_research_metrics(report, metrics):
+    if (report.get('type') != 'round_player_research' or report.get('source') != 'StatsBomb'
+            or report.get('export_available') is not False or report.get('unresolved') != []
+            or len(report.get('records', [])) != 2):
+        raise ValueError('La revisión requiere dos jugadores identificados en una ronda de Qatar 2022')
+    if not metrics or len(set(metrics)) != len(metrics) or not set(metrics) <= set(RESEARCH_METRICS):
+        raise ValueError('Selecciona partidos jugados, goles o tiros')
+    values = [
+        {'metric': metric, 'values': [record.get('standard_statistics', {}).get(metric)
+                                      for record in report['records']]}
+        for metric in metrics
+    ]
+    if any(not all(row['values']) for row in values):
+        raise ValueError('La métrica seleccionada carece de evidencia para ambos jugadores')
+    return {'type': 'round_research_selection', 'source': 'StatsBomb', 'scope': report['scope'],
+            'players': [{'name': row['name'], 'team': row['team']} for row in report['records']],
+            'metrics': values, 'license_url': LICENSE, 'commercial_use_allowed': False,
+            'export_available': False}
