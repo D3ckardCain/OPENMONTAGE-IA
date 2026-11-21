@@ -13,6 +13,10 @@ El panel actual de fútbol expone consultas UEFA. El agente ya puede consultar v
 3. **Producción bilingüe.** Reusar el expediente, la plantilla y las escenas entre español e inglés. Generar y revisar audio y subtítulos por idioma. Marcar las piezas que requieren nueva revisión al cambiar datos o selección. Recuperar la entrega a otro disco desde el render verificado.
 4. **Escala local.** Producir un piloto de diez piezas completas. Medir duración por etapa, uso máximo de RAM y VRAM, aprobación al primer intento y causas de reintento. Mantener la cola secuencial hasta tener medidas. Después separar tareas de CPU y GPU y asignar trabajadores según capacidad probada. Medir el rendimiento antes de comprometer el objetivo de 48 videos semanales. La publicación se opera por separado.
 
+### Desglose por ronda de Qatar 2022
+
+El agente puede consultar partidos jugados, goles y tiros en grupos, octavos, cuartos, semifinal, tercer puesto y final. Verifica el calendario de 64 partidos y contrasta los eventos de los encuentros consultados con el marcador. Incluye prórroga y deja fuera las tandas de penaltis al contar goles y tiros. El informe conserva las URLs por partido y el nombre StatsBomb. Esta consulta está disponible para investigación. La exportación visual del desglose sigue pendiente de integrar la atribución visible y la selección de métricas.
+
 ## Modelos candidatos
 
 | Candidato | Prueba de aceptación |
