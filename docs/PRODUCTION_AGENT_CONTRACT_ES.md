@@ -207,3 +207,5 @@ J.League admite `saves` y `save_percentage` en J1, J2, J3 y Copa Levain. La prec
 J.League admite penaltis marcados (`penalty_goals`), faltas cometidas (`fouls_committed`) y faltas recibidas (`fouls_suffered`) en J1, J2, J3 y Copa Levain. Cada ranking conserva su procedencia. Los goles de penalti no se añaden al total de goles porque ya forman parte de ese total.
 
 J.League admite despejes (`clearances`), bloqueos (`blocks`) y entradas (`tackles`). La fuente cuenta como entrada una acción que desplaza el balón del rival, aunque no termine en posesión propia. El expediente conserva esa cifra en su clave original y deja sin dato los campos comunes de entradas intentadas y ganadas cuando falte evidencia oficial de cada uno.
+
+J.League incorpora pases largos completados, regates intentados, toques de balón y recuperaciones en J1, J2, J3 y Copa Levain. El expediente conserva sus definiciones y fuentes. En particular, el ranking oficial de pases largos cuenta pases completados de 30 metros o más.

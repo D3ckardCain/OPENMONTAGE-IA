@@ -28,8 +28,14 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'penalty_goals': ('pk_score', 'Goals (penalty)'), 'fouls_committed': ('foul_count', 'Fouls committed'),
            'fouls_suffered': ('suffer_foul_count', 'Fouls won'),
            'clearances': ('clear_count', 'Clearances'), 'blocks': ('block_count', 'Blocks'),
-           'tackles': ('tackle_count', 'Tackles')}
+           'tackles': ('tackle_count', 'Tackles'),
+           'long_balls_completed': ('long_pass_count', 'Long passes'), 'dribbles_attempted': ('dribble_count', 'Dribbles'),
+           'touches': ('play_count', 'Ball touches'), 'recoveries': ('recovery_count', 'Ball recoveries')}
 METRIC_DEFINITIONS = {
+    'long_balls_completed': 'Pases completados de 30 metros o más, según J.League.',
+    'dribbles_attempted': 'Acciones en que el jugador busca superar o desplazar lateralmente a un defensor para crear una opción de tiro.',
+    'touches': 'Acciones con balón. Una secuencia entre recepción y entrega cuenta como una acción, según J.League.',
+    'recoveries': 'Toques de segundas jugadas o balones sueltos después de acciones defensivas.',
     'clearances': 'Acciones para alejar el peligro sin intención de pasar el balón a un compañero.',
     'tackles': 'Acciones que desplazan el balón del rival. Incluye acciones sin recuperar la posesión.',
     'save_percentage': 'Paradas divididas entre la suma de paradas y goles recibidos, según J.League.',
@@ -199,7 +205,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.20.0'
+    version = '0.21.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
