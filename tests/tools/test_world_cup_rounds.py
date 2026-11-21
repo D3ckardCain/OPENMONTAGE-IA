@@ -22,3 +22,16 @@ def test_round_metrics_preserve_evidence_and_remain_research_only():
         select_research_metrics(report, ['shots'])
     with pytest.raises(ValueError):
         render(report, ['goals'])
+
+
+def test_openfootball_counts_extra_time_without_shootout_or_own_goals():
+    from lib.world_cup_open_goals import parse
+
+    text = """= World Cup 2022 # in Qatar
+▪ Quarter-finals
+22:00 Netherlands 2-2 a.e.t. (2-2, 1-0), 3-4 pen. Argentina @ Lusail
+ (Player A 83', 90+11'; Player B 35'(o.g.) Player C 120'(pen.))
+"""
+    matches, goals = parse(text)
+    assert matches == {'quarterfinal': 1}
+    assert goals['quarterfinal'] == {('Netherlands', 'Player A'): 2, ('Argentina', 'Player C'): 1}
