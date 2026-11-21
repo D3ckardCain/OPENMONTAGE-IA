@@ -1,4 +1,4 @@
-"""Read paged Brasileirão Série A statistics from Classificação Geral."""
+"""Read paged league player statistics from Classificação Geral."""
 import re
 import subprocess
 from datetime import datetime, timezone
@@ -7,8 +7,19 @@ from tools.base_tool import BaseTool, ResourceProfile, ToolResult, ToolRuntime, 
 from tools.football.uefa import DOM
 from tools.football.uefa_names import normalized
 
-URL = 'https://classificacaogeral.com.br/en/jogadores/brasileirao/2025'
-SCOPE = {'competition': 'brasil', 'season': 2025, 'phase': 'regular_season', 'category': 'men'}
+BASE = 'https://classificacaogeral.com.br/en/jogadores'
+COMPETITIONS = {
+    'brasil': ('brasileirao', 'Brasileirão Série A 2025', 2025),
+    'laliga': ('la-liga', 'La Liga 2025/26', '2025-2026'),
+    'premier': ('premier-league', 'Premier League 2025/26', '2025-2026'),
+}
+
+
+def competition_scope(competition):
+    return {'competition': competition, 'season': COMPETITIONS[competition][2],
+            'phase': 'regular_season', 'category': 'men'}
+
+
 FIELDS = {
     'goals': 'Goals', 'assists': 'Assists', 'matches_played': 'Played',
     'minutes_played': 'Minutes', 'yellow_cards': 'YC', 'second_yellow_cards': 'Second yellow card',
@@ -17,8 +28,10 @@ FIELDS = {
 UNITS = {'goals_per_game': 'goals/game', 'minutes_per_goal': 'min/goal', 'minutes_played': 'min'}
 
 
-def page_url(page):
-    return URL if page == 1 else f'{URL}?page={page}'
+def page_url(page, competition='brasil'):
+    slug = COMPETITIONS[competition][0]
+    url = f'{BASE}/{slug}/2025'
+    return url if page == 1 else f'{url}?page={page}'
 
 
 def fetch(url):
@@ -27,22 +40,22 @@ def fetch(url):
                                  '--max-time', '12', '--max-filesize', '1000000', url],
                                 capture_output=True, check=True, timeout=14)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        raise OSError('Falló la descarga de la página del Brasileirão') from exc
+        raise OSError('Falló la descarga de la página de Classificação Geral') from exc
     return result.stdout.decode('utf-8')
 
 
-def parse(html, page):
+def parse(html, page, competition='brasil'):
     parser = DOM()
     parser.feed(html)
     root = parser.root
     canonical = root.first('link', rel='canonical')
     heading = root.first('h1')
     table = root.first('table', **{'class': 'player-statistics'})
-    if (not canonical or canonical.attrs.get('href') != page_url(page) or not heading
-            or heading.text() != 'Players Brasileirão Série A 2025' or not table):
+    if (not canonical or canonical.attrs.get('href') != page_url(page, competition) or not heading
+            or heading.text() != 'Players ' + COMPETITIONS[competition][1] or not table):
         raise ValueError('La página no acredita la competición, temporada y página solicitadas')
     next_link = root.first('a', rel='next')
-    if next_link and next_link.attrs.get('href') != f'/en/jogadores/brasileirao/2025?page={page + 1}':
+    if next_link and next_link.attrs.get('href') != f'/en/jogadores/{COMPETITIONS[competition][0]}/2025?page={page + 1}':
         raise ValueError('Paginación inesperada')
     records = {}
     for row in list(table.walk('tr'))[1:]:
@@ -124,14 +137,18 @@ class Brasileirao(BaseTool):
                               cost_usd=0, from_cache=False)
 
         queries, failures, roster = [], {}, {}
-        scope = dict(SCOPE)
+        competition = inputs.get('competition', 'brasil')
+        scope = competition_scope(competition)
+        if scope['season'] != inputs['season']:
+            return ToolResult(success=False, error='Temporada no admitida para esta competición',
+                              cost_usd=0, from_cache=False)
         start_page = inputs.get('start_page', 1)
         next_page = start_page
         max_pages = 3 * inputs.get('max_blocks', 2)
         for page in range(start_page, min(start_page + max_pages, 101)):
-            url = page_url(page)
+            url = page_url(page, competition)
             try:
-                rows, has_next = parse(fetch(url), page)
+                rows, has_next = parse(fetch(url), page, competition)
             except (ValueError, OSError) as exc:
                 failures[page] = str(exc)
                 break
@@ -158,3 +175,18 @@ class Brasileirao(BaseTool):
                 'coverage': 'Coincidencias de los bloques consultados, de hasta tres páginas cada uno. Usa el ID o el nombre completo para resolver homónimos.'}
         return ToolResult(success=bool(queries), error=None if queries else 'BRASILEIRAO_QUERY_FAILED',
                           data=data, cost_usd=0, from_cache=False)
+
+
+class ClassificacaoLeague(Brasileirao):
+    name = 'classificacao_league_player_stats'
+    version = '0.1.0'
+    side_effects = ['read_public_league_player_pages']
+    input_schema = {
+        **Brasileirao.input_schema,
+        'required': [*Brasileirao.input_schema['required'], 'competition'],
+        'properties': {
+            **Brasileirao.input_schema['properties'],
+            'competition': {'enum': list(COMPETITIONS)},
+            'season': {'enum': list(dict.fromkeys(row[2] for row in COMPETITIONS.values()))},
+        },
+    }
