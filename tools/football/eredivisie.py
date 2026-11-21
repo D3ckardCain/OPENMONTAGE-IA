@@ -1,4 +1,5 @@
 """Read separate Eredivisie 2025/26 rankings from Voetbal International."""
+import json
 import re
 import urllib.request
 from datetime import datetime, timezone
@@ -9,7 +10,13 @@ from tools.football.uefa_names import normalized
 
 BASE = 'https://www.vi.nl/competities/eredivisie/2025-2026/statistieken/'
 SCOPE = {'competition': 'eredivisie', 'season': '2025-2026', 'phase': 'provider_edition', 'category': 'men'}
-RANKINGS = {'goals': ('topscorers', 'Topscorers'), 'assists': ('assists', 'Assists')}
+RANKINGS = {
+    'goals': ('topscorers', 'Topscorers'),
+    'assists': ('assists', 'Assists'),
+    'yellow_cards': ('kaarten', 'Gele en rode kaarten'),
+    'red_cards': ('kaarten', 'Gele en rode kaarten'),
+}
+CARD_KEYS = {'yellow_cards': 'yellowCards', 'red_cards': 'redCards'}
 URLS = {metric: BASE + slug for metric, (slug, _) in RANKINGS.items()}
 
 
@@ -26,6 +33,38 @@ def fetch(url):
     return body.decode('utf-8')
 
 
+def parse_cards(root, metric):
+    batches = []
+    token = re.compile(r'"' + CARD_KEYS[metric] + r'":\[')
+    for node in root.walk('script'):
+        script = ''.join(node.children)
+        match = re.fullmatch(r'self\.__next_f\.push\((.*)\)', script, re.S)
+        if not match:
+            continue
+        payload = json.loads(match[1])[-1]
+        if not isinstance(payload, str):
+            continue
+        for found in token.finditer(payload):
+            batch, _ = json.JSONDecoder().raw_decode(payload, found.end() - 1)
+            batches.append(batch)
+    if len(batches) != 1 or not batches[0]:
+        raise ValueError('Ranking de tarjetas VI ausente o ambiguo')
+    records = {}
+    for row in batches[0]:
+        try:
+            player = row['player']
+            key = (player['tag']['path'], row['teamTag']['title'])
+            name, value = player['name'], row['score']
+        except (KeyError, TypeError) as exc:
+            raise ValueError('Fila de tarjetas VI incompleta') from exc
+        if (not all(isinstance(part, str) and part for part in (*key, name))
+                or not re.fullmatch(r'/spelers/[a-z0-9-]+', key[0])
+                or type(value) is not int or value < 0 or key in records):
+            raise ValueError('Fila de tarjetas VI inválida o duplicada')
+        records[key] = (name, value)
+    return records
+
+
 def parse(html, metric):
     document = DOM()
     document.feed(html)
@@ -36,6 +75,8 @@ def parse(html, metric):
             or heading.text() != RANKINGS[metric][1] + ' VriendenLoterij Eredivisie 2025-2026'
             or len(tables) != 1):
         raise ValueError('Ranking VI con competición, temporada o métrica inesperada')
+    if metric in CARD_KEYS:
+        return parse_cards(document.root, metric)
     records = {}
     for row in list(tables[0].walk('tr'))[1:]:
         if not row.children:
@@ -61,7 +102,7 @@ def parse(html, metric):
 
 class Eredivisie(BaseTool):
     name = 'eredivisie_player_stats'
-    version = '0.1.0'
+    version = '0.2.0'
     provider = 'voetbal_international'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
@@ -96,13 +137,22 @@ class Eredivisie(BaseTool):
 
         scope = dict(SCOPE)
         roster, queries, failures = {}, [], {}
+        pages = {}
         for metric, url in URLS.items():
+            if url not in pages:
+                try:
+                    pages[url] = (fetch(url), datetime.now(timezone.utc).isoformat())
+                except (OSError, ValueError) as exc:
+                    pages[url] = (None, str(exc))
+            html, retrieved = pages[url]
+            if html is None:
+                failures[metric] = retrieved
+                continue
             try:
-                rows = parse(fetch(url), metric)
+                rows = parse(html, metric)
             except (OSError, ValueError) as exc:
                 failures[metric] = str(exc)
                 continue
-            retrieved = datetime.now(timezone.utc).isoformat()
             queries.append({'url': url, 'metric': metric, 'retrieved_at': retrieved})
             for (profile, club), (name, value) in rows.items():
                 key = f'{profile}:{club}'
@@ -126,6 +176,6 @@ class Eredivisie(BaseTool):
         data = {'source': 'Voetbal International', 'type': 'collectible_card' if card else 'player_comparison',
                 'scope': scope, 'records': records, 'queries': queries, 'failed_metrics': failures,
                 'unresolved': unresolved, 'ready_for_script': not failures and not unresolved and bool(shared),
-                'coverage': 'Rankings de goles y asistencias publicados por VI. Las ausencias se conservan sin valor.'}
+                'coverage': 'Rankings de goles, asistencias y tarjetas publicados por VI. Las ausencias se conservan sin valor.'}
         return ToolResult(success=bool(queries), error=None if queries else 'EREDIVISIE_QUERY_FAILED',
                           data=data, cost_usd=0, from_cache=False)
