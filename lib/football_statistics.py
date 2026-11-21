@@ -45,6 +45,8 @@ def standard_values(row, facts, values, names, source):
                 'retrieved_at': timestamp,
                 'unit': fact.get('unit') or (raw.get('unit') if isinstance(raw, dict) else None),
             }
+            if fact.get('provider_definition'):
+                fields[metric]['provider_definition'] = fact['provider_definition']
     row['standard_statistics'] = fields
 
 

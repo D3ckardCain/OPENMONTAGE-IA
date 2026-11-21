@@ -184,6 +184,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('matches_played', 'Appearances', 'Partidos jugados'),
     ('minutes_played', 'Minutes played', 'Minutos jugados'),
     ('passes_attempted', 'Passes', 'Pases intentados'),
+    ('crosses_attempted', 'Crosses', 'Centros intentados'),
+    ('chances_created', 'Chances created', 'Ocasiones creadas'),
     ('pass_accuracy', 'Pass accuracy', 'Precisión de pase'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
@@ -215,6 +217,10 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
         with pytest.raises(ValueError):
             jleague.parse_ranking(page.replace('21.5', '121.5'), 2025, metric)
     assert label in render(result.data)
+    if metric in jleague.METRIC_DEFINITIONS:
+        from lib.football_statistics import add_standard_statistics
+        stats = add_standard_statistics(result.data)['records'][0]['standard_statistics']
+        assert stats[metric]['provider_definition'] == jleague.METRIC_DEFINITIONS[metric]
 
 
 @pytest.mark.parametrize('selection', ['all', ['goals', 'red_cards', 'interceptions']])

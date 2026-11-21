@@ -197,3 +197,5 @@ J.League admite `shots` y `shots_on_target` en J1, J2, J3 y Copa Levain. Cada ci
 J.League también admite partidos y minutos jugados (`matches_played` y `minutes_played`) en J1, J2, J3 y Copa Levain. Cada cifra se consulta en su ranking oficial.
 
 J.League admite `passes_attempted` y `pass_accuracy` en J1, J2, J3 y Copa Levain. La precisión conserva el porcentaje publicado. Los pases completados requieren una cifra oficial separada porque el porcentaje visible está redondeado.
+
+J.League admite `crosses_attempted` y `chances_created` en J1, J2, J3 y Copa Levain. El expediente conserva `provider_definition` en estas cifras y en duelos ganados para que el agente compruebe el alcance de cada métrica cuando compare fuentes.

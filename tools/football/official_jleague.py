@@ -21,7 +21,13 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'aerial_duels_won': ('air_battle_win_count', 'Aerial duels won'),
            'shots': ('shoot', 'Shots'), 'shots_on_target': ('shoot_on_target', 'Shots on target'),
            'matches_played': ('game', 'Appearances'), 'minutes_played': ('time', 'Minutes played'),
-           'passes_attempted': ('pass_count', 'Passes'), 'pass_accuracy': ('pass_rate', 'Pass accuracy')}
+           'passes_attempted': ('pass_count', 'Passes'), 'pass_accuracy': ('pass_rate', 'Pass accuracy'),
+           'crosses_attempted': ('cross_count', 'Crosses'), 'chances_created': ('chance_create', 'Chances created')}
+METRIC_DEFINITIONS = {
+    'crosses_attempted': 'Centros en jugada según J.League, excluye acciones a balón parado.',
+    'chances_created': 'Suma de pases filtrados completados hacia el área, centros completados desde el área y últimos pases, según J.League.',
+    'duels_won': 'Duelos a ras de suelo según la definición de J.League.',
+}
 METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
                 'passes_attempted': 'passes', 'pass_accuracy': '%'}
 DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'pass_accuracy': ' %'}
@@ -157,7 +163,9 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
                           for metric, reason in missing.items())
         facts = [
             {'metric': metric, 'value': found[metric][2], 'unit': METRIC_UNITS.get(metric, metric), 'entity_id': player_id,
-             'scope': scope, 'source_url': sources[metric]['url'], 'retrieved_at': sources[metric]['retrieved_at']}
+             'scope': scope,
+             **({'provider_definition': METRIC_DEFINITIONS[metric]} if metric in METRIC_DEFINITIONS else {}),
+             'source_url': sources[metric]['url'], 'retrieved_at': sources[metric]['retrieved_at']}
             for metric in rankings if metric in found
         ]
         records.append({
@@ -179,7 +187,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.15.0'
+    version = '0.16.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
