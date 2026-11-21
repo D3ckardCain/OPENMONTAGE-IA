@@ -15,12 +15,16 @@ COMPETITIONS = {
     'serie_a': ('serie-a-italiana', 'Italian Serie A 2025/26', '2025-2026'),
     'ligue1': ('ligue-1', 'Ligue 1 2025/26', '2025-2026'),
     'portugal': ('primeira-liga', 'Primeira Liga 2025/26', '2025-2026'),
+    'argentina': ('campeonato-argentino', 'Argentine Primera División 2025', 2025),
+    'libertadores': ('libertadores', 'Copa Libertadores 2025', 2025),
+    'sudamericana': ('copa-sul-americana', 'Copa Sudamericana 2025', 2025),
 }
 
 
 def competition_scope(competition):
+    phase = 'provider_edition' if competition in ('argentina', 'libertadores', 'sudamericana') else 'regular_season'
     return {'competition': competition, 'season': COMPETITIONS[competition][2],
-            'phase': 'regular_season', 'category': 'men'}
+            'phase': phase, 'category': 'men'}
 
 
 FIELDS = {
