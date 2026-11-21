@@ -59,7 +59,9 @@ def normalize_uefa_row(row, values, source):
 def add_standard_statistics(report):
     """Keep the original report and source-specific metrics for existing exporters."""
     source = report.get('source') or report.get('fuente')
-    if source == 'UEFA' and report.get('tipo') in ('comparativa_jugadores', 'postal_jugador'):
+    player_ranking = (report.get('tipo') == 'ranking'
+                      and report.get('alcance', {}).get('entidad') == 'player')
+    if source == 'UEFA' and (player_ranking or report.get('tipo') in ('comparativa_jugadores', 'postal_jugador')):
         for row in report['registros']:
             normalize_uefa_row(row, row['estadisticas'], row.get('fuente_estadisticas') or {})
     elif source == 'UEFA':

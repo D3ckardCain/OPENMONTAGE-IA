@@ -179,3 +179,5 @@ En UEFA, la acción `ranking` también consulta por lotes. La primera métrica s
 En UEFA, `player_history` también divide las métricas en lotes y une los datos de la competición solicitada por temporada y equipo. Cada cifra conserva el origen de su lote. `batch_query` indica si quedaron datos pendientes. La fuente histórica no acredita la fase ni un total de carrera.
 
 Las acciones UEFA `player` y `player_history` aceptan `metrics="standard"` con el ID oficial. El productor expone los 54 campos de `standard_statistics` en cada fila, con la procedencia de cada cifra verificada. En el historial, cada fila mantiene su temporada y equipo y la fase sigue sin confirmar.
+
+El ranking UEFA de jugadores admite `metrics="standard"`. Usa goles como primera métrica cuando la fuente la admite. El productor añade la plantilla de 54 campos con la procedencia por métrica. Una lista explícita permite elegir otra primera métrica para ordenar.

@@ -187,3 +187,31 @@ def test_uefa_history_standard_uses_official_definitions_and_metric_sources(monk
  assert stats['goals']['value'] == '0' and stats['assists']['value'] == '2'
  assert stats['goals']['source_url'] == sources['goals']['url']
  assert stats['assists']['source_url'] == sources['assists']['url']
+
+
+def test_standard_player_ranking_uses_goals_first_and_exposes_common_fields(monkeypatch):
+ from lib.football_statistics import add_standard_statistics
+
+ tool = OfficialUEFA()
+ monkeypatch.setattr(tool.client, 'definitions', lambda competition: {'definiciones': [
+     {'name': 'matches_appearance', 'actors': ['PLAYER']},
+     {'name': 'goals', 'actors': ['PLAYER', 'TEAM']},
+ ]})
+ origin = {'url': 'https://compstats.uefa.com/ranking', 'consultado_utc': '2026-11-20'}
+
+ def query(**kwargs):
+  assert kwargs['metrics'] == ['goals', 'matches_appearance']
+  return {'fuente': 'UEFA', 'tipo': 'ranking', 'alcance': {'entidad': 'player'},
+          'registros': [{'estadisticas': {'goals': '0', 'matches_appearance': '10'},
+                         'fuente_por_metrica': {'goals': origin}}]}
+
+ monkeypatch.setattr(tool.client, 'ranking_by_batches', query)
+ inputs = {'action': 'ranking', 'competition': 'champions', 'edition': 2024,
+           'entity': 'player', 'metrics': 'standard'}
+ result = tool.execute(inputs)
+ assert result.success, result.error
+ stats = add_standard_statistics(result.data)['registros'][0]['standard_statistics']
+ assert len(stats) == 54 and stats['goals']['value'] == '0'
+ assert stats['goals']['source_url'] == origin['url']
+ assert stats['matches_played'] is None
+ assert not tool.execute(dict(inputs, entity='team')).success

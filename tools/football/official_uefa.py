@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.14.0'
+ version='0.15.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -64,8 +64,9 @@ class OfficialUEFA(BaseTool):
    selection=kwargs.get('metrics')
    standard=selection=='standard'
    named=action in ('resolve_players','compare_players','collectible_card')
+   player_ranking=action=='ranking' and kwargs.get('entity')=='player'
    if standard:
-    if not named and action not in ('player','player_history'):
+    if not named and not player_ranking and action not in ('player','player_history'):
      raise ValueError('El conjunto común se aplica a consultas de jugador')
     from lib.football_statistics import UEFA_NAMES
    if standard or named and isinstance(selection,list) and len(selection)>1:
@@ -74,6 +75,9 @@ class OfficialUEFA(BaseTool):
     if standard:
      selection=[name for name in UEFA_NAMES if name in supported]
      if not selection:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
+     if player_ranking and 'goals' in selection:
+      selection.remove('goals')
+      selection.insert(0,'goals')
      kwargs['metrics']=selection
     elif set(selection)-supported:
      raise ValueError('Métrica UEFA no definida para jugadores')
