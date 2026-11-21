@@ -75,6 +75,7 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
     scope = {key: report['alcance'][key] for key in scope_keys}
     failures = []
     split_batches = 0
+    player_query = None
     for row in records:
         values = row['estadisticas'] = {metric: row['estadisticas'].get(metric) for metric in metrics}
         sources = row['fuente_por_metrica'] = {}
@@ -90,7 +91,9 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
         while pending:
             batch = pending.popleft()
             try:
-                detail = client.player(competition, edition, row['id'], batch, phase)
+                if player_query is None:
+                    player_query = client.prepare_player_query(competition, edition, phase)
+                detail = player_query(row['id'], batch)
                 if any(detail['alcance'][key] != value for key, value in scope.items()):
                     raise Unavailable('UEFA devolvió un lote de otra competición, edición o fase')
                 matching = [item for item in detail['registros']

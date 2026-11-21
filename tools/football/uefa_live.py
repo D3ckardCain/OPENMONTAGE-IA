@@ -259,7 +259,16 @@ class UEFA:
  def player(self,competition,edition,player_id,metrics,phase='TOURNAMENT'):
   if not str(player_id).isdigit():raise Unavailable('ID de jugador invalido')
   if not metrics or any(not re.fullmatch('[a-z][a-z0-9_]*',m) for m in metrics):raise Unavailable('Metricas invalidas')
-  ctx=self.context(competition);scope=self.scope(ctx,edition,phase)
+  return self.prepare_player_query(competition,edition,phase)(player_id,metrics)
+
+ def prepare_player_query(self, competition, edition, phase='TOURNAMENT'):
+  from functools import partial
+
+  ctx = self.context(competition)
+  scope = self.scope(ctx, edition, phase)
+  return partial(self._player_report, ctx, scope)
+
+ def _player_report(self, ctx, scope, player_id, metrics):
   rows, source = self._player_request(ctx, scope, str(player_id), metrics)
   result=self.pack(ctx,{**scope,'playerId':str(player_id),'metricas':metrics},rows,[source],'estadisticas_jugador_por_equipo_sin_sumar')
   result['paginacion_agotada']=None

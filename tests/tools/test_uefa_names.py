@@ -139,9 +139,14 @@ def test_multi_metric_query_merges_batches_and_keeps_exact_provenance(selection)
                 row['fuente_estadisticas'] = {'url': 'https://compstats.uefa.com/fixture',
                                              'consultado_utc': '2026-11-20'}
             self.batches = []
+            self.preparations = []
 
         def definitions(self, competition):
             return {'definiciones': [{'name': name, 'actors': ['PLAYER']} for name in UEFA_NAMES]}
+
+        def prepare_player_query(self, competition, edition, phase):
+            self.preparations.append((competition, edition, phase))
+            return lambda player_id, metrics: self.player(competition, edition, player_id, metrics, phase)
 
         def player(self, competition, edition, player_id, metrics, phase):
             self.batches.append((competition, edition, player_id, metrics, phase))
@@ -170,6 +175,7 @@ def test_multi_metric_query_merges_batches_and_keeps_exact_provenance(selection)
     assert all('equipo resuelto' in batch['reason']
                for batch in result.data['standard_query']['failed_batches'] if batch not in isolated)
     assert tool.client.calls[0][3] == ['goals']
+    assert tool.client.preparations == [('champions', 2024, 'TOURNAMENT')]
     assert all(1 <= len(batch[3]) <= 8 and batch[4] == 'TOURNAMENT' for batch in tool.client.batches)
     row = add_standard_statistics(result.data)['registros'][0]
     assert row['standard_statistics']['goals']['value'] == 0
