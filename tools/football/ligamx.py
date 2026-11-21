@@ -12,6 +12,7 @@ TOURNAMENTS = {
     ('ligamx', 2026, 'clausura'): 'Liga MX - Clausura 2026',
     ('saudi', '2025-2026', 'provider_edition'): 'Liga Saudí 2025/2026',
     ('afcon', 2025, 'provider_edition'): 'Copa África 2025',
+    ('gold_cup', 2025, 'provider_edition'): 'Copa Oro 2025',
 }
 DEFAULT_TOURNAMENT = ('ligamx', 2025, 'apertura')
 
@@ -38,7 +39,7 @@ RANKINGS = {
 }
 def ranking_urls(tournament):
     competition, year, phase = tournament
-    slug = {'saudi': 'arabia_saudi', 'afcon': 'copa_africa'}.get(competition, f'mexico_{phase}')
+    slug = {'saudi': 'arabia_saudi', 'afcon': 'copa_africa', 'gold_cup': 'copa_oro_concacaf'}.get(competition, f'mexico_{phase}')
     edition = str(year).replace('-', '_')
     base = f'https://as.com/resultados/futbol/{slug}/{edition}/ranking/jugadores/'
     return {metric: base + slug + '/' for metric, slug in RANKINGS.items()}
@@ -181,7 +182,7 @@ class ASCompetition(LigaMX):
         'required': [*LigaMX.input_schema['required'], 'competition'],
         'properties': {
             **{key: value for key, value in LigaMX.input_schema['properties'].items() if key != 'phase'},
-            'competition': {'enum': ['saudi', 'afcon']},
+            'competition': {'enum': ['saudi', 'afcon', 'gold_cup']},
             'season': {'enum': [2025, '2025-2026']},
         },
     }
