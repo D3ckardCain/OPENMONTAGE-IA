@@ -179,6 +179,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
 @pytest.mark.parametrize(('metric', 'title', 'label'), [
     ('duels_won', 'Duels won', 'Duelos ganados'),
     ('aerial_duels_won', 'Aerial duels won', 'Duelos aéreos ganados'),
+    ('shots', 'Shots', 'Tiros'),
+    ('shots_on_target', 'Shots on target', 'Tiros a puerta'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
     ('red_cards', 'Red cards', 'Tarjetas rojas'),

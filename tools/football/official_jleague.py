@@ -18,7 +18,8 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'duels_won': ('duels_won', 'Duels won'), 'clean_sheets': ('clean_sheet', 'Clean sheets'),
            'yellow_cards': ('yellow_count', 'Yellow cards'), 'red_cards': ('red_count', 'Red cards'),
            'interceptions': ('intercept_count', 'Interceptions'),
-           'aerial_duels_won': ('air_battle_win_count', 'Aerial duels won')}
+           'aerial_duels_won': ('air_battle_win_count', 'Aerial duels won'),
+           'shots': ('shoot', 'Shots'), 'shots_on_target': ('shoot_on_target', 'Shots on target')}
 
 
 def ranking_url(season, metric, competition='j1'):
@@ -167,7 +168,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.12.0'
+    version = '0.13.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
