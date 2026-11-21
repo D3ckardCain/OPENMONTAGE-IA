@@ -203,3 +203,5 @@ J.League admite `crosses_attempted` y `chances_created` en J1, J2, J3 y Copa Lev
 J.League incorpora distancia recorrida en kilómetros (`distance_covered`) y sprints (`sprints`). Los rankings de 2025 devuelven filas en J1. En J2, J3 y Copa Levain las páginas consultadas mostraron el título sin cifras para 2025. Se conserva la ausencia de datos. La definición oficial de sprint usa un umbral de 25 km/h a partir de 2023, frente a 24 km/h hasta 2022, en ambos casos durante al menos un segundo.
 
 J.League admite `saves` y `save_percentage` en J1, J2, J3 y Copa Levain. La precisión de paradas conserva el porcentaje publicado y la definición de la fuente. El ranking de paradas no desglosa penaltis detenidos.
+
+J.League admite penaltis marcados (`penalty_goals`), faltas cometidas (`fouls_committed`) y faltas recibidas (`fouls_suffered`) en J1, J2, J3 y Copa Levain. Cada ranking conserva su procedencia. Los goles de penalti no se añaden al total de goles porque ya forman parte de ese total.
