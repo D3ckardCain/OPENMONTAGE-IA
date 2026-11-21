@@ -4,10 +4,10 @@ import json
 import math
 import re
 from pathlib import Path
-from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, profile_url, ranking_url
+from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, profile_url, ranking_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
-_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','aerial_duels_won':'Duelos aéreos ganados','interceptions':'Intercepciones','clean_sheets':'Porterías a cero','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','passes_attempted':'Pases intentados','crosses_attempted':'Centros intentados','chances_created':'Ocasiones creadas','distance_covered':'Distancia recorrida','sprints':'Sprints','pass_accuracy':'Precisión de pase','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
+_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','aerial_duels_won':'Duelos aéreos ganados','interceptions':'Intercepciones','clean_sheets':'Porterías a cero','saves':'Paradas','save_percentage':'Porcentaje de paradas','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','passes_attempted':'Pases intentados','crosses_attempted':'Centros intentados','chances_created':'Ocasiones creadas','distance_covered':'Distancia recorrida','sprints':'Sprints','pass_accuracy':'Precisión de pase','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
 
 
 def uefa_report(report, selected=False):
@@ -95,7 +95,8 @@ def render(report, metrics=None):
             if fact.get('entity_id')!=entity or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
             if source == 'J.League':
                 metric = fact['metric']
-                valid_value = 0 <= value <= 100 if metric == 'pass_accuracy' else value >= 0 and (metric == 'distance_covered' or type(value) is int)
+                unit = JLEAGUE_UNITS.get(metric)
+                valid_value = 0 <= value <= 100 if unit == '%' else value >= 0 and (unit == 'km' or type(value) is int)
                 if metric not in JLEAGUE_METRICS or not valid_value:
                     raise ValueError('Cifra J.League inválida')
                 allowed = {ranking_url(scope['season'], metric, scope['competition'])}
@@ -136,7 +137,7 @@ def render(report, metrics=None):
         for n,fact in enumerate(facts):
             y=490+n*105
             parts.append(text(x+26,y,_LABELS.get(fact['metric'],fact['metric']),22,'#8b949e'))
-            suffix = {'pass_accuracy': '%', 'distance_covered': ' km'}.get(fact['metric'], '') if source == 'J.League' else ''
+            suffix = {'%': '%', 'km': ' km'}.get(JLEAGUE_UNITS.get(fact['metric']), '') if source == 'J.League' else ''
             value = f"{fact['value']}{suffix}"
             parts.append(text(x+26,y+49,value,42))
     parts += [text(54,1232,'Fuente: '+source+' · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
