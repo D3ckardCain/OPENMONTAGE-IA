@@ -210,6 +210,10 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('through_balls', 'Through balls', 'Pases filtrados'),
     ('through_ball_success_rate', 'Through ball success rate', 'Éxito de pase filtrado'),
     ('shot_conversion_rate', 'Shot accuracy', 'Conversión de tiro'),
+    ('shots_per_game', 'Shots per game', 'Tiros por partido'),
+    ('passes_per_game', 'Passes per game', 'Pases por partido'),
+    ('chances_created_per_game', 'Chances created per game', 'Ocasiones por partido'),
+    ('saves_per_game', 'Saves per game', 'Paradas por partido'),
     ('touches', 'Ball touches', 'Toques de balón'),
     ('recoveries', 'Ball recoveries', 'Recuperaciones'),
     ('expected_goals', 'Expected Goals', 'Goles esperados (xG)'),
@@ -248,6 +252,8 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
         with pytest.raises(ValueError):
             jleague.parse_ranking(page.replace('21.5', '121.5'), 2025, metric)
     assert label in render(result.data)
+    if metric.endswith('_per_game'):
+        assert result.data['records'][0]['facts'][0]['unit'] == 'per_match'
     if metric == 'distance_covered':
         assert result.data['records'][0]['facts'][0]['unit'] == 'km'
         assert '21.5 km' in render(result.data)

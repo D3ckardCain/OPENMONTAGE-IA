@@ -225,3 +225,5 @@ J.League incorpora el porcentaje de regates exitosos (`dribble_success_rate`) y 
 J.League incorpora los porcentajes de éxito de centro, entrada y duelo aéreo como métricas adicionales del proveedor. El informe conserva la definición de cada tasa. Los porcentajes publicados no acreditan por sí solos los conteos exactos de acciones completadas.
 
 J.League incorpora pases filtrados, su porcentaje de éxito y conversión de tiro como cifras adicionales del proveedor. El ranking de conversión usa goles divididos entre tiros según la definición oficial. Conserva esta definición y la fuente en cada cifra.
+
+J.League admite los promedios oficiales por partido de tiros, pases, ocasiones creadas y paradas en J1, J2, J3 y Copa Levain. El expediente conserva el valor publicado y la unidad `per_match`. Estas cifras se guardan junto a los totales y conservan su propia fuente.

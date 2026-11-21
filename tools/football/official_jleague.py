@@ -41,7 +41,11 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'aerial_duel_success_rate': ('air_battle_win_rate', 'Aerial duel success rate'),
            'through_balls': ('through_pass_count', 'Through balls'),
            'through_ball_success_rate': ('through_pass_rate', 'Through ball success rate'),
-           'shot_conversion_rate': ('shoot_rate', 'Shot accuracy')}
+           'shot_conversion_rate': ('shoot_rate', 'Shot accuracy'),
+           'shots_per_game': ('shoot_per_game', 'Shots per game'),
+           'passes_per_game': ('pass_count_per_game', 'Passes per game'),
+           'chances_created_per_game': ('chance_create_per_game', 'Chances created per game'),
+           'saves_per_game': ('save_count_per_game', 'Saves per game')}
 METRIC_DEFINITIONS = {
     'through_balls': 'Pases hacia el espacio detrás de la última línea defensiva para la carrera de un compañero.',
     'through_ball_success_rate': 'Porcentaje de pases filtrados completados según J.League.',
@@ -71,8 +75,10 @@ METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
                 'expected_goals': 'xG', 'expected_goals_excl_pk': 'xG', 'top_speed': 'km/h',
                 'dribble_success_rate': '%', 'long_pass_accuracy': '%', 'cross_success_rate': '%',
                 'tackle_success_rate': '%', 'aerial_duel_success_rate': '%',
-                'through_ball_success_rate': '%', 'shot_conversion_rate': '%'}
-DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG'})
+                'through_ball_success_rate': '%', 'shot_conversion_rate': '%',
+                'shots_per_game': 'per_match', 'passes_per_game': 'per_match',
+                'chances_created_per_game': 'per_match', 'saves_per_game': 'per_match'}
+DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG', 'per_match'})
 DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'distance_covered': ' km'}
 DISPLAY_SUFFIXES.update({metric: ' %' for metric, unit in METRIC_UNITS.items() if unit == '%'})
 
@@ -316,7 +322,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.29.0'
+    version = '0.30.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
