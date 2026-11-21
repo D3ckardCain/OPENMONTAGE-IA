@@ -175,3 +175,5 @@ Las consultas deportivas dividen el trabajo en las unidades que ofrece la fuente
 En UEFA, la acción `player` también divide una lista de métricas cuando el agente ya conoce el ID oficial. Conserva una fila por equipo y la procedencia por métrica. `batch_query` indica si el informe quedó parcial, qué lotes fallaron y cuántas subdivisiones se hicieron.
 
 En UEFA, la acción `ranking` también consulta por lotes. La primera métrica solicitada fija las filas y el orden oficial. Las demás cifras se incorporan por ID de entidad y equipo en el mismo alcance. Cada cifra conserva la procedencia de su consulta y los lotes no recuperados quedan registrados en `batch_query`.
+
+En UEFA, `player_history` también divide las métricas en lotes y une los datos de la competición solicitada por temporada y equipo. Cada cifra conserva el origen de su lote. `batch_query` indica si quedaron datos pendientes. La fuente histórica no acredita la fase ni un total de carrera.

@@ -114,3 +114,43 @@ def test_ranking_batches_preserve_order_and_join_by_player_and_team(monkeypatch)
  assert first['estadisticas'] == {'goals': 8, 'assists': 0, 'saves': None}
  assert first['fuente_por_metrica']['assists'] == result.data['consultas'][1]
  assert result.data['batch_query']['status'] == 'partial'
+
+
+def test_player_history_batches_keep_season_and_team_separate(monkeypatch):
+ from types import SimpleNamespace
+ from tools.football.uefa import UEFAHTTPError
+ from tools.football.uefa_live import Reply
+
+ tool = OfficialUEFA()
+ calls = []
+ context = SimpleNamespace(competition='champions', competition_id='1',
+                           stats_url='https://compstats.uefa.com/')
+ monkeypatch.setattr(tool.client, 'context', lambda competition: context)
+
+ def api(ctx, base, endpoint, params):
+  metric = params['stats']
+  calls.append(metric)
+  if ',' in metric or metric == 'saves':
+   raise UEFAHTTPError(500)
+  rows = [('1', '2024', '10', '0'), ('1', '2024', '20', '2'),
+          ('1', '2023', '10', '3'), ('99', '2024', '10', '99')]
+  if metric == 'assists':
+   rows = [rows[2], rows[0], rows[3]]
+  data = {'playerId': '100', 'competitionSeasonStatistics': [
+      {'competitionId': competition, 'seasonYear': year, 'teamId': team,
+       'statistics': [{'name': metric, 'value': value}]}
+      for competition, year, team, value in rows]}
+  return Reply(data, base + endpoint + '?stats=' + metric, '2026-11-20')
+
+ monkeypatch.setattr(tool.client, 'api', api)
+ result = tool.execute({'action': 'player_history', 'competition': 'champions',
+                        'player_id': '100', 'metrics': ['goals', 'assists', 'saves']})
+ assert result.success, result.error
+ assert calls == ['goals,assists,saves', 'goals', 'assists,saves', 'assists', 'saves']
+ rows = result.data['desglose_por_temporada_equipo']
+ assert [(r['seasonYear'], r['teamId']) for r in rows] == [('2024', '10'), ('2024', '20'), ('2023', '10')]
+ assert [item['value'] for item in rows[0]['statistics']] == ['0', '0']
+ assert rows[1]['metricas_no_disponibles'] == ['assists', 'saves']
+ assert rows[0]['fuente_por_metrica']['assists'] == result.data['consultas'][1]
+ assert result.data['batch_query']['failed_batches'][0]['metrics'] == ['saves']
+ assert result.data['incluye_previas'] is None

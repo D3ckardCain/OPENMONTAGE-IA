@@ -372,6 +372,9 @@ class UEFA:
   if not str(player_id).isdigit():raise Unavailable('ID de jugador invalido')
   if not metrics or any(not re.fullmatch('[a-z][a-z0-9_]*',m) for m in metrics):raise Unavailable('Metricas invalidas')
   ctx=self.context(competition)
+  return self._player_history_request(ctx, player_id, metrics)
+
+ def _player_history_request(self, ctx, player_id, metrics):
   r=self.api(ctx,ctx.stats_url,'v2/player-statistics/all-time',{'playerId':player_id,'stats':','.join(metrics)})
   if not isinstance(r.data,dict) or str(r.data.get('playerId'))!=str(player_id):raise Unavailable('Historico no corresponde al jugador')
   raw=r.data.get('competitionSeasonStatistics')
@@ -384,7 +387,53 @@ class UEFA:
    ident=(str(row.get('seasonYear')),str(row.get('teamId')))
    if ident in seen:raise Unavailable('Historico de jugador duplicado')
    seen.add(ident);rows.append(row)
-  return dict(fuente='UEFA',competicion=competition,playerId=str(player_id),desglose_por_temporada_equipo=rows,url=r.url,consultado_utc=r.retrieved_at,cobertura_completa_de_carrera=False,incluye_previas=None,advertencia='Servicio por edicion sin fase verificada. No sumar como total de carrera ni interpretar filas ausentes como cero.')
+  return dict(fuente='UEFA',competicion=ctx.competition,playerId=str(player_id),desglose_por_temporada_equipo=rows,url=r.url,consultado_utc=r.retrieved_at,cobertura_completa_de_carrera=False,incluye_previas=None,advertencia='Servicio por edicion sin fase verificada. No sumar como total de carrera ni interpretar filas ausentes como cero.')
+ def player_history_by_batches(self, competition, player_id, metrics):
+  from tools.football.uefa_batches import checked_statistics, metric_batches, split_rejected_batch
+
+  if not str(player_id).isdigit() or not metrics or len(set(metrics)) != len(metrics) or any(
+      not re.fullmatch('[a-z][a-z0-9_]*', metric) for metric in metrics):
+   raise Unavailable('ID o métricas de jugador inválidos')
+  ctx = self.context(competition)
+  pending = metric_batches(metrics)
+  rows, sources, failures = {}, [], []
+  report = None
+  splits = 0
+  while pending:
+   batch = pending.popleft()
+   try:
+    detail = self._player_history_request(ctx, str(player_id), batch)
+    origin = {'url':detail['url'], 'consultado_utc':detail['consultado_utc']}
+    verified = {}
+    for row in detail['desglose_por_temporada_equipo']:
+     identity = str(row.get('seasonYear')), str(row.get('teamId'))
+     if not all(value.isdigit() for value in identity) or identity in verified:
+      raise Unavailable('UEFA devolvió una temporada o equipo ausente o duplicado')
+     verified[identity] = (row, checked_statistics(row['statistics'], batch))
+   except (ValueError, OSError, KeyError, TypeError) as exc:
+    if split_rejected_batch(pending, batch, exc):
+     splits += 1
+     continue
+    failures.append({'metrics':batch, 'reason':str(exc)})
+    continue
+   if report is None:
+    report = detail
+   sources.append(origin)
+   for identity, (row, stats) in verified.items():
+    merged = rows.setdefault(identity, dict(row, statistics=[], fuente_por_metrica={}))
+    merged['statistics'].extend(stats.values())
+    merged['fuente_por_metrica'].update({metric:origin for metric,item in stats.items()
+                                        if item['value'] is not None})
+  if report is None:
+   raise Unavailable('UEFA no devolvió ningún lote histórico verificable: ' + failures[0]['reason'])
+  records = list(rows.values())
+  for row in records:
+   row['metricas_no_disponibles'] = [metric for metric in metrics if metric not in row['fuente_por_metrica']]
+  partial = failures or not records or any(row['metricas_no_disponibles'] for row in records)
+  return dict(report, desglose_por_temporada_equipo=records, consultas=sources,
+              batch_query={'status':'partial' if partial else 'complete',
+                           'failed_batches':failures, 'split_batches':splits})
+
  def teams(self,competition,edition,phase='ALL'):
   ctx=self.context(competition);scope=self.scope(ctx,edition,phase)
   def identity(row):
