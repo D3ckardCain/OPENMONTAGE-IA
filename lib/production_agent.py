@@ -242,7 +242,7 @@ class LocalAgent:
             self.event('tool','Ejecutando '+tool.name)
             result=tool.execute(inputs)
             data=result.data
-            if result.success and tool.name in ('official_uefa_live', 'official_fifa_live', 'official_jleague_live', 'official_mls_live', 'official_bundesliga_live', 'official_premier_live'):
+            if result.success and tool.name in ('official_uefa_live', 'official_fifa_live', 'official_jleague_live', 'official_mls_live', 'official_bundesliga_live', 'official_premier_live', 'brasileirao_player_stats'):
                 from lib.football_statistics import add_standard_statistics
                 data=add_standard_statistics(data)
             return {'success':result.success,'data':data,'error':result.error,'cost_usd':result.cost_usd,
