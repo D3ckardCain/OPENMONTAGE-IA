@@ -5,6 +5,7 @@ import math
 import re
 from pathlib import Path
 from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, expanded_ranking_url, profile_url, ranking_url, season_label
+from tools.football.ligamx import SCOPE as MX_SCOPE, URLS as MX_URLS
 from tools.football.eredivisie import SCOPE as VI_SCOPE, URLS as VI_URLS
 from tools.football.brasileirao import FIELDS as CG_FIELDS, COMPETITIONS as CG_COMPETITIONS, competition_scope as cg_scope, valid_source as cg_source
 from tools.football.official_bundesliga import COMPETITIONS as DFL_COMPETITIONS, ALL_METRICS as DFL_METRICS, SEASON as DFL_SEASON, page_url as dfl_url, valid_value as dfl_value
@@ -52,7 +53,7 @@ def render(report, metrics=None):
     if report.get('fuente')=='UEFA':report=uefa_report(report, selected=metrics is not None)
     source=report.get('source')
     allow_partial = metrics is not None and source in ('FIFA', 'UEFA', 'J.League')
-    if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS','DFL','Premier League','Classificação Geral','Voetbal International') or (not allow_partial and report.get('ready_for_script') is not True):
+    if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS','DFL','Premier League','Classificação Geral','Voetbal International','AS') or (not allow_partial and report.get('ready_for_script') is not True):
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
@@ -66,12 +67,13 @@ def render(report, metrics=None):
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
     if source == 'MLS' and scope != MLS_SCOPE:
         raise ValueError('Alcance MLS no admitido')
-    if source == 'Voetbal International':
-        if scope != VI_SCOPE:
-            raise ValueError('Alcance de Eredivisie inválido')
+    if source in ('Voetbal International', 'AS'):
+        ranking_scope, ranking_urls = (VI_SCOPE, VI_URLS) if source == 'Voetbal International' else (MX_SCOPE, MX_URLS)
+        if scope != ranking_scope:
+            raise ValueError('Alcance del ranking inválido')
         if metrics is None:
             shared = set.intersection(*(set(record.get('statistics', {})) for record in records))
-            metrics = [metric for metric in VI_URLS if metric in shared]
+            metrics = [metric for metric in ranking_urls if metric in shared]
     if source == 'Classificação Geral':
         if scope.get('competition') not in CG_COMPETITIONS or scope != cg_scope(scope['competition']):
             raise ValueError('Alcance de Classificação Geral inválido')
@@ -102,7 +104,7 @@ def render(report, metrics=None):
         identity=record.get('identity',{})
         entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
         if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
-        if kind=='collectible_card' or source in ('J.League','UEFA','MLS','DFL','Premier League','Classificação Geral','Voetbal International'):facts=record.get('facts',[])
+        if kind=='collectible_card' or source in ('J.League','UEFA','MLS','DFL','Premier League','Classificação Geral','Voetbal International','AS'):facts=record.get('facts',[])
         elif source=='MLB':
             origin=record.get('statistics_source',{})
             facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
@@ -140,9 +142,9 @@ def render(report, metrics=None):
                     allowed.add(expanded_url)
                 if url not in allowed:
                     raise ValueError('Cifra o fuente J.League inválida')
-            elif source == 'Voetbal International':
-                if not url or VI_URLS.get(fact['metric']) != url or type(value) is not int or value < 0:
-                    raise ValueError('Cifra o fuente de Eredivisie inválida')
+            elif source in ('Voetbal International', 'AS'):
+                if not url or ranking_urls.get(fact['metric']) != url or type(value) is not int or value < 0:
+                    raise ValueError('Cifra o fuente del ranking inválida')
             elif source == 'Classificação Geral':
                 if (fact['metric'] not in CG_FIELDS or value < 0 or not isinstance(url, str)
                         or not cg_source(url, scope['competition'])):
@@ -176,7 +178,7 @@ def render(report, metrics=None):
            '<metadata>'+escape(json.dumps(evidence,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else dfl_label+' · 2024/25' if source=='DFL' else 'Premier League · 2024/25 · Hasta la jornada 29' if source=='Premier League' else CG_COMPETITIONS[scope['competition']][1] if source=='Classificação Geral' else 'Eredivisie · 2025/26' if source=='Voetbal International' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else dfl_label+' · 2024/25' if source=='DFL' else 'Premier League · 2024/25 · Hasta la jornada 29' if source=='Premier League' else CG_COMPETITIONS[scope['competition']][1] if source=='Classificação Geral' else 'Eredivisie · 2025/26' if source=='Voetbal International' else 'Liga MX · Apertura 2025' if source=='AS' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)
