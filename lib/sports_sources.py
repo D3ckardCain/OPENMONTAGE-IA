@@ -28,7 +28,7 @@ _ROWS = [
  ('afc','football','asia','AFC','https://www.the-afc.com/',''),
  ('caf','football','africa','CAF','https://www.cafonline.com/',''),
  ('ofc','football','oceania','OFC','https://www.oceaniafootball.com/',''),
- ('premier','football','europe','Premier League','https://www.premierleague.com/',''),
+ ('premier','football','europe','Premier League','https://www.premierleague.com/','official_premier_live'),
  ('laliga','football','europe','LaLiga','https://www.laliga.com/',''),
  ('bundesliga','football','europe','Bundesliga','https://www.bundesliga.com/','official_bundesliga_live'),
  ('bundesliga_2','football','europe','2. Bundesliga','https://www.bundesliga.com/en/2bundesliga','official_bundesliga_live'),
@@ -74,6 +74,7 @@ def catalog(sport=None, region=None):
         'metric_groups': {group: list(metrics) for group, metrics in FOOTBALL_METRIC_GROUPS.items()},
         'source_discovery': {
             'official_bundesliga_live': 'Consulta por nombre 19 rankings públicos de 2024/25 en ambas divisiones alemanas. Tres rankings de diez entradas y 16 vistas de cinco.',
+            'official_premier_live': 'Líderes de 20 métricas hasta la jornada 29 de 2024/25. Busca el nombre publicado y añade el club entre paréntesis si hay ambigüedad.',
             'official_mls_live': 'Consulta por nombre las cifras de los goleadores por club de la temporada regular 2025. El catálogo de jugadores completo queda pendiente.',
             'official_uefa_live': 'Usa metrics=standard en consultas por nombre para solicitar las equivalencias comunes. Consulta definitions para detectar estadísticas oficiales adicionales de PLAYER.',
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',

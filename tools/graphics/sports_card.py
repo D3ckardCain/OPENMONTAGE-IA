@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, expanded_ranking_url, profile_url, ranking_url, season_label
 from tools.football.official_bundesliga import COMPETITIONS as DFL_COMPETITIONS, ALL_METRICS as DFL_METRICS, SEASON as DFL_SEASON, page_url as dfl_url, valid_value as dfl_value
+from tools.football.official_premier import METRICS as PL_METRICS, SCOPE as PL_SCOPE, URL as PL_URL, UNITS as PL_UNITS
 from tools.football.official_mls import METRICS as MLS_METRICS, SCOPE as MLS_SCOPE, SOURCE_URL as MLS_SOURCE_URL
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
@@ -49,7 +50,7 @@ def render(report, metrics=None):
     if report.get('fuente')=='UEFA':report=uefa_report(report, selected=metrics is not None)
     source=report.get('source')
     allow_partial = metrics is not None and source in ('FIFA', 'UEFA', 'J.League')
-    if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS','DFL') or (not allow_partial and report.get('ready_for_script') is not True):
+    if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS','DFL','Premier League') or (not allow_partial and report.get('ready_for_script') is not True):
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])
     count={'collectible_card':1,'player_comparison':2}.get(kind)
@@ -63,6 +64,12 @@ def render(report, metrics=None):
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
     if source == 'MLS' and scope != MLS_SCOPE:
         raise ValueError('Alcance MLS no admitido')
+    if source == 'Premier League':
+        if scope != PL_SCOPE:
+            raise ValueError('Alcance de Premier League inválido')
+        if metrics is None:
+            shared = set.intersection(*(set(record.get('statistics', {})) for record in records))
+            metrics = [metric for metric in PL_METRICS if metric in shared][:6]
     if source == 'DFL':
         if (scope.get('competition') not in DFL_COMPETITIONS or scope.get('season') != DFL_SEASON
                 or scope.get('phase') != 'regular_season' or scope.get('category') != 'men'):
@@ -81,7 +88,7 @@ def render(report, metrics=None):
         identity=record.get('identity',{})
         entity=identity.get('fdh_player_id') if source=='FIFA' else identity.get('entity_id')
         if not identity.get('name') or not entity: raise ValueError('Falta identidad oficial')
-        if kind=='collectible_card' or source in ('J.League','UEFA','MLS','DFL'):facts=record.get('facts',[])
+        if kind=='collectible_card' or source in ('J.League','UEFA','MLS','DFL','Premier League'):facts=record.get('facts',[])
         elif source=='MLB':
             origin=record.get('statistics_source',{})
             facts=[{'metric':k,'value':v,'entity_id':record.get('entity_id'),'scope':scope,'source_url':origin.get('url'),'retrieved_at':origin.get('retrieved_at')} for k,v in record.get('statistics',{}).items()]
@@ -119,6 +126,9 @@ def render(report, metrics=None):
                     allowed.add(expanded_url)
                 if url not in allowed:
                     raise ValueError('Cifra o fuente J.League inválida')
+            elif source == 'Premier League':
+                if fact['metric'] not in PL_METRICS or url != PL_URL or value < 0:
+                    raise ValueError('Cifra o fuente de Premier League inválida')
             elif source == 'DFL':
                 metric = fact['metric']
                 if (metric not in DFL_METRICS or not dfl_value(metric, value)
@@ -145,7 +155,7 @@ def render(report, metrics=None):
            '<metadata>'+escape(json.dumps(evidence,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else dfl_label+' · 2024/25' if source=='DFL' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else dfl_label+' · 2024/25' if source=='DFL' else 'Premier League · 2024/25 · Hasta la jornada 29' if source=='Premier League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)
@@ -165,6 +175,8 @@ def render(report, metrics=None):
             suffix = {'%': '%', 'km': ' km', 'km/h': ' km/h'}.get(JLEAGUE_UNITS.get(fact['metric']), '') if source == 'J.League' else ''
             if source == 'DFL':
                 suffix = {'%': '%', 'km': ' km', 'km/h': ' km/h'}.get(fact.get('unit'), '')
+            if source == 'Premier League':
+                suffix = {'%': '%', 'km': ' km', 'km/h': ' km/h'}.get(PL_UNITS.get(fact['metric']), '')
             value = f"{fact['value']}{suffix}"
             parts.append(text(x+26,y+49,value,42))
     parts += [text(54,1232,'Fuente: '+source+' · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
