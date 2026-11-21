@@ -21,7 +21,8 @@ def test_premier_desk_preserves_matchweek_and_source(monkeypatch):
 
 
 @pytest.mark.parametrize('competition,season', [('euro', 2024), ('champions', 2025),
-                                               ('europa', 2025), ('conference', 2025)])
+                                               ('europa', 2025), ('conference', 2025),
+                                               ('women_champions', 2025)])
 def test_uefa_desk_uses_tournament_phase_and_source_batches(monkeypatch, competition, season):
     from lib.world_cup_edition_desk import compare_edition
     from tools.football.official_uefa import OfficialUEFA

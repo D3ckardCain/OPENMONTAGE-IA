@@ -49,6 +49,8 @@ STANDALONE_EDITIONS = {
     ('champions', 2025, 'TOURNAMENT'): ('Champions League 2024/25 · torneo', OfficialUEFA),
     ('europa', 2025, 'TOURNAMENT'): ('Europa League 2024/25 · torneo', OfficialUEFA),
     ('conference', 2025, 'TOURNAMENT'): ('Conference League 2024/25 · torneo', OfficialUEFA),
+    ('women_champions', 2025, 'TOURNAMENT'):
+        ('Champions femenina 2024/25 · torneo', OfficialUEFA),
     ('fifa_world_cup', 2022, 'season_aggregate_as_published'):
         ('FIFA Qatar 2022 · agregado publicado (fase sin acreditar)', OfficialFIFA),
 }
@@ -56,7 +58,8 @@ STANDALONE_EDITIONS.update({
     (competition, 2025, phase): (f'{label} 2025', OfficialJLeague)
     for competition, (label, phase) in JLEAGUE_COMPETITIONS.items()
 })
-NAME_ONLY = {'bundesliga', 'bundesliga_2', 'euro', 'champions', 'europa', 'conference', *JLEAGUE_COMPETITIONS}
+NAME_ONLY = {'bundesliga', 'bundesliga_2', 'euro', 'champions', 'europa', 'conference',
+             'women_champions', *JLEAGUE_COMPETITIONS}
 for key, (label, _) in STANDALONE_EDITIONS.items():
     EDITIONS[':'.join(map(str, key))] = (key, label)
 
