@@ -287,3 +287,63 @@ function renderFootballResult(report,box){
  const raw=document.createElement('details');raw.append(node('summary','Ver datos originales completos'),node('pre',JSON.stringify(data,null,2)));box.append(raw);
 }
 $('#football-form').onsubmit=async event=>{event.preventDefault();const queryId=++footballQueryId;const selectedAction=$('#football-action').value,selectedCompetition=$('#football-competition').value;if(selectedAction==='definitions')footballDefinitions=null;const button=$('#football-query'),box=$('#football-result');box.replaceChildren(node('p','Consultando fuente oficial; no se muestran resultados anteriores.'));button.disabled=true;try{const extra=JSON.parse($('#football-parameters').value.trim()||'{}');if(!extra||Array.isArray(extra)||typeof extra!=='object'||'action'in extra||'competition'in extra)throw Error('Indica solo parámetros adicionales como objeto JSON.');const typed=footballTypedParameters();if(Object.keys(extra).some(field=>field in typed))throw Error('No repitas el mismo campo en el formulario y en JSON.');const report=await api('football/query',{...extra,...typed,action:$('#football-action').value,competition:$('#football-competition').value});if(queryId!==footballQueryId)return;if(report.success&&selectedAction==='definitions'&&Array.isArray(report.data?.definiciones))footballDefinitions={competition:selectedCompetition,items:report.data.definiciones.filter(item=>item&&typeof item.name==='string'&&/^[a-z][a-z0-9_]*$/.test(item.name)&&Array.isArray(item.actors)).map(item=>({name:item.name,actors:item.actors}))};renderFootballResult(report,box);}catch(error){if(queryId===footballQueryId)box.replaceChildren(node('p','Consulta no completada: '+error.message));}finally{button.disabled=false;}};
+
+const roundForm = $('#football-round-form');
+const roundResult = $('#football-round-result');
+const roundTeams = {'Argentina':'Argentina','Australia':'Australia','Belgium':'Bélgica','Brazil':'Brasil','Cameroon':'Camerún','Canada':'Canadá','Costa Rica':'Costa Rica','Croatia':'Croacia','Denmark':'Dinamarca','Ecuador':'Ecuador','England':'Inglaterra','France':'Francia','Germany':'Alemania','Ghana':'Ghana','Iran':'Irán','Japan':'Japón','Mexico':'México','Morocco':'Marruecos','Netherlands':'Países Bajos','Poland':'Polonia','Portugal':'Portugal','Qatar':'Qatar','Saudi Arabia':'Arabia Saudita','Senegal':'Senegal','Serbia':'Serbia','South Korea':'Corea del Sur','Spain':'España','Switzerland':'Suiza','Tunisia':'Túnez','Uruguay':'Uruguay','USA':'Estados Unidos','Wales':'Gales'};
+const orderedTeams = Object.entries(roundTeams).sort((a, b) => a[1].localeCompare(b[1], 'es'));
+for (const field of ['first_team', 'second_team']) {
+ for (const [id, label] of orderedTeams) roundForm.elements[field].add(new Option(label, id));
+}
+let roundPreviewUrl = null;
+function clearRoundResult(message) {
+ if (roundPreviewUrl) URL.revokeObjectURL(roundPreviewUrl);
+ roundPreviewUrl = null;
+ roundResult.replaceChildren(message ? node('p', message) : document.createTextNode(''));
+}
+let roundRequest = 0;
+roundForm.addEventListener('input', () => {
+ roundRequest++;
+ clearRoundResult('Consulta de nuevo para actualizar las cifras.');
+});
+roundForm.addEventListener('submit', async event => {
+ event.preventDefault();
+ const request = ++roundRequest;
+ const form = new FormData(roundForm);
+ const value = key => form.get(key).trim();
+ const players = ['first', 'second'].map(key => ({name: value(key + '_name'), team: value(key + '_team')}));
+ const button = roundForm.querySelector('button[type=submit]');
+ clearRoundResult('Consultando OpenFootball…');
+ button.disabled = true;
+ try {
+  const {report, preview_svg} = await api('football/round-goals', {round: value('round'), players});
+  if (request !== roundRequest) return;
+  clearRoundResult('');
+  for (const record of report.records) {
+   roundResult.append(node('p', record.identity.name + ' · ' + (roundTeams[record.team] || record.team) + ' · Goles: ' + record.statistics.goals));
+  }
+  for (const player of report.unresolved) {
+   roundResult.append(node('p', player.name + ' · Dato sin verificar en esta ronda'));
+  }
+  for (const query of report.queries) roundResult.append(link('Fuente: OpenFootball', query.url));
+  if (preview_svg) {
+   const preview = node('button', 'Seleccionar goles y ver postal');
+   preview.type = 'button';
+   preview.onclick = () => {
+    roundPreviewUrl = URL.createObjectURL(new Blob([preview_svg], {type:'image/svg+xml'}));
+    const image = document.createElement('img');
+    image.src = roundPreviewUrl;
+    image.alt = 'Postal de comparativa de goles';
+    image.className = 'football-round-preview';
+    const download = link('Descargar postal SVG', roundPreviewUrl);
+    download.download = 'qatar-2022-' + report.scope.round + '.svg';
+    preview.replaceWith(image, download);
+   };
+   roundResult.append(preview);
+  }
+ } catch (error) {
+  if (request === roundRequest) clearRoundResult(error.message);
+ } finally {
+  button.disabled = false;
+ }
+});

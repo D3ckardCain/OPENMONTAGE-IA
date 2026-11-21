@@ -4,3 +4,10 @@
 [data-pane=setup] p,[data-pane=setup] summary{overflow-wrap:anywhere}
 
 .football-table-wrap{max-width:100%;overflow:auto}.football-table-wrap table{border-collapse:collapse;min-width:100%;font-size:13px}.football-table-wrap th,.football-table-wrap td{border:1px solid #30363d;padding:9px;text-align:left;vertical-align:top;max-width:360px;overflow-wrap:anywhere}.football-table-wrap th{background:#21262d}
+
+.football-round-preview {
+  display: block;
+  width: min(100%, 380px);
+  height: auto;
+  margin-block: 1rem;
+}

@@ -151,6 +151,26 @@ def create_studio_router():
         from lib.football_research import query
         data=await body(request)
         return await asyncio.to_thread(lambda:invoke(query,data))
+    @router.post('/api/studio/football/round-goals')
+    async def football_round_goals(request: Request):
+        from jsonschema import ValidationError, validate
+        from lib.world_cup_rounds import PROPERTIES
+        from lib.world_cup_open_goals import compare
+        from tools.graphics.sports_card import render
+
+        data = await body(request)
+        try:
+            validate(data, {'type': 'object', 'properties': PROPERTIES,
+                            'required': ['round', 'players'], 'additionalProperties': False})
+        except ValidationError as exc:
+            raise HTTPException(400, exc.message) from exc
+        try:
+            report = await asyncio.to_thread(lambda: invoke(lambda: compare(**data)))
+        except OSError as exc:
+            raise HTTPException(502, 'No se pudo consultar OpenFootball') from exc
+        preview = invoke(render, report, ['goals']) if report['ready_for_script'] else None
+        return {'report': report, 'preview_svg': preview}
+
     @router.get('/api/studio/resources')
     def resources():return studio.resource_catalog()
     @router.get('/api/studio/integration-coverage')

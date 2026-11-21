@@ -299,3 +299,19 @@ def test_producer_can_consult_saved_translation_without_regeneration(isolated):
     assert state['translation']['saved_translation_available'] is True
     assert 'text' not in state['translation']
     assert not agent.ACTIVE
+
+
+def test_round_comparison_preview_requires_verified_pair(isolated, monkeypatch):
+    from lib import world_cup_open_goals
+
+    def compare(round, players):
+        assert round == 'final' and players[1]['team'] == 'France'
+        return {'ready_for_script': False, 'records': [], 'unresolved': players}
+
+    monkeypatch.setattr(world_cup_open_goals, 'compare', compare)
+    path = '/api/studio/football/round-goals'
+    players = [{'name': 'Messi', 'team': 'Argentina'}, {'name': 'Mbappé', 'team': 'France'}]
+    result = isolated.post(path, json={'round': 'final', 'players': players})
+    assert result.status_code == 200
+    assert result.json()['preview_svg'] is None
+    assert isolated.post(path, json={'round': 'qualifying', 'players': players}).status_code == 400
