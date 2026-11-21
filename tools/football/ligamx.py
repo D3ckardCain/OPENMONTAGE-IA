@@ -14,6 +14,7 @@ TOURNAMENTS = {
     ('afcon', 2025, 'provider_edition'): 'Copa África 2025',
     ('gold_cup', 2025, 'provider_edition'): 'Copa Oro 2025',
     ('euro_2024', 2024, 'final_tournament'): 'Eurocopa 2024',
+    ('euro_2024', 2024, 'qualifying'): 'Clasificación Eurocopa 2024',
     ('world_cup_2022', 2022, 'final_tournament'): 'Mundial Qatar 2022',
     ('copa_america', 2024, 'provider_edition'): 'Copa América 2024',
 }
@@ -43,6 +44,8 @@ RANKINGS = {
 def ranking_urls(tournament):
     competition, year, phase = tournament
     slug = {'saudi': 'arabia_saudi', 'afcon': 'copa_africa', 'gold_cup': 'copa_oro_concacaf', 'copa_america': 'copa_america', 'euro_2024': 'eurocopa', 'world_cup_2022': 'mundial'}.get(competition, f'mexico_{phase}')
+    if competition == 'euro_2024' and phase == 'qualifying':
+        slug = 'clasificacion_eurocopa'
     edition = str(year).replace('-', '_')
     base = f'https://as.com/resultados/futbol/{slug}/{edition}/ranking/jugadores/'
     return {metric: base + slug + '/' for metric, slug in RANKINGS.items()}
@@ -134,8 +137,11 @@ class LigaMX(BaseTool):
 
         year = inputs['season']
         competition = inputs.get('competition', 'ligamx')
-        phase = 'apertura' if year == 2025 else 'clausura'
-        tournament = (competition, year, inputs.get('phase', phase) if competition == 'ligamx' else 'final_tournament' if competition in ('euro_2024', 'world_cup_2022') else 'provider_edition')
+        if competition == 'ligamx':
+            phase = 'apertura' if year == 2025 else 'clausura'
+        else:
+            phase = 'final_tournament' if competition in ('euro_2024', 'world_cup_2022') else 'provider_edition'
+        tournament = (competition, year, inputs.get('phase', phase))
         if tournament not in TOURNAMENTS:
             return ToolResult(success=False, error='Edición no disponible en AS', cost_usd=0, from_cache=False)
         scope = tournament_scope(tournament)
@@ -185,6 +191,7 @@ class ASCompetition(LigaMX):
         'required': [*LigaMX.input_schema['required'], 'competition'],
         'properties': {
             **{key: value for key, value in LigaMX.input_schema['properties'].items() if key != 'phase'},
+            'phase': {'const': 'qualifying'},
             'competition': {'enum': ['saudi', 'afcon', 'gold_cup', 'copa_america', 'euro_2024', 'world_cup_2022']},
             'season': {'enum': [2022, 2024, 2025, '2025-2026']},
         },

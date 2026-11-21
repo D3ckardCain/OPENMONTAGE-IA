@@ -44,7 +44,7 @@ class OfficialUEFA(BaseTool):
   'competition':{'type':'string','enum':list(COMPETITIONS)},
   'names':{'type':'array','minItems':1,'maxItems':10,'items':{'type':'string','minLength':1,'maxLength':150}},
   'edition':{'type':'integer','minimum':1955},'entity':{'type':'string'},
-  'metrics':{'oneOf':[{'const':'standard'},{'type':'array','minItems':1,'uniqueItems':True,'items':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'}}]},
+  'metrics':{'oneOf':[{'enum':['standard','all']},{'type':'array','minItems':1,'uniqueItems':True,'items':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'}}]},
   'metric':{'type':'string','pattern':'^[a-z][a-z0-9_]*$'},
   'phase':{'type':'string','enum':['TOURNAMENT','QUALIFYING','ALL']},
   'team_id':{'type':'string','pattern':'^[0-9]+$'},'player_id':{'type':'string','pattern':'^[0-9]+$'},
@@ -63,19 +63,26 @@ class OfficialUEFA(BaseTool):
    kwargs={k:inputs[k] for k in allowed if k in inputs}
    selection=kwargs.get('metrics')
    standard=selection=='standard'
+   all_metrics=selection=='all'
    named=action in ('resolve_players','compare_players','collectible_card')
    player_ranking=action=='ranking' and kwargs.get('entity')=='player'
    if standard:
     if not named and not player_ranking and action not in ('player','player_history'):
      raise ValueError('El conjunto común se aplica a consultas de jugador')
     from lib.football_statistics import UEFA_NAMES
-   batched_names=named and (standard or isinstance(selection,list) and len(selection)>1)
+   if all_metrics and not named:
+    raise ValueError('La selección completa requiere nombres de jugadores')
+   batched_names=named and (standard or all_metrics or isinstance(selection,list) and len(selection)>1)
    if batched_names:
     supported, ranking_query, player_query=self.client.prepare_named_query(
      kwargs['competition'],kwargs['edition'],kwargs.get('phase','TOURNAMENT'))
     if standard:
      selection=[name for name in UEFA_NAMES if name in supported]
      if not selection:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
+     kwargs['metrics']=selection
+    elif all_metrics:
+     selection=sorted(supported)
+     if not selection:raise ValueError('La fuente UEFA no confirmó métricas de jugador')
      kwargs['metrics']=selection
     elif set(selection)-supported:
      raise ValueError('Métrica UEFA no definida para jugadores')

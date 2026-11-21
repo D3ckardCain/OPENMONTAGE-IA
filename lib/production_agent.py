@@ -31,8 +31,12 @@ def descriptor(name,description,properties=None,required=None):
     return {'type':'function','function':{'name':name,'description':description,'parameters':{
         'type':'object','additionalProperties':False,'properties':properties or {},'required':required or []}}}
 
+from lib.football_comparisons import REQUEST_PROPERTIES as FOOTBALL_COMPARISON_PROPERTIES
+
 TOOLS=[
  descriptor('sports_sources','Localiza fuentes oficiales por deporte y región para comparativas y tarjetas. No contiene estadísticas ni certifica conectores pendientes.',{'sport':{'enum':['football','boxing','baseball']},'region':{'enum':['world','europe','americas','asia','africa','arab','oceania']}}),
+ descriptor('football_comparison','Reúne todas las métricas publicadas de dos jugadores por fuente y edición. En modo player consulta las eliminatorias verificables en secciones aparte. Presenta los datos y espera la selección explícita del usuario antes de exportar.',FOOTBALL_COMPARISON_PROPERTIES,['scope','sources']),
+ descriptor('select_football_comparison_metrics','Valida la selección explícita del usuario y prepara los datos para sports_card_svg o sports_card_video.',{'comparison':{'type':'object'},'section':{'type':'integer','minimum':0},'metrics':{'type':'array','minItems':1,'maxItems':6,'uniqueItems':True,'items':{'type':'string'}}},['comparison','section','metrics']),
  descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
  descriptor('project_translation','Lee una traducción local guardada por fragmentos antes de repetirla. Conserva la obligación de revisar idioma y adaptación cultural; no genera ni aprueba el guion.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
@@ -145,6 +149,13 @@ class LocalAgent:
         if name=='sports_sources':
             from lib.sports_sources import catalog
             return catalog(**args)
+        if name=='football_comparison':
+            from lib.football_comparisons import collect
+            return collect(**args, execute=lambda connector, inputs: self.dispatch(
+                'execute_tool', {'name': connector, 'inputs': inputs}))
+        if name=='select_football_comparison_metrics':
+            from lib.football_comparisons import select
+            return select(**args)
         if name=='project_state':return studio.production_state(self.pid)
         if name=='reference_analysis':
             from lib.reference_analysis import read

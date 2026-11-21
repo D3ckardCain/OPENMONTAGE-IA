@@ -96,7 +96,9 @@ def catalog(sport=None, region=None):
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',
             'official_jleague_live': 'Usa metrics=all para consultar todos los rankings integrados; consulta tool_info para ver las métricas admitidas.',
         },
-        'instruction': ('Usa el mismo conjunto de métricas para todas las ligas, copas y torneos de fútbol. '
+        'instruction': ('Para comparar jugadores usa football_comparison y presenta todas las cifras antes de seleccionar la postal o el video. '
+                        'Usa competition para la competición sin eliminatorias y player para el historial por fases. '
+                        'Usa el mismo conjunto de métricas para todas las ligas, copas y torneos de fútbol. '
                         'Relaciona los nombres del proveedor con las métricas comunes solo si su definición coincide. '
                         'Conserva toda métrica adicional publicada en el expediente con su clave original y procedencia. '
                         'Aplica cada métrica comparable nueva al mismo catálogo común de todas las competiciones. '
