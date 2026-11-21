@@ -395,6 +395,38 @@ def test_euro_edition_can_preview_verified_metric(isolated, monkeypatch):
     assert '<svg' in preview.json()['preview_svg']
 
 
+def test_fifa_partial_metrics_allow_verified_goals_only(isolated, monkeypatch):
+    from lib import world_cup_edition_desk
+
+    scope = {'competition_id': '17', 'season_id': '255711',
+             'phase': 'season_aggregate_as_published'}
+    source = {'url': 'https://fdh-api.fifa.com/v1/stats/season/99/players.json',
+              'retrieved_at': '2026-11-21'}
+    rows = [{'entity_id': str(i), 'identity': {'fdh_player_id': str(i), 'name': name},
+             'statistics': {'Goals': {'value': i, 'source_flag': True, 'unit': None}},
+             'missing_metrics': ['Assists']}
+            for i, name in enumerate(('A', 'B'), 1)]
+    report = {'source': 'FIFA', 'type': 'player_comparison', 'scope': scope,
+              'queries': [source], 'records': rows, 'ready_for_script': False}
+    monkeypatch.setattr(world_cup_edition_desk, 'compare_edition',
+                        lambda players, edition: {'report': report, 'display_metrics': ['Goals'],
+                                                   'errors': []})
+    path = '/api/studio/football/round-goals'
+    response = isolated.post(path, json={'round': 'edition',
+        'edition': 'fifa_world_cup:2022:season_aggregate_as_published',
+        'players': [{'name': 'A'}, {'name': 'B'}]})
+    assert response.status_code == 200
+    token = response.json()['export_token']
+    assert token
+    preview = isolated.post(path + '/preview', json={'report': report, 'export_token': token,
+                                                      'metrics': ['Goals']})
+    assert preview.status_code == 200
+    assert '<svg' in preview.json()['preview_svg']
+    blocked = isolated.post(path + '/preview', json={'report': report, 'export_token': token,
+                                                      'metrics': ['Assists']})
+    assert blocked.status_code == 400
+
+
 def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     data = isolated.get('/api/studio/football/desk-editions').json()
     editions = {option['id']: option for option in data['editions']}

@@ -47,11 +47,12 @@ def requests(connector, inputs):
 
 
 def merge_batches(batches):
-    compatible = [report for report in batches if report.get('unresolved') == [] and len(report['records']) == 2]
+    compatible = [report for report in batches if len(report['records']) == 2
+                  and len({row['entity_id'] for row in report['records']}) == 2]
     if not compatible:
         return None
     merged = deepcopy(compatible[0])
-    merged['queries'], merged['failed_metrics'] = [], {}
+    merged['queries'], merged['failed_metrics'], merged['unresolved'] = [], {}, []
     if 'visible_rows_by_metric' in merged:
         merged['visible_rows_by_metric'] = {}
         merged['visible_rows'] = None
@@ -69,8 +70,10 @@ def merge_batches(batches):
             merged['visible_rows_by_metric'].update(report.get('visible_rows_by_metric', {}))
         if report in compatible and [row['entity_id'] for row in report['records']] != ids:
             raise ValueError('Los lotes identificaron jugadores distintos')
+        merged['unresolved'].extend(report.get('unresolved', []))
         if report not in compatible:
-            merged['unresolved'].extend(report.get('unresolved', []))
+            if not report.get('unresolved'):
+                merged['unresolved'].append({'name': 'Lote incompleto', 'reason': 'incomplete_batch'})
             continue
         by_id = {row['entity_id']: row for row in report['records']}
         for row in merged['records']:

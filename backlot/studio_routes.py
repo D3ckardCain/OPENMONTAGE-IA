@@ -172,7 +172,7 @@ def create_studio_router():
         from lib.world_cup_rounds import PROPERTIES
         from lib.world_cup_open_goals import compare
         from tools.graphics.sports_card import render
-        from lib.world_cup_edition_desk import DEFAULT_EDITION, EDITIONS, compare_edition
+        from lib.world_cup_edition_desk import DEFAULT_EDITION, EDITIONS, compare_edition, can_export_selection
 
         data = await body(request)
         try:
@@ -191,7 +191,7 @@ def create_studio_router():
             result = await asyncio.to_thread(call)
             report = result['report']
             return {**result, 'export_token': round_signature(report)
-                    if report and report.get('ready_for_script') and result['display_metrics'] else None}
+                    if can_export_selection(report, result['display_metrics'], result.get('errors', [])) else None}
 
         if edition != DEFAULT_EDITION:
             raise HTTPException(400, 'El desglose por ronda está disponible para Qatar 2022')

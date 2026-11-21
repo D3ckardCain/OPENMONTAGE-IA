@@ -63,6 +63,29 @@ def edition_options():
             for key, item in EDITIONS.items()]
 
 
+def can_export_selection(report, display_metrics, errors=()):
+    """Allow sourced shared fields even when unrelated fields are absent."""
+    if not report or not display_metrics or errors or report.get('failed_metrics'):
+        return False
+    records = report.get('records') or []
+    if (report.get('type') != 'player_comparison' or len(records) != 2
+            or len({row.get('entity_id') for row in records}) != 2):
+        return False
+    if report.get('ready_for_script') is True:
+        return True
+    source = report.get('source')
+    if source == 'J.League':
+        return all(isinstance(item, dict) and item.get('metric') and item.get('name')
+                   for item in report.get('unresolved', []))
+    if source == 'FIFA':
+        return all(isinstance(row.get('missing_metrics'), list) for row in records)
+    if source == 'UEFA':
+        original = report.get('original_report') or {}
+        query = original.get('standard_query') or {}
+        return original.get('tipo') == 'comparativa_jugadores' and not query.get('failed_batches')
+    return False
+
+
 def compare_edition(players, edition=DEFAULT_EDITION):
     (competition, season, phase), _ = EDITIONS[edition]
     args = {'season': season}

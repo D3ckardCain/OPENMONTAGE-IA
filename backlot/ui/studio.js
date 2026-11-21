@@ -443,7 +443,11 @@ roundForm.addEventListener('submit', async event => {
     image.alt = 'Postal de comparativa de goles';
     image.className = 'football-round-preview';
     const download = link('Descargar postal SVG', roundPreviewUrl);
-    const basename = [report.scope.competition, report.scope.season, report.scope.round || report.scope.phase].join('-');
+    const scope = report.scope;
+    const basename = report.source === 'FIFA'
+     ? ['fifa', scope.competition_id, scope.season_id].join('-')
+     : [scope.competition || report.competition || 'uefa', scope.season || scope.seasonYear,
+        scope.round || scope.phase].join('-');
     download.download = basename + '.svg';
     const video = node('button', 'Descargar clip MP4');
     video.type = 'button';

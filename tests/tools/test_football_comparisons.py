@@ -87,6 +87,27 @@ def test_fifa_desk_requests_verified_qatar_edition_without_phase_claim(monkeypat
     assert '<svg' in render(result['report'], ['Goals'])
 
 
+def test_partial_metric_selection_requires_resolved_identities_and_no_failed_batches():
+    from lib.world_cup_edition_desk import can_export_selection
+    records = [{'entity_id': 'a', 'missing_metrics': ['Assists']},
+               {'entity_id': 'b', 'missing_metrics': ['Assists']}]
+    fifa = {'source': 'FIFA', 'type': 'player_comparison', 'records': records,
+            'ready_for_script': False}
+    assert can_export_selection(fifa, ['Goals'])
+    assert not can_export_selection(fifa, ['Goals'], ['timeout'])
+    assert not can_export_selection({**fifa, 'records': records[:1]}, ['Goals'])
+    assert not can_export_selection({**fifa, 'failed_metrics': {'Assists': 'timeout'}}, ['Goals'])
+    uefa = {**fifa, 'source': 'UEFA', 'original_report': {'tipo': 'comparativa_jugadores',
+            'standard_query': {'failed_batches': []}}}
+    assert can_export_selection(uefa, ['goals'])
+    uefa['original_report']['standard_query']['failed_batches'].append({'metrics': ['assists']})
+    assert not can_export_selection(uefa, ['goals'])
+    jleague = {**fifa, 'source': 'J.League', 'unresolved': [
+        {'name': 'B', 'metric': 'assists', 'reason': 'not_in_visible_ranking'}]}
+    assert can_export_selection(jleague, ['goals'])
+    assert not can_export_selection({**jleague, 'unresolved': [{'name': 'B', 'reason': 'ambiguous'}]}, ['goals'])
+
+
 def test_jleague_merges_metric_batches_with_source_evidence():
     calls = []
     scope = {'competition': 'j1', 'season': 2025, 'phase': 'regular_season'}
@@ -141,6 +162,23 @@ def test_jleague_partial_batch_failure_is_not_verified():
               'inputs': {'season': 2025, 'names': ['a', 'b']}}], execute)['sections'][0]
     assert section['errors']
     assert section['report']['ready_for_script'] is False
+
+
+def test_jleague_merges_two_identified_players_when_secondary_ranking_lacks_one():
+    from lib.football_comparisons import merge_batches
+    scope = {'competition': 'j1', 'season': 2025, 'phase': 'league'}
+    def batch(metric, missing):
+        return {'source': 'J.League', 'scope': scope, 'queries': [],
+                'failed_metrics': {}, 'unresolved': ([{'name': 'B', 'metric': metric,
+                   'reason': 'not_in_visible_ranking'}] if missing else []),
+                'records': [{'entity_id': name, 'facts': [],
+                             'statistics': {metric: 1 if name == 'A' or not missing else None}}
+                            for name in ('A', 'B')]}
+    merged = merge_batches([batch('goals', False), batch('assists', True)])
+    assert merged['records'][0]['statistics'] == {'goals': 1, 'assists': 1}
+    assert merged['records'][1]['statistics']['goals'] == 1
+    assert merged['unresolved'][0]['metric'] == 'assists'
+    assert merged['ready_for_script'] is False
 
 
 def test_competition_and_player_use_distinct_phases():
