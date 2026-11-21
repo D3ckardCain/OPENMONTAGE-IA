@@ -186,6 +186,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('passes_attempted', 'Passes', 'Pases intentados'),
     ('crosses_attempted', 'Crosses', 'Centros intentados'),
     ('chances_created', 'Chances created', 'Ocasiones creadas'),
+    ('distance_covered', 'Distance', 'Distancia recorrida'),
+    ('sprints', 'Sprints', 'Sprints'),
     ('pass_accuracy', 'Pass accuracy', 'Precisión de pase'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
@@ -197,6 +199,8 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
     suffix = jleague.DISPLAY_SUFFIXES.get(metric, '')
     for score in (21, 18):
         page = page.replace(f'>{score}</p>', f'>{score}{suffix}</p>')
+    if metric == 'distance_covered':
+        page = page.replace('score="21"', 'score="21.5"').replace('>21 km</p>', '>21.5 km</p>')
     if metric == 'pass_accuracy':
         page = page.replace('score="21"', 'score="21.5"').replace('>21 %</p>', '>21.5 %</p>')
 
@@ -210,13 +214,18 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
         {'action': 'compare_players', 'season': 2025, 'names': ['Example One', 'Example Two'],
          'metrics': [metric]})
     assert result.success and result.data['ready_for_script']
-    assert result.data['records'][0]['statistics'] == {metric: 21.5 if metric == 'pass_accuracy' else 21}
+    assert result.data['records'][0]['statistics'] == {metric: 21.5 if metric in ('pass_accuracy', 'distance_covered') else 21}
     if metric == 'pass_accuracy':
         assert result.data['records'][0]['facts'][0]['unit'] == '%'
         assert '21.5%' in render(result.data)
         with pytest.raises(ValueError):
             jleague.parse_ranking(page.replace('21.5', '121.5'), 2025, metric)
     assert label in render(result.data)
+    if metric == 'distance_covered':
+        assert result.data['records'][0]['facts'][0]['unit'] == 'km'
+        assert '21.5 km' in render(result.data)
+    if metric == 'sprints':
+        assert '25 km/h' in result.data['records'][0]['facts'][0]['provider_definition']
     if metric in jleague.METRIC_DEFINITIONS:
         from lib.football_statistics import add_standard_statistics
         stats = add_standard_statistics(result.data)['records'][0]['standard_statistics']

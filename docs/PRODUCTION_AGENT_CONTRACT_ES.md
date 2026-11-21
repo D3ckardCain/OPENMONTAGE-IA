@@ -199,3 +199,5 @@ J.League también admite partidos y minutos jugados (`matches_played` y `minutes
 J.League admite `passes_attempted` y `pass_accuracy` en J1, J2, J3 y Copa Levain. La precisión conserva el porcentaje publicado. Los pases completados requieren una cifra oficial separada porque el porcentaje visible está redondeado.
 
 J.League admite `crosses_attempted` y `chances_created` en J1, J2, J3 y Copa Levain. El expediente conserva `provider_definition` en estas cifras y en duelos ganados para que el agente compruebe el alcance de cada métrica cuando compare fuentes.
+
+J.League incorpora distancia recorrida en kilómetros (`distance_covered`) y sprints (`sprints`). Los rankings de 2025 devuelven filas en J1. En J2, J3 y Copa Levain las páginas consultadas mostraron el título sin cifras para 2025. Se conserva la ausencia de datos. La definición oficial de sprint usa un umbral de 25 km/h a partir de 2023, frente a 24 km/h hasta 2022, en ambos casos durante al menos un segundo.
