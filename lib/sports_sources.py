@@ -22,6 +22,7 @@ FOOTBALL_STANDARD_METRICS = tuple(metric for group in FOOTBALL_METRIC_GROUPS.val
 # Entry points are source locations, not promises of API availability or coverage.
 _ROWS = [
  ('uefa','football','europe','UEFA','https://www.uefa.com/','official_uefa_live'),
+ ('euro_2024','football','europe','Eurocopa 2024','https://www.uefa.com/euro2024/','as_competition_player_stats'),
  ('fifa','football','world','FIFA','https://www.fifa.com/','official_fifa_live'),
  ('conmebol','football','americas','CONMEBOL','https://gol.conmebol.com/',''),
  ('copa_america','football','americas','Copa América','https://copaamerica.com/','as_competition_player_stats'),
@@ -86,7 +87,7 @@ def catalog(sport=None, region=None):
             'brasileirao_player_stats': 'Brasileirão Série A 2025. Classificação Geral aporta nueve métricas. Busca por bloques de tres páginas y reúne los resultados. Usa max_blocks para ampliar la búsqueda y next_page como start_page para seguir desde otro bloque.',
             'eredivisie_player_stats': 'Rankings de goles, asistencias, amarillas y rojas de Eredivisie 2025/26 publicados por Voetbal International. Añade el club entre paréntesis si hay varias filas.',
             'ligamx_player_stats': 'Liga MX Apertura 2025 y Clausura 2026. Consulta rankings de AS por lotes de una a seis métricas. Cada cifra conserva su URL y temporada.',
-            'as_competition_player_stats': 'AS publica rankings por métrica de Liga Saudí 2025/26 (saudi), Copa Africana 2025 (afcon), Copa Oro 2025 (gold_cup) y Copa América 2024 (copa_america). Se verificaron 25 rankings con filas por edición. En Copa América quedó vacío el ranking de goles en propia puerta. En las otras tres ediciones quedó vacío el de penaltis lanzados. Consulta hasta seis por solicitud. Si hay fallos, shared_metrics indica qué cifras comunes siguen disponibles para una selección explícita en la pieza visual.',
+            'as_competition_player_stats': 'AS publica rankings por métrica de Liga Saudí 2025/26 (saudi), Copa Africana 2025 (afcon), Copa Oro 2025 (gold_cup) y Copa América 2024 (copa_america). Se verificaron 25 rankings con filas por edición. En Copa América quedó vacío el ranking de goles en propia puerta. En las otras tres ediciones quedó vacío el de penaltis lanzados. También admite Eurocopa 2024 (euro_2024), fase final. Consulta hasta seis por solicitud. Si hay fallos, shared_metrics indica qué cifras comunes siguen disponibles para una selección explícita en la pieza visual.',
             'official_asian_cup_live': 'Informe oficial de líderes de la Copa Asiática Qatar 2023. Diez rankings de cinco filas; identifica al jugador por nombre publicado y selección.',
             'official_ofc_nations_cup_live': 'Goleadores de la Copa de Naciones OFC masculina 2024. Suma los goles atribuidos por la OFC en sus cinco tablas de fases.',
             'official_mls_live': 'Consulta por nombre las cifras de los goleadores por club de la temporada regular 2025. El catálogo de jugadores completo queda pendiente.',
