@@ -17,6 +17,35 @@ FOOTBALL_METRIC_GROUPS = {
     'physical': ('distance_covered', 'sprints', 'top_speed'),
 }
 FOOTBALL_STANDARD_METRICS = tuple(metric for group in FOOTBALL_METRIC_GROUPS.values() for metric in group)
+FOOTBALL_METRIC_LABELS_ES = {
+    'matches_played': 'Partidos jugados', 'starts': 'Titularidades',
+    'substitute_appearances': 'Entradas como suplente', 'minutes_played': 'Minutos jugados',
+    'goals': 'Goles', 'assists': 'Asistencias', 'shots': 'Tiros',
+    'shots_on_target': 'Tiros a puerta', 'shots_off_target': 'Tiros fuera',
+    'shots_blocked': 'Tiros bloqueados', 'penalties_taken': 'Penaltis lanzados',
+    'penalty_goals': 'Goles de penalti', 'penalties_missed': 'Penaltis fallados',
+    'offsides': 'Fueras de juego', 'big_chances_missed': 'Grandes ocasiones falladas',
+    'expected_goals': 'Goles esperados (xG)', 'chances_created': 'Ocasiones creadas',
+    'big_chances_created': 'Grandes ocasiones creadas', 'key_passes': 'Pases clave',
+    'expected_assists': 'Asistencias esperadas (xA)', 'passes_attempted': 'Pases intentados',
+    'passes_completed': 'Pases completados', 'pass_accuracy': 'Precisión de pase',
+    'crosses_attempted': 'Centros intentados', 'crosses_completed': 'Centros completados',
+    'long_balls_attempted': 'Pases largos intentados',
+    'long_balls_completed': 'Pases largos completados', 'touches': 'Toques de balón',
+    'dribbles_attempted': 'Regates intentados', 'dribbles_completed': 'Regates completados',
+    'duels_contested': 'Duelos disputados', 'duels_won': 'Duelos ganados',
+    'aerial_duels_contested': 'Duelos aéreos disputados',
+    'aerial_duels_won': 'Duelos aéreos ganados', 'tackles_attempted': 'Entradas intentadas',
+    'tackles_won': 'Entradas ganadas', 'interceptions': 'Intercepciones',
+    'recoveries': 'Recuperaciones', 'clearances': 'Despejes', 'blocks': 'Bloqueos',
+    'own_goals': 'Autogoles', 'clean_sheets': 'Porterías a cero',
+    'goals_conceded': 'Goles recibidos', 'saves': 'Paradas',
+    'save_percentage': 'Porcentaje de paradas', 'penalties_saved': 'Penaltis detenidos',
+    'fouls_committed': 'Faltas cometidas', 'fouls_suffered': 'Faltas recibidas',
+    'yellow_cards': 'Tarjetas amarillas', 'second_yellow_cards': 'Segundas amarillas',
+    'red_cards': 'Tarjetas rojas', 'distance_covered': 'Distancia recorrida',
+    'sprints': 'Sprints', 'top_speed': 'Velocidad máxima',
+}
 
 
 # Entry points are source locations, not promises of API availability or coverage.

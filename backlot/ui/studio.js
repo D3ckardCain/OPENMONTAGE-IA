@@ -365,9 +365,23 @@ roundForm.addEventListener('submit', async event => {
    }
    table.createTHead().append(header);
    const rows = table.createTBody();
+   const groupLabels = {participation:'Participación', attack:'Ataque',
+    creation_and_passing:'Creación y pases', defence_and_duels:'Defensa y duelos',
+    goalkeeping:'Portería', discipline:'Disciplina', physical:'Físico', other:'Otras métricas de la fuente'};
+   let currentGroup = null;
    for (const metric of metric_matrix) {
+    const group = metric.group || 'other';
+    if (group !== currentGroup) {
+     const heading = rows.insertRow();
+     const cell = node('th', groupLabels[group] || group);
+     cell.colSpan = 4;
+     cell.scope = 'rowgroup';
+     heading.append(cell);
+     currentGroup = group;
+    }
     const row = rows.insertRow();
-    row.append(node('td', metric.metric.replaceAll('_', ' ')));
+    const label = metric.label || metric.metric.replaceAll('_', ' ');
+    row.append(node('td', label));
     for (const fact of metric.values) {
      const cell = row.insertCell();
      cell.textContent = fact?.value ?? 'Sin dato';
@@ -378,7 +392,7 @@ roundForm.addEventListener('submit', async event => {
      const checkbox = document.createElement('input');
      checkbox.type = 'checkbox';
      checkbox.value = metric.display_metric;
-     checkbox.setAttribute('aria-label', 'Mostrar ' + metric.metric.replaceAll('_', ' '));
+     checkbox.setAttribute('aria-label', 'Mostrar ' + label);
      choices.push(checkbox);
      cell.append(checkbox);
     }

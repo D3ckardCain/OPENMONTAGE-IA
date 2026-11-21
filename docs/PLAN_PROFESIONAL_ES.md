@@ -33,6 +33,8 @@ FIFA Qatar 2022 también está en la mesa, identificado mediante los IDs de comp
 
 Para FIFA, UEFA y J.League, una cifra ausente en una métrica no impide escoger otras cifras verificadas de ambos jugadores. La selección exige valor, identidad y URL de origen de cada cifra. Los errores de consulta, los lotes fallidos, los jugadores ambiguos y las estadísticas de fases mezcladas siguen bloqueando la exportación. El nombre del archivo exportado conserva los IDs de FIFA o la edición y fase UEFA cuando el proveedor no usa los campos de las ligas.
 
+La matriz común muestra las 54 métricas con nombres en español y grupos de participación, ataque, creación, defensa, portería, disciplina y físico para todas las ediciones. Las métricas propias de una fuente aparecen al final. «Sin dato» significa que esa fuente no aportó un valor verificable para ese jugador y alcance; no equivale a cero.
+
 ## Modelos candidatos
 
 | Candidato | Prueba de aceptación |

@@ -4,6 +4,14 @@ from tools.football.ligamx import RANKINGS, ranking_urls, tournament_scope
 from tools.football.official_jleague import METRICS as JLEAGUE_METRICS
 
 
+def test_all_standard_metrics_have_a_shared_spanish_label_and_group():
+    from lib.sports_sources import FOOTBALL_METRIC_GROUPS, FOOTBALL_METRIC_LABELS_ES, FOOTBALL_STANDARD_METRICS
+    assert len(FOOTBALL_STANDARD_METRICS) == 54
+    assert set(FOOTBALL_METRIC_LABELS_ES) == set(FOOTBALL_STANDARD_METRICS)
+    assert len(set(FOOTBALL_STANDARD_METRICS)) == 54
+    assert set().union(*(set(fields) for fields in FOOTBALL_METRIC_GROUPS.values())) == set(FOOTBALL_STANDARD_METRICS)
+
+
 def test_premier_desk_preserves_matchweek_and_source(monkeypatch):
     from lib.world_cup_edition_desk import compare_edition
     from tools.football.official_premier import OfficialPremier, URL
@@ -229,6 +237,7 @@ def test_as_merges_batches_before_selection():
     matrix = {row['metric']: row for row in result['sections'][0]['metric_matrix']}
     assert len(matrix) == 54
     assert matrix['goals']['display_metric'] == 'goals'
+    assert matrix['goals']['label'] == 'Goles' and matrix['goals']['group'] == 'attack'
     assert matrix['goals']['values'][0]['source_url'] == urls['goals']
     assert matrix['expected_goals']['values'] == [None, None]
     assert matrix['expected_goals']['display_metric'] is None

@@ -4,7 +4,7 @@ from copy import deepcopy
 from jsonschema import ValidationError
 
 from lib.football_statistics import add_standard_statistics
-from lib.sports_sources import FOOTBALL_STANDARD_METRICS
+from lib.sports_sources import FOOTBALL_METRIC_GROUPS, FOOTBALL_METRIC_LABELS_ES, FOOTBALL_STANDARD_METRICS
 from tools.football.ligamx import RANKINGS
 from tools.football.official_jleague import METRICS as JLEAGUE_METRICS
 from tools.graphics.sports_card import render, uefa_report
@@ -166,12 +166,14 @@ def metric_matrix(report):
     common = display_metrics(report)
     matrix = []
     mapped = set()
+    groups = {metric: group for group, fields in FOOTBALL_METRIC_GROUPS.items() for metric in fields}
     for metric in FOOTBALL_STANDARD_METRICS:
         values = [row.get(metric) for row in standards]
         keys = {entry['source_metric'] for entry in values if entry}
         mapped.update(keys)
         display_key = next(iter(keys)) if len(keys) == 1 and all(values) else None
-        matrix.append({'metric': metric, 'standard': True, 'values': values,
+        matrix.append({'metric': metric, 'label': FOOTBALL_METRIC_LABELS_ES[metric],
+                       'group': groups[metric], 'standard': True, 'values': values,
                        'display_metric': display_key if display_key in common else None})
     try:
         export = uefa_report(report, selected=True) if report.get('fuente') == 'UEFA' else report
