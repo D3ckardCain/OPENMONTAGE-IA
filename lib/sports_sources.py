@@ -73,7 +73,7 @@ def catalog(sport=None, region=None):
         'missing_value': None,
         'metric_groups': {group: list(metrics) for group, metrics in FOOTBALL_METRIC_GROUPS.items()},
         'source_discovery': {
-            'official_bundesliga_live': 'Consulta por nombre los rankings públicos de goles, asistencias y tiros de 2024/25 en ambas divisiones alemanas.',
+            'official_bundesliga_live': 'Consulta por nombre 19 rankings públicos de 2024/25 en ambas divisiones alemanas. Tres rankings de diez entradas y 16 vistas de cinco.',
             'official_mls_live': 'Consulta por nombre las cifras de los goleadores por club de la temporada regular 2025. El catálogo de jugadores completo queda pendiente.',
             'official_uefa_live': 'Usa metrics=standard en consultas por nombre para solicitar las equivalencias comunes. Consulta definitions para detectar estadísticas oficiales adicionales de PLAYER.',
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',

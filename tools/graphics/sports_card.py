@@ -5,7 +5,7 @@ import math
 import re
 from pathlib import Path
 from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, expanded_ranking_url, profile_url, ranking_url, season_label
-from tools.football.official_bundesliga import COMPETITIONS as DFL_COMPETITIONS, METRICS as DFL_METRICS, SEASON as DFL_SEASON, page_url as dfl_url
+from tools.football.official_bundesliga import COMPETITIONS as DFL_COMPETITIONS, ALL_METRICS as DFL_METRICS, SEASON as DFL_SEASON, page_url as dfl_url, valid_value as dfl_value
 from tools.football.official_mls import METRICS as MLS_METRICS, SCOPE as MLS_SCOPE, SOURCE_URL as MLS_SOURCE_URL
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
@@ -70,7 +70,7 @@ def render(report, metrics=None):
         dfl_label = 'Bundesliga' if scope['competition'] == 'bundesliga' else '2. Bundesliga'
         if metrics is None:
             shared = set.intersection(*(set(record.get('statistics', {})) for record in records))
-            metrics = [metric for metric in DFL_METRICS if metric in shared]
+            metrics = [metric for metric in DFL_METRICS if metric in shared][:6]
     if source == 'J.League':
         competition = JLEAGUE_COMPETITIONS.get(scope.get('competition'))
         if (not competition or scope.get('phase') != competition[1] or scope.get('category') != 'men'):
@@ -121,7 +121,7 @@ def render(report, metrics=None):
                     raise ValueError('Cifra o fuente J.League inválida')
             elif source == 'DFL':
                 metric = fact['metric']
-                if (metric not in DFL_METRICS or type(value) is not int or value < 0
+                if (metric not in DFL_METRICS or not dfl_value(metric, value)
                         or url != dfl_url(scope['competition'], metric)):
                     raise ValueError('Cifra o fuente DFL inválida')
             elif source == 'MLS':
@@ -163,6 +163,8 @@ def render(report, metrics=None):
             y=490+n*105
             parts.append(text(x+26,y,_LABELS.get(fact['metric'],fact['metric']),22,'#8b949e'))
             suffix = {'%': '%', 'km': ' km', 'km/h': ' km/h'}.get(JLEAGUE_UNITS.get(fact['metric']), '') if source == 'J.League' else ''
+            if source == 'DFL':
+                suffix = {'%': '%', 'km': ' km', 'km/h': ' km/h'}.get(fact.get('unit'), '')
             value = f"{fact['value']}{suffix}"
             parts.append(text(x+26,y+49,value,42))
     parts += [text(54,1232,'Fuente: '+source+' · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
