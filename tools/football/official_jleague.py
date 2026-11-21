@@ -35,8 +35,14 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'goals_conceded': ('lost', 'Goals conceded'),
            'expected_goals_excl_pk': ('expected_goals_excl_pk', 'Expected Goals (excl. penalties)'),
            'dribble_success_rate': ('dribble_rate', 'Dribble success rate'),
-           'long_pass_accuracy': ('long_pass_rate', 'Long pass accuracy')}
+           'long_pass_accuracy': ('long_pass_rate', 'Long pass accuracy'),
+           'cross_success_rate': ('cross_rate', 'Cross success rate'),
+           'tackle_success_rate': ('tackle_rate', 'Tackle success rate'),
+           'aerial_duel_success_rate': ('air_battle_win_rate', 'Aerial duel success rate')}
 METRIC_DEFINITIONS = {
+    'cross_success_rate': 'Porcentaje oficial de centros completados en jugada, con el alcance de J.League.',
+    'tackle_success_rate': 'Porcentaje de entradas tras las que el equipo recupera la posesión, según J.League.',
+    'aerial_duel_success_rate': 'Porcentaje oficial de duelos aéreos ganados, según J.League.',
     'dribble_success_rate': 'Porcentaje de regates exitosos. El éxito exige superar o esquivar al defensor y completar después un pase o tiro.',
     'long_pass_accuracy': 'Porcentaje de precisión en pases largos publicado por J.League.',
     'goals_conceded': 'Goles recibidos atribuidos al guardameta en el ranking oficial de J.League.',
@@ -57,10 +63,11 @@ METRIC_DEFINITIONS = {
 METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
                 'passes_attempted': 'passes', 'pass_accuracy': '%', 'save_percentage': '%', 'distance_covered': 'km',
                 'expected_goals': 'xG', 'expected_goals_excl_pk': 'xG', 'top_speed': 'km/h',
-                'dribble_success_rate': '%', 'long_pass_accuracy': '%'}
+                'dribble_success_rate': '%', 'long_pass_accuracy': '%', 'cross_success_rate': '%',
+                'tackle_success_rate': '%', 'aerial_duel_success_rate': '%'}
 DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG'})
-DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'pass_accuracy': ' %', 'save_percentage': ' %', 'distance_covered': ' km',
-                    'dribble_success_rate': ' %', 'long_pass_accuracy': ' %'}
+DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'distance_covered': ' km'}
+DISPLAY_SUFFIXES.update({metric: ' %' for metric, unit in METRIC_UNITS.items() if unit == '%'})
 
 
 def season_key(season, competition):
@@ -302,7 +309,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.27.0'
+    version = '0.28.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL

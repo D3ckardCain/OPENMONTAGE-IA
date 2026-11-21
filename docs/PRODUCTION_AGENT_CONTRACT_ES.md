@@ -221,3 +221,5 @@ Si J.League ya identificó al jugador por ID oficial y el ranking en inglés no 
 El ranking ampliado japonés también sirve para recuperar goles de temporada anual por ID verificado, incluidos los de Copa Levain. En divisiones de liga se conserva la consulta al perfil oficial cuando acredita una única fila de temporada y división. Cada cifra mantiene el enlace de la fuente que la acreditó.
 
 J.League incorpora el porcentaje de regates exitosos (`dribble_success_rate`) y la precisión de pase largo (`long_pass_accuracy`) como cifras adicionales del proveedor. Mantén sus porcentajes de origen y evita inferir conteos exactos a partir de tasas redondeadas. Los rankings ampliados alternativos no ofrecen rutas verificadas para 2026/27.
+
+J.League incorpora los porcentajes de éxito de centro, entrada y duelo aéreo como métricas adicionales del proveedor. El informe conserva la definición de cada tasa. Los porcentajes publicados no acreditan por sí solos los conteos exactos de acciones completadas.
