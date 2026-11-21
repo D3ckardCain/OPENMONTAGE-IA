@@ -445,6 +445,9 @@ def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     women = editions['women_champions:2025:TOURNAMENT']
     assert women['team_filter'] is False
     assert 'femenina' in women['label']
+    nations = editions['nations:2025:TOURNAMENT']
+    assert nations['team_filter'] is False
+    assert '2024/25' in nations['label']
     fifa = editions['fifa_world_cup:2022:season_aggregate_as_published']
     assert fifa['team_filter'] is True
     assert 'fase sin acreditar' in fifa['label']
