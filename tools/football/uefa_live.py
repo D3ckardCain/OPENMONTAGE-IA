@@ -290,13 +290,30 @@ class UEFA:
    if not isinstance(item.get('statistics'),list):raise Unavailable('Estadisticas individuales incompletas')
   return r.data, {'url':r.url,'consultado_utc':r.retrieved_at}
 
+ def _player_batch_metrics(self, ctx, metrics):
+  if metrics == 'standard':
+   from lib.football_statistics import UEFA_NAMES
+
+   definitions = self.api(ctx, ctx.stats_url, 'v2/definitions', {}).data
+   if not isinstance(definitions, list):
+    raise Unavailable('Definiciones no estructuradas')
+   supported = {entry.get('name') for entry in definitions
+                if isinstance(entry, dict) and 'PLAYER' in entry.get('actors', [])}
+   metrics = [name for name in UEFA_NAMES if name in supported]
+   if not metrics:
+    raise Unavailable('La fuente UEFA no confirmó métricas del conjunto común')
+  if not isinstance(metrics, list) or not metrics or len(set(metrics)) != len(metrics) or any(
+      not re.fullmatch('[a-z][a-z0-9_]*', metric) for metric in metrics):
+   raise Unavailable('Métricas de jugador inválidas')
+  return metrics
+
  def player_by_batches(self, competition, edition, player_id, metrics, phase='TOURNAMENT'):
   from tools.football.uefa_batches import checked_statistics, metric_batches, split_rejected_batch
 
-  if not str(player_id).isdigit() or not metrics or len(set(metrics)) != len(metrics) or any(
-      not re.fullmatch('[a-z][a-z0-9_]*', metric) for metric in metrics):
-   raise Unavailable('ID o métricas de jugador inválidos')
+  if not str(player_id).isdigit():
+   raise Unavailable('ID de jugador inválido')
   ctx = self.context(competition)
+  metrics = self._player_batch_metrics(ctx, metrics)
   scope = self.scope(ctx, edition, phase)
   pending = metric_batches(metrics)
   teams, sources, failures = {}, [], []
@@ -422,10 +439,10 @@ class UEFA:
  def player_history_by_batches(self, competition, player_id, metrics):
   from tools.football.uefa_batches import checked_statistics, metric_batches, split_rejected_batch
 
-  if not str(player_id).isdigit() or not metrics or len(set(metrics)) != len(metrics) or any(
-      not re.fullmatch('[a-z][a-z0-9_]*', metric) for metric in metrics):
-   raise Unavailable('ID o métricas de jugador inválidos')
+  if not str(player_id).isdigit():
+   raise Unavailable('ID de jugador inválido')
   ctx = self.context(competition)
+  metrics = self._player_batch_metrics(ctx, metrics)
   pending = metric_batches(metrics)
   rows, sources, failures = {}, [], []
   report = None

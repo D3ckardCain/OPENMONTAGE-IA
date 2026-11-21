@@ -167,37 +167,49 @@ def test_player_history_batches_keep_season_and_team_separate(monkeypatch):
  assert result.data['incluye_previas'] is None
 
 
-def test_uefa_history_standard_uses_official_definitions_and_metric_sources(monkeypatch):
+def test_uefa_id_queries_share_definitions_and_metric_sources(monkeypatch):
+ from types import SimpleNamespace
  from lib.football_statistics import add_standard_statistics
+ from tools.football.uefa_live import Reply
 
  tool = OfficialUEFA()
- monkeypatch.setattr(tool.client, 'definitions', lambda competition: {'definiciones': [
-     {'name': 'goals', 'actors': ['PLAYER']},
-     {'name': 'assists', 'actors': ['PLAYER']},
-     {'name': 'attempts', 'actors': ['TEAM']},
- ]})
- sources = {
-     metric: {'url': f'https://compstats.uefa.com/{metric}', 'consultado_utc': '2026-11-20'}
-     for metric in ('goals', 'assists')
- }
+ context = SimpleNamespace(competition='champions', competition_id='1', current_edition=2027,
+                           stats_url='https://compstats.uefa.com/')
+ preparations, endpoints = [], []
 
- def query(competition, player_id, metrics):
-  assert metrics == ['goals', 'assists']
-  return {'fuente': 'UEFA', 'desglose_por_temporada_equipo': [
-      {'seasonYear': '2024', 'teamId': '20', 'statistics': [
-          {'name': 'goals', 'value': '0'}, {'name': 'assists', 'value': '2'}],
-       'fuente_por_metrica': sources}]}
+ def prepare(competition):
+  preparations.append(competition)
+  return context
 
- monkeypatch.setattr(tool.client, 'player_history_by_batches', query)
- result = tool.execute({'action': 'player_history', 'competition': 'champions',
-                        'player_id': '100', 'metrics': 'standard'})
- assert result.success, result.error
- row = add_standard_statistics(result.data)['desglose_por_temporada_equipo'][0]
- stats = row['standard_statistics']
- assert len(stats) == 54 and stats['shots'] is None
- assert stats['goals']['value'] == '0' and stats['assists']['value'] == '2'
- assert stats['goals']['source_url'] == sources['goals']['url']
- assert stats['assists']['source_url'] == sources['assists']['url']
+ def api(ctx, base, endpoint, params):
+  assert ctx is context
+  endpoints.append(endpoint)
+  if endpoint == 'v2/definitions':
+   data = [{'name': 'goals', 'actors': ['PLAYER']}, {'name': 'assists', 'actors': ['PLAYER']},
+           {'name': 'attempts', 'actors': ['TEAM']}]
+  else:
+   assert params['stats'] == 'goals,assists'
+   row = {'playerId': '100', 'competitionId': '1', 'seasonYear': '2024', 'teamId': '20',
+          'statistics': [{'name': 'goals', 'value': '0'}, {'name': 'assists', 'value': '2'}]}
+   data = {'playerId': '100', 'competitionSeasonStatistics': [row]} if endpoint.endswith('/all-time') else [row]
+  return Reply(data, base + endpoint, '2026-11-20')
+
+ monkeypatch.setattr(tool.client, 'context', prepare)
+ monkeypatch.setattr(tool.client, 'api', api)
+ for action, extra, rows_key, endpoint in (
+     ('player_history', {}, 'desglose_por_temporada_equipo', 'v2/player-statistics/all-time'),
+     ('player', {'edition': 2024}, 'registros', 'v2/player-statistics'),
+ ):
+  preparations.clear()
+  endpoints.clear()
+  result = tool.execute({'action': action, 'competition': 'champions', 'player_id': '100',
+                         'metrics': 'standard', **extra})
+  assert result.success, result.error
+  assert preparations == ['champions'] and endpoints == ['v2/definitions', endpoint]
+  stats = add_standard_statistics(result.data)[rows_key][0]['standard_statistics']
+  assert len(stats) == 54 and stats['shots'] is None
+  assert stats['goals']['value'] == '0' and stats['assists']['value'] == '2'
+  assert stats['goals']['source_url'] == context.stats_url + endpoint
 
 
 def test_standard_player_ranking_reuses_one_preparation_and_exposes_common_fields(monkeypatch):

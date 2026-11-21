@@ -187,3 +187,5 @@ El ranking UEFA por lotes reutiliza la configuración y las definiciones de mét
 Una vez resueltos los nombres en UEFA, todos los lotes individuales de una comparativa o postal reutilizan la misma configuración y el mismo alcance de competición, edición y fase.
 
 En comparativas y postales UEFA por nombre, la resolución, la selección de métricas y todos los lotes individuales usan la misma carga de configuración y definiciones durante la solicitud.
+
+Las consultas UEFA por ID cargan una vez la configuración. En modo estándar, seleccionan las métricas con una sola lectura de definiciones y reutilizan ese alcance durante todos los lotes de temporada o historial.

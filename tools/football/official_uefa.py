@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.17.0'
+ version='0.18.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -73,10 +73,6 @@ class OfficialUEFA(BaseTool):
    if batched_names:
     supported, ranking_query, player_query=self.client.prepare_named_query(
      kwargs['competition'],kwargs['edition'],kwargs.get('phase','TOURNAMENT'))
-   elif standard and not player_ranking:
-    definitions=self.client.definitions(kwargs['competition'])['definiciones']
-    supported={entry['name'] for entry in definitions if 'PLAYER' in entry.get('actors', [])}
-   if batched_names or (standard and not player_ranking):
     if standard:
      selection=[name for name in UEFA_NAMES if name in supported]
      if not selection:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
@@ -94,11 +90,11 @@ class OfficialUEFA(BaseTool):
      data=complete_standard_report(player_query,data,requested)
     else:
      data=query(self.client,**kwargs)
-   elif action=='player' and isinstance(selection,list) and len(selection)>1:
+   elif action=='player' and (standard or isinstance(selection,list) and len(selection)>1):
     data=self.client.player_by_batches(**kwargs)
    elif action=='ranking' and (standard or isinstance(selection,list) and len(selection)>1):
     data=self.client.ranking_by_batches(**kwargs)
-   elif action=='player_history' and isinstance(selection,list) and len(selection)>1:
+   elif action=='player_history' and (standard or isinstance(selection,list) and len(selection)>1):
     data=self.client.player_history_by_batches(**kwargs)
    else:data=getattr(self.client,action)(**kwargs)
    return ToolResult(success=True,data=data,artifacts=[],cost_usd=0,from_cache=False)
