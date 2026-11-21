@@ -225,7 +225,9 @@ def create_studio_router():
 
     def round_filename(report, extension):
         scope = report['scope']
-        return f"{scope['competition']}-{scope['season']}-{scope.get('round', scope['phase'])}.{extension}"
+        competition = scope.get('competition', report.get('competition', 'uefa'))
+        season = scope.get('season', scope.get('seasonYear'))
+        return f"{competition}-{season}-{scope.get('round', scope['phase'])}.{extension}"
 
     @router.post('/api/studio/football/round-goals/preview')
     async def football_round_preview(request: Request):

@@ -366,6 +366,35 @@ def test_partial_edition_report_cannot_be_exported(isolated, monkeypatch):
     assert result.json()['export_token'] is None
 
 
+def test_euro_edition_can_preview_verified_metric(isolated, monkeypatch):
+    from tools.football.official_uefa import OfficialUEFA
+
+    origin = {'url': 'https://compstats.uefa.com/example', 'consultado_utc': '2026-11-21'}
+    scope = {'competitionId': '3', 'seasonYear': 2024, 'phase': 'TOURNAMENT'}
+
+    def execute(self, args):
+        from tools.base_tool import ToolResult
+        rows = [{'id': str(i), 'nombre': name, 'estadisticas': {'goals': i},
+                 'fuente_estadisticas': origin, 'fuente_por_metrica': {'goals': origin}}
+                for i, name in enumerate(args['names'], 1)]
+        report = {'fuente': 'UEFA', 'tipo': 'comparativa_jugadores', 'alcance': scope,
+                  'consultas': [origin], 'registros': rows, 'ready_for_script': True}
+        return ToolResult(success=True, data=report, cost_usd=0, from_cache=False)
+
+    monkeypatch.setattr(OfficialUEFA, 'execute', execute)
+    path = '/api/studio/football/round-goals'
+    result = isolated.post(path, json={'round': 'edition', 'edition': 'euro:2024:TOURNAMENT',
+                                       'players': [{'name': 'A'}, {'name': 'B'}]})
+    assert result.status_code == 200
+    payload = result.json()
+    assert payload['export_token']
+    preview = isolated.post(path + '/preview', json={'report': payload['report'],
+                                                      'export_token': payload['export_token'],
+                                                      'metrics': ['goals']})
+    assert preview.status_code == 200
+    assert '<svg' in preview.json()['preview_svg']
+
+
 def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     data = isolated.get('/api/studio/football/desk-editions').json()
     editions = {option['id']: option for option in data['editions']}
@@ -374,3 +403,6 @@ def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     premier = editions['premier:2024-2025:regular_season']
     assert premier['team_filter'] is True
     assert 'jornada 29' in premier['label']
+    euro = editions['euro:2024:TOURNAMENT']
+    assert euro['team_filter'] is False
+    assert 'torneo final' in euro['label']

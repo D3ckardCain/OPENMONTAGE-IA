@@ -23,6 +23,8 @@ En **Fútbol**, elige entre las ediciones disponibles de AS, Classificação Ger
 
 La edición de Premier League 2024/25 corresponde exclusivamente a las cifras acumuladas hasta la jornada 29 del informe oficial. Sus rankings muestran líderes, no el universo de jugadores ni el cierre de temporada; los campos no publicados permanecen sin dato. La mesa conserva ese corte en el título, el alcance y la referencia de la consulta.
 
+UEFA EURO 2024 aparece como torneo final. La consulta pide las métricas publicadas por UEFA en lotes internos y conserva la edición, el identificador de competición, la fase y la página de cada cifra. La clasificación previa queda fuera de este total; se consulta por separado al solicitar el historial del jugador. Si faltan métricas o falla algún lote, se muestra la evidencia parcial y se bloquea la exportación verificada.
+
 ## Modelos candidatos
 
 | Candidato | Prueba de aceptación |

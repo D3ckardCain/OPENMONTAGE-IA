@@ -19,6 +19,45 @@ def test_premier_desk_preserves_matchweek_and_source(monkeypatch):
     assert result['report']['ready_for_script']
 
 
+def test_euro_desk_uses_tournament_phase_and_source_batches(monkeypatch):
+    from lib.world_cup_edition_desk import compare_edition
+    from tools.football.official_uefa import OfficialUEFA
+    from tools.base_tool import ToolResult
+
+    origin = {'url': 'https://compstats.uefa.com/example', 'consultado_utc': '2026-11-21'}
+    scope = {'competitionId': '3', 'seasonYear': 2024, 'phase': 'TOURNAMENT'}
+
+    def execute(self, args):
+        assert args['competition'] == 'euro'
+        assert args['edition'] == 2024 and args['phase'] == 'TOURNAMENT'
+        assert args['metrics'] == 'all'
+        rows = [{'id': str(i), 'nombre': name, 'estadisticas': {'goals': i},
+                 'fuente_estadisticas': origin, 'fuente_por_metrica': {'goals': origin}}
+                for i, name in enumerate(args['names'], 1)]
+        report = {'fuente': 'UEFA', 'tipo': 'comparativa_jugadores', 'alcance': scope,
+                  'consultas': [origin], 'registros': rows, 'ready_for_script': True}
+        return ToolResult(success=True, data=report, cost_usd=0, from_cache=False)
+
+    monkeypatch.setattr(OfficialUEFA, 'execute', execute)
+    result = compare_edition([{'name': 'A'}, {'name': 'B'}], 'euro:2024:TOURNAMENT')
+    assert result['report']['scope'] == scope
+    assert result['report']['queries'][0]['url'] == origin['url']
+    assert result['display_metrics'] == ['goals']
+
+
+def test_euro_desk_handles_unresolved_names_without_server_error(monkeypatch):
+    from lib.world_cup_edition_desk import compare_edition
+    from tools.football.official_uefa import OfficialUEFA
+    from tools.base_tool import ToolResult
+
+    monkeypatch.setattr(OfficialUEFA, 'execute', lambda self, args: ToolResult(
+        success=True, data={'fuente': 'UEFA', 'tipo': 'comparativa_bloqueada',
+                            'registros': [], 'ready_for_script': False}, cost_usd=0, from_cache=False))
+    result = compare_edition([{'name': 'No identificado'}, {'name': 'B'}], 'euro:2024:TOURNAMENT')
+    assert result['report'] is None
+    assert result['errors']
+
+
 def test_jleague_merges_metric_batches_with_source_evidence():
     calls = []
     scope = {'competition': 'j1', 'season': 2025, 'phase': 'regular_season'}
