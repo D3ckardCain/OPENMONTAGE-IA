@@ -12,6 +12,9 @@ COMPETITIONS = {
     'brasil': ('brasileirao', 'Brasileirão Série A 2025', 2025),
     'laliga': ('la-liga', 'La Liga 2025/26', '2025-2026'),
     'premier': ('premier-league', 'Premier League 2025/26', '2025-2026'),
+    'serie_a': ('serie-a-italiana', 'Italian Serie A 2025/26', '2025-2026'),
+    'ligue1': ('ligue-1', 'Ligue 1 2025/26', '2025-2026'),
+    'portugal': ('primeira-liga', 'Primeira Liga 2025/26', '2025-2026'),
 }
 
 
@@ -63,7 +66,7 @@ def parse(html, page, competition='brasil'):
         link = identity.first('a') if identity else None
         match = re.fullmatch(r'/en/jogador/([0-9]+)/([\w-]+)', link.attrs.get('href', '')) if link else None
         club = row.first('td', **{'class': 'player-club'})
-        if not match or not link.text() or not club or match[1] in records:
+        if not match or not link.text() or not club or not club.text():
             raise ValueError('Identidad de jugador incompleta o duplicada')
         cells = {cell.attrs.get('data-label'): cell.text() for cell in row.walk('td')}
         stats = {}
@@ -78,7 +81,10 @@ def parse(html, page, competition='brasil'):
                 raise ValueError('Valor estadístico inválido')
             raw = raw.replace(',', '')
             stats[metric] = float(raw) if '.' in raw else int(raw)
-        records[match[1]] = (link.text(), match[2].replace('-', ' '), club.text(), stats)
+        key = (match[1], normalized(club.text()))
+        if key in records:
+            raise ValueError('Jugador y club duplicados en una página')
+        records[key] = (link.text(), match[2].replace('-', ' '), club.text(), stats)
     if not records:
         raise ValueError('Página sin jugadores')
     return records, bool(next_link)
@@ -90,8 +96,9 @@ def resolve(roster, names):
         key = normalized(name)
         matches = [record for entries in roster.values() for record in entries
                    if key in (record['entity_id'], normalized(record['full_name']),
-                              normalized(record['identity']['name']))]
-        if len(matches) == 1 and matches[0] not in records:
+                              normalized(record['identity']['name']),
+                              normalized(f"{record['identity']['name']} ({record['club']})"))]
+        if len(matches) == 1 and all(row['entity_id'] != matches[0]['entity_id'] for row in records):
             records.append(matches[0])
         else:
             unresolved.append(name)
@@ -154,7 +161,7 @@ class Brasileirao(BaseTool):
                 break
             source = {'url': url, 'retrieved_at': datetime.now(timezone.utc).isoformat(), 'page': page}
             queries.append(source)
-            for entity, (name, full_name, club, stats) in rows.items():
+            for (entity, _), (name, full_name, club, stats) in rows.items():
                 facts = [{'metric': metric, 'value': value, 'unit': UNITS.get(metric, metric),
                           'entity_id': entity, 'scope': scope, 'source_url': url,
                           'retrieved_at': source['retrieved_at']} for metric, value in stats.items()]
@@ -172,7 +179,7 @@ class Brasileirao(BaseTool):
         data = {'source': 'Classificação Geral', 'type': 'collectible_card' if card else 'player_comparison',
                 'scope': scope, 'records': records, 'queries': queries, 'failed_pages': failures,
                 'next_page': next_page, 'unresolved': unresolved, 'ready_for_script': not failures and not unresolved and bool(shared),
-                'coverage': 'Coincidencias de los bloques consultados, de hasta tres páginas cada uno. Usa el ID o el nombre completo para resolver homónimos.'}
+                'coverage': 'Coincidencias de los bloques consultados, de hasta tres páginas cada uno. Usa el ID, nombre completo o nombre publicado con el club entre paréntesis para resolver coincidencias.'}
         return ToolResult(success=bool(queries), error=None if queries else 'BRASILEIRAO_QUERY_FAILED',
                           data=data, cost_usd=0, from_cache=False)
 
