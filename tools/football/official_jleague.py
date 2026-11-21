@@ -47,7 +47,11 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'chances_created_per_game': ('chance_create_per_game', 'Chances created per game'),
            'saves_per_game': ('save_count_per_game', 'Saves per game'),
            'save_percentage_inside_box': ('save_rate_in_pa', 'Save success rate (shots inside penalty area)'),
-           'save_percentage_outside_box': ('save_rate_out_pa', 'Save success rate (shots outside penalty area)')}
+           'save_percentage_outside_box': ('save_rate_out_pa', 'Save success rate (shots outside penalty area)'),
+           'passes_in_own_half': ('own_area_pass_count', 'Passes in own half'),
+           'passes_in_opposition_half': ('opponent_area_pass_count', 'Passes in opposition half'),
+           'pass_accuracy_own_half': ('own_area_pass_rate', 'Pass accuracy in own half'),
+           'pass_accuracy_opposition_half': ('opponent_area_pass_rate', 'Pass accuracy in opposition half')}
 METRIC_DEFINITIONS = {
     'through_balls': 'Pases hacia el espacio detrás de la última línea defensiva para la carrera de un compañero.',
     'through_ball_success_rate': 'Porcentaje de pases filtrados completados según J.League.',
@@ -80,7 +84,9 @@ METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
                 'through_ball_success_rate': '%', 'shot_conversion_rate': '%',
                 'shots_per_game': 'per_match', 'passes_per_game': 'per_match',
                 'chances_created_per_game': 'per_match', 'saves_per_game': 'per_match',
-                'save_percentage_inside_box': '%', 'save_percentage_outside_box': '%'}
+                'save_percentage_inside_box': '%', 'save_percentage_outside_box': '%',
+                'passes_in_own_half': 'passes', 'passes_in_opposition_half': 'passes',
+                'pass_accuracy_own_half': '%', 'pass_accuracy_opposition_half': '%'}
 DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG', 'per_match'})
 DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'distance_covered': ' km'}
 DISPLAY_SUFFIXES.update({metric: ' %' for metric, unit in METRIC_UNITS.items() if unit == '%'})
@@ -325,7 +331,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.31.0'
+    version = '0.32.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL

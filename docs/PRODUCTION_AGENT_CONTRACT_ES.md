@@ -229,3 +229,5 @@ J.League incorpora pases filtrados, su porcentaje de éxito y conversión de tir
 J.League admite los promedios oficiales por partido de tiros, pases, ocasiones creadas y paradas en J1, J2, J3 y Copa Levain. El expediente conserva el valor publicado y la unidad `per_match`. Estas cifras se guardan junto a los totales y conservan su propia fuente.
 
 J.League admite el porcentaje de paradas ante tiros desde dentro del área (`save_percentage_inside_box`) y desde fuera (`save_percentage_outside_box`) en J1, J2, J3 y Copa Levain. El expediente conserva cada zona y su fuente junto al porcentaje general.
+
+J.League ofrece volumen y precisión de pase en campo propio y campo rival. El informe conserva las cuatro cifras por separado con la zona y el ranking oficial de cada una.
