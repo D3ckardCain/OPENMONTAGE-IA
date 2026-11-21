@@ -341,7 +341,7 @@ roundForm.addEventListener('submit', async event => {
  clearRoundResult('Consultando la fuente de estadísticas…');
  button.disabled = true;
  try {
-  const {report, preview_svg, export_token, metric_matrix, display_metrics, errors, failed_metrics} = await api('football/round-goals', {round: form.get('round') || 'edition', edition, players});
+  const {report, preview_svg, export_token, metric_matrix, display_metrics, errors, failed_metrics, phase_note} = await api('football/round-goals', {round: form.get('round') || 'edition', edition, players});
   if (request !== roundRequest) return;
   clearRoundResult('');
   if (!report) {
@@ -349,6 +349,7 @@ roundForm.addEventListener('submit', async event => {
    for (const error of errors || []) roundResult.append(node('p', error));
    return;
   }
+  if (phase_note) roundResult.append(node('p', phase_note));
   const supported = new Set(display_metrics);
   const choices = [];
   if (metric_matrix) {
@@ -387,7 +388,7 @@ roundForm.addEventListener('submit', async event => {
    }
   }
   for (const player of report.unresolved || []) {
-   roundResult.append(node('p', player.name + ' · Dato sin verificar en esta ronda'));
+   roundResult.append(node('p', (typeof player === 'string' ? player : player.name) + ' · Dato sin verificar para este alcance'));
   }
   if (errors?.length || Object.keys(failed_metrics || {}).length) {
    roundResult.append(node('p', 'Hay rankings que no se pudieron consultar. Revisa las cifras disponibles.'));

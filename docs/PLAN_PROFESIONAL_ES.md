@@ -19,7 +19,7 @@ El agente puede consultar partidos jugados, goles y tiros en grupos, octavos, cu
 
 ### Mesa de comparativas
 
-En **Fútbol**, elige una de las ocho ediciones de AS, desde Qatar 2022 hasta Liga MX Apertura 2025 y Clausura 2026, y selecciona **Torneo completo** para revisar las 54 métricas comunes con las cifras disponibles por jugador. Marca de una a seis métricas compartidas y genera la vista previa. La postal SVG y el clip MP4 de seis segundos usan esa misma selección. Para una ronda concreta, OpenFootball aporta los goles acreditados. Si se reinicia el estudio, vuelve a consultar para validar una nueva exportación.
+En **Fútbol**, elige entre las ediciones de AS y Classificação Geral, y selecciona **Torneo completo** para revisar las 54 métricas comunes con las cifras disponibles por jugador. Marca de una a seis métricas compartidas y genera la vista previa. La postal SVG y el clip MP4 de seis segundos usan esa misma selección. Classificação Geral busca primero por apellido y consulta por páginas si hace falta. Cuando la fuente publica totales de edición sin una fase verificable, la mesa indica ese alcance. Para una ronda concreta, OpenFootball aporta los goles acreditados. Si se reinicia el estudio, vuelve a consultar para validar una nueva exportación.
 
 ## Modelos candidatos
 
