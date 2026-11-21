@@ -283,3 +283,30 @@ def test_multi_metric_queries_retain_results_after_one_source_failure(official_p
     assert record['statistics']['red_cards'] is None
     assert record['statistics']['interceptions'] == 21
     assert all(fact['source_url'] != failed_url for fact in record['facts'])
+
+
+def test_split_season_is_distinct_from_the_jleague_special_edition(official_page, monkeypatch):
+    old_url = jleague.ranking_url(2025, 'goals')
+    url = jleague.ranking_url('2026-27', 'goals')
+    page = official_page.replace(old_url, url).replace('2025 Season', '2026/27 Season')
+
+    def fetch(requested):
+        assert requested == url
+        return page, {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    inputs = {'action': 'collectible_card', 'season': '2026/27', 'names': ['Example One']}
+    result = jleague.OfficialJLeague().execute(inputs)
+    assert result.success and result.data['ready_for_script']
+    assert result.data['scope']['season'] == '2026-27'
+    assert 'J1 League · 2026/27' in render(result.data)
+    with pytest.raises(ValueError, match='Temporada'):
+        jleague.season_key('2026/28', 'j1')
+    with pytest.raises(ValueError, match='Copa Levain'):
+        jleague.season_key(2026, 'leaguecup')
+
+    special_url = jleague.ranking_url(2026, 'goals')
+    special = official_page.replace(old_url, special_url).replace('2025 Season', '2026 Special Season')
+    assert jleague.parse_ranking(special, 2026, 'goals')[0][2] == 21
+    with pytest.raises(ValueError, match='temporada'):
+        jleague.parse_ranking(special.replace('2026 Special Season', '2026/27 Season'), 2026, 'goals')

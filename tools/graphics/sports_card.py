@@ -4,7 +4,7 @@ import json
 import math
 import re
 from pathlib import Path
-from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, profile_url, ranking_url
+from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, profile_url, ranking_url, season_label
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
 _LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','penalty_goals':'Penaltis marcados','fouls_committed':'Faltas cometidas','fouls_suffered':'Faltas recibidas','assists':'Asistencias','duels_won':'Duelos ganados','aerial_duels_won':'Duelos aéreos ganados','interceptions':'Intercepciones','clearances':'Despejes','blocks':'Bloqueos','tackles':'Entradas','clean_sheets':'Porterías a cero','saves':'Paradas','save_percentage':'Porcentaje de paradas','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','passes_attempted':'Pases intentados','long_balls_completed':'Pases largos completados','dribbles_attempted':'Regates intentados','touches':'Toques de balón','recoveries':'Recuperaciones','crosses_attempted':'Centros intentados','chances_created':'Ocasiones creadas','distance_covered':'Distancia recorrida','top_speed':'Velocidad máxima','expected_goals':'Goles esperados (xG)','sprints':'Sprints','pass_accuracy':'Precisión de pase','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
@@ -61,9 +61,9 @@ def render(report, metrics=None):
     if source=='MLB' and (scope.get('sport_id')!=1 or scope.get('game_type')!='R' or not scope.get('season') or scope.get('group') not in ('hitting','pitching')):raise ValueError('Alcance MLB no admitido')
     if source == 'J.League':
         competition = JLEAGUE_COMPETITIONS.get(scope.get('competition'))
-        if (not competition or type(scope.get('season')) is not int or not 1993 <= scope['season'] <= 9999
-                or scope.get('phase') != competition[1] or scope.get('category') != 'men'):
+        if (not competition or scope.get('phase') != competition[1] or scope.get('category') != 'men'):
             raise ValueError('Alcance J.League no admitido')
+        league_season = season_label(scope.get('season'), scope['competition'])
     panels=[]
     for record in records:
         identity=record.get('identity',{})
@@ -120,7 +120,7 @@ def render(report, metrics=None):
            '<metadata>'+escape(json.dumps(evidence,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+str(scope['season']) if source=='J.League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)

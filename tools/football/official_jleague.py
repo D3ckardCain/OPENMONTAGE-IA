@@ -53,7 +53,26 @@ DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG'})
 DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'pass_accuracy': ' %', 'save_percentage': ' %', 'distance_covered': ' km'}
 
 
+def season_key(season, competition):
+    if type(season) is int and 1993 <= season <= 9999:
+        if season == 2026 and competition == 'leaguecup':
+            raise ValueError('Para la Copa Levain usa la temporada 2026/27')
+        return season
+    match = re.fullmatch(r'([0-9]{4})[-/]([0-9]{2})', season) if isinstance(season, str) else None
+    if match:
+        year, end = map(int, match.groups())
+        if 1993 <= year < 9999 and end == (year + 1) % 100:
+            return f'{year}-{end:02d}'
+    raise ValueError('Temporada J.League inválida. Usa un año o un intervalo como 2026/27')
+
+
+def season_label(season, competition):
+    key = season_key(season, competition)
+    return '2026 Special' if key == 2026 else str(key).replace('-', '/')
+
+
 def ranking_url(season, metric, competition='j1'):
+    season = season_key(season, competition)
     return f'{BASE_URL}/en/{competition}/stats/player/{season}/{METRICS[metric][0]}/search-list/'
 
 
@@ -81,7 +100,7 @@ def parse_ranking(html, season, metric, competition='j1'):
     canonical = dom.root.first('link', rel='canonical')
     title = dom.root.first('title')
     if (not canonical or canonical.attrs.get('href') != ranking_url(season, metric, competition)
-            or not title or title.text() != f'{season} Season - {METRICS[metric][1]} | {COMPETITIONS[competition][0]} Player Stats | Official Website of J.LEAGUE'):
+            or not title or title.text() != f'{season_label(season, competition)} Season - {METRICS[metric][1]} | {COMPETITIONS[competition][0]} Player Stats | Official Website of J.LEAGUE'):
         raise ValueError('La página no acredita la división o copa, la temporada y la métrica solicitadas')
 
     links = {}
@@ -138,7 +157,7 @@ def profile_goals(html, player_id, name, season, competition='j1'):
             continue
         for row in table.walk('tr'):
             cells = list(row.walk('td'))
-            if (len(cells) == 8 and cells[0].text() == str(season)
+            if (len(cells) == 8 and cells[0].text() == season_label(season, competition)
                     and cells[1].text().endswith(' ' + competition.upper())):
                 values.append(cells[3].text())
     if len(values) != 1 or not re.fullmatch(r'[0-9]+', values[0]):
@@ -182,7 +201,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
         unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
                           for metric, reason in missing.items())
         definitions = dict(METRIC_DEFINITIONS)
-        threshold = 25 if scope['season'] >= 2023 else 24
+        threshold = 25 if int(str(scope['season'])[:4]) >= 2023 else 24
         definitions['sprints'] = f'Carreras a {threshold} km/h o más durante al menos un segundo, según J.League.'
         facts = [
             {'metric': metric, 'value': found[metric][2], 'unit': METRIC_UNITS.get(metric, metric), 'entity_id': player_id,
@@ -210,7 +229,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.22.0'
+    version = '0.23.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
@@ -226,7 +245,8 @@ class OfficialJLeague(BaseTool):
     input_schema = {'type': 'object', 'additionalProperties': False, 'required': ['action', 'season', 'names'],
                     'properties': {
                         'action': {'enum': ['compare_players', 'collectible_card']},
-                        'season': {'type': 'integer', 'minimum': 1993, 'maximum': 9999},
+                        'season': {'oneOf': [{'type': 'integer', 'minimum': 1993, 'maximum': 9999},
+                                             {'type': 'string', 'pattern': r'^[0-9]{4}[-/][0-9]{2}$'}]},
                         'competition': {'enum': list(COMPETITIONS)},
                         'metrics': {'oneOf': [{'const': 'all'},
                                               {'type': 'array', 'minItems': 1, 'uniqueItems': True,
@@ -245,8 +265,8 @@ class OfficialJLeague(BaseTool):
             card = inputs['action'] == 'collectible_card'
             if len(names) != (1 if card else 2) or len(keys) != len(names):
                 raise ValueError('Indica un nombre para la postal o dos nombres distintos para la comparativa')
-            season = inputs['season']
             competition = inputs.get('competition', 'j1')
+            season = season_key(inputs['season'], competition)
             selection = inputs.get('metrics', ['goals'])
             metrics = list(METRICS) if selection == 'all' else selection
             rankings, queries, failed_metrics = {}, {}, {}
