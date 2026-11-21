@@ -2,6 +2,7 @@
 import re
 import subprocess
 from datetime import datetime, timezone
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 from tools.base_tool import BaseTool, ResourceProfile, ToolResult, ToolRuntime, ToolStability, ToolTier
 from tools.football.uefa import DOM
@@ -35,10 +36,26 @@ FIELDS = {
 UNITS = {'goals_per_game': 'goals/game', 'minutes_per_goal': 'min/goal', 'minutes_played': 'min'}
 
 
-def page_url(page, competition='brasil'):
+def page_url(page, competition='brasil', search=None):
     slug = COMPETITIONS[competition][0]
     url = f'{BASE}/{slug}/2025'
-    return url if page == 1 else f'{url}?page={page}'
+    params = {}
+    if search:
+        params['q'] = search
+    if page > 1:
+        params['page'] = page
+    return f'{url}?{urlencode(params)}' if params else url
+
+
+def valid_source(url, competition):
+    if not isinstance(url, str):
+        return False
+    parts = urlsplit(url)
+    params = parse_qs(parts.query)
+    page = params.get('page', ['1'])[0]
+    search = params.get('q', [None])[0]
+    return (bool(re.fullmatch(r'[1-9][0-9]{0,2}', page))
+            and url == page_url(int(page), competition, search))
 
 
 def fetch(url):
@@ -51,7 +68,7 @@ def fetch(url):
     return result.stdout.decode('utf-8')
 
 
-def parse(html, page, competition='brasil'):
+def parse(html, page, competition='brasil', search=None):
     parser = DOM()
     parser.feed(html)
     root = parser.root
@@ -59,11 +76,22 @@ def parse(html, page, competition='brasil'):
     heading = root.first('h1')
     table = root.first('table', **{'class': 'player-statistics'})
     if (not canonical or canonical.attrs.get('href') != page_url(page, competition) or not heading
-            or heading.text() != 'Players ' + COMPETITIONS[competition][1] or not table):
+            or heading.text() != 'Players ' + COMPETITIONS[competition][1]):
         raise ValueError('La página no acredita la competición, temporada y página solicitadas')
+    field = root.first('input', name='q')
+    if search and (not field or field.attrs.get('value') != search):
+        raise ValueError('La página no confirma el filtro solicitado')
+    if not table:
+        if search and any(node.text() == 'No records found for these filters.' for node in root.walk('h2')):
+            return {}, False
+        raise ValueError('Página sin tabla estadística')
     next_link = root.first('a', rel='next')
-    if next_link and next_link.attrs.get('href') != f'/en/jogadores/{COMPETITIONS[competition][0]}/2025?page={page + 1}':
-        raise ValueError('Paginación inesperada')
+    if next_link:
+        expected = urlsplit(page_url(page + 1, competition, search))
+        actual = urlsplit(next_link.attrs.get('href', ''))
+        if (actual.scheme or actual.netloc or actual.path != expected.path
+                or parse_qs(actual.query) != parse_qs(expected.query)):
+            raise ValueError('Paginación inesperada')
     records = {}
     for row in list(table.walk('tr'))[1:]:
         identity = row.first('th', scope='row')
@@ -109,6 +137,17 @@ def resolve(roster, names):
     return records, unresolved
 
 
+def collect(roster, rows, scope, source):
+    for (entity, _), (name, full_name, club, stats) in rows.items():
+        facts = [{'metric': metric, 'value': value, 'unit': UNITS.get(metric, metric),
+                  'entity_id': entity, 'scope': scope, 'source_url': source['url'],
+                  'retrieved_at': source['retrieved_at']} for metric, value in stats.items()]
+        roster.setdefault(entity, []).append({
+            'entity_id': entity, 'identity': {'entity_id': entity, 'name': name},
+            'full_name': full_name, 'club': club, 'statistics': stats, 'facts': facts,
+        })
+
+
 class Brasileirao(BaseTool):
     name = 'brasileirao_player_stats'
     version = '0.2.0'
@@ -131,6 +170,7 @@ class Brasileirao(BaseTool):
             'names': {'type': 'array', 'minItems': 1, 'maxItems': 2, 'uniqueItems': True,
                       'items': {'type': 'string', 'minLength': 1, 'maxLength': 150}},
             'start_page': {'type': 'integer', 'minimum': 1, 'maximum': 100},
+            'search_by_name': {'type': 'boolean'},
             'max_blocks': {'type': 'integer', 'minimum': 1, 'maximum': 4},
         },
     }
@@ -153,6 +193,8 @@ class Brasileirao(BaseTool):
         if scope['season'] != inputs['season']:
             return ToolResult(success=False, error='Temporada no admitida para esta competición',
                               cost_usd=0, from_cache=False)
+        if inputs.get('search_by_name'):
+            return self.search(inputs['names'], scope, card)
         start_page = inputs.get('start_page', 1)
         next_page = start_page
         max_pages = 3 * inputs.get('max_blocks', 2)
@@ -165,14 +207,7 @@ class Brasileirao(BaseTool):
                 break
             source = {'url': url, 'retrieved_at': datetime.now(timezone.utc).isoformat(), 'page': page}
             queries.append(source)
-            for (entity, _), (name, full_name, club, stats) in rows.items():
-                facts = [{'metric': metric, 'value': value, 'unit': UNITS.get(metric, metric),
-                          'entity_id': entity, 'scope': scope, 'source_url': url,
-                          'retrieved_at': source['retrieved_at']} for metric, value in stats.items()]
-                roster.setdefault(entity, []).append({
-                    'entity_id': entity, 'identity': {'entity_id': entity, 'name': name},
-                    'full_name': full_name, 'club': club, 'statistics': stats, 'facts': facts,
-                })
+            collect(roster, rows, scope, source)
             next_page = page + 1 if has_next else None
             if next_page is None or ((page - start_page + 1) % 3 == 0
                                      and not resolve(roster, inputs['names'])[1]):
@@ -185,6 +220,43 @@ class Brasileirao(BaseTool):
                 'next_page': next_page, 'unresolved': unresolved, 'ready_for_script': not failures and not unresolved and bool(shared),
                 'coverage': 'Coincidencias de los bloques consultados, de hasta tres páginas cada uno. Usa el ID, nombre completo o nombre publicado con el club entre paréntesis para resolver coincidencias.'}
         return ToolResult(success=bool(queries), error=None if queries else 'BRASILEIRAO_QUERY_FAILED',
+                          data=data, cost_usd=0, from_cache=False)
+
+
+    def search(self, names, scope, card):
+        competition = scope['competition']
+        queries, failures, roster = [], {}, {}
+        for name in names:
+            words = name.split(' (', 1)[0].split()
+            if not words or len(words[-1]) > 80 or words[-1].isdecimal():
+                failures[name] = 'La búsqueda directa requiere un nombre publicado'
+                continue
+            term = words[-1]
+            url = page_url(1, competition, term)
+            try:
+                rows, has_next = parse(fetch(url), 1, competition, term)
+            except (OSError, ValueError) as exc:
+                failures[name] = str(exc)
+                continue
+            source = {'url': url, 'retrieved_at': datetime.now(timezone.utc).isoformat(), 'search': term}
+            queries.append(source)
+            if has_next:
+                failures[name] = 'Filtro demasiado amplio. Usa la consulta por páginas.'
+                continue
+            candidates = {}
+            collect(candidates, rows, scope, source)
+            matches, _ = resolve(candidates, [name])
+            for row in matches:
+                key = row['entity_id']
+                if not any(other['club'] == row['club'] for other in roster.get(key, [])):
+                    roster.setdefault(key, []).append(row)
+        records, unresolved = resolve(roster, names)
+        shared = set.intersection(*(set(row['statistics']) for row in records)) if records else set()
+        data = {'source': 'Classificação Geral', 'type': 'collectible_card' if card else 'player_comparison',
+                'scope': scope, 'records': records, 'queries': queries, 'failed_searches': failures,
+                'unresolved': unresolved, 'ready_for_script': not failures and not unresolved and bool(shared),
+                'coverage': 'Consultas independientes por apellido y coincidencia exacta del nombre publicado.'}
+        return ToolResult(success=bool(queries), error=None if queries else 'PLAYER_SEARCH_FAILED',
                           data=data, cost_usd=0, from_cache=False)
 
 

@@ -5,7 +5,7 @@ import math
 import re
 from pathlib import Path
 from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, expanded_ranking_url, profile_url, ranking_url, season_label
-from tools.football.brasileirao import FIELDS as CG_FIELDS, COMPETITIONS as CG_COMPETITIONS, competition_scope as cg_scope, page_url as cg_url
+from tools.football.brasileirao import FIELDS as CG_FIELDS, COMPETITIONS as CG_COMPETITIONS, competition_scope as cg_scope, valid_source as cg_source
 from tools.football.official_bundesliga import COMPETITIONS as DFL_COMPETITIONS, ALL_METRICS as DFL_METRICS, SEASON as DFL_SEASON, page_url as dfl_url, valid_value as dfl_value
 from tools.football.official_premier import METRICS as PL_METRICS, SCOPE as PL_SCOPE, URL as PL_URL, UNITS as PL_UNITS
 from tools.football.official_mls import METRICS as MLS_METRICS, SCOPE as MLS_SCOPE, SOURCE_URL as MLS_SOURCE_URL
@@ -135,7 +135,7 @@ def render(report, metrics=None):
                     raise ValueError('Cifra o fuente J.League inválida')
             elif source == 'Classificação Geral':
                 if (fact['metric'] not in CG_FIELDS or value < 0 or not isinstance(url, str)
-                        or not re.fullmatch(re.escape(cg_url(1, scope['competition'])) + r'(?:\?page=[1-9][0-9]*)?', url)):
+                        or not cg_source(url, scope['competition'])):
                     raise ValueError('Cifra o fuente de Classificação Geral inválida')
             elif source == 'Premier League':
                 if fact['metric'] not in PL_METRICS or url != PL_URL or value < 0:
