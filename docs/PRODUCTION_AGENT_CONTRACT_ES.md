@@ -227,3 +227,5 @@ J.League incorpora los porcentajes de éxito de centro, entrada y duelo aéreo c
 J.League incorpora pases filtrados, su porcentaje de éxito y conversión de tiro como cifras adicionales del proveedor. El ranking de conversión usa goles divididos entre tiros según la definición oficial. Conserva esta definición y la fuente en cada cifra.
 
 J.League admite los promedios oficiales por partido de tiros, pases, ocasiones creadas y paradas en J1, J2, J3 y Copa Levain. El expediente conserva el valor publicado y la unidad `per_match`. Estas cifras se guardan junto a los totales y conservan su propia fuente.
+
+J.League admite el porcentaje de paradas ante tiros desde dentro del área (`save_percentage_inside_box`) y desde fuera (`save_percentage_outside_box`) en J1, J2, J3 y Copa Levain. El expediente conserva cada zona y su fuente junto al porcentaje general.

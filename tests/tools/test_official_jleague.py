@@ -221,6 +221,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('expected_goals_excl_pk', 'Expected Goals (excl. penalties)', 'xG sin penaltis'),
     ('top_speed', 'Top Speed', 'Velocidad máxima'),
     ('save_percentage', 'Save success rate', 'Porcentaje de paradas'),
+    ('save_percentage_inside_box', 'Save success rate (shots inside penalty area)', 'Paradas a tiros desde el área'),
+    ('save_percentage_outside_box', 'Save success rate (shots outside penalty area)', 'Paradas a tiros desde fuera'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
     ('red_cards', 'Red cards', 'Tarjetas rojas'),
