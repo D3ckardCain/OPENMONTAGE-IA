@@ -181,6 +181,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('aerial_duels_won', 'Aerial duels won', 'Duelos aéreos ganados'),
     ('shots', 'Shots', 'Tiros'),
     ('shots_on_target', 'Shots on target', 'Tiros a puerta'),
+    ('matches_played', 'Appearances', 'Partidos jugados'),
+    ('minutes_played', 'Minutes played', 'Minutos jugados'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
     ('red_cards', 'Red cards', 'Tarjetas rojas'),
@@ -188,6 +190,10 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
 def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch, metric, title, label):
     url = jleague.ranking_url(2025, metric)
     page = official_page.replace(jleague.ranking_url(2025, 'goals'), url).replace('Top scorers', title)
+    if metric == 'minutes_played':
+        for score in (21, 18):
+            page = page.replace(f'>{score}</p>', f'>{score} min.</p>')
+
 
     def fetch(requested):
         assert requested == url
@@ -210,6 +216,9 @@ def test_multi_metric_queries_retain_results_after_one_source_failure(official_p
         official_page.replace(goals_url, jleague.ranking_url(2025, metric)).replace('Top scorers', title)
         for metric, (_, title) in jleague.METRICS.items()
     }
+    minutes_url = jleague.ranking_url(2025, 'minutes_played')
+    for score in (21, 18):
+        pages[minutes_url] = pages[minutes_url].replace(f'>{score}</p>', f'>{score} min.</p>')
     failed_url = jleague.ranking_url(2025, 'red_cards')
 
     def fetch(url):

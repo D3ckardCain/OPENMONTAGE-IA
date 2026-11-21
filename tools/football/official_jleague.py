@@ -19,7 +19,9 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'yellow_cards': ('yellow_count', 'Yellow cards'), 'red_cards': ('red_count', 'Red cards'),
            'interceptions': ('intercept_count', 'Interceptions'),
            'aerial_duels_won': ('air_battle_win_count', 'Aerial duels won'),
-           'shots': ('shoot', 'Shots'), 'shots_on_target': ('shoot_on_target', 'Shots on target')}
+           'shots': ('shoot', 'Shots'), 'shots_on_target': ('shoot_on_target', 'Shots on target'),
+           'matches_played': ('game', 'Appearances'), 'minutes_played': ('time', 'Minutes played')}
+PLAYING_TIME_UNITS = {'matches_played': 'matches', 'minutes_played': 'min'}
 
 
 def ranking_url(season, metric, competition='j1'):
@@ -66,7 +68,8 @@ def parse_ranking(html, season, metric, competition='j1'):
         score = row.attrs.get('score') or ''
         points = next((p.text() for p in row.walk('p')
                        if ROW_CLASS + '__points' in (p.attrs.get('class') or '').split()), None)
-        if not name.strip() or not re.fullmatch(r'[0-9]+', score) or score != points:
+        displayed = f'{score} min.' if metric == 'minutes_played' else score
+        if not name.strip() or not re.fullmatch(r'[0-9]+', score) or displayed != points:
             raise ValueError('Fila estadística J.League inválida')
         rows.append((name, links.get(id(row)), int(score)))
     if not rows:
@@ -145,7 +148,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
         unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
                           for metric, reason in missing.items())
         facts = [
-            {'metric': metric, 'value': found[metric][2], 'unit': metric, 'entity_id': player_id,
+            {'metric': metric, 'value': found[metric][2], 'unit': PLAYING_TIME_UNITS.get(metric, metric), 'entity_id': player_id,
              'scope': scope, 'source_url': sources[metric]['url'], 'retrieved_at': sources[metric]['retrieved_at']}
             for metric in rankings if metric in found
         ]
@@ -168,7 +171,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.13.0'
+    version = '0.14.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
