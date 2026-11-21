@@ -193,6 +193,9 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('penalty_goals', 'Goals (penalty)', 'Penaltis marcados'),
     ('fouls_committed', 'Fouls committed', 'Faltas cometidas'),
     ('fouls_suffered', 'Fouls won', 'Faltas recibidas'),
+    ('clearances', 'Clearances', 'Despejes'),
+    ('blocks', 'Blocks', 'Bloqueos'),
+    ('tackles', 'Tackles', 'Entradas'),
     ('save_percentage', 'Save success rate', 'Porcentaje de paradas'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
@@ -234,7 +237,12 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
     if metric in jleague.METRIC_DEFINITIONS:
         from lib.football_statistics import add_standard_statistics
         stats = add_standard_statistics(result.data)['records'][0]['standard_statistics']
-        assert stats[metric]['provider_definition'] == jleague.METRIC_DEFINITIONS[metric]
+        fact = result.data['records'][0]['facts'][0]
+        assert fact['provider_definition'] == jleague.METRIC_DEFINITIONS[metric]
+        if metric == 'tackles':
+            assert stats['tackles_attempted'] is None and stats['tackles_won'] is None
+        else:
+            assert stats[metric]['provider_definition'] == fact['provider_definition']
 
 
 @pytest.mark.parametrize('selection', ['all', ['goals', 'red_cards', 'interceptions']])

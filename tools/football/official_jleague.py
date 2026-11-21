@@ -26,8 +26,12 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'distance_covered': ('distance', 'Distance'), 'sprints': ('sprint', 'Sprints'),
            'saves': ('save_count', 'Saves'), 'save_percentage': ('save_rate', 'Save success rate'),
            'penalty_goals': ('pk_score', 'Goals (penalty)'), 'fouls_committed': ('foul_count', 'Fouls committed'),
-           'fouls_suffered': ('suffer_foul_count', 'Fouls won')}
+           'fouls_suffered': ('suffer_foul_count', 'Fouls won'),
+           'clearances': ('clear_count', 'Clearances'), 'blocks': ('block_count', 'Blocks'),
+           'tackles': ('tackle_count', 'Tackles')}
 METRIC_DEFINITIONS = {
+    'clearances': 'Acciones para alejar el peligro sin intención de pasar el balón a un compañero.',
+    'tackles': 'Acciones que desplazan el balón del rival. Incluye acciones sin recuperar la posesión.',
     'save_percentage': 'Paradas divididas entre la suma de paradas y goles recibidos, según J.League.',
     'crosses_attempted': 'Centros en jugada según J.League, excluye acciones a balón parado.',
     'chances_created': 'Suma de pases filtrados completados hacia el área, centros completados desde el área y últimos pases, según J.League.',
@@ -195,7 +199,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.19.0'
+    version = '0.20.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
