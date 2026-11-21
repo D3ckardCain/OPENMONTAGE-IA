@@ -64,7 +64,7 @@ def fetch(url):
                                  '--max-time', '12', '--max-filesize', '1000000', url],
                                 capture_output=True, check=True, timeout=14)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        raise OSError('Falló la descarga de la página de Classificação Geral') from exc
+        raise OSError('Falló la descarga de la página de estadísticas') from exc
     return result.stdout.decode('utf-8')
 
 

@@ -79,7 +79,7 @@ def add_standard_statistics(report):
             values = {item['name']: item for item in row.get('statistics', [])
                       if isinstance(item, dict) and 'name' in item}
             normalize_uefa_row(row, values, provenance)
-    elif source in ('FIFA', 'J.League', 'MLS', 'DFL', 'Premier League', 'Classificação Geral', 'Voetbal International', 'AS', 'AFC') and report.get('type') in (
+    elif source in ('FIFA', 'J.League', 'MLS', 'DFL', 'Premier League', 'Classificação Geral', 'Voetbal International', 'AS', 'AFC', 'OFC') and report.get('type') in (
             'player_statistics', 'player_comparison', 'collectible_card'):
         for row in report['records']:
             facts = {fact['metric']: fact for fact in row.get('facts', [])}
