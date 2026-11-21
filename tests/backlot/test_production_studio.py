@@ -352,6 +352,20 @@ def test_qatar_edition_preview_uses_explicit_metrics(isolated, monkeypatch):
     assert isolated.post(path + '/preview', json=payload).status_code == 400
 
 
+def test_partial_edition_report_cannot_be_exported(isolated, monkeypatch):
+    from lib import world_cup_edition_desk
+
+    report = {'scope': {'competition': 'j1', 'season': 2025, 'phase': 'league'},
+              'records': [], 'ready_for_script': False, 'failed_metrics': {'shots': 'timeout'}}
+    monkeypatch.setattr(world_cup_edition_desk, 'compare_edition',
+                        lambda players, edition: {'report': report, 'display_metrics': ['goals']})
+    path = '/api/studio/football/round-goals'
+    result = isolated.post(path, json={'round': 'edition', 'edition': 'j1:2025:league',
+                                       'players': [{'name': 'A'}, {'name': 'B'}]})
+    assert result.status_code == 200
+    assert result.json()['export_token'] is None
+
+
 def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     data = isolated.get('/api/studio/football/desk-editions').json()
     editions = {option['id']: option for option in data['editions']}

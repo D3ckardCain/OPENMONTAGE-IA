@@ -52,6 +52,9 @@ def merge_batches(batches):
         return None
     merged = deepcopy(compatible[0])
     merged['queries'], merged['failed_metrics'] = [], {}
+    if 'visible_rows_by_metric' in merged:
+        merged['visible_rows_by_metric'] = {}
+        merged['visible_rows'] = None
     ids = [row['entity_id'] for row in merged['records']]
     for row in merged['records']:
         row['facts'], row['statistics'] = [], {}
@@ -62,6 +65,8 @@ def merge_batches(batches):
             raise ValueError('Los lotes proceden de fuentes distintas')
         merged['queries'].extend(report['queries'])
         merged['failed_metrics'].update(report['failed_metrics'])
+        if 'visible_rows_by_metric' in merged:
+            merged['visible_rows_by_metric'].update(report.get('visible_rows_by_metric', {}))
         if report in compatible and [row['entity_id'] for row in report['records']] != ids:
             raise ValueError('Los lotes identificaron jugadores distintos')
         if report not in compatible:

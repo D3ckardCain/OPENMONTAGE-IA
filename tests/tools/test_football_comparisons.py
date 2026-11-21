@@ -19,7 +19,8 @@ def test_jleague_merges_metric_batches_with_source_evidence():
                                for metric, query in zip(metrics, queries)],
                         statistics=dict.fromkeys(metrics, 1)) for player in ('a', 'b')]
         return {'success': True, 'data': dict(source='J.League', scope=scope, queries=queries,
-                                              records=records, failed_metrics={}, unresolved=[])}
+                                              records=records, failed_metrics={}, unresolved=[],
+                                              visible_rows_by_metric={metric: 10 for metric in metrics})}
 
     result = collect('competition', [{'connector': 'official_jleague_live',
                                       'inputs': {'season': 2025, 'names': ['a', 'b']}}], execute)
@@ -28,6 +29,7 @@ def test_jleague_merges_metric_batches_with_source_evidence():
     assert set().union(*map(set, calls)) == set(JLEAGUE_METRICS)
     assert set(section['display_metrics']) == set(JLEAGUE_METRICS)
     assert len(section['report']['queries']) == len(JLEAGUE_METRICS)
+    assert set(section['report']['visible_rows_by_metric']) == set(JLEAGUE_METRICS)
     assert section['report']['records'][0]['facts'][0]['source_url'] == 'https://example.org/goals'
 
 
