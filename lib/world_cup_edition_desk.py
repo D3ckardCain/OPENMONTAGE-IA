@@ -3,6 +3,12 @@ from lib.football_comparisons import collect
 from tools.football.brasileirao import COMPETITIONS as CG_COMPETITIONS, ClassificacaoLeague, competition_scope
 from tools.football.ligamx import ASCompetition, LigaMX, TOURNAMENTS
 
+from tools.football.eredivisie import Eredivisie, SCOPE as EREDIVISIE_SCOPE
+from tools.football.official_asian_cup import OfficialAsianCup, SCOPE as ASIAN_SCOPE
+from tools.football.official_bundesliga import OfficialBundesliga, SEASON as DFL_SEASON
+from tools.football.official_mls import OfficialMLS, SCOPE as MLS_SCOPE
+from tools.football.official_ofc import OfficialOFC, SCOPE as OFC_SCOPE
+
 TEAM_LABELS = {
     'Belgium': 'Bélgica', 'Brazil': 'Brasil', 'Cameroon': 'Camerún', 'Canada': 'Canadá',
     'Croatia': 'Croacia', 'Denmark': 'Dinamarca', 'England': 'Inglaterra', 'France': 'Francia',
@@ -22,14 +28,35 @@ for competition, (_, label, season) in CG_COMPETITIONS.items():
     EDITIONS[':'.join(map(str, key))] = (key, label)
 
 
+STANDALONE_EDITIONS = {
+    ('bundesliga', DFL_SEASON, 'regular_season'): ('Bundesliga 2024/25', OfficialBundesliga),
+    ('bundesliga_2', DFL_SEASON, 'regular_season'): ('2. Bundesliga 2024/25', OfficialBundesliga),
+    (EREDIVISIE_SCOPE['competition'], EREDIVISIE_SCOPE['season'], EREDIVISIE_SCOPE['phase']):
+        ('Eredivisie 2025/26', Eredivisie),
+    (ASIAN_SCOPE['competition'], ASIAN_SCOPE['season'], ASIAN_SCOPE['phase']):
+        ('Copa Asiática Qatar 2023', OfficialAsianCup),
+    (OFC_SCOPE['competition'], OFC_SCOPE['season'], OFC_SCOPE['phase']):
+        ('Copa de Naciones OFC 2024', OfficialOFC),
+    (MLS_SCOPE['competition'], MLS_SCOPE['season'], MLS_SCOPE['phase']):
+        ('MLS 2025 · Temporada regular', OfficialMLS),
+}
+for key, (label, _) in STANDALONE_EDITIONS.items():
+    EDITIONS[':'.join(map(str, key))] = (key, label)
+
+
 def edition_options():
-    return [{'id': key, 'label': item[1]} for key, item in EDITIONS.items()]
+    return [{'id': key, 'label': item[1], 'team_filter': item[0][0] not in ('bundesliga', 'bundesliga_2')}
+            for key, item in EDITIONS.items()]
 
 
 def compare_edition(players, edition=DEFAULT_EDITION):
     (competition, season, phase), _ = EDITIONS[edition]
     args = {'season': season}
-    if competition in CG_COMPETITIONS:
+    if (competition, season, phase) in STANDALONE_EDITIONS:
+        tool = STANDALONE_EDITIONS[(competition, season, phase)][1]()
+        if isinstance(tool, OfficialBundesliga):
+            args['competition'] = competition
+    elif competition in CG_COMPETITIONS:
         tool = ClassificacaoLeague()
         args.update(competition=competition, search_by_name=True)
     elif competition == 'ligamx':
@@ -48,6 +75,8 @@ def compare_edition(players, edition=DEFAULT_EDITION):
     names = []
     for player in players:
         team = player.get('team', '').strip()
+        if team and isinstance(tool, OfficialBundesliga):
+            raise ValueError('Las clasificaciones DFL identifican por nombre publicado')
         if edition == DEFAULT_EDITION:
             team = TEAM_LABELS.get(team, team)
         name = player['name'].strip()
@@ -62,5 +91,6 @@ def compare_edition(players, edition=DEFAULT_EDITION):
     return {'report': section['report'], 'metric_matrix': section['metric_matrix'],
             'display_metrics': section['display_metrics'], 'errors': section['errors'],
             'failed_metrics': (section['report'] or {}).get('failed_metrics', {}),
+            'coverage_note': (section['report'] or {}).get('coverage'),
             'phase_note': ('La fuente publica cifras de la edición sin desglose verificable por fase.'
                            if phase == 'provider_edition' and competition in CG_COMPETITIONS else None)}

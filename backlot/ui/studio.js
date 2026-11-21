@@ -297,8 +297,10 @@ for (const field of ['first_team', 'second_team']) {
 }
 const editionPicker = roundForm.elements.edition;
 const qatarEdition = editionPicker.value;
+const editionTeamFilters = new Map();
 api('football/desk-editions').then(({editions}) => {
  const current = editionPicker.value;
+ for (const item of editions) editionTeamFilters.set(item.id, item.team_filter);
  editionPicker.replaceChildren(...editions.map(item => new Option(item.label, item.id)));
  editionPicker.value = current;
 }).catch(error => notice(error.message));
@@ -312,8 +314,8 @@ editionPicker.addEventListener('change', () => {
   const club = roundForm.elements[key + '_club'];
   team.disabled = !qatar;
   team.closest('label').hidden = !qatar;
-  club.disabled = qatar;
-  club.closest('label').hidden = qatar;
+  club.disabled = qatar || editionTeamFilters.get(editionPicker.value) === false;
+  club.closest('label').hidden = club.disabled;
  }
 });
 let roundPreviewUrl = null;
@@ -341,7 +343,7 @@ roundForm.addEventListener('submit', async event => {
  clearRoundResult('Consultando la fuente de estadísticas…');
  button.disabled = true;
  try {
-  const {report, preview_svg, export_token, metric_matrix, display_metrics, errors, failed_metrics, phase_note} = await api('football/round-goals', {round: form.get('round') || 'edition', edition, players});
+  const {report, preview_svg, export_token, metric_matrix, display_metrics, errors, failed_metrics, phase_note, coverage_note} = await api('football/round-goals', {round: form.get('round') || 'edition', edition, players});
   if (request !== roundRequest) return;
   clearRoundResult('');
   if (!report) {
@@ -349,6 +351,7 @@ roundForm.addEventListener('submit', async event => {
    for (const error of errors || []) roundResult.append(node('p', error));
    return;
   }
+  if (coverage_note) roundResult.append(node('p', coverage_note));
   if (phase_note) roundResult.append(node('p', phase_note));
   const supported = new Set(display_metrics);
   const choices = [];

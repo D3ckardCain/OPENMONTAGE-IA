@@ -102,7 +102,7 @@ class OfficialMLS(BaseTool):
             scope = dict(SCOPE)
             records, unresolved = [], []
             for name, key in zip(inputs['names'], names):
-                matches = [row for row in roster if normalized(row[1]) == key]
+                matches = [row for row in roster if key in (normalized(row[1]), normalized(f'{row[1]} ({row[2]})'))]
                 if len(matches) != 1:
                     unresolved.append(name)
                     continue
