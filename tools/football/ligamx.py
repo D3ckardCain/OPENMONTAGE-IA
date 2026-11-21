@@ -1,4 +1,4 @@
-"""Read Liga MX Apertura 2025 player rankings from AS."""
+"""Read Liga MX tournament player rankings from AS."""
 import re
 import urllib.request
 from datetime import datetime, timezone
@@ -7,8 +7,16 @@ from tools.base_tool import BaseTool, ResourceProfile, ToolResult, ToolRuntime, 
 from tools.football.uefa import DOM
 from tools.football.uefa_names import normalized
 
-BASE = 'https://as.com/resultados/futbol/mexico_apertura/2025/ranking/jugadores/'
-SCOPE = {'competition': 'ligamx', 'season': 2025, 'phase': 'apertura', 'category': 'men'}
+TOURNAMENTS = {(2025, 'apertura'): 'Liga MX Apertura 2025',
+               (2026, 'clausura'): 'Liga MX - Clausura 2026'}
+DEFAULT_TOURNAMENT = (2025, 'apertura')
+
+
+def tournament_scope(tournament):
+    year, phase = tournament
+    return {'competition': 'ligamx', 'season': year, 'phase': phase, 'category': 'men'}
+
+
 RANKINGS = {
     'goals': 'goles', 'assists': 'asistencias-de-gol', 'shots': 'disparos',
     'shots_on_target': 'disparos-a-puerta', 'passes_completed': 'pases-buenos',
@@ -24,7 +32,10 @@ RANKINGS = {
     'clean_sheets': 'partidos-con-la-porteria-a-cero',
     'penalties_saved': 'penaltis-parados-por-el-portero', 'own_goals': 'goles-en-propia-puerta',
 }
-URLS = {metric: BASE + slug + '/' for metric, slug in RANKINGS.items()}
+def ranking_urls(tournament):
+    year, phase = tournament
+    base = f'https://as.com/resultados/futbol/mexico_{phase}/{year}/ranking/jugadores/'
+    return {metric: base + slug + '/' for metric, slug in RANKINGS.items()}
 DEFAULT_METRICS = ('goals', 'assists', 'shots')
 
 
@@ -41,14 +52,14 @@ def fetch(url):
     return body.decode('utf-8')
 
 
-def parse(html, metric):
+def parse(html, metric, tournament=DEFAULT_TOURNAMENT):
     document = DOM()
     document.feed(html)
     canonical = document.root.first('link', rel='canonical')
     heading = document.root.first('h1')
     table = document.root.first('table')
-    if (not canonical or canonical.attrs.get('href') != URLS[metric] or not heading
-            or heading.text() != 'Rankings de jugadores Liga MX Apertura 2025' or not table):
+    if (not canonical or canonical.attrs.get('href') != ranking_urls(tournament)[metric] or not heading
+            or heading.text() != 'Rankings de jugadores ' + TOURNAMENTS[tournament] or not table):
         raise ValueError('Ranking AS con torneo o métrica inesperados')
     records = {}
     for row in list(table.walk('tr'))[1:]:
@@ -91,9 +102,10 @@ class LigaMX(BaseTool):
         'type': 'object', 'additionalProperties': False, 'required': ['action', 'season', 'names'],
         'properties': {
             'action': {'enum': ['compare_players', 'collectible_card']},
-            'season': {'const': SCOPE['season']},
+            'season': {'enum': [2025, 2026]},
+            'phase': {'enum': ['apertura', 'clausura']},
             'metrics': {'type': 'array', 'minItems': 1, 'maxItems': 6, 'uniqueItems': True,
-                        'items': {'enum': list(URLS)}},
+                        'items': {'enum': list(RANKINGS)}},
             'names': {'type': 'array', 'minItems': 1, 'maxItems': 2, 'uniqueItems': True,
                       'items': {'type': 'string', 'minLength': 1, 'maxLength': 150}},
         },
@@ -110,12 +122,17 @@ class LigaMX(BaseTool):
         except (ValidationError, ValueError) as exc:
             return ToolResult(success=False, error=str(exc), cost_usd=0, from_cache=False)
 
-        scope = dict(SCOPE)
+        year = inputs['season']
+        tournament = (year, inputs.get('phase', 'apertura' if year == 2025 else 'clausura'))
+        if tournament not in TOURNAMENTS:
+            return ToolResult(success=False, error='Torneo de Liga MX no disponible', cost_usd=0, from_cache=False)
+        scope = tournament_scope(tournament)
+        urls = ranking_urls(tournament)
         roster, queries, failures = {}, [], {}
         for metric in inputs.get('metrics', DEFAULT_METRICS):
-            url = URLS[metric]
+            url = urls[metric]
             try:
-                rows = parse(fetch(url), metric)
+                rows = parse(fetch(url), metric, tournament)
             except (OSError, ValueError) as exc:
                 failures[metric] = str(exc)
                 continue
@@ -143,6 +160,6 @@ class LigaMX(BaseTool):
         data = {'source': 'AS', 'type': 'collectible_card' if card else 'player_comparison',
                 'scope': scope, 'records': records, 'queries': queries, 'failed_metrics': failures,
                 'unresolved': unresolved, 'ready_for_script': not failures and not unresolved and bool(shared),
-                'coverage': 'Filas publicadas por AS para Apertura 2025. La ausencia en un ranking queda sin valor.'}
+                'coverage': 'Filas publicadas por AS para el torneo solicitado. La ausencia en un ranking queda sin valor.'}
         return ToolResult(success=bool(queries), error=None if queries else 'LIGAMX_QUERY_FAILED',
                           data=data, cost_usd=0, from_cache=False)

@@ -5,7 +5,7 @@ import math
 import re
 from pathlib import Path
 from tools.football.official_jleague import DECIMAL_UNITS as JLEAGUE_DECIMAL_UNITS, COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, METRIC_UNITS as JLEAGUE_UNITS, expanded_ranking_url, profile_url, ranking_url, season_label
-from tools.football.ligamx import SCOPE as MX_SCOPE, URLS as MX_URLS
+from tools.football.ligamx import TOURNAMENTS as MX_TOURNAMENTS, tournament_scope as mx_scope, ranking_urls as mx_urls
 from tools.football.eredivisie import SCOPE as VI_SCOPE, URLS as VI_URLS
 from tools.football.brasileirao import FIELDS as CG_FIELDS, COMPETITIONS as CG_COMPETITIONS, competition_scope as cg_scope, valid_source as cg_source
 from tools.football.official_bundesliga import COMPETITIONS as DFL_COMPETITIONS, ALL_METRICS as DFL_METRICS, SEASON as DFL_SEASON, page_url as dfl_url, valid_value as dfl_value
@@ -68,7 +68,12 @@ def render(report, metrics=None):
     if source == 'MLS' and scope != MLS_SCOPE:
         raise ValueError('Alcance MLS no admitido')
     if source in ('Voetbal International', 'AS'):
-        ranking_scope, ranking_urls = (VI_SCOPE, VI_URLS) if source == 'Voetbal International' else (MX_SCOPE, MX_URLS)
+        ranking_scope, ranking_urls = VI_SCOPE, VI_URLS
+        if source == 'AS':
+            tournament = (scope.get('season'), scope.get('phase'))
+            if tournament not in MX_TOURNAMENTS:
+                raise ValueError('Torneo de Liga MX inválido')
+            ranking_scope, ranking_urls = mx_scope(tournament), mx_urls(tournament)
         if scope != ranking_scope:
             raise ValueError('Alcance del ranking inválido')
         if metrics is None:
@@ -178,7 +183,7 @@ def render(report, metrics=None):
            '<metadata>'+escape(json.dumps(evidence,ensure_ascii=False))+'</metadata>',
            '<rect width="1080" height="1350" fill="#0d1117"/>',
            text(54,82,('BÉISBOL · ' if source=='MLB' else 'BOXEO · ' if source=='WBA' else 'FÚTBOL · ')+('COMPARATIVA' if count==2 else 'POSTAL DE RANKING' if source=='WBA' else 'POSTAL DE ESTADÍSTICAS'),30,'#58a6ff'),
-           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else dfl_label+' · 2024/25' if source=='DFL' else 'Premier League · 2024/25 · Hasta la jornada 29' if source=='Premier League' else CG_COMPETITIONS[scope['competition']][1] if source=='Classificação Geral' else 'Eredivisie · 2025/26' if source=='Voetbal International' else 'Liga MX · Apertura 2025' if source=='AS' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
+           text(54,130,next((v['Description'] for v in (scope.get('season_name') or []) if isinstance(v,dict) and v.get('Description')), 'Estadísticas de la edición consultada') if source=='FIFA' else 'WBA · Ranking masculino · '+scope['as_of_month'] if source=='WBA' else 'UEFA · '+str(report.get('competition'))+' · '+str(scope['seasonYear'])+' · '+str(scope['phase']) if source=='UEFA' else competition[0]+' · '+league_season if source=='J.League' else 'MLS · 2025 · Temporada regular' if source=='MLS' else dfl_label+' · 2024/25' if source=='DFL' else 'Premier League · 2024/25 · Hasta la jornada 29' if source=='Premier League' else CG_COMPETITIONS[scope['competition']][1] if source=='Classificação Geral' else 'Eredivisie · 2025/26' if source=='Voetbal International' else MX_TOURNAMENTS[tournament] if source=='AS' else 'MLB '+str(scope['season'])+' · Temporada regular · '+('Bateo' if scope['group']=='hitting' else 'Pitcheo'),24)]
     width=972/count
     for index,(identity,facts) in enumerate(panels):
         x=int(54+index*width)
