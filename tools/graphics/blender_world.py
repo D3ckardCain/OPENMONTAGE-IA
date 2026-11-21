@@ -31,6 +31,13 @@ _RUNTIME_SCRIPT = Path(__file__).resolve().parent / "templates" / "blender-world
 
 
 def find_blender() -> Path | None:
+    from lib.external_applications import configuration, CATALOG
+    application = configuration().get('blender', {}).get('executable')
+    if application:
+        path = Path(application)
+        allowed = {name.casefold() for name in CATALOG['blender']['executables']}
+        # An explicit command-center binding must not silently switch versions.
+        return path.resolve() if path.is_absolute() and path.name.casefold() in allowed and path.is_file() else None
     configured = os.environ.get("BLENDER_PATH")
     if configured and Path(configured).is_file():
         return Path(configured).resolve()
@@ -62,7 +69,7 @@ class BlenderWorld(BaseTool):
     runtime = ToolRuntime.LOCAL_GPU
     dependencies: list[str] = []
     install_instructions = (
-        "Install Blender 4.5 LTS, set BLENDER_PATH, or place the portable runtime at "
+        "Configure the installed Blender executable in Studio Applications, set BLENDER_PATH, or place the portable runtime at "
         ".runtime/blender/blender-4.5.10-windows-x64/blender.exe."
     )
     agent_skills = [

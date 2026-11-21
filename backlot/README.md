@@ -1,4 +1,11 @@
-# Backlot — the living storyboard
+# Backlot — storyboard and local production studio
+
+For production controls, run `python -m backlot studio` or open
+`OPENMONTAGE_ESTUDIO.cmd` on Windows. See
+[Estudio de producción](../docs/ESTUDIO_PRODUCCION_ES.md) for local model setup,
+approval modes, dependency diagnostics and current integration limits.
+
+## Observer board
 
 A read-only local board that shows a production happening: pipeline stages
 lighting up, the script as a screenplay page, the scene plan as a filmstrip

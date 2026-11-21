@@ -1,0 +1,167 @@
+"""Real local UI flow with synthetic API fixtures; no YouTube requests."""
+import json
+import pytest
+pytest.importorskip('playwright.sync_api')
+from playwright.sync_api import sync_playwright
+from tests.backlot.test_ui_bug_bash import staged_backlot_server
+
+
+def test_channel_filters_results_and_mobile(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch()
+        page=browser.new_page(viewport={'width':1280,'height':900})
+        page.route('**/api/research/channels/status',lambda route:route.fulfill(json={'configured':True}))
+        captured=[]
+        def respond(route):
+            captured.append(route.request.post_data_json)
+            route.fulfill(json={'result_type':'channels','retrieved_at_utc':'2026-11-14T00:00:00Z',
+                'order':['matching_publication_views_sum_desc','subscriberCount_public_rounded_desc'],
+                'results':[{'id':'UC'+'a'*22,'title':'<img src=x onerror=alert(1)>',
+                    'viewCount':2000000,'subscriberCount_public_rounded':10000,'videoCount':30,
+                    'content_review':{'matching_publication_views_sum':150000,'matched':2,'inspected':10,'sample_requested':10,'matching_publications':[{'id':'abcdefghijk','title':'Publicación reciente','viewCount':150000,'published_at':'2026-11-13T00:00:00Z','duration_iso8601':'PT10M','audio_language_declared':'es'}]}}],
+                'scope':{'candidate_discovery':'direct_identity' if route.request.post_data_json['query'].startswith('@') else route.request.post_data_json.get('filters',{}).get('discovery_mode','channels'),'candidate_channels':50,'lookup_mode':'handle' if route.request.post_data_json['query'].startswith('@') else 'keywords','content_filter_scope':'recent_upload_sample'},'excluded':{}})
+        page.route('**/api/research/channels',respond)
+        page.goto(staged_backlot_server+'/channels')
+        page.get_by_role('button',name='Filtros',exact=False).click()
+        page.get_by_role('button',name='Ejemplo: 1 millón de vistas / hasta 90 días').click()
+        assert page.locator('[name=max_channel_age_days]').input_value()=='90'
+        page.locator('[name=min_subscribers]').fill('1000')
+        page.locator('[name=min_matching_publications]').fill('3')
+        page.locator('[name=sample_size]').select_option('5')
+        page.locator('[name=min_matching_publications]').fill('6')
+        page.get_by_role('button',name='Aplicar filtros').click()
+        assert page.locator('dialog').is_visible()
+        assert 'tamaño de la muestra' in page.locator('#filter-error').inner_text()
+        page.locator('[name=min_matching_publications]').fill('2')
+        page.locator('[name=language]').select_option('es')
+        page.locator('[name=content_type]').select_option('medium')
+        page.locator('[name=published_within]').select_option('month')
+        page.get_by_role('button',name='Aplicar filtros').click()
+        page.locator('#query').fill('animales')
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.locator('.channel').wait_for()
+        assert captured[0]['filters']['min_matching_publications']==2
+        page.get_by_text('Ver publicaciones coincidentes',exact=True).click()
+        assert page.get_by_role('link',name='Publicación reciente').get_attribute('href')=='https://www.youtube.com/watch?v=abcdefghijk'
+        assert '150,000 vistas acumuladas' in page.locator('.channel').inner_text()
+        create=page.get_by_role('link',name='Crear producción con esta referencia',exact=True)
+        assert 'reference=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dabcdefghijk' in create.get_attribute('href')
+        from urllib.parse import urlsplit,parse_qs
+        handoff=parse_qs(urlsplit(create.get_attribute('href')).query)
+        assert handoff['title'][0].startswith('Nuevo enfoque:')
+        assert 'guion original' in handoff['brief'][0]
+        assert 'Idioma de audio declarado: es' in handoff['brief'][0]
+        assert 'No se han verificado ingresos' in handoff['brief'][0]
+        assert captured[0]['filters']['min_views']==1000000
+        assert captured[0]['filters']['max_channel_age_days']==90
+        assert captured[0]['filters']['min_subscribers']==1000
+        assert captured[0]['filters']['published_within']=='month'
+        assert page.locator('.channel h2').inner_text()=='<img src=x onerror=alert(1)>'
+        assert page.locator('.channel img').count()==0
+        assert 'canales encontrados' in page.locator('#status').inner_text()
+        assert 'vistas de publicaciones coincidentes' in page.locator('#result-order').inner_text()
+        assert 'Vistas de publicaciones coincidentes: 150,000' in page.locator('.channel').inner_text()
+        page.locator('#query').fill('@example')
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.locator('.channel').wait_for()
+        assert captured[1]['query']=='@example'
+        assert 'Canal identificado directamente' in page.locator('#scope').inner_text()
+        # Cancel must not apply edited filters, and applying filters clears old results.
+        page.get_by_role('button',name='Filtros',exact=False).click()
+        page.locator('[name=min_views]').fill('9999999')
+        page.get_by_role('button',name='Cancelar',exact=True).click()
+        page.get_by_role('button',name='Filtros',exact=False).click()
+        assert page.locator('[name=min_views]').input_value()=='1000000'
+        page.get_by_role('button',name='Ejemplo: 3 videos / 100 mil vistas / 30 días').click()
+        assert page.locator('[name=sort_by]').input_value()=='matching_publication_views'
+        assert page.locator('[name=discovery_mode]').input_value()=='recent_publications'
+        assert page.locator('[name=max_channel_age_days]').input_value()==''
+        assert page.locator('[name=min_matching_publications]').input_value()=='3'
+        assert page.locator('[name=sample_size]').input_value()=='20'
+        page.locator('[name=published_within]').select_option('any')
+        page.get_by_role('button',name='Aplicar filtros').click()
+        assert 'fecha reciente' in page.locator('#filter-error').inner_text()
+        page.locator('[name=published_within]').select_option('month')
+        page.get_by_role('button',name='Aplicar filtros').click()
+        page.locator('#query').fill('animals')
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.locator('.channel').wait_for()
+        assert captured[2]['filters']['discovery_mode']=='recent_publications'
+        assert 'descubiertos desde publicaciones recientes' in page.locator('#scope').inner_text()
+        page.locator('#query').fill('@example')
+        page.get_by_role('button',name='Filtros',exact=False).click()
+        page.get_by_role('button',name='Restablecer todo').click()
+        page.get_by_role('button',name='Aplicar filtros').click()
+        assert page.locator('.channel').count()==0
+        page.set_viewport_size({'width':390,'height':844})
+        page.get_by_role('button',name='Filtros',exact=False).click()
+        assert page.locator('dialog').is_visible()
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        page.get_by_role('button',name='Cancelar',exact=True).click()
+        page.unroute('**/api/research/channels')
+        page.route('**/api/research/channels',lambda route:route.fulfill(status=429,json={
+            'error':'La cuota de YouTube se agotó. Espera antes de repetir.',
+            'error_code':'QUOTA_EXCEEDED','retryable':False}))
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.get_by_text('La cuota de YouTube se agotó. Espera antes de repetir.',exact=True).wait_for()
+        assert page.locator('.channel').count()==0
+        assert page.locator('#query').input_value()=='@example'
+        assert page.get_by_role('button',name='Buscar canales',exact=True).is_enabled()
+        batches=[]
+        def batch_response(route):
+            batches.append(route.request.post_data_json)
+            route.fulfill(status=429,json={'error':'Cuota agotada en segundo tema',
+                'error_code':'QUOTA_EXCEEDED','result_type':'channels','complete':False,'partial':True,
+                'queries':['animales','geografía'],'completed_queries':[{'query':'animales'}],
+                'pending_queries':['geografía'],'results':[{'id':'UC'+'b'*22,'title':'Canal de prueba',
+                    'viewCount':5000000,'subscriberCount_public_rounded':1000,'videoCount':10,
+                    'matched_queries':['animales']}]})
+        page.route('**/api/research/channels/batch',batch_response)
+        page.locator('#query').fill('animales\ngeografía')
+        page.get_by_role('button',name='Buscar canales',exact=True).click()
+        page.get_by_text('Cuota agotada en segundo tema',exact=True).wait_for()
+        assert batches[0]['queries']==['animales','geografía']
+        assert batches[0]['max_requests']==300
+        assert 'LOTE INCOMPLETO' in page.locator('#scope').inner_text()
+        assert 'geografía' in page.locator('#scope').inner_text()
+        assert page.locator('.channel').count()==1
+        assert 'animales' in page.locator('.channel').inner_text()
+        browser.close()
+
+
+def test_youtube_session_configuration_and_request_preview(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch();page=browser.new_page(viewport={'width':1280,'height':900})
+        errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/research/channels/status',lambda r:r.fulfill(json={'configured':False}))
+        configured=[];planned=[]
+        def configure(route):
+            configured.append(route.request.post_data_json)
+            route.fulfill(json={'configured':bool(configured[-1]['api_key']),'source':'session','key_verified':False})
+        def plan(route):
+            planned.append(route.request.post_data_json)
+            route.fulfill(json={'maximum_requests_before_budget':{'search':1,'channels':1,'playlistItems':50,'videos':51},
+                'batch_request_limit':None,'notes':['No se ha consultado YouTube.']})
+        page.route('**/api/research/channels/configuration',configure)
+        page.route('**/api/research/channels/plan',plan)
+        page.goto(staged_backlot_server+'/channels')
+        page.get_by_text('Configurar YouTube Data API',exact=True).click()
+        page.locator('#youtube-api-key').fill('fixture_private_api_key_123456789')
+        page.get_by_role('button',name='Usar clave en esta sesión',exact=True).click()
+        page.get_by_text('Clave configurada para esta sesión; todavía sin verificar.',exact=True).wait_for()
+        assert page.locator('#youtube-api-key').input_value()==''
+        assert len(configured)==1
+        page.locator('#query').fill('animales')
+        page.locator('#query-plan').click()
+        page.get_by_text('No se ha consultado YouTube.',exact=True).wait_for()
+        assert planned[0]['filters']['published_within']=='month'
+        assert planned[0]['filters']['discovery_mode']=='recent_publications'
+        page.locator('#query').fill('geografía')
+        assert page.locator('#query-plan-result').inner_text()==''
+        page.get_by_role('button',name='Olvidar clave de sesión',exact=True).click()
+        page.get_by_text('No hay una clave configurada.',exact=True).wait_for()
+        assert configured[-1]=={'api_key':''}
+        page.set_viewport_size({'width':390,'height':844})
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert errors==[]
+        browser.close()

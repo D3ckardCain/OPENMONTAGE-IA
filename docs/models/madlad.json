@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "verified_date": "2026-11-20",
+  "scope": "Communicated download, local completion unverified. Official repository file names checked; exact sizes and hashes not collected. No automatic downloads.",
+  "groups": [
+    {
+      "id": "madlad",
+      "title": "google/madlad400-3b-mt",
+      "license_note": "Apache-2.0",
+      "note": "Adaptador local T5; inferencia real pendiente",
+      "files": [
+        "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/model.safetensors",
+        "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/config.json",
+        "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/spiece.model",
+        "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/tokenizer_config.json",
+        "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/special_tokens_map.json",
+        "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/added_tokens.json",
+        "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/generation_config.json"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "repo": "google/madlad400-3b-mt",
+      "revision": "fa184c675da0b5c9e1c8694fccd4e12e2d422094",
+      "path": "model.safetensors",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/model.safetensors",
+      "size_bytes": null,
+      "sha256": null,
+      "url": "https://huggingface.co/google/madlad400-3b-mt/resolve/fa184c675da0b5c9e1c8694fccd4e12e2d422094/model.safetensors?download=true",
+      "status": "communicated_not_verified"
+    },
+    {
+      "repo": "google/madlad400-3b-mt",
+      "revision": "fa184c675da0b5c9e1c8694fccd4e12e2d422094",
+      "path": "config.json",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/config.json",
+      "size_bytes": null,
+      "sha256": null,
+      "url": "https://huggingface.co/google/madlad400-3b-mt/resolve/fa184c675da0b5c9e1c8694fccd4e12e2d422094/config.json?download=true",
+      "status": "communicated_not_verified"
+    },
+    {
+      "repo": "google/madlad400-3b-mt",
+      "revision": "fa184c675da0b5c9e1c8694fccd4e12e2d422094",
+      "path": "spiece.model",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/spiece.model",
+      "size_bytes": null,
+      "sha256": null,
+      "url": "https://huggingface.co/google/madlad400-3b-mt/resolve/fa184c675da0b5c9e1c8694fccd4e12e2d422094/spiece.model?download=true",
+      "status": "communicated_not_verified"
+    },
+    {
+      "repo": "google/madlad400-3b-mt",
+      "revision": "fa184c675da0b5c9e1c8694fccd4e12e2d422094",
+      "path": "tokenizer_config.json",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/tokenizer_config.json",
+      "size_bytes": null,
+      "sha256": null,
+      "url": "https://huggingface.co/google/madlad400-3b-mt/resolve/fa184c675da0b5c9e1c8694fccd4e12e2d422094/tokenizer_config.json?download=true",
+      "status": "communicated_not_verified"
+    },
+    {
+      "repo": "google/madlad400-3b-mt",
+      "revision": "fa184c675da0b5c9e1c8694fccd4e12e2d422094",
+      "path": "special_tokens_map.json",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/special_tokens_map.json",
+      "size_bytes": null,
+      "sha256": null,
+      "url": "https://huggingface.co/google/madlad400-3b-mt/resolve/fa184c675da0b5c9e1c8694fccd4e12e2d422094/special_tokens_map.json?download=true",
+      "status": "communicated_not_verified"
+    },
+    {
+      "repo": "google/madlad400-3b-mt",
+      "revision": "fa184c675da0b5c9e1c8694fccd4e12e2d422094",
+      "path": "added_tokens.json",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/added_tokens.json",
+      "size_bytes": null,
+      "sha256": null,
+      "url": "https://huggingface.co/google/madlad400-3b-mt/resolve/fa184c675da0b5c9e1c8694fccd4e12e2d422094/added_tokens.json?download=true",
+      "status": "communicated_not_verified"
+    },
+    {
+      "repo": "google/madlad400-3b-mt",
+      "revision": "fa184c675da0b5c9e1c8694fccd4e12e2d422094",
+      "path": "generation_config.json",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/google--madlad400-3b-mt/generation_config.json",
+      "size_bytes": null,
+      "sha256": null,
+      "url": "https://huggingface.co/google/madlad400-3b-mt/resolve/fa184c675da0b5c9e1c8694fccd4e12e2d422094/generation_config.json?download=true",
+      "status": "communicated_not_verified"
+    }
+  ]
+}

@@ -15,6 +15,8 @@ and what remains Remotion-only.
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, media_environment
+
 import json
 import logging
 import os
@@ -343,6 +345,7 @@ class HyperFramesCompose(BaseTool):
         try:
             proc = subprocess.run(
                 [npx, "--yes", cls._NPM_PACKAGE, "doctor", "--json"],
+                env=media_environment(),
                 capture_output=True,
                 text=True,
                 timeout=20,
@@ -371,7 +374,7 @@ class HyperFramesCompose(BaseTool):
         can genuinely run end-to-end, not just that the local tooling exists.
         """
         node_major = self._node_major_version()
-        ffmpeg_ok = shutil.which("ffmpeg") is not None
+        ffmpeg_ok = find_media("ffmpeg") is not None
         npx_ok = shutil.which("npx") is not None
 
         reasons: list[str] = []
@@ -384,7 +387,7 @@ class HyperFramesCompose(BaseTool):
         if not npx_ok:
             reasons.append("npx not found on PATH")
         if not ffmpeg_ok:
-            reasons.append("ffmpeg not found on PATH")
+            reasons.append("FFmpeg no disponible; revisa la ruta en el Estudio")
 
         # Only probe npm if the local tooling is actually usable — otherwise
         # a missing-node run would also show a confusing npm error.
@@ -1374,6 +1377,7 @@ class HyperFramesCompose(BaseTool):
                 text=True,
                 timeout=timeout,
                 cwd=str(cwd) if cwd else None,
+                env=media_environment(),
                 check=False,
             )
         except subprocess.TimeoutExpired as e:

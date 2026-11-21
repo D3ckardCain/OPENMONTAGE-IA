@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_id",
+    "duration_seconds",
+    "target_locale",
+    "source_review_complete",
+    "segments"
+  ],
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "duration_seconds": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "target_locale": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$"
+    },
+    "source_review_complete": {
+      "const": true
+    },
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "start",
+          "end",
+          "kind",
+          "language",
+          "evidence",
+          "action",
+          "rationale",
+          "resolved",
+          "rights_cleared"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "kind": {
+            "enum": [
+              "speech",
+              "song",
+              "music",
+              "ambience",
+              "silence",
+              "mixed",
+              "unknown"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "enum": [
+              "retain",
+              "dub",
+              "replace",
+              "remove",
+              "review"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resolved": {
+            "type": "boolean"
+          },
+          "rights_cleared": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

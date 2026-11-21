@@ -1,0 +1,395 @@
+"""Read the visible official J.League player rankings for an explicit season."""
+import re
+import urllib.request
+from datetime import datetime, timezone
+
+from tools.base_tool import BaseTool, ResourceProfile, ToolResult, ToolRuntime, ToolStability, ToolTier
+from tools.football.uefa import DOM
+from tools.football.uefa_names import normalized
+
+BASE_URL = 'https://www.jleague.jp'
+ROW_CLASS = 'm-ranking-player-list-item'
+
+
+DIVISIONS = ('j1', 'j2', 'j3')
+COMPETITIONS = {division: (f'{division.upper()} League', 'league') for division in DIVISIONS}
+COMPETITIONS['leaguecup'] = ('Levain Cup', 'cup')
+METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
+           'duels_won': ('duels_won', 'Duels won'), 'clean_sheets': ('clean_sheet', 'Clean sheets'),
+           'yellow_cards': ('yellow_count', 'Yellow cards'), 'red_cards': ('red_count', 'Red cards'),
+           'interceptions': ('intercept_count', 'Interceptions'),
+           'aerial_duels_won': ('air_battle_win_count', 'Aerial duels won'),
+           'shots': ('shoot', 'Shots'), 'shots_on_target': ('shoot_on_target', 'Shots on target'),
+           'matches_played': ('game', 'Appearances'), 'minutes_played': ('time', 'Minutes played'),
+           'passes_attempted': ('pass_count', 'Passes'), 'pass_accuracy': ('pass_rate', 'Pass accuracy'),
+           'crosses_attempted': ('cross_count', 'Crosses'), 'chances_created': ('chance_create', 'Chances created'),
+           'distance_covered': ('distance', 'Distance'), 'sprints': ('sprint', 'Sprints'),
+           'saves': ('save_count', 'Saves'), 'save_percentage': ('save_rate', 'Save success rate'),
+           'penalty_goals': ('pk_score', 'Goals (penalty)'), 'fouls_committed': ('foul_count', 'Fouls committed'),
+           'fouls_suffered': ('suffer_foul_count', 'Fouls won'),
+           'clearances': ('clear_count', 'Clearances'), 'blocks': ('block_count', 'Blocks'),
+           'tackles': ('tackle_count', 'Tackles'),
+           'long_balls_completed': ('long_pass_count', 'Long passes'), 'dribbles_attempted': ('dribble_count', 'Dribbles'),
+           'touches': ('play_count', 'Ball touches'), 'recoveries': ('recovery_count', 'Ball recoveries'),
+           'expected_goals': ('expected_goals', 'Expected Goals'), 'top_speed': ('top_speed', 'Top Speed'),
+           'goals_conceded': ('lost', 'Goals conceded'),
+           'expected_goals_excl_pk': ('expected_goals_excl_pk', 'Expected Goals (excl. penalties)'),
+           'dribble_success_rate': ('dribble_rate', 'Dribble success rate'),
+           'long_pass_accuracy': ('long_pass_rate', 'Long pass accuracy'),
+           'cross_success_rate': ('cross_rate', 'Cross success rate'),
+           'tackle_success_rate': ('tackle_rate', 'Tackle success rate'),
+           'aerial_duel_success_rate': ('air_battle_win_rate', 'Aerial duel success rate'),
+           'through_balls': ('through_pass_count', 'Through balls'),
+           'through_ball_success_rate': ('through_pass_rate', 'Through ball success rate'),
+           'shot_conversion_rate': ('shoot_rate', 'Shot accuracy'),
+           'shots_per_game': ('shoot_per_game', 'Shots per game'),
+           'passes_per_game': ('pass_count_per_game', 'Passes per game'),
+           'chances_created_per_game': ('chance_create_per_game', 'Chances created per game'),
+           'saves_per_game': ('save_count_per_game', 'Saves per game'),
+           'save_percentage_inside_box': ('save_rate_in_pa', 'Save success rate (shots inside penalty area)'),
+           'save_percentage_outside_box': ('save_rate_out_pa', 'Save success rate (shots outside penalty area)'),
+           'passes_in_own_half': ('own_area_pass_count', 'Passes in own half'),
+           'passes_in_opposition_half': ('opponent_area_pass_count', 'Passes in opposition half'),
+           'pass_accuracy_own_half': ('own_area_pass_rate', 'Pass accuracy in own half'),
+           'pass_accuracy_opposition_half': ('opponent_area_pass_rate', 'Pass accuracy in opposition half')}
+METRIC_DEFINITIONS = {
+    'through_balls': 'Pases hacia el espacio detrás de la última línea defensiva para la carrera de un compañero.',
+    'through_ball_success_rate': 'Porcentaje de pases filtrados completados según J.League.',
+    'shot_conversion_rate': 'Goles divididos entre tiros, expresados como porcentaje según J.League.',
+    'cross_success_rate': 'Porcentaje oficial de centros completados en jugada, con el alcance de J.League.',
+    'tackle_success_rate': 'Porcentaje de entradas tras las que el equipo recupera la posesión, según J.League.',
+    'aerial_duel_success_rate': 'Porcentaje oficial de duelos aéreos ganados, según J.League.',
+    'dribble_success_rate': 'Porcentaje de regates exitosos. El éxito exige superar o esquivar al defensor y completar después un pase o tiro.',
+    'long_pass_accuracy': 'Porcentaje de precisión en pases largos publicado por J.League.',
+    'goals_conceded': 'Goles recibidos atribuidos al guardameta en el ranking oficial de J.League.',
+    'expected_goals_excl_pk': 'Suma de probabilidades de gol de los tiros sin penaltis, según el modelo de J.League.',
+    'expected_goals': 'Suma de probabilidades de gol por ocasión de tiro según el modelo de J.League.',
+    'top_speed': 'Velocidad máxima del jugador medida en kilómetros por hora, según J.League.',
+    'long_balls_completed': 'Pases completados de 30 metros o más, según J.League.',
+    'dribbles_attempted': 'Acciones en que el jugador busca superar o desplazar lateralmente a un defensor para crear una opción de tiro.',
+    'touches': 'Acciones con balón. Una secuencia entre recepción y entrega cuenta como una acción, según J.League.',
+    'recoveries': 'Toques de segundas jugadas o balones sueltos después de acciones defensivas.',
+    'clearances': 'Acciones para alejar el peligro sin intención de pasar el balón a un compañero.',
+    'tackles': 'Acciones que desplazan el balón del rival. Incluye acciones sin recuperar la posesión.',
+    'save_percentage': 'Paradas divididas entre la suma de paradas y goles recibidos, según J.League.',
+    'crosses_attempted': 'Centros en jugada según J.League, excluye acciones a balón parado.',
+    'chances_created': 'Suma de pases filtrados completados hacia el área, centros completados desde el área y últimos pases, según J.League.',
+    'duels_won': 'Duelos a ras de suelo según la definición de J.League.',
+}
+METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
+                'passes_attempted': 'passes', 'pass_accuracy': '%', 'save_percentage': '%', 'distance_covered': 'km',
+                'expected_goals': 'xG', 'expected_goals_excl_pk': 'xG', 'top_speed': 'km/h',
+                'dribble_success_rate': '%', 'long_pass_accuracy': '%', 'cross_success_rate': '%',
+                'tackle_success_rate': '%', 'aerial_duel_success_rate': '%',
+                'through_ball_success_rate': '%', 'shot_conversion_rate': '%',
+                'shots_per_game': 'per_match', 'passes_per_game': 'per_match',
+                'chances_created_per_game': 'per_match', 'saves_per_game': 'per_match',
+                'save_percentage_inside_box': '%', 'save_percentage_outside_box': '%',
+                'passes_in_own_half': 'passes', 'passes_in_opposition_half': 'passes',
+                'pass_accuracy_own_half': '%', 'pass_accuracy_opposition_half': '%'}
+DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG', 'per_match'})
+DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'distance_covered': ' km'}
+DISPLAY_SUFFIXES.update({metric: ' %' for metric, unit in METRIC_UNITS.items() if unit == '%'})
+
+
+def season_key(season, competition):
+    if type(season) is int and 1993 <= season <= 9999:
+        if season == 2026 and competition == 'leaguecup':
+            raise ValueError('Para la Copa Levain usa la temporada 2026/27')
+        return season
+    match = re.fullmatch(r'([0-9]{4})[-/]([0-9]{2})', season) if isinstance(season, str) else None
+    if match:
+        year, end = map(int, match.groups())
+        if 1993 <= year < 9999 and end == (year + 1) % 100:
+            return f'{year}-{end:02d}'
+    raise ValueError('Temporada J.League inválida. Usa un año o un intervalo como 2026/27')
+
+
+def season_label(season, competition):
+    key = season_key(season, competition)
+    return '2026 Special' if key == 2026 else str(key).replace('-', '/')
+
+
+def ranking_url(season, metric, competition='j1'):
+    season = season_key(season, competition)
+    return f'{BASE_URL}/en/{competition}/stats/player/{season}/{METRICS[metric][0]}/search-list/'
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        raise ValueError('Redirección J.League no admitida')
+
+
+def fetch(url):
+    request = urllib.request.Request(url, headers={'Cache-Control': 'no-cache'})
+    with urllib.request.build_opener(NoRedirect()).open(request, timeout=25) as response:
+        data = response.read(4_000_001)
+        if len(data) > 4_000_000:
+            raise ValueError('Página J.League demasiado grande')
+        return data.decode('utf-8'), {
+            'url': url,
+            'retrieved_at': datetime.now(timezone.utc).isoformat(),
+            'http_date': response.headers.get('Date'),
+        }
+
+
+def parse_ranking(html, season, metric, competition='j1'):
+    dom = DOM()
+    dom.feed(html)
+    canonical = dom.root.first('link', rel='canonical')
+    title = dom.root.first('title')
+    if (not canonical or canonical.attrs.get('href') != ranking_url(season, metric, competition)
+            or not title or title.text() != f'{season_label(season, competition)} Season - {METRICS[metric][1]} | {COMPETITIONS[competition][0]} Player Stats | Official Website of J.LEAGUE'):
+        raise ValueError('La página no acredita la división o copa, la temporada y la métrica solicitadas')
+
+    links = {}
+    for link in dom.root.walk('a', **{'class': ROW_CLASS + '__link'}):
+        row = link.first('div', **{'class': ROW_CLASS})
+        player = re.fullmatch(r'/en/player/([0-9]+)/', link.attrs.get('href') or '')
+        if row and player:
+            links[id(row)] = player[1]
+
+    rows = []
+    for row in dom.root.walk('div', **{'class': ROW_CLASS}):
+        name = row.attrs.get('name') or ''
+        score = row.attrs.get('score') or ''
+        points = next((p.text() for p in row.walk('p')
+                       if ROW_CLASS + '__points' in (p.attrs.get('class') or '').split()), None)
+        unit = METRIC_UNITS.get(metric)
+        pattern = r'[0-9]+(?:[.][0-9]{1,6})?' if unit in DECIMAL_UNITS else r'[0-9]+'
+        if (not name.strip() or not re.fullmatch(pattern, score)
+                or score + DISPLAY_SUFFIXES.get(metric, '') != points):
+            raise ValueError('Fila estadística J.League inválida')
+        value = float(score) if '.' in score else int(score)
+        if unit == '%' and not 0 <= value <= 100:
+            raise ValueError('Fila estadística J.League inválida')
+        rows.append((name, links.get(id(row)), value))
+    if not rows:
+        raise ValueError('La página oficial no mostró filas estadísticas')
+    return rows
+
+
+def profile_url(player_id):
+    if not re.fullmatch(r'[0-9]+', player_id):
+        raise ValueError('ID oficial J.League inválido')
+    return f'{BASE_URL}/en/player/{player_id}/'
+
+
+def profile_goals(html, player_id, name, season, competition='j1'):
+    dom = DOM()
+    dom.feed(html)
+    canonical = dom.root.first('link', rel='canonical')
+    title = dom.root.first('title')
+    name_parts = normalized(name).split()
+    accepted_names = {normalized(name)}
+    # The English profiles sometimes put the family name first.
+    if len(name_parts) == 2:
+        accepted_names.add(' '.join(reversed(name_parts)))
+    if (not canonical or canonical.attrs.get('href') != profile_url(player_id)
+            or not title or normalized(title.text().split('|')[0]) not in accepted_names):
+        raise ValueError('El perfil J.League no acredita la identidad')
+    values = []
+    for table in dom.root.walk('table'):
+        headers = [[cell.text() for cell in row.walk('th')] for row in table.walk('tr') if row.first('th')]
+        if headers != [['Season', 'Club', 'League', 'League Cup', 'U-21'],
+                       ['App.', 'Goals', 'App.', 'Goals', 'App.', 'Goals']]:
+            continue
+        for row in table.walk('tr'):
+            cells = list(row.walk('td'))
+            if (len(cells) == 8 and cells[0].text() == season_label(season, competition)
+                    and cells[1].text().endswith(' ' + competition.upper())):
+                values.append(cells[3].text())
+    if len(values) != 1 or not re.fullmatch(r'[0-9]+', values[0]):
+        raise ValueError('El perfil no acredita una única cifra de goles de la división solicitada para la temporada')
+    return int(values[0])
+
+
+EXPANDED_METRICS = {'goals': ('得点ランキング', 'GOALS'), 'assists': ('アシスト総数', 'ASSISTS')}
+
+
+def expanded_ranking_url(season, competition, metric):
+    if metric not in EXPANDED_METRICS or type(season) is not int or season == 2026 or competition not in COMPETITIONS:
+        return None
+    season = season_key(season, competition)
+    return f'{BASE_URL}/sp/stats/{competition}/player/{season}/all/{METRICS[metric][0]}/?mode=pc'
+
+
+def parse_expanded_ranking(html, season, competition, metric):
+    dom = DOM()
+    dom.feed(html)
+    canonical = dom.root.first('link', rel='canonical')
+    title = dom.root.first('title')
+    expected = f'{BASE_URL}/stats/{competition}/player/{season}/all/{METRICS[metric][0]}/'
+    heading, unit = EXPANDED_METRICS[metric]
+    if (not canonical or canonical.attrs.get('href') != expected
+            or not title or not title.text().startswith(f'【公式】{season}シーズンの{heading}:')):
+        raise ValueError('El ranking ampliado no acredita la temporada o la métrica')
+
+    values, duplicates = {}, set()
+    for link in dom.root.walk('a'):
+        player = re.fullmatch(r'/sp/player/([0-9]+)/', link.attrs.get('href') or '')
+        if not player:
+            continue
+        score = next((node for node in link.walk('div')
+                      if re.fullmatch(r'ranking_stats(?:_[123])?', node.attrs.get('class') or '')), None)
+        value = re.fullmatch(r'([0-9]+) ' + unit, score.text()) if score else None
+        if not value:
+            continue
+        player_id = player[1]
+        if player_id in values:
+            duplicates.add(player_id)
+        values[player_id] = int(value[1])
+    return {player_id: value for player_id, value in values.items() if player_id not in duplicates}
+
+
+def make_report(rankings, names, scope, queries, kind, failed_metrics):
+    records, unresolved, extra_queries = [], [], []
+    expanded = {}
+    for name in names:
+        key = normalized(name)
+        found, missing = {}, {}
+        for metric, rows in rankings.items():
+            matches = [row for row in rows if normalized(row[0]) == key]
+            # English rankings can display Japanese family names first.
+            parts = key.split()
+            if not matches and len(parts) == 2:
+                reverse = ' '.join(reversed(parts))
+                matches = [row for row in rows if normalized(row[0]) == reverse]
+            if len(matches) == 1 and matches[0][1]:
+                found[metric] = matches[0]
+                continue
+            reason = {0: 'not_in_visible_ranking', 1: 'official_id_missing'}.get(len(matches), 'ambiguous')
+            missing[metric] = 'ranking_unavailable' if metric in failed_metrics else reason
+        ids = {row[1] for row in found.values()}
+        if len(ids) > 1:
+            unresolved.append({'name': name, 'reason': 'conflicting_official_ids'})
+            continue
+        if not found:
+            unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
+                              for metric, reason in missing.items())
+            continue
+        official_name, player_id, _ = next(iter(found.values()))
+        sources = dict(queries)
+        if scope['competition'] in DIVISIONS and missing.get('goals') == 'not_in_visible_ranking':
+            try:
+                html, query = fetch(profile_url(player_id))
+                goals = profile_goals(html, player_id, official_name, scope['season'], scope['competition'])
+            except (OSError, ValueError):
+                missing['goals'] = 'profile_goals_unverified'
+            else:
+                found['goals'] = (official_name, player_id, goals)
+                sources['goals'] = query
+                extra_queries.append(query)
+                del missing['goals']
+        for metric in EXPANDED_METRICS:
+            if missing.get(metric) not in ('not_in_visible_ranking', 'profile_goals_unverified'):
+                continue
+            url = expanded_ranking_url(scope['season'], scope['competition'], metric)
+            if not url:
+                continue
+            if metric not in expanded:
+                try:
+                    html, query = fetch(url)
+                    values = parse_expanded_ranking(html, scope['season'], scope['competition'], metric)
+                    expanded[metric] = values, query
+                    extra_queries.append(query)
+                except (OSError, ValueError):
+                    expanded[metric] = {}, None
+            values, query = expanded[metric]
+            if player_id in values:
+                found[metric] = (official_name, player_id, values[player_id])
+                sources[metric] = query
+                del missing[metric]
+        unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
+                          for metric, reason in missing.items())
+        definitions = dict(METRIC_DEFINITIONS)
+        threshold = 25 if int(str(scope['season'])[:4]) >= 2023 else 24
+        definitions['sprints'] = f'Carreras a {threshold} km/h o más durante al menos un segundo, según J.League.'
+        facts = [
+            {'metric': metric, 'value': found[metric][2], 'unit': METRIC_UNITS.get(metric, metric), 'entity_id': player_id,
+             'scope': scope,
+             **({'provider_definition': definitions[metric]} if metric in definitions else {}),
+             'source_url': sources[metric]['url'], 'retrieved_at': sources[metric]['retrieved_at']}
+            for metric in rankings if metric in found
+        ]
+        records.append({
+            'entity_id': player_id,
+            'identity': {'entity_id': player_id, 'name': official_name},
+            'statistics': {metric: found[metric][2] if metric in found else None for metric in rankings},
+            'statistics_source': dict(next(iter(queries.values()))) if len(rankings) == 1 else None,
+            'facts': facts,
+        })
+    if len({row['entity_id'] for row in records}) != len(records):
+        raise ValueError('La comparativa requiere dos jugadores distintos')
+    return {'source': 'J.League', 'type': kind, 'scope': scope, 'queries': list(queries.values()) + extra_queries,
+            'records': records, 'unresolved': unresolved, 'ready_for_script': not unresolved,
+            'visible_rows': len(next(iter(rankings.values()))) if len(rankings) == 1 else None,
+            'visible_rows_by_metric': {metric: None if metric in failed_metrics else len(rows) for metric, rows in rankings.items()},
+            'failed_metrics': failed_metrics,
+            'coverage': 'Rankings oficiales visibles. Una ausencia en la lista no equivale a cero.'}
+
+
+class OfficialJLeague(BaseTool):
+    name = 'official_jleague_live'
+    version = '0.32.0'
+    provider = 'jleague_official'
+    tier = ToolTier.SOURCE
+    runtime = ToolRuntime.LOCAL
+    stability = ToolStability.BETA
+    capability = 'football_statistics'
+    capabilities = ['football_statistics', 'official_live_data']
+    dependencies = []
+    idempotency_key_fields = []
+    side_effects = ['read_public_jleague_statistics_page']
+    resource_profile = ResourceProfile(cpu_cores=1, ram_mb=256, vram_mb=0, disk_mb=0, network_required=True)
+    install_instructions = 'Consulta HTTPS a J.League desde Python local, sin cuenta ni pago.'
+    supports = {'offline': False, 'persistent_cache': False, 'official_sources': True}
+    input_schema = {'type': 'object', 'additionalProperties': False, 'required': ['action', 'season', 'names'],
+                    'properties': {
+                        'action': {'enum': ['compare_players', 'collectible_card']},
+                        'season': {'oneOf': [{'type': 'integer', 'minimum': 1993, 'maximum': 9999},
+                                             {'type': 'string', 'pattern': r'^[0-9]{4}[-/][0-9]{2}$'}]},
+                        'competition': {'enum': list(COMPETITIONS)},
+                        'metrics': {'oneOf': [{'const': 'all'},
+                                              {'type': 'array', 'minItems': 1, 'uniqueItems': True,
+                                               'items': {'enum': list(METRICS)}}]},
+                        'names': {'type': 'array', 'minItems': 1, 'maxItems': 2,
+                                  'items': {'type': 'string', 'minLength': 1, 'maxLength': 150}},
+                    }}
+
+    def execute(self, inputs):
+        from jsonschema import validate
+
+        try:
+            validate(inputs, self.input_schema)
+            names = inputs['names']
+            keys = {normalized(name) for name in names}
+            card = inputs['action'] == 'collectible_card'
+            if len(names) != (1 if card else 2) or len(keys) != len(names):
+                raise ValueError('Indica un nombre para la postal o dos nombres distintos para la comparativa')
+            competition = inputs.get('competition', 'j1')
+            season = season_key(inputs['season'], competition)
+            selection = inputs.get('metrics', ['goals'])
+            metrics = list(METRICS) if selection == 'all' else selection
+            rankings, queries, failed_metrics = {}, {}, {}
+            for metric in metrics:
+                try:
+                    html, query = fetch(ranking_url(season, metric, competition))
+                    rankings[metric] = parse_ranking(html, season, metric, competition)
+                except (OSError, ValueError) as exc:
+                    if len(metrics) == 1:
+                        raise
+                    rankings[metric] = []
+                    failed_metrics[metric] = str(exc)
+                else:
+                    queries[metric] = query
+            if not queries:
+                raise ValueError('No se pudo verificar ningún ranking oficial de J.League')
+            scope = {'competition': competition, 'season': season, 'phase': COMPETITIONS[competition][1], 'category': 'men'}
+            kind = 'collectible_card' if card else 'player_comparison'
+            data = make_report(rankings, names, scope, queries, kind, failed_metrics)
+            return ToolResult(success=True, data=data, artifacts=[], cost_usd=0, from_cache=False)
+        except Exception as exc:
+            return ToolResult(success=False, error='JLEAGUE_QUERY_REJECTED: ' + str(exc),
+                              data={'fresh_query_failed': True, 'stale_fallback': False},
+                              cost_usd=0, from_cache=False)

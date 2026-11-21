@@ -10,6 +10,8 @@ override contract ``comfyui_image``/``comfyui_video`` offer.
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, require_media
+
 import json
 import shutil
 import subprocess
@@ -349,12 +351,12 @@ class ComfyUIMusic(BaseTool):
     @staticmethod
     def _probe_duration(path: Path) -> float | None:
         """Best-effort track duration via ffprobe; None if unavailable."""
-        if shutil.which("ffprobe") is None:
+        if find_media("ffprobe") is None:
             return None
         try:
             out = subprocess.run(
                 [
-                    "ffprobe", "-v", "error",
+                    require_media("ffprobe"), "-v", "error",
                     "-show_entries", "format=duration",
                     "-of", "default=noprint_wrappers=1:nokey=1",
                     str(path),

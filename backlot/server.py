@@ -2,7 +2,8 @@
 
 The watcher observes ``projects/`` with watchfiles; on any change it bumps a
 per-project version and wakes SSE subscribers, who tell the browser to
-refetch state. The server never writes to project directories.
+refetch state. The observer routes remain read-only. The production studio separately owns
+explicit project creation, agent jobs and approval actions.
 """
 
 from __future__ import annotations
@@ -165,6 +166,12 @@ async def _lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Backlot", docs_url=None, redoc_url=None, lifespan=_lifespan)
+
+    from backlot.channel_routes import create_channel_router
+    app.include_router(create_channel_router())
+
+    from backlot.studio_routes import create_studio_router
+    app.include_router(create_studio_router())
 
     # ---- API ----------------------------------------------------------
 

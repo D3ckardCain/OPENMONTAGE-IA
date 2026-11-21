@@ -184,6 +184,16 @@ def validate_checkpoint(checkpoint: dict[str, Any]) -> None:
         raise CheckpointValidationError("Checkpoint artifacts must be a dictionary")
 
     _validate_artifacts_for_stage(stage, status, artifacts)
+    if pipeline_type == "localization-dub" and stage in {"assets", "edit", "compose", "publish"} and status in {"completed", "awaiting_human"}:
+        from lib.cultural_audio import validate_cultural_audio
+        audits = artifacts.get("cultural_audio_audit")
+        if audits is None:
+            raise CheckpointValidationError("Localization requires cultural_audio_audit evidence")
+        try:
+            validate_cultural_audio(audits)
+        except Exception as exc:
+            raise CheckpointValidationError(f"Cultural audio review blocked: {exc}") from exc
+
 
     try:
         jsonschema.validate(instance=checkpoint, schema=_load_checkpoint_schema())

@@ -6,6 +6,8 @@ using the Manim Community Edition engine. Free, local, no API key required.
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, require_media, media_environment
+
 import ast
 import os
 import shutil
@@ -353,6 +355,7 @@ class MathAnimate(BaseTool):
                 text=True,
                 timeout=300,  # 5 min timeout
                 cwd=str(work_dir),
+                env=media_environment(),
             )
         except subprocess.TimeoutExpired:
             self._cleanup(work_dir)
@@ -454,13 +457,13 @@ class MathAnimate(BaseTool):
         """Get basic info about the rendered file."""
         info: dict[str, Any] = {"file_size_bytes": path.stat().st_size}
 
-        if not shutil.which("ffprobe"):
+        if not find_media("ffprobe"):
             return info
 
         try:
             proc = subprocess.run(
                 [
-                    "ffprobe", "-v", "quiet",
+                    require_media("ffprobe"), "-v", "quiet",
                     "-print_format", "json",
                     "-show_format", "-show_streams",
                     str(path),

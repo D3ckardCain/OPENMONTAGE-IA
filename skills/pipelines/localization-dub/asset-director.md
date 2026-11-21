@@ -99,3 +99,17 @@ This stage gates on human approval (`human_approval_default: true`). After revie
 checkpoint with `status="awaiting_human"`, present the summary (the Backlot board renders
 the artifact), and **END YOUR TURN**. Do not start the next stage in the same response.
 Approval is per-gate — an earlier "go ahead" does not cover this gate.
+
+
+### Cultural audio evidence (required)
+Carry `cultural_audio_audit` in the checkpoint artifacts. For every target locale,
+review the entire source soundtrack, including incidental voices, lyrics, music,
+ambience and silence. Record time ranges, evidence, language, rights and an explicit
+retain/dub/replace/remove decision with a cultural rationale. Unknown or unresolved
+items block completion. Use `lib.cultural_audio.validate_cultural_audio` before
+completing the stage. This validator checks evidence structure, not the media itself.
+For multiple locales use separate locale project runs; each audit covers one locale.
+Do not assume English songs can remain merely because narration was translated.
+Neutral ambience may remain when appropriate. Inspect the final mix for residual
+source speech and verify replacements and rights before marking resolved.
+No paid provider fallback is authorized; missing local runtime blocks the stage.

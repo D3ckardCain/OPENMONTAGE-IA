@@ -636,6 +636,7 @@ class BaseTool(ABC):
         *,
         timeout: Optional[int] = None,
         cwd: Optional[Path] = None,
+        env: Optional[dict[str, str]] = None,
     ) -> subprocess.CompletedProcess:
         """Run a subprocess command with standard error handling.
 
@@ -660,6 +661,7 @@ class BaseTool(ABC):
                 errors="replace",
                 timeout=timeout,
                 cwd=cwd,
+                env=env,
                 check=True,
             )
         except subprocess.CalledProcessError as exc:
