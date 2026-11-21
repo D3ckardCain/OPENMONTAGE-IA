@@ -1,3 +1,4 @@
+import pytest
 from lib.football_comparisons import collect, select
 from tools.football.ligamx import RANKINGS, ranking_urls, tournament_scope
 from tools.football.official_jleague import METRICS as JLEAGUE_METRICS
@@ -19,17 +20,19 @@ def test_premier_desk_preserves_matchweek_and_source(monkeypatch):
     assert result['report']['ready_for_script']
 
 
-def test_euro_desk_uses_tournament_phase_and_source_batches(monkeypatch):
+@pytest.mark.parametrize('competition,season', [('euro', 2024), ('champions', 2025),
+                                               ('europa', 2025), ('conference', 2025)])
+def test_uefa_desk_uses_tournament_phase_and_source_batches(monkeypatch, competition, season):
     from lib.world_cup_edition_desk import compare_edition
     from tools.football.official_uefa import OfficialUEFA
     from tools.base_tool import ToolResult
 
     origin = {'url': 'https://compstats.uefa.com/example', 'consultado_utc': '2026-11-21'}
-    scope = {'competitionId': '3', 'seasonYear': 2024, 'phase': 'TOURNAMENT'}
+    scope = {'competitionId': '3', 'seasonYear': season, 'phase': 'TOURNAMENT'}
 
     def execute(self, args):
-        assert args['competition'] == 'euro'
-        assert args['edition'] == 2024 and args['phase'] == 'TOURNAMENT'
+        assert args['competition'] == competition
+        assert args['edition'] == season and args['phase'] == 'TOURNAMENT'
         assert args['metrics'] == 'all'
         rows = [{'id': str(i), 'nombre': name, 'estadisticas': {'goals': i},
                  'fuente_estadisticas': origin, 'fuente_por_metrica': {'goals': origin}}
@@ -39,7 +42,8 @@ def test_euro_desk_uses_tournament_phase_and_source_batches(monkeypatch):
         return ToolResult(success=True, data=report, cost_usd=0, from_cache=False)
 
     monkeypatch.setattr(OfficialUEFA, 'execute', execute)
-    result = compare_edition([{'name': 'A'}, {'name': 'B'}], 'euro:2024:TOURNAMENT')
+    result = compare_edition([{'name': 'A'}, {'name': 'B'}],
+                             f'{competition}:{season}:TOURNAMENT')
     assert result['report']['scope'] == scope
     assert result['report']['queries'][0]['url'] == origin['url']
     assert result['display_metrics'] == ['goals']
