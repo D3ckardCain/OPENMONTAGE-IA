@@ -183,6 +183,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('shots_on_target', 'Shots on target', 'Tiros a puerta'),
     ('matches_played', 'Appearances', 'Partidos jugados'),
     ('minutes_played', 'Minutes played', 'Minutos jugados'),
+    ('passes_attempted', 'Passes', 'Pases intentados'),
+    ('pass_accuracy', 'Pass accuracy', 'Precisión de pase'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
     ('red_cards', 'Red cards', 'Tarjetas rojas'),
@@ -190,9 +192,11 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
 def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch, metric, title, label):
     url = jleague.ranking_url(2025, metric)
     page = official_page.replace(jleague.ranking_url(2025, 'goals'), url).replace('Top scorers', title)
-    if metric == 'minutes_played':
-        for score in (21, 18):
-            page = page.replace(f'>{score}</p>', f'>{score} min.</p>')
+    suffix = jleague.DISPLAY_SUFFIXES.get(metric, '')
+    for score in (21, 18):
+        page = page.replace(f'>{score}</p>', f'>{score}{suffix}</p>')
+    if metric == 'pass_accuracy':
+        page = page.replace('score="21"', 'score="21.5"').replace('>21 %</p>', '>21.5 %</p>')
 
 
     def fetch(requested):
@@ -204,7 +208,12 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
         {'action': 'compare_players', 'season': 2025, 'names': ['Example One', 'Example Two'],
          'metrics': [metric]})
     assert result.success and result.data['ready_for_script']
-    assert result.data['records'][0]['statistics'] == {metric: 21}
+    assert result.data['records'][0]['statistics'] == {metric: 21.5 if metric == 'pass_accuracy' else 21}
+    if metric == 'pass_accuracy':
+        assert result.data['records'][0]['facts'][0]['unit'] == '%'
+        assert '21.5%' in render(result.data)
+        with pytest.raises(ValueError):
+            jleague.parse_ranking(page.replace('21.5', '121.5'), 2025, metric)
     assert label in render(result.data)
 
 
@@ -216,9 +225,10 @@ def test_multi_metric_queries_retain_results_after_one_source_failure(official_p
         official_page.replace(goals_url, jleague.ranking_url(2025, metric)).replace('Top scorers', title)
         for metric, (_, title) in jleague.METRICS.items()
     }
-    minutes_url = jleague.ranking_url(2025, 'minutes_played')
-    for score in (21, 18):
-        pages[minutes_url] = pages[minutes_url].replace(f'>{score}</p>', f'>{score} min.</p>')
+    for metric, suffix in jleague.DISPLAY_SUFFIXES.items():
+        url = jleague.ranking_url(2025, metric)
+        for score in (21, 18):
+            pages[url] = pages[url].replace(f'>{score}</p>', f'>{score}{suffix}</p>')
     failed_url = jleague.ranking_url(2025, 'red_cards')
 
     def fetch(url):

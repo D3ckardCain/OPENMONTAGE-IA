@@ -7,7 +7,7 @@ from pathlib import Path
 from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, profile_url, ranking_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
-_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','aerial_duels_won':'Duelos aéreos ganados','interceptions':'Intercepciones','clean_sheets':'Porterías a cero','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
+_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','aerial_duels_won':'Duelos aéreos ganados','interceptions':'Intercepciones','clean_sheets':'Porterías a cero','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','passes_attempted':'Pases intentados','pass_accuracy':'Precisión de pase','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
 
 
 def uefa_report(report, selected=False):
@@ -95,7 +95,8 @@ def render(report, metrics=None):
             if fact.get('entity_id')!=entity or fact.get('scope')!=scope:raise ValueError('Cifra de otro jugador o alcance')
             if source == 'J.League':
                 metric = fact['metric']
-                if metric not in JLEAGUE_METRICS or type(value) is not int or value < 0:
+                valid_value = 0 <= value <= 100 if metric == 'pass_accuracy' else type(value) is int and value >= 0
+                if metric not in JLEAGUE_METRICS or not valid_value:
                     raise ValueError('Cifra J.League inválida')
                 allowed = {ranking_url(scope['season'], metric, scope['competition'])}
                 if metric == 'goals' and scope['phase'] == 'league':
@@ -135,7 +136,8 @@ def render(report, metrics=None):
         for n,fact in enumerate(facts):
             y=490+n*105
             parts.append(text(x+26,y,_LABELS.get(fact['metric'],fact['metric']),22,'#8b949e'))
-            parts.append(text(x+26,y+49,fact['value'],42))
+            value = f"{fact['value']}%" if source == 'J.League' and fact['metric'] == 'pass_accuracy' else fact['value']
+            parts.append(text(x+26,y+49,value,42))
     parts += [text(54,1232,'Fuente: '+source+' · Consulta '+str(queries[-1]['retrieved_at'])[:10],23),
               text(54,1270,'Puesto del mes publicado · No es récord de combates' if source=='WBA' else 'Estadísticas de esta edición · Fuente oficial',20,'#8b949e'),'</svg>']
     return ''.join(parts)

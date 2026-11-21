@@ -195,3 +195,5 @@ J.League admite `aerial_duels_won` para duelos aéreos ganados. Su ranking de `d
 J.League admite `shots` y `shots_on_target` en J1, J2, J3 y Copa Levain. Cada cifra se consulta en su ranking y conserva su enlace oficial.
 
 J.League también admite partidos y minutos jugados (`matches_played` y `minutes_played`) en J1, J2, J3 y Copa Levain. Cada cifra se consulta en su ranking oficial.
+
+J.League admite `passes_attempted` y `pass_accuracy` en J1, J2, J3 y Copa Levain. La precisión conserva el porcentaje publicado. Los pases completados requieren una cifra oficial separada porque el porcentaje visible está redondeado.

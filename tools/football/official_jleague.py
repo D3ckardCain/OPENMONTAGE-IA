@@ -20,8 +20,11 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'interceptions': ('intercept_count', 'Interceptions'),
            'aerial_duels_won': ('air_battle_win_count', 'Aerial duels won'),
            'shots': ('shoot', 'Shots'), 'shots_on_target': ('shoot_on_target', 'Shots on target'),
-           'matches_played': ('game', 'Appearances'), 'minutes_played': ('time', 'Minutes played')}
-PLAYING_TIME_UNITS = {'matches_played': 'matches', 'minutes_played': 'min'}
+           'matches_played': ('game', 'Appearances'), 'minutes_played': ('time', 'Minutes played'),
+           'passes_attempted': ('pass_count', 'Passes'), 'pass_accuracy': ('pass_rate', 'Pass accuracy')}
+METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
+                'passes_attempted': 'passes', 'pass_accuracy': '%'}
+DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'pass_accuracy': ' %'}
 
 
 def ranking_url(season, metric, competition='j1'):
@@ -68,10 +71,15 @@ def parse_ranking(html, season, metric, competition='j1'):
         score = row.attrs.get('score') or ''
         points = next((p.text() for p in row.walk('p')
                        if ROW_CLASS + '__points' in (p.attrs.get('class') or '').split()), None)
-        displayed = f'{score} min.' if metric == 'minutes_played' else score
-        if not name.strip() or not re.fullmatch(r'[0-9]+', score) or displayed != points:
+        is_percentage = metric == 'pass_accuracy'
+        pattern = r'[0-9]+(?:[.][0-9]+)?' if is_percentage else r'[0-9]+'
+        if (not name.strip() or not re.fullmatch(pattern, score)
+                or score + DISPLAY_SUFFIXES.get(metric, '') != points):
             raise ValueError('Fila estadística J.League inválida')
-        rows.append((name, links.get(id(row)), int(score)))
+        value = float(score) if '.' in score else int(score)
+        if is_percentage and not 0 <= value <= 100:
+            raise ValueError('Fila estadística J.League inválida')
+        rows.append((name, links.get(id(row)), value))
     if not rows:
         raise ValueError('La página oficial no mostró filas estadísticas')
     return rows
@@ -148,7 +156,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
         unresolved.extend({'name': name, 'metric': metric, 'value': None, 'reason': reason}
                           for metric, reason in missing.items())
         facts = [
-            {'metric': metric, 'value': found[metric][2], 'unit': PLAYING_TIME_UNITS.get(metric, metric), 'entity_id': player_id,
+            {'metric': metric, 'value': found[metric][2], 'unit': METRIC_UNITS.get(metric, metric), 'entity_id': player_id,
              'scope': scope, 'source_url': sources[metric]['url'], 'retrieved_at': sources[metric]['retrieved_at']}
             for metric in rankings if metric in found
         ]
@@ -171,7 +179,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.14.0'
+    version = '0.15.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
