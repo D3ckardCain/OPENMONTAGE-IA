@@ -201,6 +201,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('touches', 'Ball touches', 'Toques de balón'),
     ('recoveries', 'Ball recoveries', 'Recuperaciones'),
     ('expected_goals', 'Expected Goals', 'Goles esperados (xG)'),
+    ('goals_conceded', 'Goals conceded', 'Goles recibidos'),
+    ('expected_goals_excl_pk', 'Expected Goals (excl. penalties)', 'xG sin penaltis'),
     ('top_speed', 'Top Speed', 'Velocidad máxima'),
     ('save_percentage', 'Save success rate', 'Porcentaje de paradas'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
@@ -249,6 +251,8 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
         assert fact['provider_definition'] == jleague.METRIC_DEFINITIONS[metric]
         if metric == 'tackles':
             assert stats['tackles_attempted'] is None and stats['tackles_won'] is None
+        elif metric == 'expected_goals_excl_pk':
+            assert stats['expected_goals'] is None
         else:
             assert stats[metric]['provider_definition'] == fact['provider_definition']
 

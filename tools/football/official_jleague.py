@@ -31,8 +31,12 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'tackles': ('tackle_count', 'Tackles'),
            'long_balls_completed': ('long_pass_count', 'Long passes'), 'dribbles_attempted': ('dribble_count', 'Dribbles'),
            'touches': ('play_count', 'Ball touches'), 'recoveries': ('recovery_count', 'Ball recoveries'),
-           'expected_goals': ('expected_goals', 'Expected Goals'), 'top_speed': ('top_speed', 'Top Speed')}
+           'expected_goals': ('expected_goals', 'Expected Goals'), 'top_speed': ('top_speed', 'Top Speed'),
+           'goals_conceded': ('lost', 'Goals conceded'),
+           'expected_goals_excl_pk': ('expected_goals_excl_pk', 'Expected Goals (excl. penalties)')}
 METRIC_DEFINITIONS = {
+    'goals_conceded': 'Goles recibidos atribuidos al guardameta en el ranking oficial de J.League.',
+    'expected_goals_excl_pk': 'Suma de probabilidades de gol de los tiros sin penaltis, según el modelo de J.League.',
     'expected_goals': 'Suma de probabilidades de gol por ocasión de tiro según el modelo de J.League.',
     'top_speed': 'Velocidad máxima del jugador medida en kilómetros por hora, según J.League.',
     'long_balls_completed': 'Pases completados de 30 metros o más, según J.League.',
@@ -48,7 +52,7 @@ METRIC_DEFINITIONS = {
 }
 METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
                 'passes_attempted': 'passes', 'pass_accuracy': '%', 'save_percentage': '%', 'distance_covered': 'km',
-                'expected_goals': 'xG', 'top_speed': 'km/h'}
+                'expected_goals': 'xG', 'expected_goals_excl_pk': 'xG', 'top_speed': 'km/h'}
 DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG'})
 DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'pass_accuracy': ' %', 'save_percentage': ' %', 'distance_covered': ' km'}
 
@@ -234,7 +238,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.23.0'
+    version = '0.24.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL

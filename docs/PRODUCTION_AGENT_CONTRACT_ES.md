@@ -213,3 +213,5 @@ J.League incorpora pases largos completados, regates intentados, toques de baló
 J.League admite goles esperados (`expected_goals`) y velocidad máxima (`top_speed`). Mantiene el valor decimal publicado, las unidades y la definición del proveedor. En 2025, los rankings de xG devolvieron cifras en las cuatro competiciones integradas. La velocidad máxima devolvió cifras en J1 y quedó sin dato en los rankings consultados de J2, J3 y Copa Levain.
 
 J.League acepta una temporada anual como `2025` y temporadas de dos años como `"2026/27"` o `"2026-27"`. El informe de liga identifica `2026` como la edición especial. En la Copa Levain se exige `"2026/27"` para resolver esa edición de forma explícita.
+
+J.League admite goles recibidos de guardametas (`goals_conceded`) y xG sin penaltis (`expected_goals_excl_pk`) en J1, J2, J3 y Copa Levain. El expediente conserva el xG sin penaltis como cifra adicional de la fuente, con una clave distinta de la del xG total.
