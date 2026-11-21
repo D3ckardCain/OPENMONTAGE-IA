@@ -58,9 +58,12 @@ def parse(html, page):
             raw = cells.get(label)
             if raw in (None, '', '-', '—'):
                 continue
-            pattern = r'[0-9]+(?:\.[0-9]+)?' if metric in ('goals_per_game', 'minutes_per_goal') else r'[0-9]+'
+            pattern = r'(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)'
+            if metric in ('goals_per_game', 'minutes_per_goal'):
+                pattern += r'(?:\.[0-9]+)?'
             if not re.fullmatch(pattern, raw):
                 raise ValueError('Valor estadístico inválido')
+            raw = raw.replace(',', '')
             stats[metric] = float(raw) if '.' in raw else int(raw)
         records[match[1]] = (link.text(), match[2].replace('-', ' '), club.text(), stats)
     if not records:
@@ -68,9 +71,23 @@ def parse(html, page):
     return records, bool(next_link)
 
 
+def resolve(roster, names):
+    records, unresolved = [], []
+    for name in names:
+        key = normalized(name)
+        matches = [record for entries in roster.values() for record in entries
+                   if key in (record['entity_id'], normalized(record['full_name']),
+                              normalized(record['identity']['name']))]
+        if len(matches) == 1 and matches[0] not in records:
+            records.append(matches[0])
+        else:
+            unresolved.append(name)
+    return records, unresolved
+
+
 class Brasileirao(BaseTool):
     name = 'brasileirao_player_stats'
-    version = '0.1.0'
+    version = '0.2.0'
     provider = 'classificacao_geral'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
@@ -90,6 +107,7 @@ class Brasileirao(BaseTool):
             'names': {'type': 'array', 'minItems': 1, 'maxItems': 2, 'uniqueItems': True,
                       'items': {'type': 'string', 'minLength': 1, 'maxLength': 150}},
             'start_page': {'type': 'integer', 'minimum': 1, 'maximum': 100},
+            'max_blocks': {'type': 'integer', 'minimum': 1, 'maximum': 4},
         },
     }
 
@@ -109,7 +127,8 @@ class Brasileirao(BaseTool):
         scope = dict(SCOPE)
         start_page = inputs.get('start_page', 1)
         next_page = start_page
-        for page in range(start_page, start_page + 3):
+        max_pages = 3 * inputs.get('max_blocks', 2)
+        for page in range(start_page, min(start_page + max_pages, 101)):
             url = page_url(page)
             try:
                 rows, has_next = parse(fetch(url), page)
@@ -127,23 +146,15 @@ class Brasileirao(BaseTool):
                     'full_name': full_name, 'club': club, 'statistics': stats, 'facts': facts,
                 })
             next_page = page + 1 if has_next else None
-            if next_page is None:
+            if next_page is None or ((page - start_page + 1) % 3 == 0
+                                     and not resolve(roster, inputs['names'])[1]):
                 break
 
-        records, unresolved = [], []
-        for name in inputs['names']:
-            key = normalized(name)
-            matches = [record for entries in roster.values() for record in entries
-                       if key in (record['entity_id'], normalized(record['full_name']),
-                                  normalized(record['identity']['name']))]
-            if len(matches) == 1 and matches[0] not in records:
-                records.append(matches[0])
-            else:
-                unresolved.append(name)
+        records, unresolved = resolve(roster, inputs['names'])
         shared = set.intersection(*(set(row['statistics']) for row in records)) if records else set()
         data = {'source': 'Classificação Geral', 'type': 'collectible_card' if card else 'player_comparison',
                 'scope': scope, 'records': records, 'queries': queries, 'failed_pages': failures,
-                'next_page': next_page, 'unresolved': unresolved, 'ready_for_script': not unresolved and bool(shared),
-                'coverage': 'Coincidencias del bloque de hasta tres páginas. Usa el ID o el nombre completo para resolver homónimos.'}
+                'next_page': next_page, 'unresolved': unresolved, 'ready_for_script': not failures and not unresolved and bool(shared),
+                'coverage': 'Coincidencias de los bloques consultados, de hasta tres páginas cada uno. Usa el ID o el nombre completo para resolver homónimos.'}
         return ToolResult(success=bool(queries), error=None if queries else 'BRASILEIRAO_QUERY_FAILED',
                           data=data, cost_usd=0, from_cache=False)

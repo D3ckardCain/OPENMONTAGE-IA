@@ -75,7 +75,7 @@ def catalog(sport=None, region=None):
         'source_discovery': {
             'official_bundesliga_live': 'Consulta por nombre 19 rankings públicos de 2024/25 en ambas divisiones alemanas. Tres rankings de diez entradas y 16 vistas de cinco.',
             'official_premier_live': 'Líderes de 20 métricas hasta la jornada 29 de 2024/25. Busca el nombre publicado y añade el club entre paréntesis si hay ambigüedad.',
-            'brasileirao_player_stats': 'Brasileirão Série A 2025. Classificação Geral aporta nueve métricas. Usa next_page como start_page para continuar por bloques de tres páginas.',
+            'brasileirao_player_stats': 'Brasileirão Série A 2025. Classificação Geral aporta nueve métricas. Busca por bloques de tres páginas y reúne los resultados. Usa max_blocks para ampliar la búsqueda y next_page como start_page para seguir desde otro bloque.',
             'official_mls_live': 'Consulta por nombre las cifras de los goleadores por club de la temporada regular 2025. El catálogo de jugadores completo queda pendiente.',
             'official_uefa_live': 'Usa metrics=standard en consultas por nombre para solicitar las equivalencias comunes. Consulta definitions para detectar estadísticas oficiales adicionales de PLAYER.',
             'official_fifa_live': 'Omite metrics en player_statistics, compare_players o collectible_card para consultar el conjunto publicado.',
