@@ -209,3 +209,5 @@ J.League admite penaltis marcados (`penalty_goals`), faltas cometidas (`fouls_co
 J.League admite despejes (`clearances`), bloqueos (`blocks`) y entradas (`tackles`). La fuente cuenta como entrada una acción que desplaza el balón del rival, aunque no termine en posesión propia. El expediente conserva esa cifra en su clave original y deja sin dato los campos comunes de entradas intentadas y ganadas cuando falte evidencia oficial de cada uno.
 
 J.League incorpora pases largos completados, regates intentados, toques de balón y recuperaciones en J1, J2, J3 y Copa Levain. El expediente conserva sus definiciones y fuentes. En particular, el ranking oficial de pases largos cuenta pases completados de 30 metros o más.
+
+J.League admite goles esperados (`expected_goals`) y velocidad máxima (`top_speed`). Mantiene el valor decimal publicado, las unidades y la definición del proveedor. En 2025, los rankings de xG devolvieron cifras en las cuatro competiciones integradas. La velocidad máxima devolvió cifras en J1 y quedó sin dato en los rankings consultados de J2, J3 y Copa Levain.

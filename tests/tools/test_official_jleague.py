@@ -200,6 +200,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     ('dribbles_attempted', 'Dribbles', 'Regates intentados'),
     ('touches', 'Ball touches', 'Toques de balón'),
     ('recoveries', 'Ball recoveries', 'Recuperaciones'),
+    ('expected_goals', 'Expected Goals', 'Goles esperados (xG)'),
+    ('top_speed', 'Top Speed', 'Velocidad máxima'),
     ('save_percentage', 'Save success rate', 'Porcentaje de paradas'),
     ('clean_sheets', 'Clean sheets', 'Porterías a cero'),
     ('yellow_cards', 'Yellow cards', 'Tarjetas amarillas'),
@@ -211,10 +213,9 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
     suffix = jleague.DISPLAY_SUFFIXES.get(metric, '')
     for score in (21, 18):
         page = page.replace(f'>{score}</p>', f'>{score}{suffix}</p>')
-    if metric == 'distance_covered':
-        page = page.replace('score="21"', 'score="21.5"').replace('>21 km</p>', '>21.5 km</p>')
-    if jleague.METRIC_UNITS.get(metric) == '%':
-        page = page.replace('score="21"', 'score="21.5"').replace('>21 %</p>', '>21.5 %</p>')
+    if jleague.METRIC_UNITS.get(metric) in jleague.DECIMAL_UNITS:
+        page = page.replace('score="21"', 'score="21.5"').replace(
+            f'>21{suffix}</p>', f'>21.5{suffix}</p>')
 
 
     def fetch(requested):
@@ -226,7 +227,7 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
         {'action': 'compare_players', 'season': 2025, 'names': ['Example One', 'Example Two'],
          'metrics': [metric]})
     assert result.success and result.data['ready_for_script']
-    assert result.data['records'][0]['statistics'] == {metric: 21.5 if jleague.METRIC_UNITS.get(metric) in ('%', 'km') else 21}
+    assert result.data['records'][0]['statistics'] == {metric: 21.5 if jleague.METRIC_UNITS.get(metric) in jleague.DECIMAL_UNITS else 21}
     if jleague.METRIC_UNITS.get(metric) == '%':
         assert result.data['records'][0]['facts'][0]['unit'] == '%'
         assert '21.5%' in render(result.data)
@@ -236,6 +237,9 @@ def test_added_metric_uses_its_own_ranking_and_label(official_page, monkeypatch,
     if metric == 'distance_covered':
         assert result.data['records'][0]['facts'][0]['unit'] == 'km'
         assert '21.5 km' in render(result.data)
+    if metric == 'top_speed':
+        assert result.data['records'][0]['facts'][0]['unit'] == 'km/h'
+        assert '21.5 km/h' in render(result.data)
     if metric == 'sprints':
         assert '25 km/h' in result.data['records'][0]['facts'][0]['provider_definition']
     if metric in jleague.METRIC_DEFINITIONS:

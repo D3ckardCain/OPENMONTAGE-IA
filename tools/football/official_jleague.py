@@ -30,8 +30,11 @@ METRICS = {'goals': ('score', 'Top scorers'), 'assists': ('assist', 'Assists'),
            'clearances': ('clear_count', 'Clearances'), 'blocks': ('block_count', 'Blocks'),
            'tackles': ('tackle_count', 'Tackles'),
            'long_balls_completed': ('long_pass_count', 'Long passes'), 'dribbles_attempted': ('dribble_count', 'Dribbles'),
-           'touches': ('play_count', 'Ball touches'), 'recoveries': ('recovery_count', 'Ball recoveries')}
+           'touches': ('play_count', 'Ball touches'), 'recoveries': ('recovery_count', 'Ball recoveries'),
+           'expected_goals': ('expected_goals', 'Expected Goals'), 'top_speed': ('top_speed', 'Top Speed')}
 METRIC_DEFINITIONS = {
+    'expected_goals': 'Suma de probabilidades de gol por ocasión de tiro según el modelo de J.League.',
+    'top_speed': 'Velocidad máxima del jugador medida en kilómetros por hora, según J.League.',
     'long_balls_completed': 'Pases completados de 30 metros o más, según J.League.',
     'dribbles_attempted': 'Acciones en que el jugador busca superar o desplazar lateralmente a un defensor para crear una opción de tiro.',
     'touches': 'Acciones con balón. Una secuencia entre recepción y entrega cuenta como una acción, según J.League.',
@@ -44,7 +47,9 @@ METRIC_DEFINITIONS = {
     'duels_won': 'Duelos a ras de suelo según la definición de J.League.',
 }
 METRIC_UNITS = {'matches_played': 'matches', 'minutes_played': 'min',
-                'passes_attempted': 'passes', 'pass_accuracy': '%', 'save_percentage': '%', 'distance_covered': 'km'}
+                'passes_attempted': 'passes', 'pass_accuracy': '%', 'save_percentage': '%', 'distance_covered': 'km',
+                'expected_goals': 'xG', 'top_speed': 'km/h'}
+DECIMAL_UNITS = frozenset({'%', 'km', 'km/h', 'xG'})
 DISPLAY_SUFFIXES = {'minutes_played': ' min.', 'pass_accuracy': ' %', 'save_percentage': ' %', 'distance_covered': ' km'}
 
 
@@ -93,7 +98,7 @@ def parse_ranking(html, season, metric, competition='j1'):
         points = next((p.text() for p in row.walk('p')
                        if ROW_CLASS + '__points' in (p.attrs.get('class') or '').split()), None)
         unit = METRIC_UNITS.get(metric)
-        pattern = r'[0-9]+(?:[.][0-9]{1,6})?' if unit in ('%', 'km') else r'[0-9]+'
+        pattern = r'[0-9]+(?:[.][0-9]{1,6})?' if unit in DECIMAL_UNITS else r'[0-9]+'
         if (not name.strip() or not re.fullmatch(pattern, score)
                 or score + DISPLAY_SUFFIXES.get(metric, '') != points):
             raise ValueError('Fila estadística J.League inválida')
@@ -205,7 +210,7 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
 
 class OfficialJLeague(BaseTool):
     name = 'official_jleague_live'
-    version = '0.21.0'
+    version = '0.22.0'
     provider = 'jleague_official'
     tier = ToolTier.SOURCE
     runtime = ToolRuntime.LOCAL
