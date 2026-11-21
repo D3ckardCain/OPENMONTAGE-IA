@@ -189,3 +189,5 @@ Una vez resueltos los nombres en UEFA, todos los lotes individuales de una compa
 En comparativas y postales UEFA por nombre, la resolución, la selección de métricas y todos los lotes individuales usan la misma carga de configuración y definiciones durante la solicitud.
 
 Las consultas UEFA por ID cargan una vez la configuración. En modo estándar, seleccionan las métricas con una sola lectura de definiciones y reutilizan ese alcance durante todos los lotes de temporada o historial.
+
+J.League admite `aerial_duels_won` para duelos aéreos ganados. Su ranking de `duels_won` mide los duelos a ras de suelo según la definición de J.League. Conserva ese alcance al comparar cifras con otras fuentes.

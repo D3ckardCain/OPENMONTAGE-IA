@@ -7,7 +7,7 @@ from pathlib import Path
 from tools.football.official_jleague import COMPETITIONS as JLEAGUE_COMPETITIONS, METRICS as JLEAGUE_METRICS, profile_url, ranking_url
 from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolStability, ResourceProfile
 
-_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','interceptions':'Intercepciones','clean_sheets':'Porterías a cero','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
+_LABELS={'rank':'Puesto en el ranking WBA','goals':'Goles','assists':'Asistencias','duels_won':'Duelos ganados','aerial_duels_won':'Duelos aéreos ganados','interceptions':'Intercepciones','clean_sheets':'Porterías a cero','yellow_cards':'Tarjetas amarillas','red_cards':'Tarjetas rojas','matches_played':'Partidos jugados','minutes_played':'Minutos jugados','shots':'Tiros','shots_on_target':'Tiros a puerta','homeRuns':'Jonrones','rbi':'Carreras impulsadas','avg':'Promedio de bateo','inningsPitched':'Innings lanzados','era':'Promedio carreras limpias','strikeOuts':'Ponches','gamesPlayed':'Partidos','Goals':'Goles','Assists':'Asistencias','MatchesPlayed':'Partidos','TimePlayed':'Tiempo jugado'}
 
 
 def uefa_report(report, selected=False):
