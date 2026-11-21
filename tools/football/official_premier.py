@@ -38,14 +38,14 @@ UNITS = {'top_speed': 'km/h', 'distance_covered': 'km', 'save_percentage': '%'}
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):
-        raise ValueError('Redirección de Premier League no admitida')
+        raise ValueError('Redirección de la fuente no admitida')
 
 
-def fetch():
-    with urllib.request.build_opener(NoRedirect()).open(URL, timeout=20) as response:
+def fetch(url=URL):
+    with urllib.request.build_opener(NoRedirect()).open(url, timeout=20) as response:
         body = response.read(2_000_001)
     if len(body) > 2_000_000:
-        raise ValueError('Informe de Premier League demasiado grande')
+        raise ValueError('Informe de la fuente demasiado grande')
     return body.decode('utf-8')
 
 
@@ -122,6 +122,15 @@ class OfficialPremier(BaseTool):
         },
     }
 
+    def read_rankings(self):
+        return parse(fetch())
+
+    report_scope = SCOPE
+    report_url = URL
+    report_source = 'Premier League'
+    report_units = UNITS
+    report_coverage = 'Líderes publicados hasta la jornada 29. Usa el nombre publicado y, si hace falta, el club entre paréntesis.'
+
     def execute(self, inputs):
         from jsonschema import ValidationError, validate
 
@@ -130,14 +139,14 @@ class OfficialPremier(BaseTool):
             card = inputs['action'] == 'collectible_card'
             if len(inputs['names']) != (1 if card else 2):
                 raise ValueError('Indica un nombre para la postal o dos para comparar')
-            rankings, failures = parse(fetch())
+            rankings, failures = self.read_rankings()
             if not rankings:
                 raise ValueError('El informe carece de rankings reconocidos')
         except (ValidationError, ValueError, OSError) as exc:
             return ToolResult(success=False, error=str(exc), cost_usd=0, from_cache=False)
 
-        scope = dict(SCOPE)
-        source = {'url': URL, 'retrieved_at': datetime.now(timezone.utc).isoformat()}
+        scope = dict(self.report_scope)
+        source = {'url': self.report_url, 'retrieved_at': datetime.now(timezone.utc).isoformat()}
         roster = {}
         for metric, ranking in rankings.items():
             for key, (name, club, value) in ranking.items():
@@ -145,8 +154,8 @@ class OfficialPremier(BaseTool):
                                                  'identity': {'name': name, 'entity_id': key},
                                                  'statistics': {}, 'facts': []})
                 record['statistics'][metric] = value
-                record['facts'].append({'metric': metric, 'value': value, 'unit': UNITS.get(metric, metric),
-                                        'entity_id': key, 'scope': scope, 'source_url': URL,
+                record['facts'].append({'metric': metric, 'value': value, 'unit': self.report_units.get(metric, metric),
+                                        'entity_id': key, 'scope': scope, 'source_url': self.report_url,
                                         'retrieved_at': source['retrieved_at']})
 
         records, unresolved = [], []
@@ -159,8 +168,8 @@ class OfficialPremier(BaseTool):
             else:
                 unresolved.append(name)
         shared = set.intersection(*(set(row['statistics']) for row in records)) if records else set()
-        data = {'source': 'Premier League', 'type': 'collectible_card' if card else 'player_comparison',
+        data = {'source': self.report_source, 'type': 'collectible_card' if card else 'player_comparison',
                 'scope': scope, 'records': records, 'queries': [source], 'failed_metrics': failures,
                 'unresolved': unresolved, 'ready_for_script': not unresolved and bool(shared),
-                'coverage': 'Líderes publicados hasta la jornada 29. Usa el nombre publicado y, si hace falta, el club entre paréntesis.'}
+                'coverage': self.report_coverage}
         return ToolResult(success=True, data=data, cost_usd=0, from_cache=False)
