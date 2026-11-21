@@ -114,7 +114,8 @@ def collect(scope, sources, execute):
             report['ready_for_script'] = False
         sections.append({'connector': connector, 'inputs': inputs, 'qualification': qualification,
                          'report': report, 'batches': batches, 'errors': errors,
-                         'display_metrics': display_metrics(report)})
+                         'display_metrics': display_metrics(report),
+                         'metric_matrix': metric_matrix(report)})
     return {'type': 'football_comparison', 'scope': scope, 'standard_metrics': list(FOOTBALL_STANDARD_METRICS),
             'sections': sections, 'qualification_gaps': gaps}
 
@@ -130,9 +131,49 @@ def display_metrics(report):
     if len(records) != 2:
         return []
     if export.get('source') == 'FIFA':
-        return sorted(set.intersection(*(set(row.get('statistics', {})) for row in records)))
+        return sorted(set.intersection(*(
+            {metric for metric, stat in row.get('statistics', {}).items() if stat.get('value') is not None}
+            for row in records)))
     return sorted(set.intersection(*({fact['metric'] for fact in row.get('facts', [])
                                       if fact.get('value') is not None} for row in records)))
+
+
+def metric_matrix(report):
+    """Report all common fields and preserve source-native alternatives."""
+    if not report:
+        return []
+    report = add_standard_statistics(deepcopy(report))
+    records = report.get('records') or report.get('registros') or []
+    if len(records) != 2:
+        return []
+    standards = [row.get('standard_statistics', {}) for row in records]
+    common = display_metrics(report)
+    matrix = []
+    mapped = set()
+    for metric in FOOTBALL_STANDARD_METRICS:
+        values = [row.get(metric) for row in standards]
+        keys = {entry['source_metric'] for entry in values if entry}
+        mapped.update(keys)
+        display_key = next(iter(keys)) if len(keys) == 1 and all(values) else None
+        matrix.append({'metric': metric, 'standard': True, 'values': values,
+                       'display_metric': display_key if display_key in common else None})
+    try:
+        export = uefa_report(report, selected=True) if report.get('fuente') == 'UEFA' else report
+    except (KeyError, ValueError):
+        return matrix
+    native = []
+    for row in export.get('records', []):
+        facts = {fact['metric']: fact for fact in row.get('facts', []) if fact.get('value') is not None}
+        if export.get('source') == 'FIFA' and export.get('queries'):
+            source = export['queries'][-1]
+            facts = {key: dict(value, source_url=source.get('url'), retrieved_at=source.get('retrieved_at'))
+                     for key, value in row.get('statistics', {}).items() if value.get('value') is not None}
+        native.append(facts)
+    if len(native) == 2:
+        for metric in sorted((native[0].keys() | native[1].keys()) - mapped):
+            matrix.append({'metric': metric, 'standard': False, 'values': [row.get(metric) for row in native],
+                           'display_metric': metric if metric in common else None})
+    return matrix
 
 
 def select(comparison, section, metrics):

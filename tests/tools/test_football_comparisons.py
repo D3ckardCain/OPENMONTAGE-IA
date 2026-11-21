@@ -42,4 +42,10 @@ def test_as_merges_batches_before_selection():
     result = collect('competition', [source], execute)
     assert len(result['standard_metrics']) == 54
     assert set(result['sections'][0]['display_metrics']) == set(RANKINGS)
+    matrix = {row['metric']: row for row in result['sections'][0]['metric_matrix']}
+    assert len(matrix) == 54
+    assert matrix['goals']['display_metric'] == 'goals'
+    assert matrix['goals']['values'][0]['source_url'] == urls['goals']
+    assert matrix['expected_goals']['values'] == [None, None]
+    assert matrix['expected_goals']['display_metric'] is None
     assert select(result, 0, ['goals', 'saves'])['metrics'] == ['goals', 'saves']
