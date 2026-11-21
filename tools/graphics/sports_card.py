@@ -70,9 +70,9 @@ def render(report, metrics=None):
     if source in ('Voetbal International', 'AS'):
         ranking_scope, ranking_urls = VI_SCOPE, VI_URLS
         if source == 'AS':
-            tournament = (scope.get('season'), scope.get('phase'))
+            tournament = (scope.get('competition'), scope.get('season'), scope.get('phase'))
             if tournament not in MX_TOURNAMENTS:
-                raise ValueError('Torneo de Liga MX inválido')
+                raise ValueError('Edición de AS inválida')
             ranking_scope, ranking_urls = mx_scope(tournament), mx_urls(tournament)
         if scope != ranking_scope:
             raise ValueError('Alcance del ranking inválido')

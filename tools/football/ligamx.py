@@ -1,4 +1,4 @@
-"""Read Liga MX tournament player rankings from AS."""
+"""Read competition-scoped player rankings from AS."""
 import re
 import urllib.request
 from datetime import datetime, timezone
@@ -7,14 +7,18 @@ from tools.base_tool import BaseTool, ResourceProfile, ToolResult, ToolRuntime, 
 from tools.football.uefa import DOM
 from tools.football.uefa_names import normalized
 
-TOURNAMENTS = {(2025, 'apertura'): 'Liga MX Apertura 2025',
-               (2026, 'clausura'): 'Liga MX - Clausura 2026'}
-DEFAULT_TOURNAMENT = (2025, 'apertura')
+TOURNAMENTS = {
+    ('ligamx', 2025, 'apertura'): 'Liga MX Apertura 2025',
+    ('ligamx', 2026, 'clausura'): 'Liga MX - Clausura 2026',
+    ('saudi', '2025-2026', 'provider_edition'): 'Liga Saudí 2025/2026',
+    ('afcon', 2025, 'provider_edition'): 'Copa África 2025',
+}
+DEFAULT_TOURNAMENT = ('ligamx', 2025, 'apertura')
 
 
 def tournament_scope(tournament):
-    year, phase = tournament
-    return {'competition': 'ligamx', 'season': year, 'phase': phase, 'category': 'men'}
+    competition, year, phase = tournament
+    return {'competition': competition, 'season': year, 'phase': phase, 'category': 'men'}
 
 
 RANKINGS = {
@@ -33,8 +37,10 @@ RANKINGS = {
     'penalties_saved': 'penaltis-parados-por-el-portero', 'own_goals': 'goles-en-propia-puerta',
 }
 def ranking_urls(tournament):
-    year, phase = tournament
-    base = f'https://as.com/resultados/futbol/mexico_{phase}/{year}/ranking/jugadores/'
+    competition, year, phase = tournament
+    slug = {'saudi': 'arabia_saudi', 'afcon': 'copa_africa'}.get(competition, f'mexico_{phase}')
+    edition = str(year).replace('-', '_')
+    base = f'https://as.com/resultados/futbol/{slug}/{edition}/ranking/jugadores/'
     return {metric: base + slug + '/' for metric, slug in RANKINGS.items()}
 DEFAULT_METRICS = ('goals', 'assists', 'shots')
 
@@ -123,9 +129,11 @@ class LigaMX(BaseTool):
             return ToolResult(success=False, error=str(exc), cost_usd=0, from_cache=False)
 
         year = inputs['season']
-        tournament = (year, inputs.get('phase', 'apertura' if year == 2025 else 'clausura'))
+        competition = inputs.get('competition', 'ligamx')
+        phase = 'apertura' if year == 2025 else 'clausura'
+        tournament = (competition, year, inputs.get('phase', phase) if competition == 'ligamx' else 'provider_edition')
         if tournament not in TOURNAMENTS:
-            return ToolResult(success=False, error='Torneo de Liga MX no disponible', cost_usd=0, from_cache=False)
+            return ToolResult(success=False, error='Edición no disponible en AS', cost_usd=0, from_cache=False)
         scope = tournament_scope(tournament)
         urls = ranking_urls(tournament)
         roster, queries, failures = {}, [], {}
@@ -163,3 +171,17 @@ class LigaMX(BaseTool):
                 'coverage': 'Filas publicadas por AS para el torneo solicitado. La ausencia en un ranking queda sin valor.'}
         return ToolResult(success=bool(queries), error=None if queries else 'LIGAMX_QUERY_FAILED',
                           data=data, cost_usd=0, from_cache=False)
+
+
+class ASCompetition(LigaMX):
+    name = 'as_competition_player_stats'
+    side_effects = ['read_public_as_rankings']
+    input_schema = {
+        **LigaMX.input_schema,
+        'required': [*LigaMX.input_schema['required'], 'competition'],
+        'properties': {
+            **{key: value for key, value in LigaMX.input_schema['properties'].items() if key != 'phase'},
+            'competition': {'enum': ['saudi', 'afcon']},
+            'season': {'enum': [2025, '2025-2026']},
+        },
+    }

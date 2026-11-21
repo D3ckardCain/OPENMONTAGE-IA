@@ -16,7 +16,7 @@ def test_pending_sources_do_not_claim_statistics_or_coverage():
     assert not result['statistics_included']
     assert not result['complete_global_coverage']
     assert all(x['connector'] is None for x in result['sources'] if x['region']=='arab' and x['id']!='saudi')
-    assert next(x for x in result['sources'] if x['id']=='saudi')['status']=='source_inspection_only'
+    assert next(x for x in result['sources'] if x['id']=='saudi')['status']=='implemented_requires_live_check'
 
 
 def test_copy_and_validation():
