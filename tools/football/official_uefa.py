@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.15.0'
+ version='0.16.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -69,15 +69,12 @@ class OfficialUEFA(BaseTool):
     if not named and not player_ranking and action not in ('player','player_history'):
      raise ValueError('El conjunto común se aplica a consultas de jugador')
     from lib.football_statistics import UEFA_NAMES
-   if standard or named and isinstance(selection,list) and len(selection)>1:
+   if (standard and not player_ranking) or (named and isinstance(selection,list) and len(selection)>1):
     definitions=self.client.definitions(kwargs['competition'])['definiciones']
     supported={entry['name'] for entry in definitions if 'PLAYER' in entry.get('actors', [])}
     if standard:
      selection=[name for name in UEFA_NAMES if name in supported]
      if not selection:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
-     if player_ranking and 'goals' in selection:
-      selection.remove('goals')
-      selection.insert(0,'goals')
      kwargs['metrics']=selection
     elif set(selection)-supported:
      raise ValueError('Métrica UEFA no definida para jugadores')
@@ -95,7 +92,7 @@ class OfficialUEFA(BaseTool):
      data=query(self.client,**kwargs)
    elif action=='player' and isinstance(selection,list) and len(selection)>1:
     data=self.client.player_by_batches(**kwargs)
-   elif action=='ranking' and isinstance(selection,list) and len(selection)>1:
+   elif action=='ranking' and (standard or isinstance(selection,list) and len(selection)>1):
     data=self.client.ranking_by_batches(**kwargs)
    elif action=='player_history' and isinstance(selection,list) and len(selection)>1:
     data=self.client.player_history_by_batches(**kwargs)

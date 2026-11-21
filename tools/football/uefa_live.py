@@ -169,9 +169,15 @@ class UEFA:
                         team_id=None, order='DESC'):
   from tools.football.uefa_batches import metric_batches, split_rejected_batch
 
-  if not metrics or len(set(metrics)) != len(metrics):
-   raise Unavailable('Métricas inválidas o duplicadas')
   ctx, scope, supported = self._ranking_context(competition, edition, entity, phase, team_id, order)
+  if metrics == 'standard' and entity == 'player':
+   from lib.football_statistics import UEFA_NAMES
+   metrics = [metric for metric in UEFA_NAMES if metric in supported]
+   if 'goals' in metrics:
+    metrics.remove('goals')
+    metrics.insert(0, 'goals')
+  if not isinstance(metrics, list) or not metrics or len(set(metrics)) != len(metrics):
+   raise Unavailable('Métricas inválidas, ausentes o duplicadas')
   anchor = metrics[0]
   report = self._ranking_request(ctx, scope, supported, entity, [anchor], team_id, order)
   rows = {(row['id'], row['team_id']): row for row in report['registros']}

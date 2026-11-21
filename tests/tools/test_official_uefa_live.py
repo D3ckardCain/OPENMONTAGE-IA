@@ -200,27 +200,32 @@ def test_uefa_history_standard_uses_official_definitions_and_metric_sources(monk
  assert stats['assists']['source_url'] == sources['assists']['url']
 
 
-def test_standard_player_ranking_uses_goals_first_and_exposes_common_fields(monkeypatch):
+def test_standard_player_ranking_reuses_one_preparation_and_exposes_common_fields(monkeypatch):
  from lib.football_statistics import add_standard_statistics
 
  tool = OfficialUEFA()
- monkeypatch.setattr(tool.client, 'definitions', lambda competition: {'definiciones': [
-     {'name': 'matches_appearance', 'actors': ['PLAYER']},
-     {'name': 'goals', 'actors': ['PLAYER', 'TEAM']},
- ]})
  origin = {'url': 'https://compstats.uefa.com/ranking', 'consultado_utc': '2026-11-20'}
+ preparations, batches = [], []
 
- def query(**kwargs):
-  assert kwargs['metrics'] == ['goals', 'matches_appearance']
-  return {'fuente': 'UEFA', 'tipo': 'ranking', 'alcance': {'entidad': 'player'},
-          'registros': [{'estadisticas': {'goals': '0', 'matches_appearance': '10'},
-                         'fuente_por_metrica': {'goals': origin}}]}
+ def prepare(*args):
+  preparations.append(args)
+  return object(), {'entidad': 'player'}, {'matches_appearance', 'goals'}
 
- monkeypatch.setattr(tool.client, 'ranking_by_batches', query)
+ def query(context, scope, supported, entity, metrics, team_id, order):
+  batches.append(metrics)
+  metric = metrics[0]
+  return {'fuente': 'UEFA', 'tipo': 'ranking', 'alcance': {**scope, 'metricas': metrics},
+          'consultas': [origin], 'registros': [
+              {'id': '100', 'team_id': '20', 'estadisticas': {metric: '0' if metric == 'goals' else None},
+               'fuente_estadisticas': origin}]}
+
+ monkeypatch.setattr(tool.client, '_ranking_context', prepare)
+ monkeypatch.setattr(tool.client, '_ranking_request', query)
  inputs = {'action': 'ranking', 'competition': 'champions', 'edition': 2024,
            'entity': 'player', 'metrics': 'standard'}
  result = tool.execute(inputs)
  assert result.success, result.error
+ assert len(preparations) == 1 and batches == [['goals'], ['matches_appearance']]
  stats = add_standard_statistics(result.data)['registros'][0]['standard_statistics']
  assert len(stats) == 54 and stats['goals']['value'] == '0'
  assert stats['goals']['source_url'] == origin['url']

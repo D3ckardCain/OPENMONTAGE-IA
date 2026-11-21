@@ -182,4 +182,4 @@ Las acciones UEFA `player` y `player_history` aceptan `metrics="standard"` con e
 
 El ranking UEFA de jugadores admite `metrics="standard"`. Usa goles como primera métrica cuando la fuente la admite. El productor añade la plantilla de 54 campos con la procedencia por métrica. Una lista explícita permite elegir otra primera métrica para ordenar.
 
-El ranking UEFA por lotes reutiliza la configuración y las definiciones de métricas durante la consulta, incluidas las subdivisiones. Al pedir `metrics="standard"`, la selección inicial de métricas usa una consulta de definiciones adicional.
+El ranking UEFA por lotes reutiliza la configuración y las definiciones de métricas durante la consulta, incluidas las subdivisiones. Con `metrics="standard"`, la misma consulta de definiciones selecciona y valida las métricas.
