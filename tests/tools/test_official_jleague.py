@@ -109,6 +109,8 @@ def test_goals_recovered_from_the_same_official_player_profile(official_page, mo
     }
 
     def fetch(url):
+        if url not in pages:
+            raise OSError('Fuente de prueba ausente')
         return pages[url], {'url': url, 'retrieved_at': '2026-11-20'}
 
     monkeypatch.setattr(jleague, 'fetch', fetch)
@@ -156,6 +158,8 @@ def test_levain_cup_keeps_cup_scope_and_skips_league_profile(official_page, monk
     cup_assists = cup_goals.replace(goals_url, assists_url).replace('Top scorers', 'Assists')
 
     def fetch(url):
+        if url not in (goals_url, assists_url):
+            raise OSError('Fuente de prueba ausente')
         page = {goals_url: cup_goals.replace('Example Two', 'Other Player'), assists_url: cup_assists}[url]
         return page, {'url': url, 'retrieved_at': '2026-11-20'}
 
@@ -274,6 +278,8 @@ def test_multi_metric_queries_retain_results_after_one_source_failure(official_p
     def fetch(url):
         if url == failed_url:
             raise OSError('Ranking unavailable')
+        if url not in pages:
+            raise OSError('Fuente de prueba ausente')
         return pages[url], {'url': url, 'retrieved_at': '2026-11-20'}
 
     monkeypatch.setattr(jleague, 'fetch', fetch)
@@ -320,7 +326,7 @@ def test_split_season_is_distinct_from_the_jleague_special_edition(official_page
 def test_expanded_assists_joins_by_official_id_and_reuses_one_response(official_page, monkeypatch):
     goals_url = jleague.ranking_url(2025, 'goals')
     assists_url = jleague.ranking_url(2025, 'assists')
-    expanded_url = jleague.expanded_assists_url(2025, 'j1')
+    expanded_url = jleague.expanded_ranking_url(2025, 'j1', 'assists')
     assists = official_page.replace(goals_url, assists_url).replace('Top scorers', 'Assists')
     assists = assists.replace('Example One', 'Different Player').replace('Example Two', 'Other Player')
     expanded = '''
@@ -335,6 +341,8 @@ def test_expanded_assists_joins_by_official_id_and_reuses_one_response(official_
 
     def fetch(url):
         calls.append(url)
+        if url not in pages:
+            raise OSError('Fuente de prueba ausente')
         return pages[url], {'url': url, 'retrieved_at': '2026-11-20'}
 
     monkeypatch.setattr(jleague, 'fetch', fetch)
@@ -348,4 +356,34 @@ def test_expanded_assists_joins_by_official_id_and_reuses_one_response(official_
     assert all(row['facts'][1]['source_url'] == expanded_url for row in result.data['records'])
     assert 'Asistencias' in render(result.data)
     with pytest.raises(ValueError, match='temporada'):
-        jleague.parse_expanded_assists(expanded, 2024, 'j1')
+        jleague.parse_expanded_ranking(expanded, 2024, 'j1', 'assists')
+
+
+def test_cup_goals_outside_first_page_use_expanded_scope(official_page, monkeypatch):
+    original = jleague.ranking_url(2025, 'goals')
+    goals_url = jleague.ranking_url(2025, 'goals', 'leaguecup')
+    assists_url = jleague.ranking_url(2025, 'assists', 'leaguecup')
+    expanded_url = jleague.expanded_ranking_url(2025, 'leaguecup', 'goals')
+    cup = official_page.replace('J1 League', 'Levain Cup')
+    pages = {
+        goals_url: cup.replace(original, goals_url).replace('Example One', 'Other Player'),
+        assists_url: cup.replace(original, assists_url).replace('Top scorers', 'Assists'),
+        expanded_url: '''
+            <link rel="canonical" href="https://www.jleague.jp/stats/leaguecup/player/2025/all/score/">
+            <title>【公式】2025シーズンの得点ランキング:ルヴァンカップの個人スタッツ</title>
+            <a href="/sp/player/100/"><div class="ranking_stats">2 <span>GOALS</span></div></a>
+        ''',
+    }
+
+    def fetch(url):
+        return pages[url], {'url': url, 'retrieved_at': '2026-11-20'}
+
+    monkeypatch.setattr(jleague, 'fetch', fetch)
+    report = jleague.OfficialJLeague().execute({
+        'action': 'collectible_card', 'competition': 'leaguecup', 'season': 2025,
+        'names': ['Example One'], 'metrics': ['goals', 'assists'],
+    }).data
+    assert report['ready_for_script']
+    assert report['records'][0]['statistics'] == {'goals': 2, 'assists': 21}
+    assert report['records'][0]['facts'][0]['source_url'] == expanded_url
+    assert 'Levain Cup' in render(report)

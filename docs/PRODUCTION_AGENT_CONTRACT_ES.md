@@ -217,3 +217,5 @@ J.League acepta una temporada anual como `2025` y temporadas de dos años como `
 J.League admite goles recibidos de guardametas (`goals_conceded`) y xG sin penaltis (`expected_goals_excl_pk`) en J1, J2, J3 y Copa Levain. El expediente conserva el xG sin penaltis como cifra adicional de la fuente, con una clave distinta de la del xG total.
 
 Si J.League ya identificó al jugador por ID oficial y el ranking en inglés no lo muestra en asistencias, el agente puede consultar el ranking ampliado oficial en japonés para temporadas anuales. Cruza ambas fuentes exclusivamente por el enlace del ID y conserva la procedencia del ranking ampliado en cada cifra recuperada.
+
+El ranking ampliado japonés también sirve para recuperar goles de temporada anual por ID verificado, incluidos los de Copa Levain. En divisiones de liga se conserva la consulta al perfil oficial cuando acredita una única fila de temporada y división. Cada cifra mantiene el enlace de la fuente que la acreditó.
