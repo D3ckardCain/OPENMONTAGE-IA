@@ -225,6 +225,8 @@ def create_studio_router():
 
     def round_filename(report, extension):
         scope = report['scope']
+        if report.get('source') == 'FIFA':
+            return f"fifa-{scope['competition_id']}-{scope['season_id']}.{extension}"
         competition = scope.get('competition', report.get('competition', 'uefa'))
         season = scope.get('season', scope.get('seasonYear'))
         return f"{competition}-{season}-{scope.get('round', scope['phase'])}.{extension}"

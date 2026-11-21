@@ -25,6 +25,8 @@ La edición de Premier League 2024/25 corresponde exclusivamente a las cifras ac
 
 UEFA EURO 2024 aparece como torneo final. La consulta pide las métricas publicadas por UEFA en lotes internos y conserva la edición, el identificador de competición, la fase y la página de cada cifra. La clasificación previa queda fuera de este total; se consulta por separado al solicitar el historial del jugador. Si faltan métricas o falla algún lote, se muestra la evidencia parcial y se bloquea la exportación verificada.
 
+FIFA Qatar 2022 también está en la mesa, identificado mediante los IDs de competición `17` y temporada `255711`. El conector comprueba ambos IDs en el servicio FIFA antes de atribuir cifras. El alcance del servicio es `season_aggregate_as_published`: no acredita por sí solo qué rondas incluye ni separa eliminatorias previas, así que la mesa muestra «fase sin acreditar» y evita llamarlo «torneo final». Las métricas disponibles se leen del informe estadístico FIFA, sin inventar las ausentes. FIFA entrega este informe en un único archivo de jugadores; el conector limita su tamaño y selecciona las métricas localmente, porque la fuente no acredita un parámetro para solicitar ese archivo por partes. El desglose por ronda de Qatar continúa en la fuente OpenFootball separada.
+
 ## Modelos candidatos
 
 | Candidato | Prueba de aceptación |

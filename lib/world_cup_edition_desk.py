@@ -11,6 +11,7 @@ from tools.football.official_mls import OfficialMLS, SCOPE as MLS_SCOPE
 from tools.football.official_ofc import OfficialOFC, SCOPE as OFC_SCOPE
 from tools.football.official_premier import OfficialPremier, SCOPE as PREMIER_SCOPE
 from tools.football.official_uefa import OfficialUEFA
+from tools.football.official_fifa import OfficialFIFA
 
 TEAM_LABELS = {
     'Belgium': 'Bélgica', 'Brazil': 'Brasil', 'Cameroon': 'Camerún', 'Canada': 'Canadá',
@@ -45,6 +46,8 @@ STANDALONE_EDITIONS = {
     (PREMIER_SCOPE['competition'], PREMIER_SCOPE['season'], PREMIER_SCOPE['phase']):
         ('Premier League 2024/25 · hasta jornada 29', OfficialPremier),
     ('euro', 2024, 'TOURNAMENT'): ('UEFA EURO 2024 · torneo final', OfficialUEFA),
+    ('fifa_world_cup', 2022, 'season_aggregate_as_published'):
+        ('FIFA Qatar 2022 · agregado publicado (fase sin acreditar)', OfficialFIFA),
 }
 STANDALONE_EDITIONS.update({
     (competition, 2025, phase): (f'{label} 2025', OfficialJLeague)
@@ -65,6 +68,8 @@ def compare_edition(players, edition=DEFAULT_EDITION):
     args = {'season': season}
     if (competition, season, phase) in STANDALONE_EDITIONS:
         tool = STANDALONE_EDITIONS[(competition, season, phase)][1]()
+        if isinstance(tool, OfficialFIFA):
+            args = {'competition_id': '17', 'season_id': '255711'}
         if isinstance(tool, (OfficialBundesliga, OfficialJLeague, OfficialUEFA)):
             args['competition'] = competition
         if isinstance(tool, OfficialUEFA):
@@ -98,20 +103,33 @@ def compare_edition(players, edition=DEFAULT_EDITION):
         if not name:
             raise ValueError('Indica el nombre de ambos jugadores')
         names.append(f'{name} ({team})' if team else name)
-    args['names'] = names
+    if isinstance(tool, OfficialFIFA):
+        args['subjects'] = [{'name': player['name'].strip(),
+                             **({'team_name': player['team'].strip()} if player.get('team', '').strip() else {})}
+                            for player in players]
+    else:
+        args['names'] = names
     comparison = collect('competition', [{
         'connector': tool.name, 'inputs': args,
     }], execute)
     section = comparison['sections'][0]
     report = section['report']
+    if report and isinstance(tool, OfficialFIFA) and report.get('type') == 'player_comparison':
+        scope = report.get('scope') or {}
+        if (scope.get('competition_id'), scope.get('season_id'), scope.get('phase')) != (
+                args['competition_id'], args['season_id'], phase):
+            raise ValueError('FIFA devolvió cifras de otra competición, edición o fase')
+    if report and isinstance(tool, OfficialFIFA) and report.get('type') != 'player_comparison':
+        report = None
     if report and isinstance(tool, OfficialUEFA):
         from tools.graphics.sports_card import uefa_report
         report = uefa_report(report, selected=True) if report.get('tipo') == 'comparativa_jugadores' else None
     return {'report': report, 'metric_matrix': section['metric_matrix'],
             'display_metrics': section['display_metrics'] if report else [],
-            'errors': section['errors'] + (['UEFA no identificó con certeza a los dos jugadores']
+            'errors': section['errors'] + (['La fuente no identificó con certeza a los dos jugadores']
                                           if section['report'] and report is None else []),
             'failed_metrics': (section['report'] or {}).get('failed_metrics', {}),
-            'coverage_note': (section['report'] or {}).get('coverage'),
+            'coverage_note': (section['report'] or {}).get('coverage') or (section['report'] or {}).get('warning'),
             'phase_note': ('La fuente publica cifras de la edición sin desglose verificable por fase.'
-                           if phase == 'provider_edition' and competition in CG_COMPETITIONS else None)}
+                           if (phase == 'provider_edition' and competition in CG_COMPETITIONS)
+                           or isinstance(tool, OfficialFIFA) else None)}

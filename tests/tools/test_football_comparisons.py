@@ -58,6 +58,35 @@ def test_euro_desk_handles_unresolved_names_without_server_error(monkeypatch):
     assert result['errors']
 
 
+def test_fifa_desk_requests_verified_qatar_edition_without_phase_claim(monkeypatch):
+    from lib.world_cup_edition_desk import compare_edition
+    from tools.football.official_fifa import OfficialFIFA
+    from tools.base_tool import ToolResult
+
+    def execute(self, args):
+        assert args['competition_id'] == '17' and args['season_id'] == '255711'
+        assert args['subjects'] == [{'name': 'A', 'team_name': 'Argentina'}, {'name': 'B'}]
+        scope = {'competition_id': '17', 'season_id': '255711',
+                 'phase': 'season_aggregate_as_published'}
+        source = {'url': 'https://fdh-api.fifa.com/v1/stats/season/99/players.json',
+                  'retrieved_at': '2026-11-21'}
+        records = [dict(entity_id=str(i), identity={'fdh_player_id': str(i), 'name': name},
+                        statistics={'Goals': {'value': i, 'source_flag': True, 'unit': None}},
+                        missing_metrics=[]) for i, name in enumerate(('A', 'B'), 1)]
+        return ToolResult(success=True, data=dict(source='FIFA', type='player_comparison',
+                         scope=scope, queries=[source], records=records, ready_for_script=True),
+                          cost_usd=0, from_cache=False)
+
+    monkeypatch.setattr(OfficialFIFA, 'execute', execute)
+    result = compare_edition([{'name': 'A', 'team': 'Argentina'}, {'name': 'B'}],
+                             'fifa_world_cup:2022:season_aggregate_as_published')
+    assert result['display_metrics'] == ['Goals']
+    assert result['phase_note']
+    assert result['report']['scope']['phase'] == 'season_aggregate_as_published'
+    from tools.graphics.sports_card import render
+    assert '<svg' in render(result['report'], ['Goals'])
+
+
 def test_jleague_merges_metric_batches_with_source_evidence():
     calls = []
     scope = {'competition': 'j1', 'season': 2025, 'phase': 'regular_season'}

@@ -406,3 +406,6 @@ def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     euro = editions['euro:2024:TOURNAMENT']
     assert euro['team_filter'] is False
     assert 'torneo final' in euro['label']
+    fifa = editions['fifa_world_cup:2022:season_aggregate_as_published']
+    assert fifa['team_filter'] is True
+    assert 'fase sin acreditar' in fifa['label']
