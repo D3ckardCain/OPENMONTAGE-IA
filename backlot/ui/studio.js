@@ -313,30 +313,108 @@ roundForm.addEventListener('submit', async event => {
  const value = key => form.get(key).trim();
  const players = ['first', 'second'].map(key => ({name: value(key + '_name'), team: value(key + '_team')}));
  const button = roundForm.querySelector('button[type=submit]');
- clearRoundResult('Consultando OpenFootball…');
+ clearRoundResult('Consultando la fuente de estadísticas…');
  button.disabled = true;
  try {
-  const {report, preview_svg, export_token} = await api('football/round-goals', {round: value('round'), players});
+  const {report, preview_svg, export_token, metric_matrix, display_metrics, errors, failed_metrics} = await api('football/round-goals', {round: value('round'), players});
   if (request !== roundRequest) return;
   clearRoundResult('');
-  for (const record of report.records) {
-   roundResult.append(node('p', record.identity.name + ' · ' + (roundTeams[record.team] || record.team) + ' · Goles: ' + record.statistics.goals));
+  if (!report) {
+   roundResult.append(node('p', 'No se verificaron los dos jugadores. Usa el nombre que publica la fuente.'));
+   for (const error of errors || []) roundResult.append(node('p', error));
+   return;
   }
-  for (const player of report.unresolved) {
+  const supported = new Set(display_metrics);
+  const choices = [];
+  if (metric_matrix) {
+   const wrap = node('div', '');
+   wrap.className = 'football-table-wrap';
+   const table = document.createElement('table');
+   const header = document.createElement('tr');
+   for (const label of ['Métrica', ...report.records.map(row => row.identity.name), 'Mostrar']) {
+    const cell = node('th', label); cell.scope = 'col'; header.append(cell);
+   }
+   table.createTHead().append(header);
+   const rows = table.createTBody();
+   for (const metric of metric_matrix) {
+    const row = rows.insertRow();
+    row.append(node('td', metric.metric.replaceAll('_', ' ')));
+    for (const fact of metric.values) {
+     const cell = row.insertCell();
+     cell.textContent = fact?.value ?? 'Sin dato';
+     if (fact?.source_url) cell.append(' · ', link('Fuente', fact.source_url));
+    }
+    const cell = row.insertCell();
+    if (supported.has(metric.display_metric)) {
+     const checkbox = document.createElement('input');
+     checkbox.type = 'checkbox';
+     checkbox.value = metric.display_metric;
+     checkbox.setAttribute('aria-label', 'Mostrar ' + metric.metric.replaceAll('_', ' '));
+     choices.push(checkbox);
+     cell.append(checkbox);
+    }
+   }
+   wrap.append(table);
+   roundResult.append(wrap);
+  } else {
+   for (const record of report.records) {
+    roundResult.append(node('p', record.identity.name + ' · ' + (roundTeams[record.team] || record.team) + ' · Goles: ' + record.statistics.goals));
+   }
+  }
+  for (const player of report.unresolved || []) {
    roundResult.append(node('p', player.name + ' · Dato sin verificar en esta ronda'));
   }
-  for (const query of report.queries) roundResult.append(link('Fuente: OpenFootball', query.url));
-  if (preview_svg) {
-   const preview = node('button', 'Seleccionar goles y ver postal');
+  if (errors?.length || Object.keys(failed_metrics || {}).length) {
+   roundResult.append(node('p', 'Hay rankings que no se pudieron consultar. Revisa las cifras disponibles.'));
+   const detail = document.createElement('details');
+   detail.append(node('summary', 'Ver fallos de consulta'), node('pre', JSON.stringify({errors, failed_metrics}, null, 2)));
+   roundResult.append(detail);
+  }
+  if (!metric_matrix) for (const query of report.queries) roundResult.append(link('Fuente: OpenFootball', query.url));
+  if (export_token && supported.size) {
+   const preview = node('button', metric_matrix ? 'Ver postal con la selección' : 'Seleccionar goles y ver postal');
    preview.type = 'button';
-   preview.onclick = () => {
-    roundPreviewUrl = URL.createObjectURL(new Blob([preview_svg], {type:'image/svg+xml'}));
+   const selectionStatus = node('p', '');
+   selectionStatus.setAttribute('role', 'status');
+   const exports = node('div', '');
+   let previewRevision = 0;
+   function resetPreview() {
+    previewRevision++;
+    if (roundPreviewUrl) URL.revokeObjectURL(roundPreviewUrl);
+    roundPreviewUrl = null;
+    exports.replaceChildren();
+    selectionStatus.textContent = '';
+   }
+   for (const checkbox of choices) checkbox.onchange = resetPreview;
+   preview.onclick = async () => {
+    resetPreview();
+    const metrics = metric_matrix ? choices.filter(choice => choice.checked).map(choice => choice.value) : ['goals'];
+    if (metrics.length < 1 || metrics.length > 6) {
+     selectionStatus.textContent = 'Elige entre una y seis métricas.';
+     return;
+    }
+    const revision = previewRevision;
+    const selection = {report, export_token, metrics};
+    preview.disabled = true;
+    for (const checkbox of choices) checkbox.disabled = true;
+    let svg;
+    try {
+     svg = preview_svg || (await api('football/round-goals/preview', selection)).preview_svg;
+     if (request !== roundRequest) return;
+    } catch (error) {
+     selectionStatus.textContent = error.message;
+     return;
+    } finally {
+     preview.disabled = false;
+     for (const checkbox of choices) checkbox.disabled = false;
+    }
+    roundPreviewUrl = URL.createObjectURL(new Blob([svg], {type:'image/svg+xml'}));
     const image = document.createElement('img');
     image.src = roundPreviewUrl;
     image.alt = 'Postal de comparativa de goles';
     image.className = 'football-round-preview';
     const download = link('Descargar postal SVG', roundPreviewUrl);
-    download.download = 'qatar-2022-' + report.scope.round + '.svg';
+    download.download = 'qatar-2022-' + (report.scope.round || 'edicion') + '.svg';
     const video = node('button', 'Descargar clip MP4');
     video.type = 'button';
     const status = node('p', '');
@@ -347,14 +425,14 @@ roundForm.addEventListener('submit', async event => {
      try {
       const response = await fetch('/api/studio/football/round-goals/video', {
        method: 'POST', headers: {'Content-Type':'application/json'},
-       body: JSON.stringify({report, export_token}),
+       body: JSON.stringify(selection),
       });
       if (!response.ok) throw Error((await response.json()).detail);
       const blob = await response.blob();
-      if (request !== roundRequest) return;
+      if (request !== roundRequest || revision !== previewRevision) return;
       const url = URL.createObjectURL(blob);
       const file = link('Clip MP4', url);
-      file.download = 'qatar-2022-' + report.scope.round + '.mp4';
+      file.download = 'qatar-2022-' + (report.scope.round || 'edicion') + '.mp4';
       document.body.append(file);
       file.click();
       file.remove();
@@ -366,9 +444,9 @@ roundForm.addEventListener('submit', async event => {
       video.disabled = false;
      }
     };
-    preview.replaceWith(image, download, video, status);
+    exports.replaceChildren(image, download, video, status);
    };
-   roundResult.append(preview);
+   roundResult.append(preview, selectionStatus, exports);
   }
  } catch (error) {
   if (request === roundRequest) clearRoundResult(error.message);

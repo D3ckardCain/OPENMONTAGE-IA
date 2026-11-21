@@ -315,3 +315,38 @@ def test_round_comparison_preview_requires_verified_pair(isolated, monkeypatch):
     assert result.status_code == 200
     assert result.json()['preview_svg'] is None
     assert isolated.post(path, json={'round': 'qualifying', 'players': players}).status_code == 400
+
+
+def test_qatar_edition_preview_uses_explicit_metrics(isolated, monkeypatch):
+    from lib import world_cup_edition_desk
+    from tools.football.ligamx import ranking_urls, tournament_scope
+
+    tournament = ('world_cup_2022', 2022, 'final_tournament')
+    scope = tournament_scope(tournament)
+    urls = ranking_urls(tournament)
+    queries = [{'url': urls[metric], 'retrieved_at': '2026-11-21'} for metric in ('goals', 'shots')]
+    rows = []
+    for entity, name in [('a', 'Messi'), ('b', 'Mbappé')]:
+        stats = {'goals': 2, 'shots': 4}
+        facts = [dict(metric=metric, value=value, entity_id=entity, scope=scope,
+                      source_url=query['url'], retrieved_at=query['retrieved_at'])
+                 for (metric, value), query in zip(stats.items(), queries)]
+        rows.append(dict(entity_id=entity, identity={'entity_id': entity, 'name': name},
+                         facts=facts, statistics=stats))
+    report = dict(source='AS', type='player_comparison', scope=scope, queries=queries, records=rows,
+                  ready_for_script=True, failed_metrics={}, unresolved=[])
+    monkeypatch.setattr(world_cup_edition_desk, 'compare_edition',
+                        lambda players: {'report': report, 'display_metrics': ['goals', 'shots']})
+    path = '/api/studio/football/round-goals'
+    result = isolated.post(path, json={'round': 'edition', 'players': [
+        {'name': 'Messi', 'team': 'Argentina'}, {'name': 'Mbappé', 'team': 'France'},
+    ]})
+    assert result.status_code == 200
+    payload = {**result.json(), 'metrics': ['shots']}
+    payload.pop('display_metrics')
+    preview = isolated.post(path + '/preview', json=payload)
+    assert preview.status_code == 200
+    assert 'Tiros' in preview.json()['preview_svg']
+    assert '>Goles<' not in preview.json()['preview_svg']
+    payload['metrics'] = ['saves']
+    assert isolated.post(path + '/preview', json=payload).status_code == 400

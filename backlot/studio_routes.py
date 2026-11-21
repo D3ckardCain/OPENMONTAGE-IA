@@ -170,40 +170,67 @@ def create_studio_router():
 
         data = await body(request)
         try:
-            validate(data, {'type': 'object', 'properties': PROPERTIES,
+            properties = {**PROPERTIES, 'round': {'enum': ['edition', *PROPERTIES['round']['enum']]}}
+            validate(data, {'type': 'object', 'properties': properties,
                             'required': ['round', 'players'], 'additionalProperties': False})
         except ValidationError as exc:
             raise HTTPException(400, exc.message) from exc
+        if data['round'] == 'edition':
+            from lib.world_cup_edition_desk import compare_edition
+            result = await asyncio.to_thread(lambda: invoke(compare_edition, data['players']))
+            report = result['report']
+            return {**result, 'export_token': round_signature(report) if result['display_metrics'] else None}
+
         try:
             report = await asyncio.to_thread(lambda: invoke(lambda: compare(**data)))
         except OSError as exc:
             raise HTTPException(502, 'No se pudo consultar OpenFootball') from exc
         preview = invoke(render, report, ['goals']) if report['ready_for_script'] else None
         return {'report': report, 'preview_svg': preview,
+                'display_metrics': ['goals'] if preview else [],
                 'export_token': round_signature(report) if preview else None}
 
-    @router.post('/api/studio/football/round-goals/video')
-    async def football_round_video(request: Request):
-        from tools.graphics.sports_card_video import SportsCardVideo
+    async def verified_round_selection(request):
+        from jsonschema import ValidationError, validate
+        from tools.graphics.sports_card import METRIC_SELECTION
 
         data = await body(request, limit=64000)
         report, token = data.get('report'), data.get('export_token')
-        if (set(data) != {'report', 'export_token'} or not isinstance(report, dict)
+        metrics = data.get('metrics', ['goals'])
+        if (set(data) - {'report', 'export_token', 'metrics'} or not isinstance(report, dict)
                 or not isinstance(token, str) or len(token) != 64 or not token.isascii()):
             raise HTTPException(400, 'Se requiere una comparativa verificada')
         signature = invoke(round_signature, report)
         if not hmac.compare_digest(token, signature):
             raise HTTPException(400, 'La comparativa cambió o la sesión se reinició. Vuelve a consultarla.')
+        try:
+            validate(metrics, METRIC_SELECTION)
+        except ValidationError as exc:
+            raise HTTPException(400, exc.message) from exc
+        return report, metrics
+
+    @router.post('/api/studio/football/round-goals/preview')
+    async def football_round_preview(request: Request):
+        from tools.graphics.sports_card import render
+
+        report, metrics = await verified_round_selection(request)
+        return {'preview_svg': invoke(render, report, metrics)}
+
+    @router.post('/api/studio/football/round-goals/video')
+    async def football_round_video(request: Request):
+        from tools.graphics.sports_card_video import SportsCardVideo
+
+        report, metrics = await verified_round_selection(request)
         folder = TemporaryDirectory(prefix='openmontage-round-')
         output = Path(folder.name) / 'round.mp4'
         try:
             result = await asyncio.to_thread(SportsCardVideo().execute, {
-                'report': report, 'metrics': ['goals'], 'output_path': str(output), 'duration_seconds': 6,
+                'report': report, 'metrics': metrics, 'output_path': str(output), 'duration_seconds': 6,
             })
             if not result.success:
                 raise HTTPException(422, result.error)
             return FileResponse(output, media_type='video/mp4',
-                                filename=f"qatar-2022-{report['scope']['round']}.mp4",
+                                filename=f"qatar-2022-{report['scope'].get('round', 'edicion')}.mp4",
                                 background=BackgroundTask(folder.cleanup))
         except Exception:
             folder.cleanup()

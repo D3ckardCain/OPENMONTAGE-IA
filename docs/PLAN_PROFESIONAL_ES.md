@@ -17,6 +17,10 @@ El panel actual de fútbol expone consultas UEFA. El agente ya puede consultar v
 
 El agente puede consultar partidos jugados, goles y tiros en grupos, octavos, cuartos, semifinal, tercer puesto y final. Verifica el calendario de 64 partidos y contrasta los eventos de los encuentros consultados con el marcador. Incluye prórroga y deja fuera las tandas de penaltis al contar goles y tiros. El informe conserva las URLs por partido y el nombre StatsBomb. Esta consulta está disponible para investigación. La selección de métricas permite revisar las cifras con sus fuentes. La licencia de StatsBomb Open Data, cláusulas 1.2.2 y 1.4, excluye la explotación comercial y exige el logotipo al publicar análisis. El informe queda fuera de los exportadores. Para las piezas del canal, OpenFootball aporta goles atribuidos por ronda y publica estos datos como dominio público. Se revisan los marcadores y se excluyen las tandas y los autogoles de los goles individuales. La lista de goleadores permite confirmar cifras positivas. La ausencia queda como dato sin verificar y no se convierte en cero, porque la fuente no acredita la participación de cada jugador. Los tiros y partidos por ronda siguen disponibles para investigación en StatsBomb.
 
+### Mesa de comparativas
+
+En **Fútbol**, selecciona **Torneo completo** para consultar Qatar 2022 en AS y revisar las 54 métricas comunes con las cifras disponibles por jugador. Marca de una a seis métricas compartidas y genera la vista previa. La postal SVG y el clip MP4 de seis segundos usan esa misma selección. Para una ronda concreta, OpenFootball aporta los goles acreditados. Si se reinicia el estudio, vuelve a consultar para validar una nueva exportación.
+
 ## Modelos candidatos
 
 | Candidato | Prueba de aceptación |
