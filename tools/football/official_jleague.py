@@ -172,6 +172,11 @@ def make_report(rankings, names, scope, queries, kind, failed_metrics):
         found, missing = {}, {}
         for metric, rows in rankings.items():
             matches = [row for row in rows if normalized(row[0]) == key]
+            # English rankings can display Japanese family names first.
+            parts = key.split()
+            if not matches and len(parts) == 2:
+                reverse = ' '.join(reversed(parts))
+                matches = [row for row in rows if normalized(row[0]) == reverse]
             if len(matches) == 1 and matches[0][1]:
                 found[metric] = matches[0]
                 continue

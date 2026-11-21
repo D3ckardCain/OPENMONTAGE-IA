@@ -288,7 +288,7 @@ def test_multi_metric_queries_retain_results_after_one_source_failure(official_p
 def test_split_season_is_distinct_from_the_jleague_special_edition(official_page, monkeypatch):
     old_url = jleague.ranking_url(2025, 'goals')
     url = jleague.ranking_url('2026-27', 'goals')
-    page = official_page.replace(old_url, url).replace('2025 Season', '2026/27 Season')
+    page = official_page.replace(old_url, url).replace('2025 Season', '2026/27 Season').replace('Example One', 'One Example')
 
     def fetch(requested):
         assert requested == url
@@ -299,6 +299,7 @@ def test_split_season_is_distinct_from_the_jleague_special_edition(official_page
     result = jleague.OfficialJLeague().execute(inputs)
     assert result.success and result.data['ready_for_script']
     assert result.data['scope']['season'] == '2026-27'
+    assert result.data['records'][0]['identity']['name'] == 'One Example'
     assert 'J1 League · 2026/27' in render(result.data)
     with pytest.raises(ValueError, match='Temporada'):
         jleague.season_key('2026/28', 'j1')
