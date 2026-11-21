@@ -6,6 +6,7 @@ from jsonschema import ValidationError
 from lib.football_statistics import add_standard_statistics
 from lib.sports_sources import FOOTBALL_STANDARD_METRICS
 from tools.football.ligamx import RANKINGS
+from tools.football.official_jleague import METRICS as JLEAGUE_METRICS
 from tools.graphics.sports_card import render, uefa_report
 
 CONNECTORS = (
@@ -16,6 +17,7 @@ CONNECTORS = (
     'official_asian_cup_live', 'official_ofc_nations_cup_live',
 )
 AS_CONNECTORS = ('ligamx_player_stats', 'as_competition_player_stats')
+BATCH_CONNECTORS = (*AS_CONNECTORS, 'official_jleague_live')
 REQUEST_PROPERTIES = {
     'scope': {'enum': ['competition', 'player']},
     'sources': {'type': 'array', 'minItems': 1, 'maxItems': 12, 'items': {
@@ -36,14 +38,15 @@ def requests(connector, inputs):
     if connector in AS_CONNECTORS:
         metrics = list(RANKINGS)
         return [dict(args, metrics=metrics[i:i + 6]) for i in range(0, len(metrics), 6)]
-    if connector == 'official_uefa_live':
-        args['metrics'] = 'all'
     if connector == 'official_jleague_live':
+        metrics = list(JLEAGUE_METRICS)
+        return [dict(args, metrics=metrics[i:i + 6]) for i in range(0, len(metrics), 6)]
+    if connector == 'official_uefa_live':
         args['metrics'] = 'all'
     return [args]
 
 
-def merge_as(batches):
+def merge_batches(batches):
     compatible = [report for report in batches if report.get('unresolved') == [] and len(report['records']) == 2]
     if not compatible:
         return None
@@ -55,10 +58,15 @@ def merge_as(batches):
     for report in batches:
         if report['scope'] != merged['scope']:
             raise ValueError('Los lotes no corresponden a la misma edición')
+        if report.get('source') != merged.get('source'):
+            raise ValueError('Los lotes proceden de fuentes distintas')
         merged['queries'].extend(report['queries'])
         merged['failed_metrics'].update(report['failed_metrics'])
         if report in compatible and [row['entity_id'] for row in report['records']] != ids:
             raise ValueError('Los lotes identificaron jugadores distintos')
+        if report not in compatible:
+            merged['unresolved'].extend(report.get('unresolved', []))
+            continue
         by_id = {row['entity_id']: row for row in report['records']}
         for row in merged['records']:
             addition = by_id.get(row['entity_id'])
@@ -66,7 +74,7 @@ def merge_as(batches):
                 row['facts'].extend(addition['facts'])
                 row['statistics'].update(addition['statistics'])
     merged['shared_metrics'] = sorted(set.intersection(*(set(row['statistics']) for row in merged['records'])))
-    merged['ready_for_script'] = not merged['failed_metrics'] and bool(merged['shared_metrics'])
+    merged['ready_for_script'] = not merged['failed_metrics'] and not merged['unresolved'] and bool(merged['shared_metrics'])
     return add_standard_statistics(merged)
 
 
@@ -106,11 +114,11 @@ def collect(scope, sources, execute):
         batches = [item['data'] for item in outcomes if item.get('success') and item.get('data')]
         errors = [item.get('error') for item in outcomes if not item.get('success')]
         try:
-            report = merge_as(batches) if connector in AS_CONNECTORS else (batches[0] if batches else None)
+            report = merge_batches(batches) if connector in BATCH_CONNECTORS else (batches[0] if batches else None)
         except ValueError as exc:
             errors.append(str(exc))
             report = None
-        if report and connector in AS_CONNECTORS and errors:
+        if report and connector in BATCH_CONNECTORS and errors:
             report['ready_for_script'] = False
         sections.append({'connector': connector, 'inputs': inputs, 'qualification': qualification,
                          'report': report, 'batches': batches, 'errors': errors,

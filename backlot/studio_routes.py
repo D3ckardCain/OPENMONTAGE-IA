@@ -190,7 +190,8 @@ def create_studio_router():
             call = lambda: invoke(compare_edition, data['players'], edition)
             result = await asyncio.to_thread(call)
             report = result['report']
-            return {**result, 'export_token': round_signature(report) if result['display_metrics'] else None}
+            return {**result, 'export_token': round_signature(report)
+                    if report and report.get('ready_for_script') and result['display_metrics'] else None}
 
         if edition != DEFAULT_EDITION:
             raise HTTPException(400, 'El desglose por ronda está disponible para Qatar 2022')

@@ -1,5 +1,60 @@
 from lib.football_comparisons import collect, select
 from tools.football.ligamx import RANKINGS, ranking_urls, tournament_scope
+from tools.football.official_jleague import METRICS as JLEAGUE_METRICS
+
+
+def test_jleague_merges_metric_batches_with_source_evidence():
+    calls = []
+    scope = {'competition': 'j1', 'season': 2025, 'phase': 'regular_season'}
+
+    def execute(connector, args):
+        metrics = args['metrics']
+        assert 1 <= len(metrics) <= 6
+        calls.append(metrics)
+        queries = [{'url': f'https://example.org/{metric}', 'retrieved_at': '2026-11-21'}
+                   for metric in metrics]
+        records = [dict(entity_id=player, identity={'entity_id': player, 'name': player},
+                        facts=[dict(metric=metric, value=1, entity_id=player, scope=scope,
+                                    source_url=query['url'], retrieved_at=query['retrieved_at'])
+                               for metric, query in zip(metrics, queries)],
+                        statistics=dict.fromkeys(metrics, 1)) for player in ('a', 'b')]
+        return {'success': True, 'data': dict(source='J.League', scope=scope, queries=queries,
+                                              records=records, failed_metrics={}, unresolved=[])}
+
+    result = collect('competition', [{'connector': 'official_jleague_live',
+                                      'inputs': {'season': 2025, 'names': ['a', 'b']}}], execute)
+    section = result['sections'][0]
+    assert len(calls) > 1
+    assert set().union(*map(set, calls)) == set(JLEAGUE_METRICS)
+    assert set(section['display_metrics']) == set(JLEAGUE_METRICS)
+    assert len(section['report']['queries']) == len(JLEAGUE_METRICS)
+    assert section['report']['records'][0]['facts'][0]['source_url'] == 'https://example.org/goals'
+
+
+def test_jleague_does_not_mix_different_players_between_batches():
+    from lib.football_comparisons import merge_batches
+    scope = {'competition': 'j1', 'season': 2025}
+    def batch(players):
+        return {'source': 'J.League', 'scope': scope, 'queries': [], 'failed_metrics': {},
+                'unresolved': [], 'records': [{'entity_id': name, 'facts': [], 'statistics': {}}
+                                            for name in players]}
+    import pytest
+    with pytest.raises(ValueError, match='jugadores distintos'):
+        merge_batches([batch(['a', 'b']), batch(['a', 'c'])])
+
+
+def test_jleague_partial_batch_failure_is_not_verified():
+    def execute(connector, args):
+        if args['metrics'][0] != 'goals':
+            return {'success': False, 'error': 'El ranking no respondió'}
+        return {'success': True, 'data': {'source': 'J.League', 'scope': {'competition': 'j1'},
+                'queries': [], 'failed_metrics': {}, 'unresolved': [],
+                'records': [{'entity_id': name, 'facts': [], 'statistics': {'goals': 1}}
+                            for name in ('a', 'b')]}}
+    section = collect('competition', [{'connector': 'official_jleague_live',
+              'inputs': {'season': 2025, 'names': ['a', 'b']}}], execute)['sections'][0]
+    assert section['errors']
+    assert section['report']['ready_for_script'] is False
 
 
 def test_competition_and_player_use_distinct_phases():
