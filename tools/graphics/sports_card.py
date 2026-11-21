@@ -53,6 +53,10 @@ def render(report, metrics=None):
     if report.get('fuente')=='UEFA':report=uefa_report(report, selected=metrics is not None)
     source=report.get('source')
     allow_partial = metrics is not None and source in ('FIFA', 'UEFA', 'J.League')
+    if source == 'AS' and metrics:
+        allow_partial = (report.get('unresolved') == []
+                         and set(metrics) <= set(report.get('shared_metrics', []))
+                         and not set(metrics).intersection(report.get('failed_metrics', {})))
     if source not in ('FIFA','MLB','UEFA','WBA','J.League','MLS','DFL','Premier League','Classificação Geral','Voetbal International','AS') or (not allow_partial and report.get('ready_for_script') is not True):
         raise ValueError('Se requiere un informe deportivo resuelto y sin métricas ausentes')
     kind=report.get('type'); records=report.get('records',[])

@@ -145,7 +145,7 @@ class LigaMX(BaseTool):
                 failures[metric] = str(exc)
                 continue
             retrieved = datetime.now(timezone.utc).isoformat()
-            queries.append({'url': url, 'metric': metric, 'retrieved_at': retrieved})
+            queries.append({'url': url, 'metric': metric, 'retrieved_at': retrieved, 'rows': len(rows)})
             for (profile, team), (name, club, value) in rows.items():
                 key = f'{profile}:{team}'
                 entry = roster.setdefault(key, {'entity_id': key, 'identity': {'entity_id': key, 'name': name},
@@ -167,9 +167,9 @@ class LigaMX(BaseTool):
         shared = set.intersection(*(set(entry['statistics']) for entry in records)) if records else set()
         data = {'source': 'AS', 'type': 'collectible_card' if card else 'player_comparison',
                 'scope': scope, 'records': records, 'queries': queries, 'failed_metrics': failures,
-                'unresolved': unresolved, 'ready_for_script': not failures and not unresolved and bool(shared),
+                'unresolved': unresolved, 'shared_metrics': sorted(shared), 'ready_for_script': not failures and not unresolved and bool(shared),
                 'coverage': 'Filas publicadas por AS para el torneo solicitado. La ausencia en un ranking queda sin valor.'}
-        return ToolResult(success=bool(queries), error=None if queries else 'LIGAMX_QUERY_FAILED',
+        return ToolResult(success=bool(queries), error=None if queries else 'LIGAMX_QUERY_FAILED' if competition == 'ligamx' else 'AS_QUERY_FAILED',
                           data=data, cost_usd=0, from_cache=False)
 
 
