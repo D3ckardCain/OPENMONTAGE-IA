@@ -165,6 +165,14 @@ class UEFA:
    if profile.get('id') and str(profile['id'])!=str(item.get('playerId') if entity=='player' else item.get('teamId')):raise Unavailable('ID de perfil incompatible')
    rows.append({'id':str(item.get('playerId') if entity=='player' else item.get('teamId')),'team_id':str(item['teamId']) if item.get('teamId') else None,'nombre':profile.get('internationalName'),'fuente_estadisticas':item.get('_openmontage_source'),'estadisticas':{m:values.get(m) for m in metrics},'metricas_no_disponibles':missing,'posicion':item.get('rank')})
   return self.pack(ctx,{**scope,'entidad':entity,'metricas':metrics,'orden':order,'teamId':team_id},rows,requests,'ranking')
+ def prepare_named_query(self, competition, edition, phase='TOURNAMENT'):
+  from functools import partial
+
+  ctx, scope, supported = self._ranking_context(competition, edition, 'player', phase, None, 'DESC')
+  ranking = partial(self._ranking_request, ctx, scope, supported, 'player', team_id=None, order='DESC')
+  player = partial(self._player_report, ctx, scope)
+  return supported, ranking, player
+
  def ranking_by_batches(self, competition, edition, entity, metrics, phase='TOURNAMENT',
                         team_id=None, order='DESC'):
   from tools.football.uefa_batches import metric_batches, split_rejected_batch

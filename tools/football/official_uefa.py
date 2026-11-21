@@ -24,7 +24,7 @@ ACTIONS={
 }
 class OfficialUEFA(BaseTool):
  name='official_uefa_live'
- version='0.16.0'
+ version='0.17.0'
  provider='uefa_official'
  tier=ToolTier.SOURCE
  runtime=ToolRuntime.LOCAL
@@ -69,9 +69,14 @@ class OfficialUEFA(BaseTool):
     if not named and not player_ranking and action not in ('player','player_history'):
      raise ValueError('El conjunto común se aplica a consultas de jugador')
     from lib.football_statistics import UEFA_NAMES
-   if (standard and not player_ranking) or (named and isinstance(selection,list) and len(selection)>1):
+   batched_names=named and (standard or isinstance(selection,list) and len(selection)>1)
+   if batched_names:
+    supported, ranking_query, player_query=self.client.prepare_named_query(
+     kwargs['competition'],kwargs['edition'],kwargs.get('phase','TOURNAMENT'))
+   elif standard and not player_ranking:
     definitions=self.client.definitions(kwargs['competition'])['definiciones']
     supported={entry['name'] for entry in definitions if 'PLAYER' in entry.get('actors', [])}
+   if batched_names or (standard and not player_ranking):
     if standard:
      selection=[name for name in UEFA_NAMES if name in supported]
      if not selection:raise ValueError('La fuente UEFA no confirmó métricas del conjunto común')
@@ -81,13 +86,12 @@ class OfficialUEFA(BaseTool):
    if named:
     from tools.football.uefa_names import resolve,compare,collectible_card,complete_standard_report
     query={'resolve_players':resolve,'compare_players':compare,'collectible_card':collectible_card}[action]
-    if standard or isinstance(selection,list) and len(selection)>1:
+    if batched_names:
      requested=selection
      kwargs.pop('metrics')
      anchor=['goals'] if 'goals' in supported else requested[:1]
-     data=query(self.client,metrics=anchor,**kwargs)
-     data=complete_standard_report(self.client,data,requested,
-                                   kwargs['competition'],kwargs['edition'],kwargs.get('phase','TOURNAMENT'))
+     data=query(self.client,metrics=anchor,ranking_query=ranking_query,**kwargs)
+     data=complete_standard_report(player_query,data,requested)
     else:
      data=query(self.client,**kwargs)
    elif action=='player' and isinstance(selection,list) and len(selection)>1:

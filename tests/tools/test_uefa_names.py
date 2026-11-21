@@ -10,6 +10,13 @@ class Client:
         self.calls=[]
         self.rows=[{'id':'1','team_id':'10','nombre':'Kylian Mbappé','estadisticas':{'goals':0},'metricas_no_disponibles':[]},
                    {'id':'2','team_id':'20','nombre':'Erling Haaland','estadisticas':{'goals':3},'metricas_no_disponibles':[]}]
+    def prepare_named_query(self, competition, edition, phase):
+        definitions = self.definitions(competition)['definiciones']
+        supported = {entry['name'] for entry in definitions if 'PLAYER' in entry['actors']}
+        return (supported,
+                lambda metrics: self.ranking(competition, edition, 'player', metrics, phase),
+                lambda player_id, metrics: self.player(competition, edition, player_id, metrics, phase))
+
     def ranking(self,*args):
         self.calls.append(args)
         return {'fuente':'UEFA','registros':deepcopy(self.rows),'paginacion_agotada':True,
@@ -144,9 +151,9 @@ def test_multi_metric_query_merges_batches_and_keeps_exact_provenance(selection)
         def definitions(self, competition):
             return {'definiciones': [{'name': name, 'actors': ['PLAYER']} for name in UEFA_NAMES]}
 
-        def prepare_player_query(self, competition, edition, phase):
+        def prepare_named_query(self, competition, edition, phase):
             self.preparations.append((competition, edition, phase))
-            return lambda player_id, metrics: self.player(competition, edition, player_id, metrics, phase)
+            return super().prepare_named_query(competition, edition, phase)
 
         def player(self, competition, edition, player_id, metrics, phase):
             self.batches.append((competition, edition, player_id, metrics, phase))

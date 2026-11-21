@@ -185,3 +185,5 @@ El ranking UEFA de jugadores admite `metrics="standard"`. Usa goles como primera
 El ranking UEFA por lotes reutiliza la configuración y las definiciones de métricas durante la consulta, incluidas las subdivisiones. Con `metrics="standard"`, la misma consulta de definiciones selecciona y valida las métricas.
 
 Una vez resueltos los nombres en UEFA, todos los lotes individuales de una comparativa o postal reutilizan la misma configuración y el mismo alcance de competición, edición y fase.
+
+En comparativas y postales UEFA por nombre, la resolución, la selección de métricas y todos los lotes individuales usan la misma carga de configuración y definiciones durante la solicitud.

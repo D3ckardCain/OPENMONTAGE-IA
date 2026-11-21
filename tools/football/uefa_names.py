@@ -10,10 +10,10 @@ def normalized(name):
     return result
 
 
-def resolve(client,competition,edition,names,metrics,phase='TOURNAMENT'):
+def resolve(client,competition,edition,names,metrics,phase='TOURNAMENT',*,ranking_query=None):
     if not isinstance(names,list) or not 1<=len(names)<=10:raise ValueError('Indicar entre uno y diez nombres')
     targets=[normalized(n) for n in names]
-    report=client.ranking(competition,edition,'player',metrics,phase)
+    report = ranking_query(metrics) if ranking_query else client.ranking(competition,edition,'player',metrics,phase)
     if report.get('paginacion_agotada') is not True:raise ValueError('No se puede resolver identidad con un ranking incompleto')
     records=report.get('registros')
     if not isinstance(records,list):raise ValueError('Ranking no estructurado')
@@ -35,9 +35,9 @@ def resolve(client,competition,edition,names,metrics,phase='TOURNAMENT'):
             'limite_identidad':'Ausencia en este ranking no demuestra ausencia del torneo. Filas múltiples por equipo no se suman ni se resuelven arbitrariamente.'}
 
 
-def compare(client,competition,edition,names,metrics,phase='TOURNAMENT'):
+def compare(client,competition,edition,names,metrics,phase='TOURNAMENT',*,ranking_query=None):
     if not isinstance(names,list) or len(names)!=2:raise ValueError('Indicar exactamente dos jugadores')
-    report=resolve(client,competition,edition,names,metrics,phase)
+    report=resolve(client,competition,edition,names,metrics,phase,ranking_query=ranking_query)
     if any(row['estado']!='resolved' for row in report['registros']):
         return {**report,'tipo':'comparativa_bloqueada','ready_for_script':False}
     rows=[r['candidatos'][0] for r in report['registros']]
@@ -46,9 +46,9 @@ def compare(client,competition,edition,names,metrics,phase='TOURNAMENT'):
             'ready_for_script':not any(r.get('metricas_no_disponibles') or any(r.get('estadisticas',{}).get(m) is None for m in metrics) for r in rows)}
 
 
-def collectible_card(client,competition,edition,names,metrics,phase='TOURNAMENT'):
+def collectible_card(client,competition,edition,names,metrics,phase='TOURNAMENT',*,ranking_query=None):
     if not isinstance(names,list) or len(names)!=1:raise ValueError('La postal requiere exactamente un jugador')
-    report=resolve(client,competition,edition,names,metrics,phase)
+    report=resolve(client,competition,edition,names,metrics,phase,ranking_query=ranking_query)
     result=report['registros'][0]
     if result['estado']!='resolved':
         return {**report,'tipo':'postal_bloqueada','ready_for_script':False}
@@ -58,7 +58,7 @@ def collectible_card(client,competition,edition,names,metrics,phase='TOURNAMENT'
             'retrato':None,'permiso_retrato':'no_proporcionado','palmares':None,'puntuacion_habilidad':None,'rendered':False}
 
 
-def complete_standard_report(client, report, metrics, competition, edition, phase='TOURNAMENT'):
+def complete_standard_report(player_query, report, metrics):
     """Fetch small player-statistic batches after the ranking resolves identities."""
     from tools.football.uefa import Unavailable
     from tools.football.uefa_batches import checked_statistics, metric_batches, split_rejected_batch
@@ -75,7 +75,6 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
     scope = {key: report['alcance'][key] for key in scope_keys}
     failures = []
     split_batches = 0
-    player_query = None
     for row in records:
         values = row['estadisticas'] = {metric: row['estadisticas'].get(metric) for metric in metrics}
         sources = row['fuente_por_metrica'] = {}
@@ -91,8 +90,6 @@ def complete_standard_report(client, report, metrics, competition, edition, phas
         while pending:
             batch = pending.popleft()
             try:
-                if player_query is None:
-                    player_query = client.prepare_player_query(competition, edition, phase)
                 detail = player_query(row['id'], batch)
                 if any(detail['alcance'][key] != value for key, value in scope.items()):
                     raise Unavailable('UEFA devolvió un lote de otra competición, edición o fase')
