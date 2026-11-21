@@ -316,7 +316,7 @@ roundForm.addEventListener('submit', async event => {
  clearRoundResult('Consultando OpenFootball…');
  button.disabled = true;
  try {
-  const {report, preview_svg} = await api('football/round-goals', {round: value('round'), players});
+  const {report, preview_svg, export_token} = await api('football/round-goals', {round: value('round'), players});
   if (request !== roundRequest) return;
   clearRoundResult('');
   for (const record of report.records) {
@@ -337,7 +337,36 @@ roundForm.addEventListener('submit', async event => {
     image.className = 'football-round-preview';
     const download = link('Descargar postal SVG', roundPreviewUrl);
     download.download = 'qatar-2022-' + report.scope.round + '.svg';
-    preview.replaceWith(image, download);
+    const video = node('button', 'Descargar clip MP4');
+    video.type = 'button';
+    const status = node('p', '');
+    status.setAttribute('role', 'status');
+    video.onclick = async () => {
+     video.disabled = true;
+     status.textContent = 'Generando clip vertical…';
+     try {
+      const response = await fetch('/api/studio/football/round-goals/video', {
+       method: 'POST', headers: {'Content-Type':'application/json'},
+       body: JSON.stringify({report, export_token}),
+      });
+      if (!response.ok) throw Error((await response.json()).detail);
+      const blob = await response.blob();
+      if (request !== roundRequest) return;
+      const url = URL.createObjectURL(blob);
+      const file = link('Clip MP4', url);
+      file.download = 'qatar-2022-' + report.scope.round + '.mp4';
+      document.body.append(file);
+      file.click();
+      file.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status.textContent = 'Clip listo para descargar.';
+     } catch (error) {
+      status.textContent = error.message;
+     } finally {
+      video.disabled = false;
+     }
+    };
+    preview.replaceWith(image, download, video, status);
    };
    roundResult.append(preview);
   }

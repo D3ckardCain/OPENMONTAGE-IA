@@ -1,15 +1,25 @@
 """Local production control surface; publishing is deliberately separate."""
 import asyncio
 import json
+import hmac
+import secrets
+from tempfile import TemporaryDirectory
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse,FileResponse
+from starlette.background import BackgroundTask
 from lib import production_studio as studio
 from lib import production_agent as agent
 
 
 def create_studio_router():
     router=APIRouter()
+    round_export_key = secrets.token_bytes(32)
+
+    def round_signature(report):
+        payload = json.dumps(report, sort_keys=True, separators=(',', ':'), allow_nan=False)
+        return hmac.digest(round_export_key, payload.encode('utf-8'), 'sha256').hex()
+
     async def body(request,limit=20000):
         origin=request.headers.get('origin')
         if origin and origin.rstrip('/')!=str(request.base_url).rstrip('/'):
@@ -169,7 +179,35 @@ def create_studio_router():
         except OSError as exc:
             raise HTTPException(502, 'No se pudo consultar OpenFootball') from exc
         preview = invoke(render, report, ['goals']) if report['ready_for_script'] else None
-        return {'report': report, 'preview_svg': preview}
+        return {'report': report, 'preview_svg': preview,
+                'export_token': round_signature(report) if preview else None}
+
+    @router.post('/api/studio/football/round-goals/video')
+    async def football_round_video(request: Request):
+        from tools.graphics.sports_card_video import SportsCardVideo
+
+        data = await body(request, limit=64000)
+        report, token = data.get('report'), data.get('export_token')
+        if (set(data) != {'report', 'export_token'} or not isinstance(report, dict)
+                or not isinstance(token, str) or len(token) != 64 or not token.isascii()):
+            raise HTTPException(400, 'Se requiere una comparativa verificada')
+        signature = invoke(round_signature, report)
+        if not hmac.compare_digest(token, signature):
+            raise HTTPException(400, 'La comparativa cambió o la sesión se reinició. Vuelve a consultarla.')
+        folder = TemporaryDirectory(prefix='openmontage-round-')
+        output = Path(folder.name) / 'round.mp4'
+        try:
+            result = await asyncio.to_thread(SportsCardVideo().execute, {
+                'report': report, 'metrics': ['goals'], 'output_path': str(output), 'duration_seconds': 6,
+            })
+            if not result.success:
+                raise HTTPException(422, result.error)
+            return FileResponse(output, media_type='video/mp4',
+                                filename=f"qatar-2022-{report['scope']['round']}.mp4",
+                                background=BackgroundTask(folder.cleanup))
+        except Exception:
+            folder.cleanup()
+            raise
 
     @router.get('/api/studio/resources')
     def resources():return studio.resource_catalog()
