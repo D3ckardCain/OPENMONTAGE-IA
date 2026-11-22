@@ -32,6 +32,22 @@ def test_retry_causes_are_reported_without_counting_old_duration_twice(monkeypat
     report=production_metrics.snapshot()
     assert report['retries_recorded']==1 and report['elapsed_seconds_total']==0
     assert report['projects'][0]['retry_history'][0]['message']=='Falta un modelo'
+    assert report['retry_causes_by_status']=={'blocked':1}
+    assert report['first_pass_approval_rate'] is None
+
+
+def test_approved_stages_require_saved_checkpoint_evidence(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
+    monkeypatch.setattr(studio,'load_pipeline_readonly',lambda name:{'stages':[{'name':'script'},{'name':'assets'}]})
+    studio.save_json(tmp_path/'one/production_request.json',{'pipeline':'example'})
+    studio.save_json(tmp_path/'one/checkpoint_script.json',{'status':'completed','human_approved':True})
+    studio.save_json(tmp_path/'one/checkpoint_assets.json',{'status':'awaiting_human','human_approved':False})
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':[{'project_id':'one','status':'awaiting_human'}]})
+    report=production_metrics.snapshot()
+    assert report['approved_stage_count']==1
+    assert report['projects'][0]['approved_stages']==['script']
+    assert report['first_pass_approval_rate'] is None
 
 
 def test_stage_timings_are_summed_only_from_saved_valid_events(tmp_path, monkeypatch):
