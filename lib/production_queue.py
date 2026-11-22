@@ -15,6 +15,23 @@ def _load():return studio.read_json(_path(),{'status':'paused','items':[]})
 def _save(value):value['updated_at']=studio.now();studio.save_json(_path(),value)
 
 
+def _selected_model_status():
+    cfg=studio.settings()
+    status={'configured':cfg.get('model') or None,'installed':False,'checked':False}
+    if not cfg.get('model'):
+        return status,'Selecciona un modelo local de Ollama antes de ejecutar los agentes'
+    try:
+        reply=studio.local_request(cfg['ollama_url'],'/api/tags',timeout=3)
+        models=reply.get('models',[]) if isinstance(reply,dict) else []
+        status['checked']=True
+        status['installed']=any(isinstance(model,dict) and model.get('name')==cfg['model'] for model in models)
+        if not status['installed']:
+            return status,'El modelo seleccionado no aparece instalado en Ollama'
+    except (OSError,ValueError,KeyError,TypeError):
+        return status,'Ollama no respondió a la comprobación local del modelo'
+    return status,None
+
+
 def freeze_pilot():
     """Save a fixed ten-project cohort from the current queue without starting work."""
     with LOCK:
@@ -198,6 +215,12 @@ def start():
         if not value['items'] or all(item['status']=='completed' for item in value['items']):raise ValueError('No hay proyectos pendientes')
         with agent.ACTIVE_LOCK,reference_analysis.LOCK:
             if agent.ACTIVE or reference_analysis.ACTIVE:raise ValueError('Espera a que termine la tarea local activa')
+        first=next(item for item in value['items'] if item['status']!='completed')
+        if first['status']=='pending' and Path(first['projects_root']).resolve()==studio.PROJECTS_DIR.resolve():
+            job=studio.read_json(studio.project_path(first['project_id'])/'job.json',{})
+            if job.get('status')!='rendered':
+                _,problem=_selected_model_status()
+                if problem:raise ValueError(problem)
         value['status']='running';_save(value);PAUSE.clear()
         WORKER=threading.Thread(target=_run,daemon=True,name='production-queue');WORKER.start()
     return {'started':True,'publication_authorized':False}
@@ -217,20 +240,8 @@ def inspect():
     queue_problems=[]
     if local_task_active:queue_problems.append('Espera a que termine la producción, análisis o entrega local activa')
     if active:queue_problems.append('La cola ya está activa')
-    cfg=studio.settings()
-    model_status={'configured':cfg.get('model') or None,'installed':False,'checked':False}
-    if not cfg.get('model'):
-        queue_problems.append('Selecciona un modelo local de Ollama antes de ejecutar los agentes')
-    else:
-        try:
-            reply=studio.local_request(cfg['ollama_url'],'/api/tags',timeout=3)
-            models=reply.get('models',[]) if isinstance(reply,dict) else []
-            model_status['checked']=True
-            model_status['installed']=any(isinstance(model,dict) and model.get('name')==cfg['model'] for model in models)
-            if not model_status['installed']:
-                queue_problems.append('El modelo seleccionado no aparece instalado en Ollama')
-        except (OSError,ValueError,KeyError,TypeError) as exc:
-            queue_problems.append('Ollama no respondió a la comprobación local del modelo')
+    model_status,problem=_selected_model_status()
+    if problem:queue_problems.append(problem)
     reports=[]
     for item in items:
         problems=[];job_status=None

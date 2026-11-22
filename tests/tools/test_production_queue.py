@@ -225,6 +225,27 @@ def test_inspection_requires_selected_model_and_handles_offline_ollama(isolated,
     assert report['generation_started'] is False
 
 
+def test_start_refuses_missing_local_model_without_changing_queue(isolated,monkeypatch):
+    queue.enqueue('first')
+    before=queue._path().read_bytes()
+    monkeypatch.setattr(studio,'settings',lambda:{'model':'','ollama_url':'http://127.0.0.1:11434'})
+    monkeypatch.setattr(agent,'start',lambda *args:pytest.fail('No debe iniciar el agente'))
+    with pytest.raises(ValueError,match='Selecciona un modelo'):queue.start()
+    assert queue._path().read_bytes()==before and queue.WORKER is None
+    monkeypatch.setattr(studio,'settings',lambda:{'model':'missing:latest','ollama_url':'http://127.0.0.1:11434'})
+    with pytest.raises(ValueError,match='no aparece instalado'):queue.start()
+    assert queue._path().read_bytes()==before
+
+
+def test_rendered_project_can_be_reconciled_without_ollama(isolated,monkeypatch):
+    queue.enqueue('first')
+    studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'rendered'})
+    monkeypatch.setattr(studio,'settings',lambda:{'model':'','ollama_url':'http://127.0.0.1:11434'})
+    monkeypatch.setattr(agent,'start',lambda *args:pytest.fail('Ya estaba renderizado'))
+    queue.start();wait()
+    assert queue.read()['items'][0]['status']=='completed'
+
+
 def test_inspection_covers_disks_empty_queue_and_interrupted_records(isolated,monkeypatch):
     from lib import storage_layout
     monkeypatch.setattr(storage_layout,'readiness',lambda *args:{'ready':False,'problems':['Videos finales: disco desconectado']})
