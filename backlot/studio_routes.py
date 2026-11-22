@@ -54,6 +54,10 @@ def create_studio_router():
     def production_queue_inspection():
         from lib.production_queue import inspect
         return invoke(inspect)
+    @router.get('/api/studio/production-metrics')
+    def production_metrics():
+        from lib.production_metrics import snapshot
+        return invoke(snapshot)
     @router.post('/api/studio/queue/{action}')
     async def production_queue_action(action:str,request:Request):
         from lib import production_queue
