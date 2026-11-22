@@ -3,6 +3,7 @@ import hashlib
 import json
 import re
 import uuid
+from datetime import datetime,timezone
 
 from lib import production_studio as studio
 
@@ -56,3 +57,44 @@ def list_saved(channel_id):
                      'since_utc':report['since_utc'],'cutoff_at_utc':report['cutoff_at_utc'],
                      'complete_period':report['complete_period'],'publication_count':len(report['publications'])})
     return sorted(rows,key=lambda row:row['saved_at_utc'],reverse=True)
+
+
+def _time(value):
+    try:
+        date=datetime.fromisoformat(value.replace('Z','+00:00'))
+        if date.utcoffset() is None:raise ValueError()
+        return date.astimezone(timezone.utc)
+    except (ValueError,TypeError,AttributeError):raise ValueError('Fechas de consulta inválidas') from None
+
+
+def compare(channel_id,older_id,newer_id):
+    older=read(channel_id,older_id);newer=read(channel_id,newer_id)
+    before=older['report'];after=newer['report']
+    hours=(_time(after['retrieved_at_utc'])-_time(before['retrieved_at_utc'])).total_seconds()/3600
+    if hours<=0:raise ValueError('El segundo expediente debe tener una consulta posterior')
+    previous={v['id']:v for v in before['publications']}
+    current={v['id']:v for v in after['publications']}
+    shared=sorted(previous.keys() & current.keys())
+    changes=[];unknown=[];decreased=[]
+    for identifier in shared:
+        old,new=previous[identifier],current[identifier]
+        left,right=old.get('viewCount'),new.get('viewCount')
+        if type(left) is not int or type(right) is not int or left<0 or right<0:
+            unknown.append(identifier);continue
+        if right<left:
+            decreased.append({'id':identifier,'before':left,'after':right});continue
+        changes.append({'id':identifier,'url':'https://www.youtube.com/watch?v='+identifier,
+                        'title':new.get('title') or old.get('title'),
+                        'views_before':left,'views_after':right,'views_delta':right-left,
+                        'average_views_per_hour':round((right-left)/hours,2)})
+    changes.sort(key=lambda row:(-row['views_delta'],row['id']))
+    return {'channel_id':channel_id,'older_id':older_id,'newer_id':newer_id,
+            'older_retrieved_at_utc':before['retrieved_at_utc'],'newer_retrieved_at_utc':after['retrieved_at_utc'],
+            'elapsed_hours':round(hours,2),'older_complete_period':before['complete_period'],
+            'newer_complete_period':after['complete_period'],'shared_publication_count':len(shared),
+            'new_video_ids':sorted(current.keys()-previous.keys()),
+            'absent_video_ids':sorted(previous.keys()-current.keys()),
+            'unknown_view_ids':unknown,'decreased_views':decreased,
+            'comparable_count':len(changes),'comparable_views_delta':sum(v['views_delta'] for v in changes),
+            'changes':changes,
+            'note':'Solo diferencias de vistas acumuladas de los mismos videos en dos capturas. Nuevos/ausentes y cifras reducidas no entran en la suma; la lista y el periodo pueden cambiar.'}

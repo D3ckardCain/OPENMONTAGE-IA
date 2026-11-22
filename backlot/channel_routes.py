@@ -138,6 +138,13 @@ def create_channel_router():
         except FileNotFoundError as exc:raise HTTPException(404,str(exc))
         except ValueError as exc:raise HTTPException(400,str(exc))
 
+    @router.get('/api/research/channels/period/compare/{channel_id}/{older_id}/{newer_id}')
+    def channel_period_compare(channel_id:str,older_id:str,newer_id:str):
+        from lib.channel_dossiers import compare
+        try:return JSONResponse(compare(channel_id,older_id,newer_id),headers={'Cache-Control':'no-store'})
+        except FileNotFoundError as exc:raise HTTPException(404,str(exc))
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
     @router.get('/api/research/video-observations/{video_id}')
     def observations(video_id:str):
         from lib.video_observations import read
