@@ -44,6 +44,10 @@ def inspect(project_id):
     receipts=delivery.get('outputs',[]) if isinstance(delivery,dict) and delivery.get('copied') is True else []
     if not isinstance(receipts,list) or len(receipts)>16:raise ValueError('Recibo final inválido o demasiado grande')
     copied={row.get('source'):row for row in receipts if isinstance(row,dict) and isinstance(row.get('source'),str)}
+    verified_paths=[row.get('path') for row in verified if isinstance(row,dict) and isinstance(row.get('path'),str)]
+    copied_manifest_valid=(not isinstance(delivery,dict) or delivery.get('copied') is not True or
+                           (len(copied)==len(receipts)==len(verified_paths)==len(verified) and
+                            set(copied)==set(verified_paths)))
     configured=read_config(studio.REPO_ROOT).get('final_outputs_dir')
     final_root=Path(configured).resolve()/project_id if configured else None
     outputs=[]
@@ -64,7 +68,8 @@ def inspect(project_id):
                         'final_path':dest.get('path') if isinstance(dest,dict) else None,'final_result':final_result})
     return {'project_id':project_id,'verification_current':current(verification,reviews,index),
             'final_copy_current':delivery_current(verification,delivery,reviews,index),
-            'outputs':outputs,'all_files_match':bool(outputs) and all(
+            'outputs':outputs,'receipt_manifest_matches':copied_manifest_valid,
+            'all_files_match':bool(outputs) and copied_manifest_valid and all(
                 row['source_result']=='matches' and row['final_result'] in (None,'matches') for row in outputs),
             'generation_started':False,'integrity_rechecked':True,
             'note':'SHA-256 calculado ahora en archivos locales; la calidad editorial y los derechos no se verifican.'}
