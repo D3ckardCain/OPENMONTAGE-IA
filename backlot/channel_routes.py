@@ -103,4 +103,23 @@ def create_channel_router():
     async def channel_batch(request: Request):
         return await run_query(request,YouTubeChannelBatch)
 
+    @router.post('/api/research/channels/period')
+    async def channel_period(request:Request):
+        nonlocal active_queries
+        from tools.research.youtube_channel_period import audit_channel
+        from tools.research.youtube_client import Unavailable,YouTubeFailure
+        data=await local_body(request,2048)
+        if set(data)-{'channel_id','days','max_pages'} or 'channel_id' not in data:
+            raise HTTPException(422,'Indica canal y periodo')
+        if busy.locked():raise HTTPException(429,'Ya hay dos búsquedas en curso')
+        async with busy:
+            active_queries+=1
+            try:
+                try:result=await asyncio.to_thread(audit_channel,data['channel_id'],data.get('days',30),data.get('max_pages',10))
+                except YouTubeFailure as exc:
+                    raise HTTPException(429 if exc.code in ('QUOTA_EXCEEDED','RATE_LIMITED') else 503,str(exc))
+                except Unavailable as exc:raise HTTPException(422,str(exc))
+            finally:active_queries-=1
+        return JSONResponse(result,headers={'Cache-Control':'no-store'})
+
     return router

@@ -62,6 +62,21 @@ function showChannel(ch,index){
   const card=element('article','','channel');card.append(element('span',`CANAL ${index+1}`,'rank'));
   const h=element('h2',''),a=element('a',ch.title||ch.id);a.href=`https://www.youtube.com/channel/${encodeURIComponent(ch.id)}`;a.target='_blank';a.rel='noopener noreferrer';h.append(a);card.append(h);
   const produce=element('a','Crear video a partir de este canal','chip');produce.href=productionLink(ch);card.append(produce);
+  const periodButton=element('button','Auditar publicaciones de 30 días','secondary');periodButton.type='button';
+  const periodBox=element('div','','scope');card.append(periodButton,periodBox);
+  periodButton.onclick=async()=>{
+    periodButton.disabled=true;periodBox.textContent='Consultando páginas del canal por partes…';
+    try{
+      const response=await fetch('/api/research/channels/period',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel_id:ch.id,days:30,max_pages:10})});
+      const data=await response.json();if(!response.ok)throw Error(data.detail||'No se pudo auditar el canal');
+      periodBox.replaceChildren(element('p',`${data.publications.length} publicaciones visibles · ${data.pages_read} páginas de ${data.max_pages} permitidas · ${data.complete_period?'Periodo cubierto en la lista pública':'Cobertura incompleta'}. Consultado: ${new Date(data.retrieved_at_utc).toLocaleString('es-MX')}.`),
+        element('p',`Mediana de vistas acumuladas: ${format(data.analysis.median_views)}. Sin cifra: ${data.analysis.views_unknown}. ${data.note}`));
+      if(data.analysis.top_publication_share!==null)periodBox.append(element('p',`La publicación más vista aporta ${(data.analysis.top_publication_share*100).toFixed(1)} % de las vistas observadas.`));
+      const details=element('details',''),summary=element('summary','Ver todas las publicaciones consultadas'),list=element('ul','');details.append(summary);
+      for(const video of data.publications){const item=element('li',''),a=element('a',video.title||video.id);a.href=video.url;a.target='_blank';a.rel='noopener noreferrer';item.append(a,element('span',` · ${format(video.viewCount)} vistas · ${video.published_at||'fecha desconocida'}`));list.append(item);}
+      details.append(list);periodBox.append(details);
+    }catch(error){periodBox.textContent=error.message;}finally{periodButton.disabled=false;}
+  };
   const metrics=element('div','','metrics');for(const [title,value] of [['Vistas totales',ch.viewCount],['Suscriptores',ch.subscriberCount_public_rounded]]){const metric=element('div','','metric');metric.append(element('strong',format(value)),element('span',title));metrics.append(metric);}card.append(metrics);
   const created=ch.created_at?new Date(ch.created_at):null;
   card.append(element('p',`Creado: ${created&&!Number.isNaN(created.getTime())?created.toLocaleDateString('es-MX'):'fecha no disponible'}`));
