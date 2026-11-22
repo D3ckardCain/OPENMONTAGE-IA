@@ -106,7 +106,7 @@ def catalog(sport=None, region=None):
         if sport and kind!=sport: continue
         if region and area not in (region,'world'): continue
         row=dict(id=ident,sport=kind,region=area,name=label,url=url,
-            connector=tool or None,status='source_inspection_only' if ident in ('kleague','uae','qatar') or tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
+            connector=tool or None,status='source_inspection_only' if ident in ('kleague','uae','qatar','south_africa') or tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
             coverage_verified=False)
         if kind=='football':
             keys, dynamic = configured.get(tool, (set(), False))
@@ -130,6 +130,11 @@ def catalog(sport=None, region=None):
                                            'No acredita cifras del resto de jugadores, métricas adicionales ni '
                                            'separación de play-offs. Falta verificar condiciones de reutilización '
                                            'y un extractor con alcance antes de habilitar exportación.')
+            if ident=='south_africa':
+                row['integration_note'] = ('La web oficial PSL muestra resultados y noticias, sin catálogo completo '
+                                           'de estadísticas individuales verificado. Sus condiciones exigen '
+                                           'consentimiento previo por escrito para uso comercial o no privado/educativo. '
+                                           'No habilitar cifras del canal desde esta fuente.')
         rows.append(row)
     football_contract = {
         'metrics': list(FOOTBALL_STANDARD_METRICS),
