@@ -2,7 +2,7 @@
 import pytest
 
 from lib import production_studio as studio
-from lib.scene_batch import prepare,read
+from lib.scene_batch import approved_plan,prepare,read
 
 
 @pytest.fixture
@@ -61,6 +61,11 @@ def test_scene_batch_api_exposes_preparation_without_generation(planned):
     _,_,payload=planned
     client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
     assert client.get('/api/studio/scene-batch/demo').json()['available'] is False
+    plan=client.get('/api/studio/scene-batch-plan/demo')
+    assert plan.status_code==200
+    assert [scene['id'] for scene in plan.json()['scenes']]==['s01','s02']
+    assert plan.json()['scenes'][0]['character_ids']==['ada']
+    assert plan.json()['scene_plan_sha256']==approved_plan('demo')['scene_plan_sha256']
     result=client.post('/api/studio/scene-batch/demo',json=payload)
     assert result.status_code==200 and result.json()['manifest']['scene_count']==2
     assert client.get('/api/studio/scene-batch/demo').json()['generation_started'] is False

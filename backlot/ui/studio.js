@@ -3,7 +3,7 @@ const notice=s=>{$('#notice').textContent=s||'';};
 async function api(path,data){const r=await fetch('/api/studio/'+path,data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let v=await r.json();if(!r.ok)throw Error(typeof v.detail==='string'?v.detail:JSON.stringify(v.detail));return v;}
 function node(tag,text){let n=document.createElement(tag);n.textContent=text;return n;}
 function link(label,url){let a=node('a',label);a.href=url;return a;}
-const sectionLabels={production:'Producción',queue:'Cola de trabajos',finals:'Videos finales',football:'Fútbol · fuentes oficiales',references:'Referencias e imágenes',models:'Modelos y discos',applications:'Aplicaciones',setup:'Preparación del equipo',history:'Historial y pruebas'};
+const sectionLabels={scenes:'Mesa de escenas',production:'Producción',queue:'Cola de trabajos',finals:'Videos finales',football:'Fútbol · fuentes oficiales',references:'Referencias e imágenes',models:'Modelos y discos',applications:'Aplicaciones',setup:'Preparación del equipo',history:'Historial y pruebas'};
 function showSection(name){
  if(!(name in sectionLabels))name='production';
  for(const pane of document.querySelectorAll('[data-pane]'))pane.hidden=pane.dataset.pane!==name;
@@ -575,3 +575,42 @@ roundForm.addEventListener('submit', async event => {
   button.disabled = false;
  }
 });
+
+let scenePlan=null,scenePlanProject=null;
+function sceneField(labelText,kind,id,value,maxLength){
+ const label=node('label',labelText),area=document.createElement('textarea');
+ area.dataset.kind=kind;area.dataset.id=id;area.maxLength=maxLength;area.required=true;area.rows=3;area.value=value||'';
+ label.append(area);return label;
+}
+$('#scene-plan-load').onclick=async()=>{
+ const box=$('#scene-batch-result'),form=$('#scene-batch-form');form.hidden=true;box.replaceChildren();scenePlan=null;scenePlanProject=null;
+ if(!pid){box.append(node('p','Selecciona primero una producción.'));return;}
+ try{
+  const selected=pid;
+  const [plan,saved]=await Promise.all([api('scene-batch-plan/'+encodeURIComponent(selected)),api('scene-batch/'+encodeURIComponent(selected))]);
+  if(pid!==selected)return;
+  scenePlan=plan;scenePlanProject=selected;
+  if(saved.scenes){
+   box.append(node('p','Manifiesto guardado: '+saved.scene_count+' escenas · '+saved.aspect_ratio+' · generación '+(saved.generation_started?'iniciada':'sin iniciar')+'.'));
+   if(saved.scene_plan_sha256!==plan.scene_plan_sha256)box.append(node('p','El plan aprobado cambió después del manifiesto. Revisa la versión antes de generar.'));
+   for(const scene of saved.scenes){const d=document.createElement('details');d.append(node('summary',scene.scene_id+' · '+scene.status));d.append(node('p','Imagen: '+scene.image_prompt),node('p','Movimiento: '+scene.motion_prompt));box.append(d);}
+   return;
+  }
+  const fields=$('#scene-batch-fields');fields.replaceChildren();
+  const characters=[...new Set(plan.scenes.flatMap(scene=>scene.character_ids))];
+  if(characters.length){fields.append(node('h3','Anclas visuales de personajes'));for(const id of characters)fields.append(sceneField('Personaje '+id,'anchor',id,'',2000));}
+  fields.append(node('h3','Prompts por escena'));
+  for(const scene of plan.scenes){const section=document.createElement('section');section.append(node('h3',scene.id+' · '+scene.start_seconds+'–'+scene.end_seconds+' s'),node('p',scene.description),sceneField('Prompt de imagen','image',scene.id,'',5000),sceneField('Prompt de movimiento','motion',scene.id,'',5000));fields.append(section);}
+  form.hidden=false;box.append(node('p',plan.scenes.length+' escenas del plan aprobado. Completa los campos y revisa antes de guardar.'));
+ }catch(error){box.append(node('p',error.message));}
+};
+$('#scene-batch-form').onsubmit=async event=>{
+ event.preventDefault();if(!pid||!scenePlan||scenePlanProject!==pid){$('#scene-batch-result').replaceChildren(node('p','Vuelve a cargar el plan del proyecto seleccionado.'));event.target.hidden=true;return;}
+ const form=event.target,box=$('#scene-batch-result'),data={aspect_ratio:form.elements.namedItem('aspect_ratio').value,image_prompts:{},motion_prompts:{},character_anchors:{}};
+ for(const area of form.querySelectorAll('textarea[data-kind]')){
+  const dest=area.dataset.kind==='anchor'?data.character_anchors:area.dataset.kind==='image'?data.image_prompts:data.motion_prompts;
+  dest[area.dataset.id]=area.value.trim();
+ }
+ try{const result=await api('scene-batch/'+encodeURIComponent(pid),data);form.hidden=true;box.replaceChildren(node('p','Manifiesto guardado: '+result.manifest.scene_count+' escenas. No se inició generación.'));}
+ catch(error){box.replaceChildren(node('p',error.message));}
+};

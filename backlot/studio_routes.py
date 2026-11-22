@@ -133,6 +133,10 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'languages'}:raise HTTPException(400,'Indica solo languages')
         return invoke(create_versions,pid,data['languages'])
+    @router.get('/api/studio/scene-batch-plan/{pid}')
+    def scene_batch_plan(pid:str):
+        from lib.scene_batch import approved_plan
+        return invoke(approved_plan,pid)
     @router.get('/api/studio/scene-batch/{pid}')
     def scene_batch_read(pid:str):
         from lib.scene_batch import read

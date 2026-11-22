@@ -80,3 +80,25 @@ def read(project_id):
     path=studio.project_path(project_id)/'artifacts/scene_batch.json'
     if path.is_symlink():raise ValueError('Manifiesto de escenas inválido')
     return studio.read_json(path,{'available':False,'generation_started':False})
+
+
+def approved_plan(project_id):
+    project=studio.project_path(project_id)
+    checkpoint=studio.read_json(project/'checkpoint_scene_plan.json',{})
+    if (checkpoint.get('status')!='completed' or checkpoint.get('human_approved') is not True or
+            checkpoint.get('project_id')!=project_id):
+        raise ValueError('Aprueba primero el plan de escenas del proyecto')
+    plan=checkpoint.get('artifacts',{}).get('scene_plan')
+    if not isinstance(plan,dict):raise ValueError('Falta el plan de escenas aprobado')
+    try:validate_artifact('scene_plan',plan)
+    except ValidationError as exc:raise ValueError('Plan de escenas inválido: '+exc.message[:300]) from exc
+    scenes=plan['scenes']
+    if len(scenes)>240:raise ValueError('Admite hasta 240 escenas por manifiesto')
+    ids=[scene['id'] for scene in scenes]
+    if len(set(ids))!=len(ids) or any(not isinstance(i,str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',i) for i in ids):
+        raise ValueError('Usa IDs de escena únicos y estables')
+    return {'scene_plan_sha256':_digest(plan),'scenes':[
+        {'id':scene['id'],'description':scene['description'],'start_seconds':scene['start_seconds'],
+         'end_seconds':scene['end_seconds'],
+         'character_ids':list(dict.fromkeys(action['character_id'] for action in scene.get('character_actions',[])))}
+        for scene in scenes]}
