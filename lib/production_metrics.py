@@ -22,8 +22,10 @@ def snapshot():
     for item in state['items']:
         duration = _seconds(item.get('started_at'), item.get('finished_at'))
         stages = {}
+        usage = None
         try:
             project = studio.project_path(item['project_id'])
+            usage = studio.read_json(project/'resource_usage.json')
             for event in studio.read_json(project/'job.json', {}).get('events', []):
                 if event.get('kind') != 'stage_timing':
                     continue
@@ -38,11 +40,16 @@ def snapshot():
                      'status': item['status'], 'started_at': item.get('started_at'),
                      'finished_at': item.get('finished_at'), 'elapsed_seconds': duration,
                      'message': item.get('message', ''),
-                     'progress': item.get('progress'), 'stage_active_seconds': stages})
+                     'progress': item.get('progress'), 'stage_active_seconds': stages,
+                     'resource_usage': usage})
     observed = [row['elapsed_seconds'] for row in rows if row['elapsed_seconds'] is not None]
+    ram = [row['resource_usage']['host_ram_peak_mb'] for row in rows
+           if isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('host_ram_peak_mb')) is int]
+    vram = [row['resource_usage']['gpu_vram_peak_mb'] for row in rows
+            if isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('gpu_vram_peak_mb')) is int]
     return {'queue_status': state['status'], 'projects': rows,
             'completed_runs_measured': len(observed),
             'elapsed_seconds_total': round(sum(observed), 3),
-            'ram_peak_mb': None, 'vram_peak_mb': None,
+            'ram_peak_mb': max(ram) if ram else None, 'vram_peak_mb': max(vram) if vram else None,
             'generation_started': False, 'estimate_48_per_week': None,
-            'note': 'La cola mide inicio-fin con esperas. Las etapas muestran tiempo activo del productor al cerrar un checkpoint; pueden faltar sesiones antiguas o interrumpidas. No equivale a tiempo de GPU ni predice capacidad semanal.'}
+            'note': 'La cola mide inicio-fin con esperas. Las etapas muestran tiempo activo hasta cada checkpoint. RAM es del equipo completo y VRAM de la GPU NVIDIA más ocupada, muestreadas durante el último intento; no se atribuyen al proyecto. Los picos entre muestras pueden faltar. No predice capacidad semanal.'}

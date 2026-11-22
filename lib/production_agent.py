@@ -374,10 +374,13 @@ class LocalAgent:
             raise Pause('rendered',args['message']+' Exportación lista; publicación no ejecutada.')
 
     def run(self):
-        self._timed_stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
-        self._stage_timer=time.monotonic()
-        self.status('running','Agente productor iniciando')
+        from lib.resource_sampling import ResourceSampler
+        sampler=ResourceSampler()
         try:
+            sampler.start()
+            self._timed_stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+            self._stage_timer=time.monotonic()
+            self.status('running','Agente productor iniciando')
             if not self._chat:
                 cfg=self.config
                 reply=studio.local_request(cfg['ollama_url'],'/api/tags')
@@ -417,7 +420,10 @@ class LocalAgent:
         except Exception as exc:
             self.status('blocked','El agente se detuvo: '+str(exc)[:600])
         finally:
-            with ACTIVE_LOCK:ACTIVE.pop(self.pid,None)
+            try:
+                studio.save_json(self.path/'resource_usage.json',sampler.finish())
+            finally:
+                with ACTIVE_LOCK:ACTIVE.pop(self.pid,None)
 
 
 def start(pid):

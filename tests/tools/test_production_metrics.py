@@ -35,10 +35,15 @@ def test_stage_timings_are_summed_only_from_saved_valid_events(tmp_path, monkeyp
         {'kind':'stage_timing','stage':'script','elapsed_seconds':-1},
         {'kind':'stage','stage':'edit','elapsed_seconds':999},
     ]})
+    studio.save_json(tmp_path/'one/resource_usage.json',{
+        'host_ram_peak_mb':6400,'gpu_vram_peak_mb':2800,'samples':3})
     monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':[
         {'project_id':'one','status':'completed'}]})
     result=production_metrics.snapshot()['projects'][0]
     assert result['stage_active_seconds']=={'research':5.5,'script':7}
+    assert result['resource_usage']['host_ram_peak_mb']==6400
+    assert production_metrics.snapshot()['ram_peak_mb']==6400
+    assert production_metrics.snapshot()['vram_peak_mb']==2800
 
 
 def test_studio_metrics_endpoint_does_not_start_work(monkeypatch):
