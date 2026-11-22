@@ -2,7 +2,7 @@
 import pytest
 
 from lib import production_studio as studio
-from lib.scene_batch import approved_plan,prepare,read
+from lib.scene_batch import approved_plan,approve_take,prepare,read,record_media
 
 
 @pytest.fixture
@@ -70,3 +70,37 @@ def test_scene_batch_api_exposes_preparation_without_generation(planned):
     assert result.status_code==200 and result.json()['manifest']['scene_count']==2
     assert client.get('/api/studio/scene-batch/demo').json()['generation_started'] is False
     assert client.post('/api/studio/scene-batch/demo',json={}).status_code==400
+
+
+def test_register_and_approve_existing_local_media(planned,monkeypatch):
+    from PIL import Image
+    from types import SimpleNamespace
+    import lib.scene_batch as batch
+    import lib.media_executables as executables
+    project,_,payload=planned
+    prepare('demo',payload)
+    (project/'assets').mkdir()
+    Image.new('RGB',(64,64),'blue').save(project/'assets/s01.png')
+    (project/'assets/s01.mp4').write_bytes(b'example-video-bytes')
+    monkeypatch.setattr(executables,'executable',lambda name:'ffprobe')
+    monkeypatch.setattr(batch.subprocess,'run',lambda *args,**kwargs:SimpleNamespace(returncode=0,stdout='{"streams":[{"codec_type":"video","width":64,"height":64}],"format":{"duration":"5.0"}}'))
+    image=record_media('demo',{'scene_id':'s01','kind':'image','relative_path':'assets/s01.png'})
+    assert image['scene']['status']=='image_ready'
+    take=record_media('demo',{'scene_id':'s01','kind':'video','relative_path':'assets/s01.mp4'})['scene']['takes'][0]
+    with pytest.raises(ValueError,match='confirma la revisión'):
+        approve_take('demo',{'scene_id':'s01','sha256':take['sha256'],'identity_reviewed':False})
+    assert approve_take('demo',{'scene_id':'s01','sha256':take['sha256'],'identity_reviewed':True})['scene']['status']=='approved'
+    assert read('demo')['scenes'][0]['approved_take_id']==take['sha256']
+    (project/'assets/s01.mp4').write_bytes(b'changed')
+    with pytest.raises(ValueError,match='cambió en disco'):
+        approve_take('demo',{'scene_id':'s01','sha256':take['sha256'],'identity_reviewed':True})
+
+
+def test_scene_media_route_rejects_path_escape(planned):
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    _,_,payload=planned
+    prepare('demo',payload)
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    r=client.post('/api/studio/scene-batch-media/demo',json={'scene_id':'s01','kind':'image','relative_path':'../outside.png'})
+    assert r.status_code==400

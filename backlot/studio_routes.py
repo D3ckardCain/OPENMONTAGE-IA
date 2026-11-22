@@ -145,6 +145,14 @@ def create_studio_router():
     async def scene_batch_prepare(pid:str,request:Request):
         from lib.scene_batch import prepare
         return invoke(prepare,pid,await body(request,250000))
+    @router.post('/api/studio/scene-batch-media/{pid}')
+    async def scene_batch_media(pid:str,request:Request):
+        from lib.scene_batch import record_media
+        return invoke(record_media,pid,await body(request))
+    @router.post('/api/studio/scene-batch-approve/{pid}')
+    async def scene_batch_approve(pid:str,request:Request):
+        from lib.scene_batch import approve_take
+        return invoke(approve_take,pid,await body(request))
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)

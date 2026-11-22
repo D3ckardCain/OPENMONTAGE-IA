@@ -2,6 +2,9 @@
 import hashlib
 import json
 import re
+import subprocess
+from pathlib import Path
+from PIL import Image
 from jsonschema import ValidationError
 
 from lib import production_studio as studio
@@ -102,3 +105,85 @@ def approved_plan(project_id):
          'end_seconds':scene['end_seconds'],
          'character_ids':list(dict.fromkeys(action['character_id'] for action in scene.get('character_actions',[])))}
         for scene in scenes]}
+
+
+def _media(project,relative,kind):
+    if not isinstance(relative,str) or len(relative)>500 or '\\' in relative:
+        raise ValueError('Indica una ruta relativa dentro del proyecto')
+    parts=Path(relative).parts
+    if not parts or any(part in ('','.', '..') for part in parts) or Path(relative).is_absolute():
+        raise ValueError('Ruta de medio inválida')
+    path=project.joinpath(*parts)
+    path.resolve().relative_to(project.resolve())
+    if any(project.joinpath(*parts[:n]).is_symlink() for n in range(1,len(parts)+1)):
+        raise ValueError('No se admiten enlaces simbólicos en la ruta')
+    if not path.is_file() or path.is_symlink():raise ValueError('Archivo local ausente o enlace no permitido')
+    size=path.stat().st_size
+    if not 0<size<2_000_000_000:raise ValueError('Archivo vacío o mayor de 2 GB')
+    if kind=='image':
+        if path.suffix.lower() not in ('.jpg','.jpeg','.png'):raise ValueError('Formato de imagen inválido')
+        with Image.open(path) as image:
+            if image.format not in ('PNG','JPEG') or image.width*image.height>16_000_000:raise ValueError('Imagen inválida')
+            image.verify()
+    else:
+        if path.suffix.lower() not in ('.mp4','.webm','.mov'):raise ValueError('Formato de video inválido')
+        from lib.media_executables import executable
+        probe=subprocess.run([executable('ffprobe'),'-v','error','-show_entries','stream=codec_type,width,height:format=duration','-of','json',str(path)],capture_output=True,text=True,timeout=30)
+        if probe.returncode:raise ValueError('Video no reconocido por ffprobe')
+        details=json.loads(probe.stdout)
+        streams=[s for s in details.get('streams',[]) if s.get('codec_type')=='video']
+        duration=float(details.get('format',{}).get('duration',0))
+        if not streams or not 0<duration<=120 or not streams[0].get('width') or not streams[0].get('height'):
+            raise ValueError('Video sin pista válida o duración superior a 120 segundos')
+    digest=hashlib.sha256()
+    with path.open('rb') as stream:
+        for chunk in iter(lambda:stream.read(1024*1024),b''):digest.update(chunk)
+    result={'path':relative,'sha256':digest.hexdigest(),'bytes':size,'url':'/media/'+project.name+'/'+relative}
+    if kind=='video':result['duration_seconds']=duration
+    return result
+
+
+def record_media(project_id,data):
+    if not isinstance(data,dict) or set(data)!={'scene_id','kind','relative_path'} or data['kind'] not in ('image','video'):
+        raise ValueError('Indica escena, tipo de medio y ruta local')
+    project=studio.project_path(project_id)
+    media=_media(project,data['relative_path'],data['kind'])
+    with studio.LOCK:
+        path=project/'artifacts/scene_batch.json'
+        manifest=read(project_id)
+        if not manifest.get('scenes'):raise ValueError('Prepara antes el manifiesto de escenas')
+        if approved_plan(project_id)['scene_plan_sha256']!=manifest['scene_plan_sha256']:
+            raise ValueError('El plan aprobado cambió; revisa el manifiesto')
+        scene=next((s for s in manifest['scenes'] if s['scene_id']==data['scene_id']),None)
+        if scene is None:raise ValueError('Escena desconocida')
+        if data['kind']=='image':
+            if scene['image'] and scene['image']!=media:raise ValueError('La escena ya tiene otra imagen; revisa la dependencia antes de cambiarla')
+            scene['image']=media
+        else:
+            if not scene['image']:raise ValueError('Registra primero la imagen de la escena')
+            if len(scene['takes'])>=8 and media not in scene['takes']:raise ValueError('Máximo ocho tomas por escena')
+            if media not in scene['takes']:scene['takes'].append(media)
+        scene['status']='approved' if scene['approved_take_id'] else 'ready_for_review' if scene['takes'] else 'image_ready'
+        studio.save_json(path,manifest)
+    return {'scene':scene,'generation_started':manifest['generation_started']}
+
+
+def approve_take(project_id,data):
+    if (not isinstance(data,dict) or set(data)!={'scene_id','sha256','identity_reviewed'} or
+            not isinstance(data['sha256'],str) or data['identity_reviewed'] is not True):
+        raise ValueError('Indica escena, SHA-256 y confirma la revisión visual de identidad')
+    project=studio.project_path(project_id)
+    with studio.LOCK:
+        manifest=read(project_id)
+        if not manifest.get('scenes'):raise ValueError('Prepara antes el manifiesto de escenas')
+        if approved_plan(project_id)['scene_plan_sha256']!=manifest['scene_plan_sha256']:
+            raise ValueError('El plan aprobado cambió; revisa el manifiesto')
+        scene=next((s for s in manifest['scenes'] if s['scene_id']==data['scene_id']),None)
+        if scene is None:raise ValueError('Escena desconocida')
+        take=next((t for t in scene['takes'] if t['sha256']==data['sha256']),None)
+        if take is None:raise ValueError('Toma no registrada')
+        if _media(project,take['path'],'video')['sha256']!=take['sha256']:
+            raise ValueError('La toma cambió en disco')
+        scene['approved_take_id']=take['sha256'];scene['identity_reviewed']=True;scene['status']='approved'
+        studio.save_json(project/'artifacts/scene_batch.json',manifest)
+    return {'scene':scene}

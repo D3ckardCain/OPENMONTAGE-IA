@@ -577,25 +577,37 @@ roundForm.addEventListener('submit', async event => {
 });
 
 let scenePlan=null,scenePlanProject=null;
+function showSceneManifest(manifest){
+ const box=$('#scene-batch-result'),form=$('#scene-media-form');box.replaceChildren();
+ box.append(node('p','Manifiesto guardado: '+manifest.scene_count+' escenas · '+manifest.aspect_ratio+' · generación '+(manifest.generation_started?'iniciada':'sin iniciar')+'.'));
+ if(manifest.scene_plan_sha256!==scenePlan.scene_plan_sha256){box.append(node('p','El plan aprobado cambió después del manifiesto. Revisa la versión antes de generar.'));form.hidden=true;return;}
+ form.hidden=false;form.elements.namedItem('scene_id').replaceChildren(...manifest.scenes.map(s=>new Option(s.scene_id,s.scene_id)));
+ for(const scene of manifest.scenes){
+  const d=document.createElement('details');d.append(node('summary',scene.scene_id+' · '+scene.status));
+  d.append(node('p','Imagen: '+scene.image_prompt),node('p','Movimiento: '+scene.motion_prompt));
+  if(scene.image)d.append(node('p','Imagen registrada: '+scene.image.path+' · SHA-256 '+scene.image.sha256));
+  for(const take of scene.takes){
+   const row=document.createElement('div');row.append(link(take.path,take.url),node('p','SHA-256 '+take.sha256+' · '+take.duration_seconds+' s'+(scene.approved_take_id===take.sha256?' · aprobada':'')));
+   if(scene.approved_take_id!==take.sha256){const label=node('label','He revisado visualmente la identidad de los personajes');const check=document.createElement('input');check.type='checkbox';label.prepend(check);const button=node('button','Aprobar esta toma');button.type='button';button.onclick=async()=>{if(pid!==scenePlanProject)return;if(!check.checked){notice('Confirma la revisión visual de identidad antes de aprobar.');return;}try{await api('scene-batch-approve/'+encodeURIComponent(pid),{scene_id:scene.scene_id,sha256:take.sha256,identity_reviewed:true});showSceneManifest(await api('scene-batch/'+encodeURIComponent(pid)));}catch(error){notice(error.message);}};row.append(label,button);}
+   d.append(row);
+  }
+  box.append(d);
+ }
+}
 function sceneField(labelText,kind,id,value,maxLength){
  const label=node('label',labelText),area=document.createElement('textarea');
  area.dataset.kind=kind;area.dataset.id=id;area.maxLength=maxLength;area.required=true;area.rows=3;area.value=value||'';
  label.append(area);return label;
 }
 $('#scene-plan-load').onclick=async()=>{
- const box=$('#scene-batch-result'),form=$('#scene-batch-form');form.hidden=true;box.replaceChildren();scenePlan=null;scenePlanProject=null;
+ const box=$('#scene-batch-result'),form=$('#scene-batch-form');form.hidden=true;$('#scene-media-form').hidden=true;box.replaceChildren();scenePlan=null;scenePlanProject=null;
  if(!pid){box.append(node('p','Selecciona primero una producción.'));return;}
  try{
   const selected=pid;
   const [plan,saved]=await Promise.all([api('scene-batch-plan/'+encodeURIComponent(selected)),api('scene-batch/'+encodeURIComponent(selected))]);
   if(pid!==selected)return;
   scenePlan=plan;scenePlanProject=selected;
-  if(saved.scenes){
-   box.append(node('p','Manifiesto guardado: '+saved.scene_count+' escenas · '+saved.aspect_ratio+' · generación '+(saved.generation_started?'iniciada':'sin iniciar')+'.'));
-   if(saved.scene_plan_sha256!==plan.scene_plan_sha256)box.append(node('p','El plan aprobado cambió después del manifiesto. Revisa la versión antes de generar.'));
-   for(const scene of saved.scenes){const d=document.createElement('details');d.append(node('summary',scene.scene_id+' · '+scene.status));d.append(node('p','Imagen: '+scene.image_prompt),node('p','Movimiento: '+scene.motion_prompt));box.append(d);}
-   return;
-  }
+  if(saved.scenes){showSceneManifest(saved);return;}
   const fields=$('#scene-batch-fields');fields.replaceChildren();
   const characters=[...new Set(plan.scenes.flatMap(scene=>scene.character_ids))];
   if(characters.length){fields.append(node('h3','Anclas visuales de personajes'));for(const id of characters)fields.append(sceneField('Personaje '+id,'anchor',id,'',2000));}
@@ -611,6 +623,12 @@ $('#scene-batch-form').onsubmit=async event=>{
   const dest=area.dataset.kind==='anchor'?data.character_anchors:area.dataset.kind==='image'?data.image_prompts:data.motion_prompts;
   dest[area.dataset.id]=area.value.trim();
  }
- try{const result=await api('scene-batch/'+encodeURIComponent(pid),data);form.hidden=true;box.replaceChildren(node('p','Manifiesto guardado: '+result.manifest.scene_count+' escenas. No se inició generación.'));}
+ try{const result=await api('scene-batch/'+encodeURIComponent(pid),data);form.hidden=true;showSceneManifest(result.manifest);}
  catch(error){box.replaceChildren(node('p',error.message));}
+};
+$('#scene-media-form').onsubmit=async event=>{
+ event.preventDefault();if(!pid||scenePlanProject!==pid)return;
+ const form=event.target;
+ try{await api('scene-batch-media/'+encodeURIComponent(pid),{scene_id:form.elements.namedItem('scene_id').value,kind:form.elements.namedItem('kind').value,relative_path:form.elements.namedItem('relative_path').value.trim()});form.elements.namedItem('relative_path').value='';showSceneManifest(await api('scene-batch/'+encodeURIComponent(pid)));notice('Archivo local comprobado y registrado.');}
+ catch(error){notice(error.message);}
 };
