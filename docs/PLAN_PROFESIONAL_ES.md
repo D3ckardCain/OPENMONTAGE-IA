@@ -37,6 +37,8 @@ Para FIFA, UEFA y J.League, una cifra ausente en una métrica no impide escoger 
 
 La matriz común muestra las 54 métricas con nombres en español y grupos de participación, ataque, creación, defensa, portería, disciplina y físico para todas las ediciones. Las métricas propias de una fuente aparecen al final. «Sin dato» significa que esa fuente no aportó un valor verificable para ese jugador y alcance; no equivale a cero.
 
+Antes de ofrecer una postal o clip, la mesa compara la competición, la edición y la fase devueltas por la fuente con la opción elegida. Si difieren, descarta el informe y muestra el error de alcance sin emitir token de exportación. Para UEFA usa `seasonYear` y `phase`; para FIFA comprueba los IDs de competición y temporada y el alcance publicado.
+
 ## Modelos candidatos
 
 | Candidato | Prueba de aceptación |

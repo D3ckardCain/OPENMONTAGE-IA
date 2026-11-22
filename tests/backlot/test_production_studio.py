@@ -427,6 +427,24 @@ def test_fifa_partial_metrics_allow_verified_goals_only(isolated, monkeypatch):
     assert blocked.status_code == 400
 
 
+def test_desk_displays_wrong_phase_as_source_error(isolated, monkeypatch):
+    from tools.football.official_fifa import OfficialFIFA
+    from tools.base_tool import ToolResult
+
+    monkeypatch.setattr(OfficialFIFA, 'execute', lambda self, args: ToolResult(
+        success=True, data={'source': 'FIFA', 'type': 'player_comparison',
+                            'scope': {'competition_id': '17', 'season_id': '255711',
+                                      'phase': 'qualifying'}, 'records': [],
+                            'ready_for_script': True}, cost_usd=0, from_cache=False))
+    result = isolated.post('/api/studio/football/round-goals', json={
+        'round': 'edition', 'edition': 'fifa_world_cup:2022:season_aggregate_as_published',
+        'players': [{'name': 'A'}, {'name': 'B'}]})
+    assert result.status_code == 200
+    assert result.json()['report'] is None
+    assert result.json()['export_token'] is None
+    assert any('otra competición, edición o fase' in error for error in result.json()['errors'])
+
+
 def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     data = isolated.get('/api/studio/football/desk-editions').json()
     editions = {option['id']: option for option in data['editions']}

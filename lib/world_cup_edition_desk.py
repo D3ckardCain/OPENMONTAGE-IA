@@ -145,22 +145,34 @@ def compare_edition(players, edition=DEFAULT_EDITION):
     }], execute)
     section = comparison['sections'][0]
     report = section['report']
-    if report and isinstance(tool, OfficialFIFA) and report.get('type') == 'player_comparison':
-        scope = report.get('scope') or {}
-        if (scope.get('competition_id'), scope.get('season_id'), scope.get('phase')) != (
-                args['competition_id'], args['season_id'], phase):
-            raise ValueError('FIFA devolvió cifras de otra competición, edición o fase')
+    scope_error = None
+    if report:
+        scope = report.get('alcance') if isinstance(tool, OfficialUEFA) else report.get('scope')
+        scope = scope or {}
+        if isinstance(tool, OfficialFIFA):
+            valid = (scope.get('competition_id'), scope.get('season_id'), scope.get('phase')) == (
+                args['competition_id'], args['season_id'], phase)
+        elif isinstance(tool, OfficialUEFA):
+            valid = (scope.get('seasonYear'), scope.get('phase')) == (season, phase)
+            valid = valid and report.get('competicion', competition) == competition
+        else:
+            valid = (scope.get('competition'), scope.get('season'), scope.get('phase')) == (
+                competition, season, phase)
+        if not valid:
+            scope_error = 'La fuente devolvió cifras de otra competición, edición o fase'
+            report = None
     if report and isinstance(tool, OfficialFIFA) and report.get('type') != 'player_comparison':
         report = None
     if report and isinstance(tool, OfficialUEFA):
         from tools.graphics.sports_card import uefa_report
         report = uefa_report(report, selected=True) if report.get('tipo') == 'comparativa_jugadores' else None
-    return {'report': report, 'metric_matrix': section['metric_matrix'],
+    return {'report': report, 'metric_matrix': section['metric_matrix'] if report else [],
             'display_metrics': section['display_metrics'] if report else [],
-            'errors': section['errors'] + (['La fuente no identificó con certeza a los dos jugadores']
-                                          if section['report'] and report is None else []),
-            'failed_metrics': (section['report'] or {}).get('failed_metrics', {}),
-            'coverage_note': (section['report'] or {}).get('coverage') or (section['report'] or {}).get('warning'),
+            'errors': section['errors'] + ([scope_error] if scope_error else
+                ['La fuente no identificó con certeza a los dos jugadores']
+                if section['report'] and report is None else []),
+            'failed_metrics': (report or {}).get('failed_metrics', {}),
+            'coverage_note': (report or {}).get('coverage') or (report or {}).get('warning'),
             'phase_note': ('La fuente publica cifras de la edición sin desglose verificable por fase.'
                            if (phase == 'provider_edition' and competition in CG_COMPETITIONS)
                            or isinstance(tool, OfficialFIFA) else None)}

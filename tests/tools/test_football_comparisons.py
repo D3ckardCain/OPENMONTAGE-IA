@@ -121,6 +121,38 @@ def test_partial_metric_selection_requires_resolved_identities_and_no_failed_bat
     assert not can_export_selection({**jleague, 'unresolved': [{'name': 'B', 'reason': 'ambiguous'}]}, ['goals'])
 
 
+@pytest.mark.parametrize('edition,source,scope', [
+    ('fifa_world_cup:2022:season_aggregate_as_published', 'FIFA',
+     {'competition_id': '17', 'season_id': '255711', 'phase': 'qualifying'}),
+    ('euro:2024:TOURNAMENT', 'UEFA',
+     {'competitionId': '3', 'seasonYear': 2024, 'phase': 'QUALIFYING'}),
+    ('j1:2025:league', 'J.League',
+     {'competition': 'j1', 'season': 2025, 'phase': 'cup'}),
+])
+def test_desk_discards_other_phase_before_selection(monkeypatch, edition, source, scope):
+    from lib import world_cup_edition_desk as desk
+    from tools.base_tool import ToolResult
+
+    tool_class = desk.STANDALONE_EDITIONS[desk.EDITIONS[edition][0]][1]
+    def execute(self, args):
+        data = {'source': source, 'scope': scope, 'records': [], 'ready_for_script': True}
+        if source == 'UEFA':
+            data.update(fuente='UEFA', tipo='comparativa_jugadores', alcance=scope,
+                        consultas=[], registros=[])
+        else:
+            data['type'] = 'player_comparison'
+        if source == 'J.League':
+            data.update(records=[{'entity_id': name, 'identity': {'name': name},
+                                  'facts': [], 'statistics': {}} for name in ('A', 'B')],
+                        queries=[], failed_metrics={}, unresolved=[])
+        return ToolResult(success=True, data=data, cost_usd=0, from_cache=False)
+    monkeypatch.setattr(tool_class, 'execute', execute)
+    result = desk.compare_edition([{'name': 'A'}, {'name': 'B'}], edition)
+    assert result['report'] is None
+    assert not result['display_metrics'] and not result['metric_matrix']
+    assert any('otra competición, edición o fase' in error for error in result['errors'])
+
+
 def test_jleague_merges_metric_batches_with_source_evidence():
     calls = []
     scope = {'competition': 'j1', 'season': 2025, 'phase': 'regular_season'}
