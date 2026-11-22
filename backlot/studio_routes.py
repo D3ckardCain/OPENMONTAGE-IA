@@ -211,6 +211,11 @@ def create_studio_router():
         if state['job'].get('status')=='running' and not active:
             state['job'].update(status='interrupted',message='El proceso anterior terminó. Puedes reanudar desde los artefactos guardados.')
         return state
+    @router.post('/api/studio/projects/{pid}/restore-channel-research')
+    async def restore_channel_research(pid:str,request:Request):
+        if await body(request):raise HTTPException(400,'Esta acción no admite parámetros')
+        from lib.project_channel_evidence import restore_missing
+        return invoke(restore_missing,pid)
     @router.post('/api/studio/projects/{pid}/{action}')
     async def action(pid:str,action:str,request:Request):
         await body(request)

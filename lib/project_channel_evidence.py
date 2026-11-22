@@ -27,8 +27,49 @@ def require_valid(path,request):
         verified(path,request)
 
 
+def restore_missing(pid):
+    """Complete old project copies using the surviving local idea as an anchor."""
+    from lib.channel_dossiers import read as read_dossier
+    from lib.channel_ideas import read_draft
+    path=studio.project_path(pid)
+    with studio.LOCK:
+        request=studio.read_json(path/'production_request.json')
+        ref=request.get('research_idea')
+        if not isinstance(ref,dict) or set(ref)!={'channel_id','snapshot_id','idea_id'}:
+            raise ValueError('El proyecto no tiene una propuesta vinculada')
+        snapshot_path=path/'artifacts/channel_research_snapshot.json'
+        idea_path=path/'artifacts/channel_idea_source.json'
+        if snapshot_path.is_file() and idea_path.is_file():
+            verified(path,request)
+            return {'restored':False,'status':'verified'}
+        # A project with no surviving idea and no recorded digest has no trusted anchor.
+        if not idea_path.is_file() and not request.get('research_idea_sha256'):
+            raise ValueError('Falta la propuesta y su hash; no se puede recuperar con seguridad')
+        dossier=read_dossier(ref['channel_id'],ref['snapshot_id'])
+        idea=read_draft(ref['channel_id'],ref['idea_id'])
+        if (idea['snapshot_id']!=dossier['id'] or idea['snapshot_sha256']!=dossier['report_sha256']
+                or request.get('reference') not in [r['url'] for r in idea['references']]):
+            raise ValueError('La investigación original no corresponde al proyecto')
+        digest=_digest(idea)
+        if request.get('research_idea_sha256') and request['research_idea_sha256']!=digest:
+            raise ValueError('La propuesta original difiere del hash del proyecto')
+        if snapshot_path.is_file() and studio.read_json(snapshot_path)!=dossier:
+            raise ValueError('El expediente del proyecto fue alterado')
+        if idea_path.is_file() and studio.read_json(idea_path)!=idea:
+            raise ValueError('La propuesta del proyecto fue alterada')
+        if not idea_path.is_file():studio.save_json(idea_path,idea)
+        if not snapshot_path.is_file():studio.save_json(snapshot_path,dossier)
+        if not request.get('research_idea_sha256'):
+            request['research_idea_sha256']=digest
+            studio.save_json(path/'production_request.json',request)
+        verified(path,request)
+        return {'restored':True,'status':'verified'}
+
+
 def summary(path,request):
     if not request.get('research_idea'):return None
+    if not (path/'artifacts/channel_research_snapshot.json').is_file() or not (path/'artifacts/channel_idea_source.json').is_file():
+        return {'status':'missing','message':'Falta la copia de investigación. Recupera desde registros locales si siguen disponibles.'}
     try:snapshot,idea,report=verified(path,request)
     except (ValueError,KeyError,TypeError,OverflowError):
         return {'status':'invalid','message':'Expediente o propuesta ausente o alterada; revisa el proyecto antes de producir.'}

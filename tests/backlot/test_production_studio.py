@@ -81,6 +81,40 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert isolated.post('/api/studio/projects',json=bad).status_code==400
 
 
+def test_restore_legacy_research_only_when_existing_copy_matches(isolated):
+    from lib.channel_dossiers import save
+    from lib.channel_ideas import create
+    channel='UC'+'c'*22
+    source=save({'source':'YouTube Data API','channel_id':channel,'retrieved_at_utc':'2026-11-22T00:00:00Z',
+                 'since_utc':'2026-10-23T00:00:00Z','cutoff_at_utc':'2026-11-22T00:00:00Z',
+                 'complete_period':True,'publications':[{'id':'abcdefghijk','title':'Video fuente','viewCount':100}]})
+    idea=create({'channel_id':channel,'snapshot_id':source['id'],'video_ids':['abcdefghijk'],
+                 'title':'Un enfoque editorial propio','angle':'Narrar un tema con investigación y revisión de fuentes originales.',
+                 'audience':'Creadores','language':'es','format':'long'})
+    response=isolated.post('/api/studio/projects',json={
+        'title':idea['title'],'brief':idea['angle'],'pipeline':'animated-explainer','language':'es',
+        'reference':'https://www.youtube.com/watch?v=abcdefghijk','automatic':False,
+        'research_idea':{'channel_id':channel,'snapshot_id':source['id'],'idea_id':idea['id']}})
+    assert response.status_code==200
+    pid=response.json()['project_id'];path=studio.project_path(pid)
+    (path/'artifacts/channel_research_snapshot.json').unlink()
+    request=studio.read_json(path/'production_request.json');request.pop('research_idea_sha256')
+    studio.save_json(path/'production_request.json',request)
+    assert isolated.get('/api/studio/projects/'+pid).json()['channel_research']['status']=='missing'
+    with pytest.raises(ValueError,match='alterado'):
+        agent.start(pid)
+    restored=isolated.post('/api/studio/projects/'+pid+'/restore-channel-research',json={})
+    assert restored.status_code==200 and restored.json()['restored'] is True
+    assert isolated.get('/api/studio/projects/'+pid).json()['channel_research']['status']=='verified'
+    assert studio.read_json(path/'production_request.json')['research_idea_sha256']
+    assert isolated.post('/api/studio/projects/'+pid+'/restore-channel-research',json={}).json()['restored'] is False
+    (path/'artifacts/channel_research_snapshot.json').unlink()
+    altered=studio.read_json(path/'artifacts/channel_idea_source.json');altered['title']='Manipulado'
+    studio.save_json(path/'artifacts/channel_idea_source.json',altered)
+    assert isolated.post('/api/studio/projects/'+pid+'/restore-channel-research',json={}).status_code==400
+    assert not (path/'artifacts/channel_research_snapshot.json').exists()
+
+
 def test_project_and_final_catalog_label_verification_before_editorial_revision(isolated):
     from lib.final_catalog import catalog
     pid=project();path=studio.project_path(pid)
