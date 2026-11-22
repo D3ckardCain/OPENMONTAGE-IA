@@ -22,6 +22,7 @@ def test_create_state_and_policy(isolated):
     pid=project();state=isolated.get('/api/studio/projects/'+pid).json()
     assert state['request']['budget_usd']==0
     assert state['request']['publish_authorized'] is False
+    assert state['channel_research'] is None
     assert state['job']['status']=='ready'
     cp=studio.read_json(studio.project_path(pid)/'checkpoint_research.json')
     assert cp['artifacts']['decision_log']['decisions'][0]['selected']=='guided'
@@ -50,6 +51,10 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert studio.read_json(project/'production_request.json')['research_idea']==payload['research_idea']
     from lib.channel_dossiers import _digest
     assert studio.read_json(project/'production_request.json')['research_idea_sha256']==_digest(idea)
+    state=isolated.get('/api/studio/projects/'+response.json()['project_id']).json()
+    assert state['channel_research']['status']=='verified'
+    assert state['channel_research']['complete_period'] is False
+    assert state['channel_research']['publication_total']==2
     worker=agent.LocalAgent(response.json()['project_id'])
     first=worker.dispatch('project_channel_evidence',{'limit':1})
     assert first['publication_total']==2 and first['next_offset']==1
@@ -61,6 +66,7 @@ def test_project_copies_verified_research_idea_link(isolated):
     studio.save_json(project/'artifacts/channel_research_snapshot.json',copied)
     with pytest.raises(ValueError,match='alterado'):
         worker.dispatch('project_channel_evidence',{})
+    assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['channel_research']['status']=='invalid'
     studio.save_json(project/'artifacts/channel_research_snapshot.json',source_copy)
     idea_copy=studio.read_json(project/'artifacts/channel_idea_source.json')
     altered={**idea_copy,'title':'Título cambiado'}
