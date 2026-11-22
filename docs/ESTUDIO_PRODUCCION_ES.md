@@ -20,11 +20,17 @@ mediante «Crear video a partir de este canal». El storyboard original sigue en
 4. Inicia los agentes. El productor lee el manifiesto y sus instrucciones, consulta
    especialistas, ejecuta herramientas locales y persiste artefactos/checkpoints.
 5. Revisa actividad, artefactos y etapas. En modo guiado aprueba cada etapa que lo
-   requiere. Si necesita aclaración, guárdala y reanuda. Detener es cooperativo:
+   requiere. Para corregir una etapa, pulsa «Solicitar cambios», escribe la causa
+   y vuelve a ejecutar; el render y la entrega anteriores quedan como históricos.
+   Si necesita aclaración, guárdala y reanuda. Detener es cooperativo:
    una inferencia/render ya enviado puede continuar hasta responder o agotar tiempo.
 6. Los resultados aparecen con enlaces y reproductor cuando existen archivos.
    El estado `rendered` exige etapas completas y archivos reconocibles por ffprobe.
    La publicación externa no está autorizada por este flujo.
+
+Para ordenar y comprobar varios proyectos, consulta [Cola de producciones](COLA_PRODUCCIONES_ES.md).
+Para revisar las salidas, comprobar hashes actuales y reintentar una copia fallida,
+consulta [Videos finales](VIDEOS_FINALES_ES.md).
 
 ## Comparativas de fútbol
 
@@ -99,7 +105,8 @@ parámetros, limitaciones y diferencia entre conector e inferencia validada.
 
 ## Organización del Estudio
 
-El menú lateral separa Producción, Referencias e imágenes, Modelos y discos,
+El menú lateral incluye Producción, Fútbol, Videos finales, Cola de trabajos,
+Referencias e imágenes, Modelos y discos, Preparación del equipo, Aplicaciones
 e Historial y pruebas. Cambiar de sección conserva los formularios y no inicia
 ninguna herramienta. La configuración local permanece en el lateral. El acceso
 a investigar canales conserva su página específica. Esta organización se
