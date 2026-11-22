@@ -216,11 +216,16 @@ def start():
         with agent.ACTIVE_LOCK,reference_analysis.LOCK:
             if agent.ACTIVE or reference_analysis.ACTIVE:raise ValueError('Espera a que termine la tarea local activa')
         first=next(item for item in value['items'] if item['status']!='completed')
-        if first['status']=='pending' and Path(first['projects_root']).resolve()==studio.PROJECTS_DIR.resolve():
-            job=studio.read_json(studio.project_path(first['project_id'])/'job.json',{})
-            if job.get('status')!='rendered':
-                _,problem=_selected_model_status()
-                if problem:raise ValueError(problem)
+        if first['status']!='pending':
+            raise ValueError('Revisa el primer trabajo y vuelve a ponerlo pendiente antes de ejecutar la cola')
+        if Path(first['projects_root']).resolve()!=studio.PROJECTS_DIR.resolve():
+            raise ValueError('Selecciona el disco de trabajo original antes de ejecutar este proyecto')
+        job=studio.read_json(studio.project_path(first['project_id'])/'job.json',{})
+        if job.get('status')=='awaiting_human':
+            raise ValueError('Aprueba la etapa desde el proyecto antes de reanudar la cola')
+        if job.get('status')!='rendered':
+            _,problem=_selected_model_status()
+            if problem:raise ValueError(problem)
         value['status']='running';_save(value);PAUSE.clear()
         WORKER=threading.Thread(target=_run,daemon=True,name='production-queue');WORKER.start()
     return {'started':True,'publication_authorized':False}

@@ -79,7 +79,8 @@ def test_restart_requires_review_before_generation(isolated,monkeypatch):
     started=fake_producer(monkeypatch)
     queue.enqueue('first');value=queue._load();value['status']='running';value['items'][0]['status']='starting';queue._save(value)
     assert queue.read()['items'][0]['status']=='interrupted'
-    queue.start();wait();assert started==[]
+    with pytest.raises(ValueError,match='primer trabajo'):queue.start()
+    assert started==[] and queue.read()['items'][0]['status']=='interrupted'
     queue.retry(queue.read()['items'][0]['id']);queue.start();wait()
     assert started==['first']
 
@@ -130,9 +131,8 @@ def test_approval_cannot_be_bypassed_by_requeueing(isolated,monkeypatch):
     started=fake_producer(monkeypatch)
     queue.enqueue('first')
     studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'awaiting_human'})
-    queue.start();wait();item=queue.read()['items'][0]
-    assert item['status']=='awaiting_human' and started==[]
-    queue.retry(item['id']);queue.start();wait();assert started==[]
+    with pytest.raises(ValueError,match='Aprueba'):queue.start()
+    assert queue.read()['items'][0]['status']=='pending' and started==[]
 
 
 def test_rendered_projects_are_not_generated_again_and_wrong_disk_blocks(isolated,monkeypatch):
@@ -140,7 +140,8 @@ def test_rendered_projects_are_not_generated_again_and_wrong_disk_blocks(isolate
     queue.enqueue('first');studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'rendered'})
     queue.start();wait();assert started==[] and queue.read()['status']=='completed'
     queue.enqueue('second');value=queue._load();value['items'][1]['projects_root']=str(isolated/'other-disk');queue._save(value)
-    queue.start();wait();assert started==[] and queue.read()['items'][1]['status']=='blocked'
+    with pytest.raises(ValueError,match='disco de trabajo original'):queue.start()
+    assert started==[] and queue.read()['items'][1]['status']=='pending'
 
 
 def test_active_local_work_prevents_start(isolated):
