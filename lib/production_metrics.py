@@ -88,7 +88,23 @@ def snapshot():
                 causes[status] = causes.get(status, 0) + 1
     first_decisions = [decision for row in rows for decision in row['editorial_first_decisions'].values()]
     first_approvals = first_decisions.count('approved')
+    pilot=rows[:10]
+    finished=[row for row in pilot if row['status']=='completed']
+    pilot_report={
+        'target_projects':10,'queue_projects_considered':len(pilot),
+        'queue_projects_total':len(rows),
+        'completed':len(finished),
+        'blocked_or_waiting':sum(row['status'] in ('blocked','interrupted','awaiting_input','awaiting_human','stopped') for row in pilot),
+        'completed_with_duration':sum(row['elapsed_seconds'] is not None for row in finished),
+        'completed_with_ram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('host_ram_peak_mb')) is int for row in finished),
+        'completed_with_vram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('gpu_vram_peak_mb')) is int for row in finished),
+        'scope':'first_ten_current_queue_records_not_a_frozen_cohort',
+    }
+    pilot_report['measurements_complete']=(len(pilot)==10 and len(finished)==10 and
+        pilot_report['completed_with_duration']==10 and pilot_report['completed_with_ram']==10 and
+        pilot_report['completed_with_vram']==10)
     return {'queue_status': state['status'], 'projects': rows,
+            'pilot_candidate':pilot_report,
             'completed_runs_measured': len(observed),
             'elapsed_seconds_total': round(sum(observed), 3),
             'ram_peak_mb': max(ram) if ram else None, 'vram_peak_mb': max(vram) if vram else None,

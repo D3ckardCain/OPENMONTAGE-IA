@@ -16,6 +16,39 @@ def test_saved_queue_timings_report_only_measured_runs(monkeypatch):
     assert result['projects'][1]['elapsed_seconds'] is None
     assert result['ram_peak_mb'] is None and result['estimate_48_per_week'] is None
     assert result['generation_started'] is False
+    assert result['pilot_candidate']['queue_projects_considered']==2
+    assert result['pilot_candidate']['completed']==1
+    assert result['pilot_candidate']['completed_with_duration']==1
+    assert result['pilot_candidate']['measurements_complete'] is False
+
+
+def test_pilot_candidate_only_marks_ten_measured_completed_queue_records(monkeypatch):
+    items=[{'project_id':f'fixture-{index}','status':'completed',
+            'started_at':'2026-11-22T10:00:00+00:00','finished_at':'2026-11-22T10:01:00+00:00'}
+           for index in range(11)]
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'completed','items':items})
+    result=production_metrics.snapshot()['pilot_candidate']
+    assert result['queue_projects_considered']==10 and result['queue_projects_total']==11
+    assert result['completed']==10 and result['completed_with_duration']==10
+    assert result['completed_with_ram']==0 and result['completed_with_vram']==0
+    assert result['measurements_complete'] is False
+
+
+def test_pilot_candidate_measurement_coverage_requires_all_ten(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
+    items=[]
+    for index in range(10):
+        pid=f'fixture-{index}'
+        studio.save_json(tmp_path/pid/'production_request.json',{})
+        studio.save_json(tmp_path/pid/'resource_usage.json',{
+            'host_ram_peak_mb':1000,'gpu_vram_peak_mb':500})
+        items.append({'project_id':pid,'status':'completed',
+            'started_at':'2026-11-22T10:00:00+00:00','finished_at':'2026-11-22T10:01:00+00:00'})
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'completed','items':items})
+    result=production_metrics.snapshot()['pilot_candidate']
+    assert result['measurements_complete'] is True
+    assert result['completed_with_ram']==10 and result['completed_with_vram']==10
 
 
 def test_invalid_or_reversed_timestamps_never_make_up_a_duration():
