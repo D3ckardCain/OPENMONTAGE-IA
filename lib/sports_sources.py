@@ -75,7 +75,7 @@ _ROWS = [
  ('portugal','football','europe','Liga Portugal','https://www.ligaportugal.pt/','classificacao_league_player_stats'),
  ('eredivisie','football','europe','Eredivisie','https://eredivisie.nl/','eredivisie_player_stats'),
  ('jleague','football','asia','J.League','https://www.jleague.jp/','official_jleague_live'),
- ('kleague','football','asia','K League','https://www.kleague.com/',''),
+ ('kleague','football','asia','K League','https://www.kleague.com/record/player.do',''),
  ('saudi','football','arab','Saudi Pro League','https://www.spl.com.sa/en/stats','as_competition_player_stats'),
  ('uae','football','arab','UAE Pro League','https://www.uaeproleague.ae/',''),
  ('qatar','football','arab','Qatar Stars League','https://www.qsl.qa/',''),
@@ -106,7 +106,7 @@ def catalog(sport=None, region=None):
         if sport and kind!=sport: continue
         if region and area not in (region,'world'): continue
         row=dict(id=ident,sport=kind,region=area,name=label,url=url,
-            connector=tool or None,status='source_inspection_only' if tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
+            connector=tool or None,status='source_inspection_only' if ident=='kleague' or tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
             coverage_verified=False)
         if kind=='football':
             keys, dynamic = configured.get(tool, (set(), False))
@@ -116,6 +116,10 @@ def catalog(sport=None, region=None):
                 'dynamic_metric_discovery': dynamic,
                 'scope': 'configured_adapter_fields_not_verified_player_values',
             }
+            if ident=='kleague':
+                row['integration_note'] = ('Tabla pública disponible; API oficial con authKey obligatorio. '
+                                           'El portal restringe copia, almacenamiento y distribución de registros '
+                                           'fuera de usos de prensa sin permiso previo. No habilitar exportación del canal.')
         rows.append(row)
     football_contract = {
         'metrics': list(FOOTBALL_STANDARD_METRICS),
