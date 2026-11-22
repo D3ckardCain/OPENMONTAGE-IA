@@ -223,6 +223,14 @@ def create_studio_router():
     async def script_outline_save(pid:str,request:Request):
         from lib.script_outline import save
         return invoke(save,pid,await body(request,35000))
+    @router.get('/api/studio/packaging-options/{pid}')
+    def packaging_options_read(pid:str):
+        from lib.packaging_options import read
+        return invoke(read,pid)
+    @router.post('/api/studio/packaging-options/{pid}')
+    async def packaging_options_save(pid:str,request:Request):
+        from lib.packaging_options import save
+        return invoke(save,pid,await body(request,12000))
     @router.get('/api/studio/channel-research/{pid}')
     def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_channel_evidence import page
