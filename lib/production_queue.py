@@ -1,6 +1,7 @@
 """Persistent sequential job transport; creative decisions stay in the producer."""
 import threading
 import uuid
+import re
 from pathlib import Path
 from lib import production_studio as studio
 from lib import production_agent as agent
@@ -30,6 +31,18 @@ def _selected_model_status():
     except (OSError,ValueError,KeyError,TypeError):
         return status,'Ollama no respondió a la comprobación local del modelo'
     return status,None
+
+
+def _render_receipt_current(project):
+    from lib.editorial_freshness import current,selection_index
+    verification=studio.read_json(project/'render_verification.json',{})
+    reviews=studio.read_json(project/'editorial_reviews.json',[])
+    outputs=verification.get('outputs') if isinstance(verification,dict) else None
+    return (current(verification,reviews,selection_index(project)) and isinstance(outputs,list)
+            and bool(outputs) and all(isinstance(output,dict) and output.get('full_decode_passed') is True
+                                      and isinstance(output.get('path'),str) and bool(output['path'])
+                                      and isinstance(output.get('sha256'),str) and re.fullmatch('[0-9a-f]{64}',output['sha256'])
+                                      for output in outputs))
 
 
 def freeze_pilot():
@@ -183,6 +196,8 @@ def _run():
                 if state.get('status')=='awaiting_human':
                     _update(item['id'],status='awaiting_human',message='Aprueba la etapa desde el proyecto antes de reanudar');break
                 if state.get('status')=='rendered':
+                    if not _render_receipt_current(path):
+                        raise ValueError('El render guardado no tiene una verificación vigente y completa')
                     _update(item['id'],status='completed',message='El productor ya había terminado; no se repitió');continue
                 # Persist intent before launch. A restart requires explicit review
                 # rather than risking an accidental second inference submission.
@@ -193,6 +208,8 @@ def _run():
                 with agent.ACTIVE_LOCK:active=agent.ACTIVE.get(item['project_id'])
                 if active and active[0] is not None:active[0].join()
                 state=studio.read_json(path/'job.json',{});status=state.get('status','interrupted')
+                if status=='rendered' and not _render_receipt_current(path):
+                    raise ValueError('El render terminado no tiene una verificación vigente y completa')
                 _update(item['id'],status='completed' if status=='rendered' else status if status in ('awaiting_human','awaiting_input','stopped','blocked') else 'interrupted',
                     message=state.get('message','El productor no confirmó la finalización'),finished_at=studio.now())
                 if status!='rendered':break
@@ -248,6 +265,8 @@ def inspect():
                 path=studio.project_path(item['project_id'])
                 job_status=studio.read_json(path/'job.json',{}).get('status')
                 if job_status=='awaiting_human':problems.append('La etapa requiere aprobación desde el proyecto')
+                if job_status=='rendered' and item['status']!='completed' and not _render_receipt_current(path):
+                    problems.append('El render guardado no tiene una verificación vigente y completa; revisa el proyecto')
             except (ValueError,OSError) as exc:problems.append(str(exc))
         if item['status'] not in ('pending','completed'):
             problems.append('Revisa el registro y vuelve a ponerlo pendiente antes de continuar')

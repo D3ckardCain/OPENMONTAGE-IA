@@ -37,6 +37,9 @@ def fake_producer(monkeypatch,status='rendered',pause_after_first=False):
         started.append(pid)
         def work():
             studio.save_json(studio.PROJECTS_DIR/pid/'job.json',{'status':status,'message':'Fixture result'})
+            if status=='rendered':
+                studio.save_json(studio.PROJECTS_DIR/pid/'render_verification.json',{
+                    'status':'passed','outputs':[{'full_decode_passed':True,'path':'/fixture/final.mp4','sha256':'a'*64}]})
             if pause_after_first:queue.pause()
             with agent.ACTIVE_LOCK:agent.ACTIVE.pop(pid,None)
         thread=threading.Thread(target=work)
@@ -140,6 +143,7 @@ def test_approval_cannot_be_bypassed_by_requeueing(isolated,monkeypatch):
 def test_rendered_projects_are_not_generated_again_and_wrong_disk_blocks(isolated,monkeypatch):
     started=fake_producer(monkeypatch)
     queue.enqueue('first');studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'rendered'})
+    studio.save_json(studio.PROJECTS_DIR/'first/render_verification.json',{'status':'passed','outputs':[{'full_decode_passed':True,'path':'/fixture/final.mp4','sha256':'a'*64}]})
     queue.start();wait();assert started==[] and queue.read()['status']=='completed'
     queue.enqueue('second');value=queue._load();value['items'][1]['projects_root']=str(isolated/'other-disk');queue._save(value)
     with pytest.raises(ValueError,match='disco original'):queue.start()
@@ -255,10 +259,26 @@ def test_start_refuses_missing_local_model_without_changing_queue(isolated,monke
 def test_rendered_project_can_be_reconciled_without_ollama(isolated,monkeypatch):
     queue.enqueue('first')
     studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'rendered'})
+    studio.save_json(studio.PROJECTS_DIR/'first/render_verification.json',{'status':'passed','outputs':[{'full_decode_passed':True,'path':'/fixture/final.mp4','sha256':'a'*64}]})
     monkeypatch.setattr(studio,'settings',lambda:{'model':'','ollama_url':'http://127.0.0.1:11434'})
     monkeypatch.setattr(agent,'start',lambda *args:pytest.fail('Ya estaba renderizado'))
     queue.start();wait()
     assert queue.read()['items'][0]['status']=='completed'
+
+
+def test_rendered_project_with_new_selection_cannot_be_marked_completed(isolated,monkeypatch):
+    queue.enqueue('first')
+    path=studio.PROJECTS_DIR/'first'
+    studio.save_json(path/'job.json',{'status':'rendered'})
+    studio.save_json(path/'render_verification.json',{'status':'passed',
+        'football_selection':{'selection_id':'a'*64,'sha256':'b'*64},
+        'outputs':[{'full_decode_passed':True,'path':'/fixture/final.mp4','sha256':'a'*64}]})
+    studio.save_json(path/'artifacts/football_comparison_selection.json',{
+        'selection_id':'c'*64,'sha256':'d'*64})
+    monkeypatch.setattr(agent,'start',lambda *args:pytest.fail('No debe regenerar ni reconciliar'))
+    assert queue.inspect()['ready'] is False
+    with pytest.raises(ValueError,match='verificación vigente'):queue.start()
+    assert queue.read()['items'][0]['status']=='pending'
 
 
 def test_inspection_covers_disks_empty_queue_and_interrupted_records(isolated,monkeypatch):
