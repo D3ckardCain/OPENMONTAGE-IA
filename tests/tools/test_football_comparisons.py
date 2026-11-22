@@ -195,6 +195,26 @@ def test_jleague_does_not_mix_different_players_between_batches():
         merge_batches([batch(['a', 'b']), batch(['a', 'c'])])
 
 
+@pytest.mark.parametrize('change,expected', [
+    ({'identity': {'entity_id': 'a', 'name': 'Otro'}}, 'otra identidad'),
+    ({'statistics': {'goals': 9}}, 'repiten métricas'),
+    ({'facts': [{'metric': 'goals', 'value': 9}]}, 'repiten métricas'),
+])
+def test_batch_merge_rejects_changed_identity_or_repeated_metric(change, expected):
+    from lib.football_comparisons import merge_batches
+    scope = {'competition': 'j1', 'season': 2025}
+    def batch(metric):
+        return {'source': 'J.League', 'scope': scope, 'queries': [], 'failed_metrics': {},
+                'unresolved': [], 'records': [
+                    {'entity_id': name, 'identity': {'entity_id': name, 'name': name},
+                     'facts': [{'metric': metric, 'value': 1}], 'statistics': {metric: 1}}
+                    for name in ('a', 'b')]}
+    first, second = batch('goals'), batch('assists')
+    second['records'][0].update(change)
+    with pytest.raises(ValueError, match=expected):
+        merge_batches([first, second])
+
+
 def test_jleague_partial_batch_failure_is_not_verified():
     def execute(connector, args):
         if args['metrics'][0] != 'goals':

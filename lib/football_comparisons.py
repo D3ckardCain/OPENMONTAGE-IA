@@ -79,6 +79,15 @@ def merge_batches(batches):
         for row in merged['records']:
             addition = by_id.get(row['entity_id'])
             if addition:
+                if (row.get('identity') and addition.get('identity')
+                        and row['identity'] != addition['identity']):
+                    raise ValueError('Los lotes atribuyen otra identidad al mismo jugador')
+                old_metrics = set(row['statistics'])
+                new_metrics = set(addition['statistics'])
+                old_facts = {fact['metric'] for fact in row['facts']}
+                new_facts = {fact['metric'] for fact in addition['facts']}
+                if old_metrics & new_metrics or old_facts & new_facts:
+                    raise ValueError('Los lotes repiten métricas de un jugador')
                 row['facts'].extend(addition['facts'])
                 row['statistics'].update(addition['statistics'])
     merged['shared_metrics'] = sorted(set.intersection(*(set(row['statistics']) for row in merged['records'])))
