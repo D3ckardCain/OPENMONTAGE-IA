@@ -1,4 +1,4 @@
-"""Local channel-search surface. Fresh read-only queries; no result persistence."""
+"""Local channel search and explicit, immutable channel audit snapshots."""
 import asyncio
 import json
 import os
@@ -120,7 +120,23 @@ def create_channel_router():
                     raise HTTPException(429 if exc.code in ('QUOTA_EXCEEDED','RATE_LIMITED') else 503,str(exc))
                 except Unavailable as exc:raise HTTPException(422,str(exc))
             finally:active_queries-=1
+        from lib.channel_dossiers import save
+        try:result['saved_snapshot']=save(result)
+        except ValueError as exc:result['save_error']=str(exc)
         return JSONResponse(result,headers={'Cache-Control':'no-store'})
+
+    @router.get('/api/research/channels/period/history/{channel_id}')
+    def channel_period_history(channel_id:str):
+        from lib.channel_dossiers import list_saved
+        try:return JSONResponse({'snapshots':list_saved(channel_id)},headers={'Cache-Control':'no-store'})
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
+    @router.get('/api/research/channels/period/history/{channel_id}/{snapshot_id}')
+    def channel_period_snapshot(channel_id:str,snapshot_id:str):
+        from lib.channel_dossiers import read
+        try:return JSONResponse(read(channel_id,snapshot_id),headers={'Cache-Control':'no-store'})
+        except FileNotFoundError as exc:raise HTTPException(404,str(exc))
+        except ValueError as exc:raise HTTPException(400,str(exc))
 
     @router.get('/api/research/video-observations/{video_id}')
     def observations(video_id:str):
