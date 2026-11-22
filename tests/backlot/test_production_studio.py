@@ -66,7 +66,7 @@ def test_project_copies_verified_research_idea_link(isolated):
     studio.save_json(project/'render_verification.json',{'status':'passed','finished_at':'2026-11-22T10:00:00+00:00',
         'channel_research':research,'outputs':[{'path':str(project/'renders/final.mp4'),'sha256':'a'*64}]})
     studio.save_json(project/'final_delivery.json',{'copied':True,'delivered_at':'2026-11-22T10:01:00+00:00',
-        'outputs':[{'source':str(project/'renders/final.mp4'),'sha256':'a'*64}]})
+        'outputs':[{'source':str(project/'renders/final.mp4'),'path':str(project/'renders/final.mp4'),'sha256':'a'*64}]})
     assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['verification_current'] is True
     assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['final_copy_current'] is True
     publications=isolated.get('/api/studio/channel-research/'+response.json()['project_id']+'?limit=1').json()
