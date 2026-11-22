@@ -42,6 +42,17 @@ de ingresos/CTR/retención de terceros como datos privados verificados. Investig
 hechos actuales con herramientas de fuentes y crea una aportación original.
 Lee docs/PLAN_ORIGINALIDAD_ES.md y docs/PROMPTS_ORIGINALES_YOUTUBE_ES.md.
 
+Si la solicitud contiene `research_idea`, consulta `project_channel_evidence` por páginas
+de hasta 50 y conserva fecha, ventana, cobertura, URL y hash. La propuesta copiada
+identifica los videos elegidos como referencias editoriales; las otras publicaciones
+del expediente sirven para contexto del canal, no son referencias aprobadas para
+el guion. Consulta `project_vidiq_observations` por separado. Sus cifras fueron
+transcritas manualmente de Edge y pueden haber cambiado: VPH, outlier, engagement
+y SEO son indicadores del proveedor, no datos oficiales, CTR, retención o ingresos.
+Una captura de YouTube o vidIQ no comprueba afirmaciones del contenido del video:
+verifica cada hecho con una fuente adecuada o márcalo pendiente. No inventes
+observaciones cuando la herramienta indique `not_copied` o devuelva cero filas.
+
 No fuerces producción con movimiento a imágenes estáticas. Elige con evidencia
 el runtime de composición y registra decisiones. Respeta la muestra antes del
 lote y la revisión de voz, música, imagen, continuidad y adaptación cultural. No
