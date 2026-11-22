@@ -46,3 +46,13 @@ def test_final_copy_rejects_missing_or_changed_verification_hash(setup):
     with pytest.raises(ValueError,match='render cambió'):
         deliver('one',[{'path':str(source),'verified_sha256':'0'*64}])
     assert not list(finals.rglob('*.mp4')) and not (project/'final_delivery.json').exists()
+
+
+def test_multi_video_delivery_checks_all_hashes_before_first_copy(setup):
+    project,source,finals=setup
+    second=source.parent/'second.mp4';second.write_bytes(b'another video')
+    with pytest.raises(ValueError,match='render cambió'):
+        deliver('one',[{'path':str(source),'verified_sha256':digest(source)},
+                       {'path':str(second),'verified_sha256':'0'*64}])
+    assert not list(finals.rglob('*.mp4'))
+    assert not (project/'final_delivery.json').exists()
