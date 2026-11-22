@@ -27,6 +27,19 @@ def require_valid(path,request):
         verified(path,request)
 
 
+def project_problem(path):
+    """Preflight for queues; return a concrete problem without mutating the project."""
+    request=studio.read_json(path/'production_request.json')
+    if not request.get('research_idea'):return None
+    try:
+        verified(path,request)
+        from lib.project_video_observations import verified_rows
+        verified_rows(path,request)
+    except (ValueError,KeyError,TypeError,OverflowError,OSError) as exc:
+        return 'Investigación del proyecto no válida: '+str(exc)[:300]
+    return None
+
+
 def restore_missing(pid):
     """Complete old project copies using the surviving local idea as an anchor."""
     from lib.channel_dossiers import read as read_dossier

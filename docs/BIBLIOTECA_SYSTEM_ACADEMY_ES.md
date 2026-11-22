@@ -38,6 +38,8 @@ En el estudio, «Ver publicaciones» y «Ver observaciones vidIQ» muestran pág
 
 Si falta solo la copia de observaciones vidIQ, «Recuperar copia local» busca en el historial manual el prefijo exacto cuyo hash coincide con la solicitud. Las observaciones nuevas quedan fuera de la captura anterior. Si falta el historial o cambió el contenido, rechaza la recuperación; nunca sobrescribe un archivo existente alterado.
 
+La inspección de la cola valida también las copias de investigación de cada proyecto. Una captura ausente o alterada aparece como problema antes de iniciar el productor; la cola no se presenta como lista en ese estado.
+
 ### Observación puntual con vidIQ en Edge
 
 El 22 de noviembre de 2026 se revisó [este video de Edwin Arenas](https://www.youtube.com/watch?v=rd8TQwkQ4zs) con la extensión ya instalada. La ficha visible indicaba **80,1 mil vistas acumuladas**, **21 VPH**, **2,7 % Engagement**, **19,7× Outlier** y **40,3/100 puntuación SEO**. También mostraba etiquetas del video y canal y una gráfica histórica de vistas. Son valores mostrados por vidIQ en ese momento; VPH y puntuaciones son cálculos del proveedor y no equivalen a CTR, retención, ingresos ni crecimiento certificado del canal. La propia interfaz reservaba ciertas etiquetas y opciones para planes de pago.

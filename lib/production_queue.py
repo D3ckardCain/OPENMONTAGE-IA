@@ -194,6 +194,8 @@ def _run():
                 path=studio.project_path(item['project_id'])
                 from lib.language_versions import selection_provenance_problem
                 if problem:=selection_provenance_problem(path):raise ValueError(problem)
+                from lib.project_channel_evidence import project_problem
+                if problem:=project_problem(path):raise ValueError(problem)
                 state=studio.read_json(path/'job.json',{})
                 if state.get('status')=='awaiting_human':
                     _update(item['id'],status='awaiting_human',message='Aprueba la etapa desde el proyecto antes de reanudar');break
@@ -267,6 +269,8 @@ def inspect():
                 path=studio.project_path(item['project_id'])
                 from lib.language_versions import selection_provenance_problem
                 if problem:=selection_provenance_problem(path):problems.append(problem)
+                from lib.project_channel_evidence import project_problem
+                if problem:=project_problem(path):problems.append(problem)
                 job_status=studio.read_json(path/'job.json',{}).get('status')
                 if job_status=='awaiting_human':problems.append('La etapa requiere aprobación desde el proyecto')
                 if job_status=='rendered' and item['status']!='completed' and not _render_receipt_current(path):

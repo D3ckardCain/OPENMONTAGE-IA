@@ -82,6 +82,11 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert isolated.get('/api/studio/vidiq-observations/'+response.json()['project_id']).status_code==400
     with pytest.raises(ValueError,match='alteradas'):
         agent.start(response.json()['project_id'])
+    from lib import production_queue
+    production_queue.enqueue(response.json()['project_id'])
+    queued=production_queue.inspect()['items'][0]
+    assert queued['ready'] is False
+    assert any('Investigación del proyecto no válida' in problem for problem in queued['problems'])
     assert isolated.post('/api/studio/projects/'+response.json()['project_id']+'/restore-channel-research',json={}).status_code==400
     studio.save_json(observation_path,copied_observations)
     observation_path.unlink()
