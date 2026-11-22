@@ -78,7 +78,7 @@ _ROWS = [
  ('kleague','football','asia','K League','https://www.kleague.com/record/player.do',''),
  ('saudi','football','arab','Saudi Pro League','https://www.spl.com.sa/en/stats','as_competition_player_stats'),
  ('uae','football','arab','UAE Pro League','https://www.uaeproleague.ae/en/stats',''),
- ('qatar','football','arab','Qatar Stars League','https://www.qsl.qa/',''),
+ ('qatar','football','arab','Qatar Stars League','https://qsl.qa/index.php/en/doha-bank-stars-league-archive',''),
  ('mls','football','americas','MLS','https://www.mlssoccer.com/','official_mls_live'),
  ('ligamx','football','americas','Liga MX','https://ligamx.net/','ligamx_player_stats'),
  ('brasil','football','americas','CBF','https://www.cbf.com.br/','brasileirao_player_stats'),
@@ -106,7 +106,7 @@ def catalog(sport=None, region=None):
         if sport and kind!=sport: continue
         if region and area not in (region,'world'): continue
         row=dict(id=ident,sport=kind,region=area,name=label,url=url,
-            connector=tool or None,status='source_inspection_only' if ident in ('kleague','uae') or tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
+            connector=tool or None,status='source_inspection_only' if ident in ('kleague','uae','qatar') or tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
             coverage_verified=False)
         if kind=='football':
             keys, dynamic = configured.get(tool, (set(), False))
@@ -125,6 +125,11 @@ def catalog(sport=None, region=None):
                                            'Las condiciones permiten reproducción del contenido solo para uso personal no comercial; '
                                            'el sitio advierte que sus estadísticas no deben considerarse oficiales. '
                                            'No habilitar exportación del canal desde esta fuente.')
+            if ident=='qatar':
+                row['integration_note'] = ('Archivo QSL 2025/26 con veinte goleadores visibles y edición identificada. '
+                                           'No acredita cifras del resto de jugadores, métricas adicionales ni '
+                                           'separación de play-offs. Falta verificar condiciones de reutilización '
+                                           'y un extractor con alcance antes de habilitar exportación.')
         rows.append(row)
     football_contract = {
         'metrics': list(FOOTBALL_STANDARD_METRICS),

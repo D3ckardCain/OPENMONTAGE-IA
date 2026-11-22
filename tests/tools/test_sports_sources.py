@@ -29,6 +29,8 @@ def test_every_listed_football_competition_has_the_same_metric_contract_and_hone
     assert rows['uae']['metric_capability']['standard_metrics'] == []
     assert rows['uae']['status'] == 'source_inspection_only' and rows['uae']['connector'] is None
     assert 'no comercial' in rows['uae']['integration_note']
+    assert rows['qatar']['status'] == 'source_inspection_only' and rows['qatar']['connector'] is None
+    assert 'play-offs' in rows['qatar']['integration_note']
     assert rows['kleague']['status'] == 'source_inspection_only'
     assert rows['kleague']['connector'] is None and not rows['kleague']['coverage_verified']
     assert 'authKey' in rows['kleague']['integration_note']
