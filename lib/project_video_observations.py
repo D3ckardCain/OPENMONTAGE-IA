@@ -20,6 +20,28 @@ def verified_rows(path,request):
     return rows
 
 
+def restore_missing(path,request):
+    """Recover an absent historical prefix, never replacing an existing file."""
+    from lib.video_observations import read
+    _,idea,_=verified(path,request)
+    digest=request.get('research_observations_sha256')
+    if digest is None:return False
+    target=path/'artifacts/video_observations_snapshot.json'
+    if target.is_file():
+        verified_rows(path,request)
+        return False
+    selected={item['id'] for item in idea['references']}
+    candidates=[row for row in read() if row.get('video_id') in selected]
+    # The global log is append-only. A later observation cannot enter this old copy.
+    for count in range(len(candidates)+1):
+        prefix=candidates[:count]
+        if _digest(prefix)==digest:
+            studio.save_json(target,prefix)
+            verified_rows(path,request)
+            return True
+    raise ValueError('No se encontró la copia histórica de observaciones con el hash original')
+
+
 def page(path,request,offset=0,limit=20):
     rows=verified_rows(path,request)
     if rows is None:

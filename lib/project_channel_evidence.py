@@ -31,6 +31,7 @@ def restore_missing(pid):
     """Complete old project copies using the surviving local idea as an anchor."""
     from lib.channel_dossiers import read as read_dossier
     from lib.channel_ideas import read_draft
+    from lib.project_video_observations import restore_missing as restore_observations
     path=studio.project_path(pid)
     with studio.LOCK:
         request=studio.read_json(path/'production_request.json')
@@ -41,7 +42,7 @@ def restore_missing(pid):
         idea_path=path/'artifacts/channel_idea_source.json'
         if snapshot_path.is_file() and idea_path.is_file():
             verified(path,request)
-            return {'restored':False,'status':'verified'}
+            return {'restored':restore_observations(path,request),'status':'verified'}
         # A project with no surviving idea and no recorded digest has no trusted anchor.
         if not idea_path.is_file() and not request.get('research_idea_sha256'):
             raise ValueError('Falta la propuesta y su hash; no se puede recuperar con seguridad')
@@ -63,6 +64,7 @@ def restore_missing(pid):
             request['research_idea_sha256']=digest
             studio.save_json(path/'production_request.json',request)
         verified(path,request)
+        restore_observations(path,request)
         return {'restored':True,'status':'verified'}
 
 
@@ -70,6 +72,8 @@ def summary(path,request):
     if not request.get('research_idea'):return None
     if not (path/'artifacts/channel_research_snapshot.json').is_file() or not (path/'artifacts/channel_idea_source.json').is_file():
         return {'status':'missing','message':'Falta la copia de investigación. Recupera desde registros locales si siguen disponibles.'}
+    if request.get('research_observations_sha256') is not None and not (path/'artifacts/video_observations_snapshot.json').is_file():
+        return {'status':'missing','message':'Falta la copia histórica de vidIQ. Recupera desde el registro local si sigue disponible.'}
     try:
         snapshot,idea,report=verified(path,request)
         from lib.project_video_observations import verified_rows

@@ -82,7 +82,15 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert isolated.get('/api/studio/vidiq-observations/'+response.json()['project_id']).status_code==400
     with pytest.raises(ValueError,match='alteradas'):
         agent.start(response.json()['project_id'])
+    assert isolated.post('/api/studio/projects/'+response.json()['project_id']+'/restore-channel-research',json={}).status_code==400
     studio.save_json(observation_path,copied_observations)
+    observation_path.unlink()
+    add({'video_url':'https://www.youtube.com/watch?v=abcdefghijk',**{**observation,'vph':24}})
+    assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['channel_research']['status']=='missing'
+    recovered=isolated.post('/api/studio/projects/'+response.json()['project_id']+'/restore-channel-research',json={})
+    assert recovered.status_code==200 and recovered.json()['restored'] is True
+    assert studio.read_json(observation_path)==copied_observations
+    assert isolated.post('/api/studio/projects/'+response.json()['project_id']+'/restore-channel-research',json={}).json()['restored'] is False
     source_copy=studio.read_json(project/'artifacts/channel_research_snapshot.json')
     copied=studio.read_json(project/'artifacts/channel_research_snapshot.json')
     copied['report']['publications'][0]['viewCount']=999
