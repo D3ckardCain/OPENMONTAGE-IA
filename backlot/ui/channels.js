@@ -250,3 +250,22 @@ observationForm.onsubmit=async event=>{
   $('observation-load').click();
  }catch(error){observationBox.textContent=error.message;}
 };
+
+const performanceForm=$('performance-form'),performanceBox=$('performance-result');
+function showPerformance(batch){
+ const box=element('div','','scope');box.append(element('h3',batch.row_total+' filas · '+batch.imported_at_utc),element('p',batch.source+' · SHA-256 '+batch.sha256));
+ for(const row of batch.rows)box.append(element('p',row.video_id+' · '+row.period_start+' a '+row.period_end+' · impresiones '+format(row.impressions)+' · clics '+format(row.clicks)+' · vistas '+format(row.views)+' · clics/impresiones '+format(row.clicks_per_impression_percent)+' % · duración media '+format(row.average_view_duration_seconds)+' s · porcentaje medio visto '+format(row.average_watch_percent)+' %'));
+ if(batch.row_total>batch.rows.length)box.append(element('p','Página '+batch.offset+'–'+(batch.offset+batch.rows.length)+' de '+batch.row_total+' filas.'));
+ if(batch.row_total){const first=element('button',batch.rows.length?'Volver a la primera página':'Ver filas','secondary');first.type='button';first.onclick=()=>loadPerformancePage(batch.id,0,box);box.append(first);}
+ if(batch.next_offset!==null){const next=element('button','Siguientes filas','secondary');next.type='button';next.onclick=()=>loadPerformancePage(batch.id,batch.next_offset,box);box.append(next);}
+ box.append(element('p',batch.limits));return box;
+}
+async function loadPerformancePage(id,offset,box){try{const response=await fetch('/api/research/channel-performance/'+encodeURIComponent(id)+'?offset='+offset+'&limit=20');const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo leer la página');box.replaceWith(showPerformance(result));}catch(error){performanceBox.append(element('p',error.message));}}
+performanceForm.onsubmit=async event=>{
+ event.preventDefault();try{const file=performanceForm.elements.namedItem('csv').files[0];if(!file)throw Error('Selecciona un CSV');if(file.size>200000)throw Error('Archivo demasiado grande (máximo 200 KB)');
+ const response=await fetch('/api/research/channel-performance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv_text:await file.text()})});
+ const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo importar');performanceBox.replaceChildren(showPerformance(result));
+ }catch(error){performanceBox.replaceChildren(element('p',error.message));}
+};
+async function loadPerformanceImports(offset=0){try{const response=await fetch('/api/research/channel-performance?offset='+offset+'&limit=10');const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo leer');performanceBox.replaceChildren(element('p',result.total+' importaciones locales · página desde '+offset+'.'));for(const batch of result.imports)performanceBox.append(showPerformance(batch));if(offset>0){const previous=element('button','Importaciones anteriores','secondary');previous.onclick=()=>loadPerformanceImports(Math.max(0,offset-10));performanceBox.append(previous);}if(result.next_offset!==null){const next=element('button','Más importaciones','secondary');next.onclick=()=>loadPerformanceImports(result.next_offset);performanceBox.append(next);}}catch(error){performanceBox.replaceChildren(element('p',error.message));}}
+$('performance-load').onclick=()=>loadPerformanceImports();

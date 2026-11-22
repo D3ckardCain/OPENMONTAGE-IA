@@ -3,7 +3,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from fastapi.responses import FileResponse, JSONResponse
 from tools.research.youtube_channel_search import YouTubeChannelSearch
 from tools.research.youtube_channel_batch import YouTubeChannelBatch
@@ -179,6 +179,27 @@ def create_channel_router():
         from lib.video_observations import add
         data=await local_body(request,4096)
         try:return JSONResponse(add(data),headers={'Cache-Control':'no-store'})
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
+    @router.post('/api/research/channel-performance')
+    async def import_channel_performance(request:Request):
+        from lib.channel_performance import import_csv
+        data=await local_body(request,250000)
+        if set(data)!={'csv_text'}:raise HTTPException(400,'Indica solo csv_text')
+        try:return JSONResponse(import_csv(data['csv_text']),headers={'Cache-Control':'no-store'})
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
+    @router.get('/api/research/channel-performance')
+    def channel_performance_list(offset:int=Query(0,ge=0),limit:int=Query(10,ge=1,le=20)):
+        from lib.channel_performance import list_saved
+        try:return JSONResponse(list_saved(offset,limit),headers={'Cache-Control':'no-store'})
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
+    @router.get('/api/research/channel-performance/{identifier}')
+    def channel_performance_page(identifier:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
+        from lib.channel_performance import read,summary
+        try:return JSONResponse(summary(read(identifier),offset,limit),headers={'Cache-Control':'no-store'})
+        except FileNotFoundError as exc:raise HTTPException(404,str(exc))
         except ValueError as exc:raise HTTPException(400,str(exc))
 
     return router
