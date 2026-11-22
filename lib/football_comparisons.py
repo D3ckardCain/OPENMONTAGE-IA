@@ -165,17 +165,20 @@ def display_metrics(report):
 
 def metric_matrix(report):
     """Report all common fields and preserve source-native alternatives."""
+    groups = {metric: group for group, fields in FOOTBALL_METRIC_GROUPS.items() for metric in fields}
+    empty = [{'metric': metric, 'label': FOOTBALL_METRIC_LABELS_ES[metric],
+              'group': groups[metric], 'standard': True, 'values': [None, None],
+              'display_metric': None} for metric in FOOTBALL_STANDARD_METRICS]
     if not report:
-        return []
+        return empty
     report = add_standard_statistics(deepcopy(report))
     records = report.get('records') or report.get('registros') or []
     if len(records) != 2:
-        return []
+        return empty
     standards = [row.get('standard_statistics', {}) for row in records]
     common = display_metrics(report)
     matrix = []
     mapped = set()
-    groups = {metric: group for group, fields in FOOTBALL_METRIC_GROUPS.items() for metric in fields}
     for metric in FOOTBALL_STANDARD_METRICS:
         values = [row.get(metric) for row in standards]
         keys = {entry['source_metric'] for entry in values if entry}

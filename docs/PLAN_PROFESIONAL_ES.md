@@ -37,6 +37,8 @@ Para FIFA, UEFA y J.League, una cifra ausente en una métrica no impide escoger 
 
 La matriz común muestra las 54 métricas con nombres en español y grupos de participación, ataque, creación, defensa, portería, disciplina y físico para todas las ediciones. Las métricas propias de una fuente aparecen al final. «Sin dato» significa que esa fuente no aportó un valor verificable para ese jugador y alcance; no equivale a cero.
 
+La consulta del agente conserva esa misma matriz de 54 campos incluso cuando una fuente no responde o no devuelve dos jugadores. En tal caso todas las cifras quedan ausentes, se conserva el error en la sección y no hay informe exportable. La presencia del campo común no acredita que la fuente publique esa métrica.
+
 Antes de ofrecer una postal o clip, la mesa compara la competición, la edición y la fase devueltas por la fuente con la opción elegida. Si difieren, descarta el informe y muestra el error de alcance sin emitir token de exportación. Para UEFA usa `seasonYear` y `phase`; para FIFA comprueba los IDs de competición y temporada y el alcance publicado.
 
 Después de la vista previa, «Descargar expediente JSON» reúne el informe firmado durante la sesión, la matriz completa, la selección de hasta seis métricas y las cifras y URLs usadas para cada jugador. Incluye marca de tiempo UTC y checksum SHA-256 para detectar cambios accidentales en el archivo. «Guardar selección en proyecto» archiva cada revisión distinta sin sobrescribir las anteriores y crea un índice de la última para el agente productor. No certifica derechos comerciales ni sustituye la revisión editorial. Sigue pendiente asociar el expediente al render final y a cada versión en español e inglés.

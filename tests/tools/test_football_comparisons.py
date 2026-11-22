@@ -12,6 +12,21 @@ def test_all_standard_metrics_have_a_shared_spanish_label_and_group():
     assert set().union(*(set(fields) for fields in FOOTBALL_METRIC_GROUPS.values())) == set(FOOTBALL_STANDARD_METRICS)
 
 
+def test_failed_source_keeps_the_same_metric_schema_without_inventing_values():
+    from lib.football_comparisons import metric_matrix
+    from lib.sports_sources import FOOTBALL_STANDARD_METRICS
+    def unavailable(connector, args):
+        return {'success': False, 'error': 'La fuente no respondió'}
+    result = collect('competition', [{'connector': 'official_mls_live',
+                      'inputs': {'season': 2025, 'names': ['A', 'B']}}], unavailable)
+    section = result['sections'][0]
+    assert section['report'] is None and section['errors'] == ['La fuente no respondió']
+    assert [row['metric'] for row in section['metric_matrix']] == list(FOOTBALL_STANDARD_METRICS)
+    assert section['metric_matrix'] == metric_matrix(None)
+    assert all(row['values'] == [None, None] and row['display_metric'] is None
+               for row in section['metric_matrix'])
+
+
 def test_premier_desk_preserves_matchweek_and_source(monkeypatch):
     from lib.world_cup_edition_desk import compare_edition
     from tools.football.official_premier import OfficialPremier, URL
