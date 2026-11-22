@@ -81,7 +81,7 @@ def save_to_project(project_id, report, metrics):
     return {'selection': index, 'duplicate': duplicate}
 
 
-def latest_for_agent(project_id):
+def latest_for_agent(project_id, include_report=False):
     from lib import production_studio as studio
 
     project = studio.project_path(project_id)
@@ -108,8 +108,13 @@ def latest_for_agent(project_id):
     if (hashlib.sha256(canonical).hexdigest() != dossier.get('sha256')
             or dossier['sha256'] != index.get('sha256')):
         raise ValueError('El expediente seleccionado cambió')
-    return {'available': True, 'status': dossier['status'], 'project_id': project_id,
+    result = {'available': True, 'status': dossier['status'], 'project_id': project_id,
             'selection_id': selection_id, 'dossier_path': relative,
             'selected_metrics': dossier['selected_metrics'],
             'selected_evidence': dossier['selected_evidence'], 'scope': dossier['scope'],
             'source': dossier['source'], 'sha256': dossier['sha256']}
+    if include_report:
+        # Revalidate the exact archived report before offering it to an exporter.
+        render(dossier['report'], dossier['selected_metrics'])
+        result['report'] = dossier['report']
+    return result

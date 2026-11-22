@@ -38,7 +38,7 @@ TOOLS=[
  descriptor('sports_sources','Localiza fuentes oficiales por deporte y región para comparativas y tarjetas. No contiene estadísticas ni certifica conectores pendientes.',{'sport':{'enum':['football','boxing','baseball']},'region':{'enum':['world','europe','americas','asia','africa','arab','oceania']}}),
  descriptor('football_comparison','Reúne todas las métricas publicadas de dos jugadores por fuente y edición. En modo player consulta las eliminatorias verificables en secciones aparte. Presenta los datos y espera la selección explícita del usuario antes de exportar.',FOOTBALL_COMPARISON_PROPERTIES,['scope','sources']),
  descriptor('select_football_comparison_metrics','Valida la selección explícita del usuario y prepara los datos para sports_card_svg o sports_card_video.',{'comparison':{'type':'object'},'section':{'type':'integer','minimum':0},'metrics':{'type':'array','minItems':1,'maxItems':6,'uniqueItems':True,'items':{'type':'string'}}},['comparison','section','metrics']),
- descriptor('football_saved_selection','Lee la última selección deportiva guardada por el usuario en este proyecto, con cifras y fuentes verificadas. La vista previa no es autorización para publicar.'),
+ descriptor('football_saved_selection','Lee la última selección deportiva guardada. Solicita include_report=true para obtener el informe completo listo para sports_card_svg o sports_card_video; puede ser grande. La vista previa no autoriza publicar.',{'include_report':{'type':'boolean'}}),
  descriptor('world_cup_2022_round','Consulta por ronda de Qatar 2022 los partidos jugados, goles y tiros de dos jugadores con datos de StatsBomb para investigación. Sus términos excluyen uso comercial y este informe queda fuera de los exportadores.',WORLD_CUP_ROUND_PROPERTIES,['round','players']),
  descriptor('world_cup_2022_round_goals','Compara goles acreditados en una ronda de Qatar 2022 con OpenFootball. Presenta las cifras y espera la selección del usuario antes de exportar.',WORLD_CUP_ROUND_PROPERTIES,['round','players']),
  descriptor('select_round_research_metrics','Selecciona cifras de Qatar 2022 para revisar en pantalla. Disponible para investigación con StatsBomb.',{'report':{'type':'object'},'metrics':{'type':'array','minItems':1,'maxItems':3,'uniqueItems':True,'items':{'enum':['matches_played','goals','shots']}}},['report','metrics']),
@@ -163,7 +163,7 @@ class LocalAgent:
             return select(**args)
         if name=='football_saved_selection':
             from lib.football_comparison_dossier import latest_for_agent
-            return latest_for_agent(self.pid)
+            return latest_for_agent(self.pid, args.get('include_report', False))
         if name=='world_cup_2022_round':
             from lib.world_cup_rounds import compare
             return compare(**args)

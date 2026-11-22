@@ -377,6 +377,14 @@ def test_qatar_edition_preview_uses_explicit_metrics(isolated, monkeypatch):
     assert len(list(folder.glob('*.json'))) == 2
     assert agent.LocalAgent(pid, chat=lambda *args: None).dispatch(
         'football_saved_selection', {})['selected_metrics'] == ['goals']
+    complete = agent.LocalAgent(pid, chat=lambda *args: None).dispatch(
+        'football_saved_selection', {'include_report': True})
+    assert complete['report'] == report
+    assert complete['selected_metrics'] == ['goals']
+    assert 'report' not in agent.LocalAgent(pid, chat=lambda *args: None).dispatch(
+        'football_saved_selection', {})
+    from tools.graphics.sports_card import render
+    assert 'Goles' in render(complete['report'], complete['selected_metrics'])
     with pytest.raises(ValueError, match='reservado'):
         agent.LocalAgent(pid, chat=lambda *args: None).dispatch('write_artifact', {
             'name': 'football_comparison_selection', 'data': {}})
