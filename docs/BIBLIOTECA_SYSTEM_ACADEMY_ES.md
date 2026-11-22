@@ -26,6 +26,8 @@ Desde un expediente guardado se pueden seleccionar de uno a cinco videos como re
 
 El agente local dispone de `saved_channel_evidence` para leer ese expediente y, opcionalmente, la propuesta vinculada. La herramienta exige IDs exactos, comprueba integridad y devuelve las publicaciones en páginas de hasta 50 con `next_offset`. El encargo del estudio incluye los IDs para solicitarla. Es lectura local de costo cero: no consulta otra vez YouTube, no incorpora los cálculos de vidIQ y conserva la advertencia sobre cobertura, fecha y revisiones pendientes.
 
+Al crear una producción desde una propuesta, el estudio valida de nuevo IDs, hash y referencia elegida, guarda el vínculo estructurado en la solicitud y copia la propuesta como `artifacts/channel_idea_source.json`. La copia permite al agente leer el enfoque y referencias aunque el texto del encargo se edite; el expediente completo se consulta por la herramienta local con su ID. Crear el proyecto no aprueba las afirmaciones ni las licencias del material.
+
 ### Observación puntual con vidIQ en Edge
 
 El 22 de noviembre de 2026 se revisó [este video de Edwin Arenas](https://www.youtube.com/watch?v=rd8TQwkQ4zs) con la extensión ya instalada. La ficha visible indicaba **80,1 mil vistas acumuladas**, **21 VPH**, **2,7 % Engagement**, **19,7× Outlier** y **40,3/100 puntuación SEO**. También mostraba etiquetas del video y canal y una gráfica histórica de vistas. Son valores mostrados por vidIQ en ese momento; VPH y puntuaciones son cálculos del proveedor y no equivalen a CTR, retención, ingresos ni crecimiento certificado del canal. La propia interfaz reservaba ciertas etiquetas y opciones para planes de pago.

@@ -28,6 +28,28 @@ def test_create_state_and_policy(isolated):
     assert 'De una idea a un video' in isolated.get('/studio').text
 
 
+def test_project_copies_verified_research_idea_link(isolated):
+    from lib.channel_dossiers import save
+    from lib.channel_ideas import create
+    channel='UC'+'a'*22
+    source=save({'source':'YouTube Data API','channel_id':channel,'retrieved_at_utc':'2026-11-22T00:00:00Z',
+                 'since_utc':'2026-10-23T00:00:00Z','cutoff_at_utc':'2026-11-22T00:00:00Z',
+                 'complete_period':False,'publications':[{'id':'abcdefghijk','title':'Otro video','viewCount':100}]})
+    idea=create({'channel_id':channel,'snapshot_id':source['id'],'video_ids':['abcdefghijk'],
+                 'title':'Enfoque original para el canal','angle':'Investigar y producir un relato nuevo con hechos y fuentes comprobables.',
+                 'audience':'Creadores','language':'es','format':'long'})
+    payload={'title':idea['title'],'brief':idea['angle'],'pipeline':'animated-explainer','language':'es',
+             'reference':'https://www.youtube.com/watch?v=abcdefghijk','automatic':False,
+             'research_idea':{'channel_id':channel,'snapshot_id':source['id'],'idea_id':idea['id']}}
+    response=isolated.post('/api/studio/projects',json=payload)
+    assert response.status_code==200,response.text
+    project=studio.project_path(response.json()['project_id'])
+    assert studio.read_json(project/'artifacts/channel_idea_source.json')['snapshot_sha256']==source['report_sha256']
+    assert studio.read_json(project/'production_request.json')['research_idea']==payload['research_idea']
+    bad={**payload,'reference':'https://www.youtube.com/watch?v=bbbbbbbbbbb'}
+    assert isolated.post('/api/studio/projects',json=bad).status_code==400
+
+
 def test_project_and_final_catalog_label_verification_before_editorial_revision(isolated):
     from lib.final_catalog import catalog
     pid=project();path=studio.project_path(pid)
