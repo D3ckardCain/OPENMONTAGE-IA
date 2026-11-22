@@ -63,3 +63,31 @@ def read_draft(channel_id,idea_id):
     if not item:raise FileNotFoundError('Propuesta no encontrada')
     if item.get('id')!=idea_id or item.get('channel_id')!=channel_id:raise ValueError('Propuesta alterada')
     return item
+
+
+def compare(channel_id,idea_ids):
+    """Compare editorial alternatives without turning historical views into a score."""
+    if (not isinstance(idea_ids,list) or not 2<=len(idea_ids)<=5
+            or len(set(str(i) for i in idea_ids))!=len(idea_ids)):
+        raise ValueError('Selecciona de dos a cinco propuestas distintas')
+    proposals=[]
+    for identifier in idea_ids:
+        idea=read_draft(channel_id,identifier)
+        dossier=read_dossier(channel_id,idea['snapshot_id'])
+        if dossier['report_sha256']!=idea['snapshot_sha256']:
+            raise ValueError('La propuesta no coincide con su expediente')
+        report=dossier['report']
+        proposals.append({'id':idea['id'],'title':idea['title'],'angle':idea['angle'],
+            'audience':idea['audience'],'format':idea['format'],'language':idea['language'],
+            'references':idea['references'],'snapshot_id':idea['snapshot_id'],
+            'snapshot_sha256':idea['snapshot_sha256'],
+            'retrieved_at_utc':report['retrieved_at_utc'],'complete_period':report['complete_period'],
+            'since_utc':report['since_utc'],'cutoff_at_utc':report['cutoff_at_utc'],
+            'fact_review_required':idea['fact_review_required'],
+            'rights_review_required':idea['rights_review_required']})
+    shared=set(ref['id'] for ref in proposals[0]['references'])
+    for proposal in proposals[1:]:shared&={ref['id'] for ref in proposal['references']}
+    return {'channel_id':channel_id,'proposals':proposals,
+        'same_snapshot':len({item['snapshot_id'] for item in proposals})==1,
+        'shared_reference_ids':sorted(shared),
+        'limits':'Comparación editorial de borradores. Las vistas son acumuladas en cada captura, no predicen rendimiento; no hay impresiones, CTR ni retención verificados.'}

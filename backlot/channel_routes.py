@@ -151,6 +151,15 @@ def create_channel_router():
         try:return JSONResponse({'drafts':list_drafts(channel_id)},headers={'Cache-Control':'no-store'})
         except ValueError as exc:raise HTTPException(400,str(exc))
 
+    @router.post('/api/research/channels/ideas/{channel_id}/compare')
+    async def channel_ideas_compare(channel_id:str,request:Request):
+        from lib.channel_ideas import compare
+        data=await local_body(request,2048)
+        if set(data)!={'idea_ids'}:raise HTTPException(400,'Indica solo idea_ids')
+        try:return JSONResponse(compare(channel_id,data['idea_ids']),headers={'Cache-Control':'no-store'})
+        except FileNotFoundError as exc:raise HTTPException(404,str(exc))
+        except (ValueError,TypeError) as exc:raise HTTPException(400,str(exc))
+
     @router.post('/api/research/channels/ideas')
     async def channel_idea_create(request:Request):
         from lib.channel_ideas import create
