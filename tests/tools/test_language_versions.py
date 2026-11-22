@@ -83,7 +83,7 @@ def test_localized_version_preserves_channel_evidence_without_global_registry(so
     assert create_versions('base',['en'])['versions'][0]['status']=='research_changed'
     assert selection_provenance_problem(child)
     from lib import production_agent as agent
-    with pytest.raises(ValueError,match='investigación'):
+    with pytest.raises(ValueError,match='Observaciones del proyecto'):
         agent.start(entry['project_id'])
 
 
