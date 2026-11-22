@@ -63,6 +63,9 @@ def retry_verified_delivery(project_id):
     if not read_config(studio.REPO_ROOT).get('final_outputs_dir'):raise ValueError('Configura el destino de videos finales antes de reintentar la entrega')
     evidence=studio.read_json(project/'render_verification.json',{})
     if evidence.get('status')!='passed':raise ValueError('Falta una verificación técnica aprobada')
+    from lib.editorial_freshness import current as verification_current
+    if not verification_current(evidence,studio.read_json(project/'editorial_reviews.json',[])):
+        raise ValueError('La verificación es anterior a una revisión editorial; verifica el render actualizado')
     receipts={}
     for record in evidence.get('outputs',[]):
         path=Path(record['path']).resolve();path.relative_to((project/'renders').resolve())

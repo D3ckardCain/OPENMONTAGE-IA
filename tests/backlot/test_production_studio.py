@@ -28,6 +28,36 @@ def test_create_state_and_policy(isolated):
     assert 'De una idea a un video' in isolated.get('/studio').text
 
 
+def test_project_and_final_catalog_label_verification_before_editorial_revision(isolated):
+    from lib.final_catalog import catalog
+    pid=project();path=studio.project_path(pid)
+    studio.save_json(path/'render_verification.json',{
+        'status':'passed','finished_at':'2026-11-22T10:00:00+00:00','outputs':[]})
+    studio.save_json(path/'final_delivery.json',{'copied':True,'outputs':[]})
+    studio.save_json(path/'editorial_reviews.json',[
+        {'decision':'revision_requested','stage':'idea','at':'2026-11-22T10:01:00+00:00'}])
+    state=isolated.get('/api/studio/projects/'+pid).json()
+    assert state['render_verification']['status']=='passed'
+    assert state['verification_current'] is False and state['final_copy_current'] is False
+    row=next(row for row in catalog()['projects'] if row['project_id']==pid)
+    assert row['verification_current'] is False and row['final_copy_current'] is False
+
+
+def test_delivery_retry_rejects_verification_before_editorial_revision(isolated,monkeypatch,tmp_path):
+    from lib import final_delivery
+    from lib.checkpoint import get_pipeline_stages
+    pid=project();path=studio.project_path(pid)
+    req=studio.read_json(path/'production_request.json')
+    monkeypatch.setattr('lib.checkpoint.get_completed_stages',lambda *args:get_pipeline_stages(req['pipeline']))
+    monkeypatch.setattr(final_delivery,'read_config',lambda *args:{'final_outputs_dir':str(tmp_path)})
+    studio.save_json(path/'render_verification.json',{
+        'status':'passed','finished_at':'2026-11-22T10:00:00+00:00'})
+    studio.save_json(path/'editorial_reviews.json',[
+        {'decision':'revision_requested','at':'2026-11-22T10:01:00+00:00'}])
+    with pytest.raises(ValueError,match='anterior a una revisión editorial'):
+        final_delivery.retry_verified_delivery(pid)
+
+
 @pytest.mark.parametrize('reference,expected',[
     ('https://youtu.be/abcdefghijk?feature=share','https://www.youtube.com/watch?v=abcdefghijk'),
     ('https://www.youtube.com/shorts/abcdefghijk','https://www.youtube.com/watch?v=abcdefghijk'),
