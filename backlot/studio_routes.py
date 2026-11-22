@@ -78,6 +78,10 @@ def create_studio_router():
     def final_outputs_catalog():
         from lib.final_catalog import catalog
         return invoke(catalog)
+    @router.get('/api/studio/finals/{pid}/integrity')
+    def final_integrity(pid:str):
+        from lib.final_integrity import inspect
+        return invoke(inspect,pid)
     @router.get('/api/studio/runtime')
     async def runtime():return await asyncio.to_thread(studio.runtime_status)
     @router.post('/api/studio/settings')
