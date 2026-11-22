@@ -82,7 +82,7 @@ def test_register_and_approve_existing_local_media(planned,monkeypatch):
     (project/'assets').mkdir()
     Image.new('RGB',(64,64),'blue').save(project/'assets/s01.png')
     (project/'assets/s01.mp4').write_bytes(b'example-video-bytes')
-    monkeypatch.setattr(executables,'executable',lambda name:'ffprobe')
+    monkeypatch.setattr(executables,'require_media',lambda name:'ffprobe')
     monkeypatch.setattr(batch.subprocess,'run',lambda *args,**kwargs:SimpleNamespace(returncode=0,stdout='{"streams":[{"codec_type":"video","width":64,"height":64}],"format":{"duration":"5.0"}}'))
     image=record_media('demo',{'scene_id':'s01','kind':'image','relative_path':'assets/s01.png'})
     assert image['scene']['status']=='image_ready'

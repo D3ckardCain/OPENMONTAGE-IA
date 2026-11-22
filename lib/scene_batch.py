@@ -127,8 +127,8 @@ def _media(project,relative,kind):
             image.verify()
     else:
         if path.suffix.lower() not in ('.mp4','.webm','.mov'):raise ValueError('Formato de video inválido')
-        from lib.media_executables import executable
-        probe=subprocess.run([executable('ffprobe'),'-v','error','-show_entries','stream=codec_type,width,height:format=duration','-of','json',str(path)],capture_output=True,text=True,timeout=30)
+        from lib.media_executables import require_media
+        probe=subprocess.run([require_media('ffprobe'),'-v','error','-show_entries','stream=codec_type,width,height:format=duration','-of','json',str(path)],capture_output=True,text=True,timeout=30)
         if probe.returncode:raise ValueError('Video no reconocido por ffprobe')
         details=json.loads(probe.stdout)
         streams=[s for s in details.get('streams',[]) if s.get('codec_type')=='video']
