@@ -1,4 +1,4 @@
-from lib.editorial_freshness import current
+from lib.editorial_freshness import current,delivery_current
 
 
 def test_later_editorial_revision_supersedes_saved_render_verification():
@@ -13,3 +13,15 @@ def test_later_editorial_revision_supersedes_saved_render_verification():
 def test_no_revision_keeps_saved_technical_result_current():
     assert current({'status':'passed'},[]) is True
     assert current({'status':'failed'},[]) is False
+
+
+def test_final_copy_must_match_verified_source_and_follow_verification():
+    verification={'status':'passed','finished_at':'2026-11-22T10:00:00+00:00',
+                  'outputs':[{'path':'/project/renders/final.mp4','sha256':'a'*64}]}
+    delivery={'copied':True,'delivered_at':'2026-11-22T10:01:00+00:00',
+              'outputs':[{'source':'/project/renders/final.mp4','sha256':'a'*64}]}
+    assert delivery_current(verification,delivery,[]) is True
+    assert delivery_current(verification,{**delivery,'outputs':[{'source':'/project/renders/final.mp4','sha256':'b'*64}]},[]) is False
+    assert delivery_current(verification,{**delivery,'delivered_at':'2026-11-22T09:59:00+00:00'},[]) is False
+    assert delivery_current(verification,{**delivery,'outputs':[]},[]) is False
+    assert delivery_current(verification,delivery,[{'decision':'revision_requested','at':'2026-11-22T10:02:00+00:00'}]) is False

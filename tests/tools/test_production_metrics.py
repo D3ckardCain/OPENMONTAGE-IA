@@ -93,9 +93,13 @@ def test_pilot_aggregates_exclude_other_queue_projects(tmp_path,monkeypatch):
     for pid in ids+['outside']:
         studio.save_json(studio.PROJECTS_DIR/pid/'production_request.json',{})
         if pid!='pilot-9':
-            studio.save_json(studio.PROJECTS_DIR/pid/'render_verification.json',{'status':'passed'})
+            studio.save_json(studio.PROJECTS_DIR/pid/'render_verification.json',{
+                'status':'passed','finished_at':'2026-11-22T10:01:00+00:00',
+                'outputs':[{'path':str(studio.PROJECTS_DIR/pid/'renders/final.mp4'),'sha256':'a'*64}]})
         if pid not in ('pilot-8','pilot-9'):
-            studio.save_json(studio.PROJECTS_DIR/pid/'final_delivery.json',{'copied':True})
+            studio.save_json(studio.PROJECTS_DIR/pid/'final_delivery.json',{
+                'copied':True,'delivered_at':'2026-11-22T10:02:00+00:00',
+                'outputs':[{'source':str(studio.PROJECTS_DIR/pid/'renders/final.mp4'),'sha256':'a'*64}]})
         studio.save_json(studio.PROJECTS_DIR/pid/'resource_usage.json',{
             'host_ram_peak_mb':9000 if pid=='outside' else 1000,
             'gpu_vram_peak_mb':8000 if pid=='outside' else 500,

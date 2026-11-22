@@ -58,6 +58,20 @@ def test_delivery_retry_rejects_verification_before_editorial_revision(isolated,
         final_delivery.retry_verified_delivery(pid)
 
 
+def test_new_verification_does_not_reuse_old_final_copy_receipt(isolated):
+    pid=project();path=studio.project_path(pid)
+    source=str(path/'renders/final.mp4')
+    studio.save_json(path/'render_verification.json',{
+        'status':'passed','finished_at':'2026-11-22T10:02:00+00:00',
+        'outputs':[{'path':source,'sha256':'b'*64}]})
+    studio.save_json(path/'final_delivery.json',{
+        'copied':True,'delivered_at':'2026-11-22T10:01:00+00:00',
+        'outputs':[{'source':source,'sha256':'a'*64}]})
+    state=isolated.get('/api/studio/projects/'+pid).json()
+    assert state['verification_current'] is True
+    assert state['final_copy_current'] is False
+
+
 @pytest.mark.parametrize('reference,expected',[
     ('https://youtu.be/abcdefghijk?feature=share','https://www.youtube.com/watch?v=abcdefghijk'),
     ('https://www.youtube.com/shorts/abcdefghijk','https://www.youtube.com/watch?v=abcdefghijk'),
