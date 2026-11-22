@@ -27,6 +27,46 @@ def test_versions_are_independent_guided_requests_and_repeat_is_reused(source):
     assert len(source)==2
 
 
+def test_without_football_selection_keeps_original_version_fingerprint(source):
+    import hashlib
+    import json
+    request=studio.read_json(studio.project_path('base')/'production_request.json')
+    original={key:request.get(key) for key in ('title','brief','pipeline','reference','language')}
+    fingerprint=hashlib.sha256(json.dumps(original,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    created=create_versions('base',['en'])['versions'][0]
+    ledger=studio.read_json(studio.project_path('base')/'language_versions.json')
+    assert ledger['versions'][fingerprint+':en']['project_id']==created['project_id']
+
+
+def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new_version(source):
+    from lib.football_comparison_dossier import latest_for_agent, save_to_project
+    from tools.football.ligamx import ranking_urls, tournament_scope
+    scope=tournament_scope(('world_cup_2022',2022,'final_tournament'))
+    urls=ranking_urls(('world_cup_2022',2022,'final_tournament'))
+    queries=[{'url':urls[metric],'retrieved_at':'2026-11-22'} for metric in ('goals','shots')]
+    records=[]
+    for name in ('A','B'):
+        facts=[{'metric':metric,'value':value,'entity_id':name,'scope':scope,
+                'source_url':query['url'],'retrieved_at':query['retrieved_at']}
+               for (metric,value),query in zip((('goals',2),('shots',4)),queries)]
+        records.append({'entity_id':name,'identity':{'entity_id':name,'name':name},
+                        'statistics':{'goals':2,'shots':4},'facts':facts})
+    report={'source':'AS','type':'player_comparison','scope':scope,'queries':queries,
+            'records':records,'ready_for_script':True,'failed_metrics':{},'unresolved':[]}
+    first=save_to_project('base',report,['goals'])['selection']
+    en=create_versions('base',['en'])['versions'][0]
+    assert en['source_football_selection']['selection_id']==first['selection_id']
+    inherited=latest_for_agent(en['project_id'],include_report=True)
+    assert inherited['report']==report and inherited['selected_metrics']==['goals']
+    assert create_versions('base',['en'])['versions'][0]['status']=='existing'
+    second=save_to_project('base',report,['shots'])['selection']
+    new=create_versions('base',['en'])['versions'][0]
+    assert new['status']=='created' and new['project_id']!=en['project_id']
+    assert new['source_football_selection']['selection_id']==second['selection_id']
+    assert latest_for_agent(en['project_id'])['selected_metrics']==['goals']
+    assert latest_for_agent(new['project_id'])['selected_metrics']==['shots']
+
+
 @pytest.mark.parametrize('languages',[[],['es'],['en','EN'],['../../bad'],['en']*11,'en'])
 def test_invalid_versions_create_nothing(source,languages):
     with pytest.raises(ValueError):create_versions('base',languages)

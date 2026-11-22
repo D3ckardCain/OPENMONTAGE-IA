@@ -12,12 +12,17 @@ def create_versions(project_id,languages):
     with studio.LOCK:
         source=studio.project_path(project_id)
         request=studio.read_json(source/'production_request.json')
+        from lib.football_comparison_dossier import latest_for_agent, save_to_project
+        selection=latest_for_agent(project_id, include_report=True)
         from lib.reference_language import read as source_language
         confirmed=source_language(project_id)['confirmed_language']
         if confirmed and any(code.lower().split('-')[0]==confirmed.lower().split('-')[0] for code in languages):raise ValueError('Excluye el idioma original confirmado: '+confirmed)
         if any(code.lower()==request['language'].lower() for code in languages):raise ValueError('Elige idiomas distintos del idioma objetivo del proyecto base')
         ledger=studio.read_json(source/'language_versions.json',{'versions':{}})
-        fingerprint=hashlib.sha256(json.dumps({key:request.get(key) for key in ('title','brief','pipeline','reference','language')},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+        fingerprint_data={key:request.get(key) for key in ('title','brief','pipeline','reference','language')}
+        if selection['available']:
+            fingerprint_data['football_selection_id']=selection['selection_id']
+        fingerprint=hashlib.sha256(json.dumps(fingerprint_data,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
         results=[]
         for language in languages:
             key=fingerprint+':'+language.lower()
@@ -33,7 +38,14 @@ def create_versions(project_id,languages):
             try:
                 created=studio.create_production({'title':(request['title'][:140]+' · '+language)[:150],
                     'brief':brief,'pipeline':request['pipeline'],'language':language,'reference':request.get('reference',''),'automatic':False})
+                if selection['available']:
+                    copied=save_to_project(created['project_id'], selection['report'], selection['selected_metrics'])
+                    if copied['selection']['selection_id']!=selection['selection_id']:
+                        raise ValueError('La selección de la versión no coincide con la original')
                 entry={'project_id':created['project_id'],'language':language,'created_at':studio.now()}
+                if selection['available']:
+                    entry['source_football_selection']={'project_id':project_id,
+                        'selection_id':selection['selection_id'],'sha256':selection['sha256']}
                 ledger['versions'][key]=entry
                 studio.save_json(source/'language_versions.json',ledger)
                 results.append({**entry,'status':'created'})
