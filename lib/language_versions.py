@@ -48,6 +48,8 @@ def create_versions(project_id,languages):
                     copied=save_to_project(created['project_id'], selection['report'], selection['selected_metrics'])
                     if copied['selection']['selection_id']!=selection['selection_id']:
                         raise ValueError('La selección de la versión no coincide con la original')
+                    studio.save_json(studio.project_path(created['project_id'])/'artifacts/source_football_selection.json',
+                        {'project_id':project_id,'selection_id':selection['selection_id'],'sha256':selection['sha256']})
                 entry={'project_id':created['project_id'],'language':language,'created_at':studio.now()}
                 if selection['available']:
                     entry['source_football_selection']={'project_id':project_id,
@@ -60,6 +62,23 @@ def create_versions(project_id,languages):
                 if created:failure['project_id']=created['project_id'];failure['message']+='; el proyecto se creó pero no se pudo registrar: revísalo antes de reintentar'
                 results.append(failure);break
     return {'versions':results,'generation_started':False,'media_copied':False,'automatic_approval':False}
+
+
+def selection_provenance_problem(project):
+    """Check a localized project's own selection against its creation snapshot."""
+    marker=project/'artifacts/source_football_selection.json'
+    if not marker.exists() and not marker.is_symlink():return None
+    if marker.is_symlink():return 'Procedencia deportiva inválida; revisa la versión'
+    from lib.football_comparison_dossier import latest_for_agent
+    try:
+        original=studio.read_json(marker)
+        child=latest_for_agent(project.name)
+        if (not isinstance(original,dict) or not child['available'] or
+                child['selection_id']!=original.get('selection_id')):
+            return 'La selección deportiva de la versión cambió; revisa el proyecto antes de producir'
+    except (OSError,ValueError,KeyError,TypeError):
+        return 'No se pudo validar la selección deportiva de esta versión'
+    return None
 
 
 def list_versions(project_id):

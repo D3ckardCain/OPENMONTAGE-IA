@@ -6,6 +6,7 @@ from lib.language_versions import create_versions
 @pytest.fixture
 def source(tmp_path,monkeypatch):
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
+    monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
     studio.save_json(tmp_path/'base/production_request.json',{'title':'Tema original','brief':'Investigar el tema','pipeline':'animated-explainer','language':'es','reference':'https://example.org','automatic':True})
     captured=[]
     def create(data):
@@ -38,7 +39,7 @@ def test_without_football_selection_keeps_original_version_fingerprint(source):
     assert ledger['versions'][fingerprint+':en']['project_id']==created['project_id']
 
 
-def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new_version(source):
+def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new_version(source,monkeypatch):
     from lib.football_comparison_dossier import latest_for_agent, save_to_project
     from tools.football.ligamx import ranking_urls, tournament_scope
     scope=tournament_scope(('world_cup_2022',2022,'final_tournament'))
@@ -70,6 +71,13 @@ def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new
     save_to_project(en['project_id'],report,['shots'])
     changed=next(row for row in list_versions('base')['versions'] if row['project_id']==en['project_id'])
     assert changed['status']=='selection_changed' and changed['can_enqueue'] is False
+    from lib import production_queue as queue
+    monkeypatch.setattr(queue,'WORKER',None)
+    queue.enqueue(en['project_id'])
+    inspected=queue.inspect()
+    assert any('selección deportiva' in problem for problem in inspected['items'][0]['problems'])
+    with pytest.raises(ValueError,match='selección deportiva'):
+        queue.start()
     assert create_versions('base',['en'])['versions'][0]['project_id']==new['project_id']
     save_to_project('base',report,['goals'])
     assert create_versions('base',['en'])['versions'][0]['status']=='selection_changed'
