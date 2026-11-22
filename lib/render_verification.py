@@ -29,6 +29,7 @@ def verify(project_id,outputs):
     report_path=project/'render_verification.json'
     try:
         if not isinstance(outputs,list) or not outputs:raise ValueError('No hay render_report con salidas')
+        if len(outputs)>16:raise ValueError('Se admiten hasta 16 salidas por verificación y entrega')
         selected = football_selection(project_id)
         report['declared_outputs_sha256']=declarations_digest(outputs)
         probe=executable('ffprobe');decoder=executable('ffmpeg');verified=[];seen=set()

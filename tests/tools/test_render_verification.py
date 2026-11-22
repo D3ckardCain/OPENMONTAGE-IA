@@ -95,6 +95,14 @@ def test_decode_failure_preserves_render_and_failure_evidence(render,monkeypatch
     assert studio.read_json(project/'render_verification.json')['status']=='failed'
 
 
+def test_more_than_sixteen_renders_fail_before_probing(render,monkeypatch):
+    project,path=render
+    monkeypatch.setattr(checks,'executable',lambda name: (_ for _ in ()).throw(AssertionError('No debe abrir FFmpeg')))
+    with pytest.raises(ValueError,match='hasta 16'):
+        checks.verify('one',[{'path':str(path)} for _ in range(17)])
+    assert studio.read_json(project/'render_verification.json')['status']=='failed'
+
+
 def test_changed_render_cannot_be_copied_as_the_verified_version(render,monkeypatch,tmp_path):
     project,path=render;transport(monkeypatch,metadata())
     verified=checks.verify('one',[{'path':str(path)}]);path.write_bytes(b'changed after verification')
