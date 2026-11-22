@@ -60,6 +60,11 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert state['channel_research']['complete_period'] is False
     assert state['channel_research']['publication_total']==2
     assert state['channel_research']['vidiq_observation_total']==1
+    publications=isolated.get('/api/studio/channel-research/'+response.json()['project_id']+'?limit=1').json()
+    assert publications['publication_total']==2 and publications['next_offset']==1
+    manual=isolated.get('/api/studio/vidiq-observations/'+response.json()['project_id']+'?limit=1').json()
+    assert manual['observation_total']==1 and manual['observations'][0]['video_id']=='abcdefghijk'
+    assert isolated.get('/api/studio/channel-research/'+response.json()['project_id']+'?limit=51').status_code==422
     worker=agent.LocalAgent(response.json()['project_id'])
     first=worker.dispatch('project_channel_evidence',{'limit':1})
     assert first['publication_total']==2 and first['next_offset']==1
@@ -74,6 +79,7 @@ def test_project_copies_verified_research_idea_link(isolated):
     with pytest.raises(ValueError,match='alteradas'):
         worker.dispatch('project_vidiq_observations',{})
     assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['channel_research']['status']=='invalid'
+    assert isolated.get('/api/studio/vidiq-observations/'+response.json()['project_id']).status_code==400
     with pytest.raises(ValueError,match='alteradas'):
         agent.start(response.json()['project_id'])
     studio.save_json(observation_path,copied_observations)

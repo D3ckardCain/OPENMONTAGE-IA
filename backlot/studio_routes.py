@@ -5,7 +5,7 @@ import hmac
 import secrets
 from tempfile import TemporaryDirectory
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from fastapi.responses import HTMLResponse,FileResponse
 from starlette.background import BackgroundTask
 from lib import production_studio as studio
@@ -211,6 +211,16 @@ def create_studio_router():
         if state['job'].get('status')=='running' and not active:
             state['job'].update(status='interrupted',message='El proceso anterior terminó. Puedes reanudar desde los artefactos guardados.')
         return state
+    @router.get('/api/studio/channel-research/{pid}')
+    def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
+        from lib.project_channel_evidence import page
+        path=invoke(studio.project_path,pid)
+        return invoke(page,path,studio.read_json(path/'production_request.json'),offset,limit)
+    @router.get('/api/studio/vidiq-observations/{pid}')
+    def vidiq_observations_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
+        from lib.project_video_observations import page
+        path=invoke(studio.project_path,pid)
+        return invoke(page,path,studio.read_json(path/'production_request.json'),offset,limit)
     @router.post('/api/studio/projects/{pid}/restore-channel-research')
     async def restore_channel_research(pid:str,request:Request):
         if await body(request):raise HTTPException(400,'Esta acción no admite parámetros')
