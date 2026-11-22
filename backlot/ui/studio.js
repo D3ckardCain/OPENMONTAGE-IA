@@ -354,7 +354,7 @@ roundForm.addEventListener('submit', async event => {
     details.append(node('summary', 'Ver ' + metric_matrix.length + ' métricas comunes sin cifra verificada'));
     const table = document.createElement('table');
     const heading = table.createTHead().insertRow();
-    for (const label of ['Métrica', 'Jugador 1', 'Jugador 2']) {
+    for (const label of ['Métrica', 'Jugador 1', 'Jugador 2', 'Estado']) {
      const cell = node('th', label); cell.scope = 'col'; heading.append(cell);
     }
     const rows = table.createTBody();
@@ -362,6 +362,7 @@ roundForm.addEventListener('submit', async event => {
      const row = rows.insertRow();
      row.append(node('td', metric.label || metric.metric));
      for (const fact of metric.values) row.append(node('td', fact?.value ?? 'Sin dato'));
+     row.append(node('td', 'Sin cifra verificada'));
     }
     const wrap = node('div', ''); wrap.className = 'football-table-wrap';
     wrap.append(table); details.append(wrap); roundResult.append(details);
@@ -373,11 +374,17 @@ roundForm.addEventListener('submit', async event => {
   const supported = new Set(display_metrics);
   const choices = [];
   if (metric_matrix) {
+   const states = {both_players:'Dos jugadores', one_player:'Un jugador', not_observed:'Sin cifra'};
+   const totals = {both_players:0, one_player:0, not_observed:0};
+   for (const metric of metric_matrix) if (metric.standard && metric.availability in totals) totals[metric.availability]++;
+   roundResult.append(node('p', 'Métricas comunes verificadas en esta consulta: '
+    + totals.both_players + ' para ambos, ' + totals.one_player + ' para uno, '
+    + totals.not_observed + ' sin cifra. Las métricas propias de la fuente aparecen al final.'));
    const wrap = node('div', '');
    wrap.className = 'football-table-wrap';
    const table = document.createElement('table');
    const header = document.createElement('tr');
-   for (const label of ['Métrica', ...report.records.map(row => row.identity.name), 'Mostrar']) {
+   for (const label of ['Métrica', ...report.records.map(row => row.identity.name), 'Estado', 'Mostrar']) {
     const cell = node('th', label); cell.scope = 'col'; header.append(cell);
    }
    table.createTHead().append(header);
@@ -391,7 +398,7 @@ roundForm.addEventListener('submit', async event => {
     if (group !== currentGroup) {
      const heading = rows.insertRow();
      const cell = node('th', groupLabels[group] || group);
-     cell.colSpan = 4;
+     cell.colSpan = 5;
      cell.scope = 'rowgroup';
      heading.append(cell);
      currentGroup = group;
@@ -404,6 +411,7 @@ roundForm.addEventListener('submit', async event => {
      cell.textContent = fact?.value ?? 'Sin dato';
      if (fact?.source_url) cell.append(' · ', link('Fuente', fact.source_url));
     }
+    row.append(node('td', states[metric.availability] || 'Sin verificar'));
     const cell = row.insertCell();
     if (supported.has(metric.display_metric)) {
      const checkbox = document.createElement('input');
