@@ -181,6 +181,20 @@ def create_studio_router():
     async def scene_audio_preview_start(pid:str,request:Request):
         from lib.scene_audio_preview import start
         return invoke(start,pid,await body(request))
+    @router.post('/api/studio/scene-subtitles-inspect/{pid}')
+    async def scene_subtitles_inspect(pid:str,request:Request):
+        from lib.scene_subtitles import inspect
+        data=await body(request)
+        if set(data)!={'srt_path'}:raise HTTPException(400,'Indica el archivo SRT')
+        return invoke(inspect,pid,data['srt_path'])
+    @router.get('/api/studio/scene-subtitles/{pid}')
+    def scene_subtitles_state(pid:str):
+        from lib.scene_subtitles import state
+        return invoke(state,pid)
+    @router.post('/api/studio/scene-subtitles/{pid}')
+    async def scene_subtitles_start(pid:str,request:Request):
+        from lib.scene_subtitles import start
+        return invoke(start,pid,await body(request))
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)

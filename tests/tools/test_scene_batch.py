@@ -243,3 +243,28 @@ def test_scene_audio_requires_local_narration_and_finished_video(planned,monkeyp
     client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
     assert client.get('/api/studio/scene-audio-preview/demo').json()['status']=='not_started'
     assert client.post('/api/studio/scene-audio-preview/demo',json={'narration_path':'../voice.wav'}).status_code==400
+
+
+def test_subtitle_cues_reject_overlap_and_out_of_project_paths(planned):
+    from lib.scene_subtitles import parse_srt,_file
+    project,_,_=planned
+    valid='1\n00:00:00,000 --> 00:00:00,400\nHola\n\n2\n00:00:00,400 --> 00:00:00,900\nMundo\n'
+    assert [cue['text'] for cue in parse_srt(valid,1)]==['Hola','Mundo']
+    with pytest.raises(ValueError,match='intervalo'):
+        parse_srt(valid.replace('00:00:00,400 --> 00:00:00,900','00:00:00,300 --> 00:00:00,900'),1)
+    with pytest.raises(ValueError,match='intervalo'):
+        parse_srt(valid,.8)
+    with pytest.raises(ValueError,match='Ruta SRT'):
+        _file(project,'../outside.srt')
+
+
+def test_subtitle_routes_require_audio_montage(planned):
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    project,_,_=planned
+    (project/'assets').mkdir()
+    (project/'assets/subs.srt').write_text('1\n00:00:00,000 --> 00:00:00,500\nHola\n')
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    assert client.get('/api/studio/scene-subtitles/demo').json()['status']=='not_started'
+    assert client.post('/api/studio/scene-subtitles-inspect/demo',json={'srt_path':'assets/subs.srt'}).status_code==400
+    assert client.post('/api/studio/scene-subtitles/demo',json={'srt_path':'assets/subs.srt','language':'spa'}).status_code==400

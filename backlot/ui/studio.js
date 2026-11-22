@@ -577,6 +577,30 @@ roundForm.addEventListener('submit', async event => {
 });
 
 let scenePlan=null,scenePlanProject=null;
+$('#scene-subtitle-inspect').onclick=async()=>{
+ const box=$('#scene-subtitle-result');box.replaceChildren();if(!pid)return;
+ try{const selected=pid,path=$('#scene-subtitle-form').elements.namedItem('srt_path').value.trim();
+  const result=await api('scene-subtitles-inspect/'+encodeURIComponent(selected),{srt_path:path});if(pid!==selected)return;
+  box.append(node('p',result.cue_count+' subtítulos · '+(result.partial?'se muestran los primeros 100':'lista completa')+' · SHA-256 '+result.sha256));
+  for(const cue of result.cues)box.append(node('p',cue.start_seconds.toFixed(2)+'–'+cue.end_seconds.toFixed(2)+' s · '+cue.text));
+ }catch(error){box.append(node('p',error.message));}
+};
+$('#scene-subtitle-form').onsubmit=async event=>{
+ event.preventDefault();if(!pid){notice('Selecciona primero una producción.');return;}
+ const selected=pid,form=event.target;
+ try{const result=await api('scene-subtitles/'+encodeURIComponent(selected),{
+  srt_path:form.elements.namedItem('srt_path').value.trim(),language:form.elements.namedItem('language').value});
+  if(pid===selected)$('#scene-subtitle-result').replaceChildren(node('p','Video con subtítulos iniciado: '+result.attempt+' · '+result.cue_count+' segmentos.'));
+ }catch(error){notice(error.message);}
+};
+$('#scene-subtitle-status').onclick=async()=>{
+ const box=$('#scene-subtitle-result');box.replaceChildren();if(!pid)return;
+ try{const selected=pid,result=await api('scene-subtitles/'+encodeURIComponent(selected));if(pid!==selected)return;
+  box.append(node('p','Estado: '+result.status));if(result.error)box.append(node('p',result.error));
+  if(result.output)box.append(link('Descargar MP4 con pista de subtítulos',result.output.url),
+   link('Descargar SRT editable',result.srt_url),node('p','SHA-256 '+result.output.sha256));
+ }catch(error){box.append(node('p',error.message));}
+};
 $('#scene-audio-form').onsubmit=async event=>{
  event.preventDefault();if(!pid){notice('Selecciona primero una producción.');return;}
  const selected=pid,form=event.target;
