@@ -11,3 +11,5 @@
   height: auto;
   margin-block: 1rem;
 }
+
+#finals-result details,#finals-result p,#finals-result summary{min-width:0;overflow-wrap:anywhere}
