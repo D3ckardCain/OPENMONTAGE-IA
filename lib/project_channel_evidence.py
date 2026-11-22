@@ -28,7 +28,7 @@ def require_valid(path,request):
     from lib.project_channel_performance import verified as verified_performance
     verified_performance(path,request)
     from lib.packaging_options import read as read_packaging
-    packaging=read_packaging(request['project_id'])
+    packaging=read_packaging(path.name)
     receipt=studio.read_json(path/'render_verification.json',{})
     previous=receipt.get('channel_research') if isinstance(receipt,dict) else None
     if (isinstance(previous,dict) and previous.get('packaging_revision')

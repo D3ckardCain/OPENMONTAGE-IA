@@ -29,7 +29,7 @@ def research_index(project):
     try:
         request=studio.read_json(project/'production_request.json')
         from lib.packaging_options import read as read_packaging
-        packaging=read_packaging(request['project_id'])
+        packaging=read_packaging(project.name)
         packaging_revision=packaging['revision']
         if not request.get('research_idea') and not request.get('performance_import_id') and not packaging_revision:return None
         from lib.project_channel_performance import verified as verified_performance
