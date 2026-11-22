@@ -9,6 +9,7 @@ import json
 import math
 import subprocess
 import threading
+import time
 from pathlib import Path
 from urllib.parse import quote
 from jsonschema import validate
@@ -85,6 +86,7 @@ class LocalAgent:
         self.manifest=load_pipeline_readonly(self.request['pipeline'])
         self.config=studio.settings();self._chat=chat;self.registry=registry
         self.cancel=cancel or threading.Event();self.reads=set();self.calls=0
+        self._stage_timer=None;self._timed_stage=None
 
     def event(self,kind,message,**extra):
         with studio.LOCK:
@@ -355,6 +357,11 @@ class LocalAgent:
             for artifact,data in args['artifacts'].items():
                 if artifact!='decision_log':studio.save_json(self.artifact_path(artifact),data)
             self.event('stage',stage+': '+status)
+            if status in ('completed','awaiting_human','failed') and self._timed_stage==stage and self._stage_timer is not None:
+                self.event('stage_timing',stage+': tiempo activo medido',stage=stage,
+                           outcome=status,elapsed_seconds=round(max(0,time.monotonic()-self._stage_timer),3))
+                self._timed_stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+                self._stage_timer=time.monotonic()
             if status=='awaiting_human':raise Pause('awaiting_human','Revisa y aprueba la etapa '+stage+' en el estudio.')
             if status=='failed':raise Pause('blocked',args.get('message') or 'La etapa '+stage+' falló; revisa sus requisitos.')
             return {'checkpoint':str(path),'next_stage':get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])}
@@ -367,6 +374,8 @@ class LocalAgent:
             raise Pause('rendered',args['message']+' Exportación lista; publicación no ejecutada.')
 
     def run(self):
+        self._timed_stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+        self._stage_timer=time.monotonic()
         self.status('running','Agente productor iniciando')
         try:
             if not self._chat:

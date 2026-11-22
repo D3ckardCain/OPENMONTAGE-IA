@@ -131,7 +131,9 @@ def test_export_verification_requires_real_video_stream(isolated,monkeypatch):
 
 def test_guided_checkpoint_waits_and_explicit_approval_resumes(isolated,monkeypatch):
     from tests.contracts.test_phase0_contracts import sample_artifact
+    import time
     pid=studio.create_production({'title':'Aprobaciones','brief':'Video original','pipeline':'hybrid','language':'es','automatic':False})['project_id'];worker=agent.LocalAgent(pid)
+    worker._timed_stage='idea';worker._stage_timer=time.monotonic()-2
     stage=worker.manifest['stages'][0]
     worker.instruction('skills/'+stage['skill']+'.md')
     with pytest.raises(agent.Pause) as pause:
@@ -140,6 +142,10 @@ def test_guided_checkpoint_waits_and_explicit_approval_resumes(isolated,monkeypa
     cp=studio.read_json(studio.project_path(pid)/'checkpoint_idea.json')
     assert cp['status']=='awaiting_human'
     assert not cp['human_approved']
+    timings=[event for event in studio.read_json(studio.project_path(pid)/'job.json')['events']
+             if event['kind']=='stage_timing']
+    assert len(timings)==1 and timings[0]['stage']=='idea'
+    assert timings[0]['outcome']=='awaiting_human' and timings[0]['elapsed_seconds']>=2
     started=[]
     monkeypatch.setattr(agent,'start',lambda p:started.append(p) or {'started':True})
     agent.approve(pid)
