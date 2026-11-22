@@ -173,6 +173,14 @@ def test_editorial_revision_preserves_checkpoint_and_does_not_start_generation(i
     assert studio.read_json(path/'job.json')['status']=='awaiting_input'
     assert list((path/'history').glob('checkpoint_idea_*.json'))
     with pytest.raises(ValueError,match='pendiente'):agent.approve(pid)
+    seen=[]
+    def chat(messages,tools):
+        seen.append(json.loads(messages[1]['content']))
+        return {'content':'Pausar para revisar'}
+    agent.LocalAgent(pid,chat=chat).run()
+    assert seen[0]['next_stage']=='idea'
+    assert seen[0]['pending_editorial_revision']['reason']=='Cambiar el encuadre'
+    assert studio.read_json(path/'job.json')['status']=='awaiting_input'
 
 
 def test_revision_route_rejects_unexpected_fields_and_blank_reason(isolated):

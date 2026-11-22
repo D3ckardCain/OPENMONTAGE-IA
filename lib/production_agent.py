@@ -101,6 +101,18 @@ class LocalAgent:
             job.update(status=status,updated_at=studio.now(),message=message)
             studio.save_json(self.path/'job.json',job)
 
+    def pending_editorial_revision(self):
+        stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+        if not isinstance(stage,str):return None
+        cp=studio.read_json(self.path/('checkpoint_'+stage+'.json'),{})
+        review=cp.get('review',{}) if isinstance(cp,dict) else {}
+        if (cp.get('status')=='failed' and isinstance(review,dict)
+                and review.get('editorial_decision')=='revision_requested'
+                and isinstance(review.get('reason'),str)):
+            return {'stage':stage,'reason':review['reason'],
+                    'instruction':'Corrige esta etapa según el motivo editorial antes de escribir un checkpoint nuevo; conserva la revisión anterior en el historial.'}
+        return None
+
     def chat(self,messages,tools=None):
         if self.cancel.is_set():raise Pause('stopped','Detenido entre acciones; los artefactos ya creados se conservan.')
         if self._chat:return self._chat(messages,tools)
@@ -393,6 +405,7 @@ class LocalAgent:
             messages=[{'role':'system','content':contract+'\n'+guide},
                       {'role':'user','content':json.dumps({'request':self.request,'project_directory':str(self.path),'manifest':self.manifest,
                         'next_stage':get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline']),'user_clarifications':studio.read_json(self.path/'user_clarifications.json',[]),
+                        'pending_editorial_revision':self.pending_editorial_revision(),
                         'source_image':self.dispatch('project_source_image',{}),
                         'reference_analysis':self.dispatch('reference_analysis',{})},ensure_ascii=False)}]
             for _ in range(self.config['max_turns']):
