@@ -13,6 +13,8 @@ def isolated(tmp_path,monkeypatch):
     monkeypatch.setattr(reference_analysis,'ACTIVE',set())
     monkeypatch.setattr(queue,'WORKER',None)
     monkeypatch.setattr(queue,'PAUSE',threading.Event())
+    monkeypatch.setattr(studio,'settings',lambda:{'model':'fixture:latest','ollama_url':'http://127.0.0.1:11434'})
+    monkeypatch.setattr(studio,'local_request',lambda *args,**kwargs:{'models':[{'name':'fixture:latest'}]})
     for pid in ('first','second'):
         studio.save_json(studio.PROJECTS_DIR/pid/'production_request.json',{'title':pid})
         studio.save_json(studio.PROJECTS_DIR/pid/'job.json',{'status':'ready'})
@@ -204,6 +206,23 @@ def test_inspection_is_read_only_and_detects_missing_projects_and_gates(isolated
     assert 'aprobación' in report['items'][0]['problems'][0]
     assert report['items'][1]['problems']
     assert (studio.CONFIG_DIR/'production_queue.json').read_bytes()==before
+
+
+def test_inspection_requires_selected_model_and_handles_offline_ollama(isolated,monkeypatch):
+    from lib import storage_layout
+    monkeypatch.setattr(storage_layout,'readiness',lambda *args:{'ready':True,'problems':[]})
+    queue.enqueue('first')
+    monkeypatch.setattr(studio,'settings',lambda:{'model':'','ollama_url':'http://127.0.0.1:11434'})
+    report=queue.inspect()
+    assert report['ready'] is False and report['model_status']['configured'] is None
+    monkeypatch.setattr(studio,'settings',lambda:{'model':'missing:latest','ollama_url':'http://127.0.0.1:11434'})
+    report=queue.inspect()
+    assert report['ready'] is False and report['model_status']['checked'] is True
+    def offline(*args,**kwargs):raise OSError('offline')
+    monkeypatch.setattr(studio,'local_request',offline)
+    report=queue.inspect()
+    assert report['ready'] is False and report['model_status']['checked'] is False
+    assert report['generation_started'] is False
 
 
 def test_inspection_covers_disks_empty_queue_and_interrupted_records(isolated,monkeypatch):

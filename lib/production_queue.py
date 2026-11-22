@@ -204,7 +204,7 @@ def start():
 
 
 def inspect():
-    """Read-only snapshot, not a model compatibility or generation guarantee."""
+    """Read-only queue, storage and selected Ollama model check."""
     from lib.storage_layout import readiness
     with LOCK:
         value=_load()
@@ -217,6 +217,20 @@ def inspect():
     queue_problems=[]
     if local_task_active:queue_problems.append('Espera a que termine la producción, análisis o entrega local activa')
     if active:queue_problems.append('La cola ya está activa')
+    cfg=studio.settings()
+    model_status={'configured':cfg.get('model') or None,'installed':False,'checked':False}
+    if not cfg.get('model'):
+        queue_problems.append('Selecciona un modelo local de Ollama antes de ejecutar los agentes')
+    else:
+        try:
+            reply=studio.local_request(cfg['ollama_url'],'/api/tags',timeout=3)
+            models=reply.get('models',[]) if isinstance(reply,dict) else []
+            model_status['checked']=True
+            model_status['installed']=any(isinstance(model,dict) and model.get('name')==cfg['model'] for model in models)
+            if not model_status['installed']:
+                queue_problems.append('El modelo seleccionado no aparece instalado en Ollama')
+        except (OSError,ValueError,KeyError,TypeError) as exc:
+            queue_problems.append('Ollama no respondió a la comprobación local del modelo')
     reports=[]
     for item in items:
         problems=[];job_status=None
@@ -233,9 +247,10 @@ def inspect():
         reports.append({'id':item['id'],'title':item['title'],'status':item['status'],
             'job_status':job_status,'problems':problems,'ready':not problems})
     pending=[item for item in reports if item['status']!='completed']
-    return {'ready':bool(pending) and storage['ready'] and not active and not local_task_active and all(item['ready'] for item in pending),
+    return {'ready':bool(pending) and storage['ready'] and not queue_problems and all(item['ready'] for item in pending),
         'worker_active':active,'local_task_active':local_task_active,'problems':queue_problems,'storage':storage,'items':reports,'generation_started':False,
-        'scope':'queue_and_storage_only','note':'Comprobación puntual; no ejecuta modelos, no comprueba su compatibilidad ni garantiza espacio suficiente para el render.'}
+        'model_status':model_status,'scope':'queue_storage_and_selected_local_model',
+        'note':'Comprueba la lista local de modelos instalados; no ejecuta inferencia, no valida compatibilidad del modelo con herramientas ni garantiza espacio suficiente para el render.'}
 
 
 def enqueue_many(project_ids):
