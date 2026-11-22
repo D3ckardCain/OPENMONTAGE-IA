@@ -25,6 +25,7 @@ def catalog(limit=500):
             rows.append({'project_id':project.name,'title':request.get('title',project.name),
                 'delivery_mode':receipt.get('mode','project_renders'),'copied':receipt.get('copied',False),
                 'delivered_at':receipt.get('delivered_at'),'verification_status':verification.get('status','unknown'),
+                'football_selection':verification.get('football_selection') if verification.get('status')=='passed' else None,
                 'outputs':outputs,'studio_url':'/studio?project='+project.name})
         except (OSError,ValueError,KeyError,TypeError) as exc:
             errors.append({'project_id':marker.parent.name,'message':str(exc)[:600]})

@@ -14,12 +14,22 @@ def declarations_digest(outputs):
     return hashlib.sha256(json.dumps(outputs,sort_keys=True,allow_nan=False).encode()).hexdigest()
 
 
+def football_selection(project_id):
+    from lib.football_comparison_dossier import latest_for_agent
+    selected = latest_for_agent(project_id)
+    if not selected['available']:
+        return None
+    return {key: selected[key] for key in ('selection_id', 'sha256', 'dossier_path',
+                                          'selected_metrics', 'scope', 'source', 'status')}
+
+
 def verify(project_id,outputs):
     project=studio.project_path(project_id);report={'status':'running','started_at':studio.now(),
         'outputs':[],'visual_quality_verified':False,'content_accuracy_verified':False,'cost_usd':0}
     report_path=project/'render_verification.json'
     try:
         if not isinstance(outputs,list) or not outputs:raise ValueError('No hay render_report con salidas')
+        selected = football_selection(project_id)
         report['declared_outputs_sha256']=declarations_digest(outputs)
         probe=executable('ffprobe');decoder=executable('ffmpeg');verified=[];seen=set()
         for item in outputs:
@@ -57,7 +67,11 @@ def verify(project_id,outputs):
                 'video_codec':video.get('codec_name'),'audio_streams':len(audio),
                 'bytes':after.st_size,'sha256':checksum,'full_decode_passed':True}
             report['outputs'].append(record);verified.append({**item,'path':str(path),'verified_sha256':checksum})
-        report['status']='passed';report['finished_at']=studio.now();studio.save_json(report_path,report)
+        with studio.LOCK:
+            if football_selection(project_id) != selected:
+                raise ValueError('La selección de fútbol cambió durante la verificación del render')
+            report['football_selection'] = selected
+            report['status']='passed';report['finished_at']=studio.now();studio.save_json(report_path,report)
         return verified
     except Exception as exc:
         report.update(status='failed',error=str(exc)[:1800],finished_at=studio.now());studio.save_json(report_path,report)

@@ -43,6 +43,35 @@ def test_configured_tools_full_decode_and_integrity_receipt(render,monkeypatch):
     report=studio.read_json(project/'render_verification.json')
     assert report['status']=='passed' and report['outputs'][0]['full_decode_passed']
     assert report['visual_quality_verified'] is False and report['content_accuracy_verified'] is False
+    assert report['football_selection'] is None
+
+
+def test_render_receipt_freezes_saved_football_selection(render, monkeypatch):
+    project,path=render;transport(monkeypatch,metadata())
+    selected = {'available': True, 'selection_id': 'a'*64, 'sha256': 'b'*64,
+                'dossier_path': 'artifacts/football_comparisons/'+'a'*64+'.json',
+                'selected_metrics': ['goals'], 'scope': {'competition': 'j1'},
+                'source': 'J.League', 'status': 'selection_previewed'}
+    monkeypatch.setattr('lib.football_comparison_dossier.latest_for_agent',
+                        lambda pid: selected)
+    checks.verify('one',[{'path':str(path)}])
+    receipt=studio.read_json(project/'render_verification.json')
+    assert receipt['football_selection']['selection_id'] == 'a'*64
+    assert receipt['football_selection']['selected_metrics'] == ['goals']
+    assert receipt['content_accuracy_verified'] is False
+
+
+def test_changed_football_selection_blocks_render_receipt(render, monkeypatch):
+    project,path=render;transport(monkeypatch,metadata())
+    calls=iter([{'available': False}, {'available': True, 'selection_id': 'a'*64,
+                'sha256': 'b'*64, 'dossier_path': 'artifacts/football_comparisons/'+'a'*64+'.json',
+                'selected_metrics': ['goals'], 'scope': {}, 'source': 'J.League',
+                'status': 'selection_previewed'}])
+    monkeypatch.setattr('lib.football_comparison_dossier.latest_for_agent',
+                        lambda pid: next(calls))
+    with pytest.raises(ValueError,match='selección de fútbol cambió'):
+        checks.verify('one',[{'path':str(path)}])
+    assert studio.read_json(project/'render_verification.json')['status']=='failed'
 
 
 @pytest.mark.parametrize('duration',['NaN','Infinity','0','-1'])

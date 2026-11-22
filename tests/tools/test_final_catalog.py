@@ -15,10 +15,12 @@ def projects(tmp_path,monkeypatch):
 def test_catalog_reports_saved_delivery_without_rehashing(projects):
     final=projects/'delivered.mp4';final.write_bytes(b'fixture')
     studio.save_json(projects/'first/final_delivery.json',{'copied':True,'mode':'dedicated_final_directory','outputs':[{'path':str(final),'sha256':'saved'}]})
-    studio.save_json(projects/'first/render_verification.json',{'status':'passed'})
+    studio.save_json(projects/'first/render_verification.json',{'status':'passed',
+                     'football_selection':{'selection_id':'a'*64,'selected_metrics':['goals']}})
     report=catalog();row=report['projects'][0]
     assert row['outputs'][0]['available'] is True
     assert row['outputs'][0]['integrity_rechecked'] is False
+    assert row['football_selection']['selection_id'] == 'a'*64
     final.unlink();assert catalog()['projects'][0]['outputs'][0]['available'] is False
     assert report['generation_started'] is False
 
