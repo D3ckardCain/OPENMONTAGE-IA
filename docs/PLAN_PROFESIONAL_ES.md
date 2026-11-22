@@ -1,5 +1,7 @@
 # Plan de OPENMONTAGE‑IA
 
+La revisión de recursos de System Academy y su adaptación local están en [BIBLIOTECA_SYSTEM_ACADEMY_ES.md](BIBLIOTECA_SYSTEM_ACADEMY_ES.md). Su orden de trabajo comienza por subtítulos visibles, análisis de ideas con evidencia y revisión editorial de guiones y miniaturas.
+
 ## Auditoría y punto de partida
 
 En el commit 320bba9 pasaron 57 pruebas de comparativas, exportación y estudio. Una consulta real Messi–Mbappé en Qatar 2022 devolvió 7 y 8 goles y 29 y 21 disparos. La selección produjo un SVG y un segmento H.264 vertical de 720 × 1280 que FFmpeg decodificó completo. El segmento duró dos segundos y se probó sin audio. Chromium quedó bloqueado al arrancar en el entorno de auditoría. Quedan pendientes la validación visual y las pruebas de ComfyUI en la RTX 4060 de 8 GB.

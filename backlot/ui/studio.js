@@ -601,6 +601,21 @@ $('#scene-subtitle-status').onclick=async()=>{
    link('Descargar SRT editable',result.srt_url),node('p','SHA-256 '+result.output.sha256));
  }catch(error){box.append(node('p',error.message));}
 };
+$('#scene-burn-start').onclick=async()=>{
+ if(!pid){notice('Selecciona primero una producción.');return;}
+ const selected=pid,box=$('#scene-burn-result');box.replaceChildren();
+ try{const result=await api('scene-burned-subtitles/'+encodeURIComponent(selected),{});
+  if(pid===selected)box.append(node('p','Exportación visible iniciada: '+result.attempt+' · '+result.cue_count+' segmentos.'));
+ }catch(error){box.append(node('p',error.message));}
+};
+$('#scene-burn-status').onclick=async()=>{
+ const box=$('#scene-burn-result');box.replaceChildren();if(!pid)return;
+ try{const selected=pid,result=await api('scene-burned-subtitles/'+encodeURIComponent(selected));if(pid!==selected)return;
+  box.append(node('p','Estado: '+result.status));if(result.error)box.append(node('p',result.error));
+  if(result.output)box.append(link('Descargar MP4 con subtítulos visibles',result.output.url),
+   node('p','Resolución '+result.resolution.join(' × ')+' · SHA-256 '+result.output.sha256));
+ }catch(error){box.append(node('p',error.message));}
+};
 $('#scene-audio-form').onsubmit=async event=>{
  event.preventDefault();if(!pid){notice('Selecciona primero una producción.');return;}
  const selected=pid,form=event.target;

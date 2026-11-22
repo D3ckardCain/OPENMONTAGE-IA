@@ -195,6 +195,14 @@ def create_studio_router():
     async def scene_subtitles_start(pid:str,request:Request):
         from lib.scene_subtitles import start
         return invoke(start,pid,await body(request))
+    @router.get('/api/studio/scene-burned-subtitles/{pid}')
+    def scene_burned_subtitles_state(pid:str):
+        from lib.scene_burned_subtitles import state
+        return invoke(state,pid)
+    @router.post('/api/studio/scene-burned-subtitles/{pid}')
+    def scene_burned_subtitles_start(pid:str):
+        from lib.scene_burned_subtitles import start
+        return invoke(start,pid)
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)
