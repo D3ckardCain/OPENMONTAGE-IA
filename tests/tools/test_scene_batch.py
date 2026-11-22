@@ -268,3 +268,24 @@ def test_subtitle_routes_require_audio_montage(planned):
     assert client.get('/api/studio/scene-subtitles/demo').json()['status']=='not_started'
     assert client.post('/api/studio/scene-subtitles-inspect/demo',json={'srt_path':'assets/subs.srt'}).status_code==400
     assert client.post('/api/studio/scene-subtitles/demo',json={'srt_path':'assets/subs.srt','language':'spa'}).status_code==400
+
+
+def test_visible_subtitles_require_verified_editable_copy(planned):
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    assert client.get('/api/studio/scene-burned-subtitles/demo').json()['status']=='not_started'
+    result=client.post('/api/studio/scene-burned-subtitles/demo',json={})
+    assert result.status_code==400
+    assert 'Crea primero' in result.json()['detail']
+
+
+def test_visible_subtitle_script_uses_format_specific_margins():
+    from lib.scene_burned_subtitles import _ass
+    cues=[{'start_seconds':0,'end_seconds':1.25,'text':'Hola, mundo\nOtra línea'}]
+    vertical=_ass(cues,720,1280)
+    horizontal=_ass(cues,1280,720)
+    assert 'PlayResX: 720\nPlayResY: 1280' in vertical
+    assert 'PlayResX: 1280\nPlayResY: 720' in horizontal
+    assert 'Dialogue: 0,0:00:00.00,0:00:01.25,Main,,0,0,0,,Hola, mundo\\NOtra línea' in vertical
+    assert vertical!=horizontal
