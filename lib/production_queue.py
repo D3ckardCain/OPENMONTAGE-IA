@@ -76,11 +76,17 @@ def retry(identifier):
                  'started_at':item.get('started_at'),'finished_at':item.get('finished_at'),
                  'retried_at':studio.now()}
         if Path(item['projects_root']).resolve()==studio.PROJECTS_DIR.resolve():
-            usage=studio.read_json(studio.project_path(item['project_id'])/'resource_usage.json')
+            project=studio.project_path(item['project_id'])
+            usage=studio.read_json(project/'resource_usage.json')
             if isinstance(usage,dict) and ((not history and not usage.get('recorded_at')) or
                     (isinstance(item.get('started_at'),str) and isinstance(usage.get('recorded_at'),str)
                      and usage['recorded_at']>=item['started_at'])):
                 attempt['resource_usage']=usage
+            if isinstance(item.get('started_at'),str):
+                from lib.stage_timing import summarize
+                job=studio.read_json(project/'job.json',{})
+                attempt['stage_active_seconds']=summarize(job.get('events',[]),item['started_at'],
+                                                          item.get('finished_at') or attempt['retried_at'])
         history.append(attempt)
         item['retry_history']=history[-20:]
         item.pop('started_at',None);item.pop('finished_at',None)

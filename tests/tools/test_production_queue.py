@@ -86,6 +86,8 @@ def test_retry_preserves_prior_cause_and_resets_current_duration(isolated):
     queue.enqueue('first')
     studio.save_json(studio.PROJECTS_DIR/'first/resource_usage.json',{
         'host_ram_peak_mb':2500,'gpu_vram_peak_mb':800,'recorded_at':'2026-11-22T10:02:00+00:00'})
+    studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'events':[
+        {'kind':'stage_timing','stage':'script','elapsed_seconds':6,'at':'2026-11-22T10:01:00+00:00'}]})
     value=queue._load();item=value['items'][0]
     item.update(status='blocked',message='Falta un modelo',
                 started_at='2026-11-22T10:00:00+00:00',finished_at='2026-11-22T10:02:00+00:00')
@@ -97,12 +99,14 @@ def test_retry_preserves_prior_cause_and_resets_current_duration(isolated):
     assert current['retry_history'][0]['started_at']=='2026-11-22T10:00:00+00:00'
     assert current['retry_history'][0]['finished_at']=='2026-11-22T10:02:00+00:00'
     assert current['retry_history'][0]['resource_usage']['host_ram_peak_mb']==2500
+    assert current['retry_history'][0]['stage_active_seconds']=={'script':6}
     value=queue._load();value['items'][0].update(status='blocked',message='Faltó otra etapa',
         started_at='2026-11-22T10:10:00+00:00',finished_at='2026-11-22T10:11:00+00:00')
     queue._save(value)
     queue.retry(item['id'])
     history=queue.read()['items'][0]['retry_history']
     assert len(history)==2 and 'resource_usage' not in history[1]
+    assert history[1]['stage_active_seconds']=={}
 
 
 def test_approval_cannot_be_bypassed_by_requeueing(isolated,monkeypatch):

@@ -78,6 +78,22 @@ def test_retry_resource_peaks_are_preserved_without_treating_old_sample_as_curre
     assert report['ram_peak_mb']==2500 and report['vram_peak_mb']==800
 
 
+def test_stage_timings_current_attempt_excludes_prior_events(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
+    studio.save_json(tmp_path/'one/production_request.json',{})
+    studio.save_json(tmp_path/'one/job.json',{'events':[
+        {'kind':'stage_timing','stage':'script','elapsed_seconds':12,'at':'2026-11-22T10:01:00+00:00'},
+        {'kind':'stage_timing','stage':'script','elapsed_seconds':4,'at':'2026-11-22T10:11:00+00:00'}]})
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':[
+        {'project_id':'one','status':'blocked','started_at':'2026-11-22T10:10:00+00:00',
+         'finished_at':'2026-11-22T10:12:00+00:00',
+         'retry_history':[{'stage_active_seconds':{'script':12}}]}]})
+    row=production_metrics.snapshot()['projects'][0]
+    assert row['stage_active_seconds']=={'script':4}
+    assert row['retry_history'][0]['stage_active_seconds']=={'script':12}
+
+
 def test_stage_timings_are_summed_only_from_saved_valid_events(tmp_path, monkeypatch):
     from lib import production_studio as studio
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)

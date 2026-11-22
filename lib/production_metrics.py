@@ -3,6 +3,7 @@ from datetime import datetime
 
 from lib import production_queue as queue
 from lib import production_studio as studio
+from lib.stage_timing import summarize
 
 
 def _seconds(start, end):
@@ -53,14 +54,11 @@ def snapshot():
                     checkpoint = studio.read_json(project/('checkpoint_'+name+'.json'), {})
                     if isinstance(checkpoint, dict) and checkpoint.get('status') == 'completed' and checkpoint.get('human_approved') is True:
                         approved_stages.append(name)
-            for event in studio.read_json(project/'job.json', {}).get('events', []):
-                if event.get('kind') != 'stage_timing':
-                    continue
-                stage, elapsed = event.get('stage'), event.get('elapsed_seconds')
-                if (not isinstance(stage, str) or not stage or type(elapsed) not in (int,float)
-                        or not 0 <= elapsed <= 86400):
-                    continue
-                stages[stage] = round(stages.get(stage, 0) + elapsed, 3)
+            events=studio.read_json(project/'job.json', {}).get('events', [])
+            if not history:
+                stages=summarize(events,item.get('started_at'),item.get('finished_at'))
+            elif isinstance(item.get('started_at'),str):
+                stages=summarize(events,item['started_at'],item.get('finished_at'))
         except (OSError, ValueError, TypeError, KeyError):
             pass
         rows.append({'project_id': item['project_id'], 'title': item.get('title'),
@@ -100,4 +98,4 @@ def snapshot():
             'editorial_first_decisions_count':len(first_decisions),
             'first_pass_approval_rate':round(first_approvals/len(first_decisions),3) if first_decisions else None,
             'generation_started': False, 'estimate_48_per_week': None,
-            'note': 'La cola mide inicio-fin del intento actual con esperas. Las etapas muestran tiempo activo acumulado hasta cada checkpoint. La tasa editorial usa la primera decisión explícita registrada por etapa; no incluye etapas sin decisión ni datos anteriores a este registro. Las aprobaciones automáticas no cuentan. Las causas de reintento agrupan estados guardados. Los máximos RAM y VRAM incluyen muestras guardadas de intentos previos desde esta versión; son del equipo y GPU completos, no atribuibles al proyecto. No predice capacidad semanal.'}
+            'note': 'La cola mide inicio-fin del intento actual con esperas. Las etapas muestran tiempo activo del intento actual; los históricos desde esta versión conservan su propio desglose. La tasa editorial usa la primera decisión explícita registrada por etapa; no incluye etapas sin decisión ni datos anteriores a este registro. Las aprobaciones automáticas no cuentan. Las causas de reintento agrupan estados guardados. Los máximos RAM y VRAM incluyen muestras guardadas de intentos previos; son del equipo y GPU completos, no atribuibles al proyecto. No predice capacidad semanal.'}
