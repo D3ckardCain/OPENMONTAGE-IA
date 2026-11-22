@@ -56,3 +56,14 @@ def test_multi_video_delivery_checks_all_hashes_before_first_copy(setup):
                        {'path':str(second),'verified_sha256':'0'*64}])
     assert not list(finals.rglob('*.mp4'))
     assert not (project/'final_delivery.json').exists()
+
+
+def test_delivery_rejects_empty_or_duplicate_render_manifest(setup):
+    project,source,finals=setup
+    with pytest.raises(ValueError,match='entre una y dieciséis'):
+        deliver('one',[])
+    verified={'path':str(source),'verified_sha256':digest(source)}
+    with pytest.raises(ValueError,match='repite un render'):
+        deliver('one',[verified,{'path':'renders/video.mp4','verified_sha256':digest(source)}])
+    assert not list(finals.rglob('*.mp4'))
+    assert not (project/'final_delivery.json').exists()

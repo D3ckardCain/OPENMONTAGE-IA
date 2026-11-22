@@ -17,13 +17,15 @@ def digest(path):
 
 def deliver(project_id,outputs):
     project=studio.project_path(project_id)
+    if not isinstance(outputs,list) or not 1<=len(outputs)<=16:
+        raise ValueError('La entrega requiere entre una y dieciséis salidas verificadas')
     configured=read_config(studio.REPO_ROOT).get('final_outputs_dir')
     if not configured:return {'mode':'project_renders','copied':False,'outputs':outputs}
     root=Path(configured)
     if not root.is_dir():raise ValueError('El disco de videos finales no está conectado. Se conservó la copia de trabajo.')
     root=root.resolve();folder=root/project_id
     if folder.is_symlink():raise ValueError('El destino final del proyecto no puede ser un enlace simbólico')
-    checked=[]
+    checked=[];seen=set()
     for item in outputs:
         verified=item.get('verified_sha256')
         if not isinstance(verified,str) or not re.fullmatch('[0-9a-f]{64}',verified):
@@ -31,6 +33,8 @@ def deliver(project_id,outputs):
         source=Path(item['path'])
         if not source.is_absolute():source=project/source
         source=source.resolve();source.relative_to((project/'renders').resolve())
+        if source in seen:raise ValueError('El informe repite un render; no se entregó')
+        seen.add(source)
         if not source.is_file() or not source.stat().st_size:raise ValueError('Falta el render verificado')
         checksum=digest(source)
         if verified!=checksum:raise ValueError('El render cambió después de su verificación; no se entregó')
