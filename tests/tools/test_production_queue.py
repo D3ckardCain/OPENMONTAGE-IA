@@ -82,6 +82,20 @@ def test_restart_requires_review_before_generation(isolated,monkeypatch):
     assert started==['first']
 
 
+def test_retry_preserves_prior_cause_and_resets_current_duration(isolated):
+    queue.enqueue('first')
+    value=queue._load();item=value['items'][0]
+    item.update(status='blocked',message='Falta un modelo',
+                started_at='2026-11-22T10:00:00+00:00',finished_at='2026-11-22T10:02:00+00:00')
+    queue._save(value)
+    queue.retry(item['id'])
+    current=queue.read()['items'][0]
+    assert current['status']=='pending' and 'started_at' not in current and 'finished_at' not in current
+    assert current['retry_history'][0]['message']=='Falta un modelo'
+    assert current['retry_history'][0]['started_at']=='2026-11-22T10:00:00+00:00'
+    assert current['retry_history'][0]['finished_at']=='2026-11-22T10:02:00+00:00'
+
+
 def test_approval_cannot_be_bypassed_by_requeueing(isolated,monkeypatch):
     started=fake_producer(monkeypatch)
     queue.enqueue('first')

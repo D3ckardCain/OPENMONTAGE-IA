@@ -70,6 +70,13 @@ def retry(identifier):
         item=next((item for item in value['items'] if item['id']==identifier),None)
         if item is None or item['status'] not in ('blocked','stopped','interrupted','awaiting_input','awaiting_human'):raise ValueError('Este registro no admite reintento')
         for record in value['items']:record.pop('progress',None)
+        history=item.get('retry_history',[])
+        if not isinstance(history,list):history=[]
+        history.append({'status':item['status'],'message':item.get('message',''),
+                        'started_at':item.get('started_at'),'finished_at':item.get('finished_at'),
+                        'retried_at':studio.now()})
+        item['retry_history']=history[-20:]
+        item.pop('started_at',None);item.pop('finished_at',None)
         item.update(status='pending',message='Reintento solicitado; se conservarán los checkpoints')
         value['status']='paused';_save(value)
     return {'queued':True,'generation_started':False}

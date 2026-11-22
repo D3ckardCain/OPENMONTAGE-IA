@@ -24,6 +24,16 @@ def test_invalid_or_reversed_timestamps_never_make_up_a_duration():
                                        '2026-11-22T10:00:00+00:00') is None
 
 
+def test_retry_causes_are_reported_without_counting_old_duration_twice(monkeypatch):
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':[
+        {'project_id':'missing','status':'pending','retry_history':[
+            {'status':'blocked','message':'Falta un modelo','started_at':'2026-11-22T10:00:00+00:00',
+             'finished_at':'2026-11-22T10:02:00+00:00','retried_at':'2026-11-22T10:03:00+00:00'}]}]})
+    report=production_metrics.snapshot()
+    assert report['retries_recorded']==1 and report['elapsed_seconds_total']==0
+    assert report['projects'][0]['retry_history'][0]['message']=='Falta un modelo'
+
+
 def test_stage_timings_are_summed_only_from_saved_valid_events(tmp_path, monkeypatch):
     from lib import production_studio as studio
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
