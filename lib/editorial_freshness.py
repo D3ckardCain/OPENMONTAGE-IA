@@ -41,23 +41,33 @@ def research_index(project):
         return {'invalid':True}
 
 
-def current(verification,reviews,selection_index=None,research_index=None):
-    if not isinstance(verification,dict) or verification.get('status')!='passed':return False
+def stale_reasons(verification,reviews,selection_index=None,research_index=None):
+    if not isinstance(verification,dict) or verification.get('status')!='passed':
+        return ['Falta una verificación técnica aprobada.']
+    reasons=[]
     selected=verification.get('football_selection')
     if selected is not None or selection_index is not None:
-        if not isinstance(selected,dict) or not isinstance(selection_index,dict):return False
-        if any(selected.get(key)!=selection_index.get(key) or not isinstance(selected.get(key),str)
-               for key in ('selection_id','sha256')):return False
+        if (not isinstance(selected,dict) or not isinstance(selection_index,dict)
+                or any(selected.get(key)!=selection_index.get(key) or not isinstance(selected.get(key),str)
+                       for key in ('selection_id','sha256'))):
+            reasons.append('La selección deportiva cambió o falta desde la verificación.')
     if verification.get('channel_research') is not None or research_index is not None:
         if not isinstance(research_index,dict) or research_index.get('invalid') or verification.get('channel_research')!=research_index:
-            return False
+            reasons.append('La investigación de canal cambió o falta desde la verificación.')
     verified=_time(verification.get('finished_at'))
-    if not isinstance(reviews,list):return False
-    for review in reviews:
-        if not isinstance(review,dict) or review.get('decision')!='revision_requested':continue
-        requested=_time(review.get('at'))
-        if verified is None or requested is None or requested>verified:return False
-    return True
+    if not isinstance(reviews,list):
+        reasons.append('No se pudo leer el historial de revisión editorial.')
+    else:
+        for review in reviews:
+            if not isinstance(review,dict) or review.get('decision')!='revision_requested':continue
+            requested=_time(review.get('at'))
+            if verified is None or requested is None or requested>verified:
+                reasons.append('Se solicitó una revisión editorial después de verificar el render.');break
+    return reasons
+
+
+def current(verification,reviews,selection_index=None,research_index=None):
+    return not stale_reasons(verification,reviews,selection_index,research_index)
 
 
 def delivery_current(verification,delivery,reviews,selection_index=None,research_index=None):

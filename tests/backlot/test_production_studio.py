@@ -90,9 +90,11 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['channel_research']['status']=='invalid'
     state=isolated.get('/api/studio/projects/'+response.json()['project_id']).json()
     assert state['verification_current'] is False and state['final_copy_current'] is False
+    assert any('investigación de canal' in reason for reason in state['verification_reasons'])
     from lib.final_catalog import catalog
     entry=next(row for row in catalog()['projects'] if row['project_id']==response.json()['project_id'])
     assert entry['verification_current'] is False and entry['final_copy_current'] is False
+    assert any('investigación de canal' in reason for reason in entry['verification_reasons'])
     assert isolated.get('/api/studio/vidiq-observations/'+response.json()['project_id']).status_code==400
     with pytest.raises(ValueError,match='alteradas'):
         agent.start(response.json()['project_id'])

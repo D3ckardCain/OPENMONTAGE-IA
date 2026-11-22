@@ -1,7 +1,7 @@
 """Read saved delivery receipts without scanning resource disks or hashing video."""
 from pathlib import Path
 from lib import production_studio as studio
-from lib.editorial_freshness import current as verification_current,delivery_current,selection_index,research_index
+from lib.editorial_freshness import current as verification_current,delivery_current,selection_index,research_index,stale_reasons
 from lib.storage_layout import read_config
 
 
@@ -45,6 +45,7 @@ def catalog(limit=500):
                 'delivery_mode':receipt.get('mode','project_renders'),'copied':receipt.get('copied',False),
                 'delivered_at':receipt.get('delivered_at'),'verification_status':verification.get('status','unknown'),
                 'verification_current':current,'final_copy_current':delivery_current(verification,receipt,reviews,selection,research),
+                'verification_reasons':stale_reasons(verification,reviews,selection,research) if verification else [],
                 'football_selection':verification.get('football_selection') if verification.get('status')=='passed' else None,
                 'outputs':outputs,'studio_url':'/studio?project='+project.name})
         except (OSError,ValueError,KeyError,TypeError) as exc:

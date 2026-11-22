@@ -1,4 +1,4 @@
-from lib.editorial_freshness import current,delivery_current
+from lib.editorial_freshness import current,delivery_current,stale_reasons
 
 
 def test_later_editorial_revision_supersedes_saved_render_verification():
@@ -8,6 +8,7 @@ def test_later_editorial_revision_supersedes_saved_render_verification():
     assert current(verification,reviews) is False
     assert current({'status':'passed','finished_at':'2026-11-22T10:02:00+00:00'},reviews) is True
     assert current(verification,[{'decision':'revision_requested','at':'bad'}]) is False
+    assert stale_reasons(verification,reviews)==['Se solicitó una revisión editorial después de verificar el render.']
 
 
 def test_no_revision_keeps_saved_technical_result_current():
@@ -33,3 +34,4 @@ def test_new_saved_football_selection_supersedes_prior_render():
     assert current(verification,[],{'selection_id':'c'*64,'sha256':'d'*64}) is False
     assert current(verification,[],None) is False
     assert current({'status':'passed'},[],{'selection_id':'c'*64,'sha256':'d'*64}) is False
+    assert stale_reasons(verification,[],{'selection_id':'c'*64,'sha256':'d'*64})==['La selección deportiva cambió o falta desde la verificación.']
