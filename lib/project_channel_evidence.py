@@ -22,6 +22,11 @@ def verified(path, request):
     return snapshot,idea,report
 
 
+def require_valid(path,request):
+    if request.get('research_idea') is not None:
+        verified(path,request)
+
+
 def summary(path,request):
     if not request.get('research_idea'):return None
     try:snapshot,idea,report=verified(path,request)

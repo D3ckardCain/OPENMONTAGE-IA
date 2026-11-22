@@ -446,6 +446,8 @@ class LocalAgent:
 
 def start(pid):
     project=studio.project_path(pid)
+    from lib.project_channel_evidence import require_valid
+    require_valid(project,studio.read_json(project/'production_request.json'))
     from lib.language_versions import selection_provenance_problem
     if problem:=selection_provenance_problem(project):raise ValueError(problem)
     from lib.storage_layout import readiness
@@ -474,6 +476,8 @@ def stop(pid):
 
 def approve(pid):
     p=studio.project_path(pid);req=studio.read_json(p/'production_request.json')
+    from lib.project_channel_evidence import require_valid
+    require_valid(p,req)
     from lib.language_versions import selection_provenance_problem
     if problem:=selection_provenance_problem(p):raise ValueError(problem)
     with ACTIVE_LOCK:

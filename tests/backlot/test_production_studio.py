@@ -67,12 +67,16 @@ def test_project_copies_verified_research_idea_link(isolated):
     with pytest.raises(ValueError,match='alterado'):
         worker.dispatch('project_channel_evidence',{})
     assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['channel_research']['status']=='invalid'
+    with pytest.raises(ValueError,match='alterado'):
+        agent.start(response.json()['project_id'])
     studio.save_json(project/'artifacts/channel_research_snapshot.json',source_copy)
     idea_copy=studio.read_json(project/'artifacts/channel_idea_source.json')
     altered={**idea_copy,'title':'Título cambiado'}
     studio.save_json(project/'artifacts/channel_idea_source.json',altered)
     with pytest.raises(ValueError,match='alterado'):
         worker.dispatch('project_channel_evidence',{})
+    with pytest.raises(ValueError,match='alterado'):
+        agent.start(response.json()['project_id'])
     bad={**payload,'reference':'https://www.youtube.com/watch?v=bbbbbbbbbbb'}
     assert isolated.post('/api/studio/projects',json=bad).status_code==400
 
