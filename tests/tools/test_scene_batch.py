@@ -104,3 +104,49 @@ def test_scene_media_route_rejects_path_escape(planned):
     client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
     r=client.post('/api/studio/scene-batch-media/demo',json={'scene_id':'s01','kind':'image','relative_path':'../outside.png'})
     assert r.status_code==400
+
+
+def test_preview_uses_registered_image_and_does_not_advance(planned,monkeypatch):
+    import time
+    from types import SimpleNamespace
+    from PIL import Image
+    from lib import model_adapters,production_agent,reference_analysis
+    from lib import model_comfy_adapter
+    from lib import scene_batch as batch
+    import lib.media_executables as executables
+    project,_,payload=planned
+    prepare('demo',payload)
+    (project/'assets').mkdir()
+    Image.new('RGB',(64,64),'blue').save(project/'assets/s01.png')
+    record_media('demo',{'scene_id':'s01','kind':'image','relative_path':'assets/s01.png'})
+    monkeypatch.setattr(model_adapters,'configuration',lambda family:{'preset':'wan22-14b-i2v-4step'})
+    monkeypatch.setattr(model_adapters,'diagnostics',lambda family:{'ready':True})
+    monkeypatch.setattr(executables,'require_media',lambda name:'ffprobe')
+    monkeypatch.setattr(batch.subprocess,'run',lambda *a,**k:SimpleNamespace(returncode=0,stdout='{"streams":[{"codec_type":"video","width":288,"height":512}],"format":{"duration":"4.0"}}'))
+    monkeypatch.setattr(production_agent,'ACTIVE',{})
+    monkeypatch.setattr(reference_analysis,'ACTIVE',{})
+    seen=[]
+    def fake_workflow(family,inputs,output):
+        seen.append((family,inputs))
+        video=output/'wan-0.mp4';video.write_bytes(b'preview')
+        return {'outputs':[str(video)]}
+    monkeypatch.setattr(model_comfy_adapter,'execute_workflow',fake_workflow)
+    result=batch.start_preview('demo','s01')
+    assert result['started']
+    for _ in range(200):
+        if read('demo')['scenes'][0]['takes']:break
+        time.sleep(.01)
+    assert len(read('demo')['scenes'][0]['takes'])==1
+    assert read('demo')['scenes'][1]['takes']==[]
+    assert seen[0][0]=='wan' and seen[0][1]['image_sha256']==read('demo')['scenes'][0]['image']['sha256']
+    assert seen[0][1]['frames']==49 and seen[0][1]['width']==288
+
+
+def test_preview_requires_explicit_i2v_profile(planned,monkeypatch):
+    from lib import model_adapters
+    from lib.scene_batch import start_preview
+    _,_,payload=planned
+    prepare('demo',payload)
+    monkeypatch.setattr(model_adapters,'configuration',lambda family:{'preset':'wan22-14b-t2v-4step'})
+    with pytest.raises(ValueError,match='Selecciona explícitamente'):
+        start_preview('demo','s01')

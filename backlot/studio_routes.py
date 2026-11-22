@@ -153,6 +153,12 @@ def create_studio_router():
     async def scene_batch_approve(pid:str,request:Request):
         from lib.scene_batch import approve_take
         return invoke(approve_take,pid,await body(request))
+    @router.post('/api/studio/scene-batch-preview/{pid}')
+    async def scene_batch_preview(pid:str,request:Request):
+        from lib.scene_batch import start_preview
+        data=await body(request)
+        if set(data)!={'scene_id'}:raise HTTPException(400,'Indica la escena')
+        return invoke(start_preview,pid,data['scene_id'])
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)

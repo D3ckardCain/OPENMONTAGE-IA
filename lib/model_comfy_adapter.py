@@ -147,15 +147,25 @@ def prepare_i2v_image(family,inputs,client,ledger):
     pid=inputs.get('project_id')
     if not pid:
         raise ValueError('Indica project_id para usar su imagen preparada, o server_image')
-    image=current_image(pid)
-    if not image:
-        raise ValueError('Prepara primero la imagen de entrada de este proyecto')
-    path=(studio.project_path(pid)/'source_images'/image['filename']).resolve()
-    path.relative_to((studio.project_path(pid)/'source_images').resolve())
+    explicit=inputs.get('input_path')
+    if explicit:
+        project=studio.project_path(pid).resolve()
+        raw=Path(explicit)
+        if raw.is_symlink():raise ValueError('Imagen de entrada con enlace simbólico')
+        path=raw.resolve();path.relative_to(project)
+        if not path.suffix.lower() in ('.png','.jpg','.jpeg'):
+            raise ValueError('Formato de imagen de entrada no admitido')
+        image={'filename':path.name}
+    else:
+        image=current_image(pid)
+        if not image:
+            raise ValueError('Prepara primero la imagen de entrada de este proyecto')
+        path=(studio.project_path(pid)/'source_images'/image['filename']).resolve()
+        path.relative_to((studio.project_path(pid)/'source_images').resolve())
     if not path.is_file() or path.stat().st_size>8000000:
         raise ValueError('Imagen preparada ausente o demasiado grande')
     digest=hashlib.sha256(path.read_bytes()).hexdigest()
-    if digest!=image['sha256']:
+    if digest!=inputs.get('image_sha256',image.get('sha256',digest)):
         raise ValueError('La imagen preparada cambió desde su validación')
     graph_config(family,{**inputs,'server_image':'pending-upload'+path.suffix})
     if inputs.get('resume_prompt_id'):
@@ -166,6 +176,6 @@ def prepare_i2v_image(family,inputs,client,ledger):
         name=source.get('server_image')
         if not isinstance(name,str) or not name:raise ValueError('Falta la imagen del trabajo registrado')
     else:
-        name=client.upload_image(path,'openmontage-'+image['filename'])
+        name=client.upload_image(path,'openmontage-'+digest+path.suffix.lower())
         source={'sha256':digest,'project_id':pid,'server_image':name}
     return {**inputs,'server_image':name},source

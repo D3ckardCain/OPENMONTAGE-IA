@@ -586,6 +586,12 @@ function showSceneManifest(manifest){
   const d=document.createElement('details');d.append(node('summary',scene.scene_id+' · '+scene.status));
   d.append(node('p','Imagen: '+scene.image_prompt),node('p','Movimiento: '+scene.motion_prompt));
   if(scene.image)d.append(node('p','Imagen registrada: '+scene.image.path+' · SHA-256 '+scene.image.sha256));
+  if(scene.last_error)d.append(node('p','Último intento: '+scene.last_error));
+  if(scene.image&&!scene.approved_take_id&&scene.takes.length<8&&scene.status!=='generating'){
+   const generate=node('button','Generar vista previa I2V local');generate.type='button';
+   generate.onclick=async()=>{if(pid!==scenePlanProject)return;try{const response=await api('scene-batch-preview/'+encodeURIComponent(pid),{scene_id:scene.scene_id});notice('Iniciada la escena '+response.scene_id+'. Consulta de nuevo la mesa para ver el resultado.');generate.disabled=true;}catch(error){notice(error.message);}};
+   d.append(generate);
+  }
   for(const take of scene.takes){
    const row=document.createElement('div');row.append(link(take.path,take.url),node('p','SHA-256 '+take.sha256+' · '+take.duration_seconds+' s'+(scene.approved_take_id===take.sha256?' · aprobada':'')));
    if(scene.approved_take_id!==take.sha256){const label=node('label','He revisado visualmente la identidad de los personajes');const check=document.createElement('input');check.type='checkbox';label.prepend(check);const button=node('button','Aprobar esta toma');button.type='button';button.onclick=async()=>{if(pid!==scenePlanProject)return;if(!check.checked){notice('Confirma la revisión visual de identidad antes de aprobar.');return;}try{await api('scene-batch-approve/'+encodeURIComponent(pid),{scene_id:scene.scene_id,sha256:take.sha256,identity_reviewed:true});showSceneManifest(await api('scene-batch/'+encodeURIComponent(pid)));}catch(error){notice(error.message);}};row.append(label,button);}

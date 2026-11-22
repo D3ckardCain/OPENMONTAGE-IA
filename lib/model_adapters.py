@@ -287,7 +287,7 @@ class LocalModelAdapter(BaseTool):
         'control_video':{'type':'string'},'camera_path':{'type':'string'},
         'width':{'type':'integer','minimum':256,'maximum':1280},'height':{'type':'integer','minimum':256,'maximum':1280},'frames':{'type':'integer','minimum':5,'maximum':121},'steps':{'type':'integer','minimum':1,'maximum':100},'seed':{'type':'integer','minimum':0,'maximum':9223372036854775807},'fps':{'type':'integer','minimum':1,'maximum':60},'negative_prompt':{'type':'string','maxLength':5000},
         'output_dir':{'type':'string'},'text':{'type':'string','maxLength':50000},'input_path':{'type':'string'},'reference_audio':{'type':'string'},
-        'project_id':{'type':'string'},'server_image':{'type':'string','maxLength':1000},
+        'project_id':{'type':'string'},'image_sha256':{'type':'string','pattern':'^[a-f0-9]{64}$'},'server_image':{'type':'string','maxLength':1000},
         'server_audio':{'type':'string','maxLength':1000},'server_image_2':{'type':'string','maxLength':1000},
         'reference_text':{'type':'string'},'language':{'type':'string'},'source_language':{'type':'string'},'voice':{'type':'string'},
         'instruction':{'type':'string'},'labels':{'type':'array','items':{'type':'string'},'maxItems':100},'texts':{'type':'array','items':{'type':'string'},'maxItems':100},

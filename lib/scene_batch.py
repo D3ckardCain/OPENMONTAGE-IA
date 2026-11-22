@@ -3,6 +3,8 @@ import hashlib
 import json
 import re
 import subprocess
+import threading
+import uuid
 from pathlib import Path
 from PIL import Image
 from jsonschema import ValidationError
@@ -187,3 +189,74 @@ def approve_take(project_id,data):
         scene['approved_take_id']=take['sha256'];scene['identity_reviewed']=True;scene['status']='approved'
         studio.save_json(project/'artifacts/scene_batch.json',manifest)
     return {'scene':scene}
+
+
+def start_preview(project_id,scene_id):
+    """Start one explicitly requested WAN I2V preview; never advance to another scene."""
+    from lib import model_adapters,production_agent as agent,reference_analysis
+    if model_adapters.configuration('wan').get('preset')!='wan22-14b-i2v-4step':
+        raise ValueError('Selecciona explícitamente el perfil WAN I2V de cuatro pasos')
+    if not model_adapters.diagnostics('wan')['ready']:
+        raise ValueError('El adaptador WAN I2V local no está preparado')
+    project=studio.project_path(project_id)
+    with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+        if agent.ACTIVE or reference_analysis.ACTIVE:
+            raise ValueError('Espera a que termine la tarea local activa')
+        manifest=read(project_id)
+        if not manifest.get('scenes') or approved_plan(project_id)['scene_plan_sha256']!=manifest['scene_plan_sha256']:
+            raise ValueError('Prepara y revisa el plan vigente antes de generar')
+        scene=next((s for s in manifest['scenes'] if s['scene_id']==scene_id),None)
+        if not scene or not scene['image']:raise ValueError('Registra primero una imagen de la escena')
+        if scene['approved_take_id'] or len(scene['takes'])>=8:raise ValueError('La escena está aprobada o alcanzó ocho tomas')
+        image=_media(project,scene['image']['path'],'image')
+        if image['sha256']!=scene['image']['sha256']:raise ValueError('La imagen cambió desde su registro')
+        if image['bytes']>8_000_000:raise ValueError('Imagen superior a 8 MB para el adaptador I2V')
+        previous=scene.get('active_attempt') if scene['status']=='generation_failed' else None
+        if not isinstance(previous,str) or not re.fullmatch('[0-9a-f]{32}',previous):previous=None
+        prior=studio.read_json(project/'assets/video'/scene_id/str(previous)/'comfy-wan-job.json',{}) if previous else {}
+        attempt=previous if prior.get('prompt_id') else uuid.uuid4().hex
+        scene['status']='generating';scene['last_error']=None;scene['active_attempt']=attempt
+        manifest['generation_started']=True
+        studio.save_json(project/'artifacts/scene_batch.json',manifest)
+        token=threading.Event()
+        thread=threading.Thread(target=_preview_worker,args=(project_id,scene_id,attempt,token),daemon=True,name='scene-preview-'+project_id)
+        agent.ACTIVE[project_id]=(thread,token)
+        thread.start()
+    return {'started':True,'scene_id':scene_id,'attempt':attempt}
+
+
+def _preview_worker(project_id,scene_id,attempt,token):
+    from lib import production_agent as agent
+    project=studio.project_path(project_id)
+    try:
+        scene=next(s for s in read(project_id)['scenes'] if s['scene_id']==scene_id)
+        output=project/'assets/video'/scene_id/attempt
+        image=project/scene['image']['path']
+        from lib.model_comfy_adapter import execute_workflow
+        width,height=(288,512) if scene['aspect_ratio']=='9:16' else (512,288)
+        inputs={'project_id':project_id,'input_path':str(image),'image_sha256':scene['image']['sha256'],
+                'text':scene['motion_prompt'],'output_dir':str(output),'width':width,'height':height,
+                'frames':49,'fps':12,'steps':4,'timeout':1800}
+        prior=studio.read_json(output/'comfy-wan-job.json',{})
+        if prior.get('prompt_id'):inputs['resume_prompt_id']=prior['prompt_id']
+        else:output.mkdir(parents=True,exist_ok=False)
+        result=execute_workflow('wan',inputs,output)
+        videos=[Path(p) for p in result['outputs'] if Path(p).suffix.lower() in ('.mp4','.webm','.mov')]
+        if not videos:raise ValueError('El workflow no devolvió una toma de video')
+        for path in videos[:8]:record_media(project_id,{'scene_id':scene_id,'kind':'video','relative_path':path.relative_to(project).as_posix()})
+        with studio.LOCK:
+            manifest=read(project_id)
+            scene=next(s for s in manifest['scenes'] if s['scene_id']==scene_id)
+            if scene.get('active_attempt')==attempt:
+                scene['active_attempt']=None
+                studio.save_json(project/'artifacts/scene_batch.json',manifest)
+    except Exception as exc:
+        with studio.LOCK:
+            manifest=read(project_id)
+            scene=next(s for s in manifest['scenes'] if s['scene_id']==scene_id)
+            if scene.get('active_attempt')==attempt:
+                scene['status']='generation_failed';scene['last_error']=str(exc)[:1800]
+                studio.save_json(project/'artifacts/scene_batch.json',manifest)
+    finally:
+        with agent.ACTIVE_LOCK:
+            if agent.ACTIVE.get(project_id,(None,None))[1] is token:agent.ACTIVE.pop(project_id,None)
