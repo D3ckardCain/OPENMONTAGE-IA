@@ -221,6 +221,11 @@ def create_studio_router():
         from lib.project_video_observations import page
         path=invoke(studio.project_path,pid)
         return invoke(page,path,studio.read_json(path/'production_request.json'),offset,limit)
+    @router.get('/api/studio/channel-performance/{pid}')
+    def channel_performance_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
+        from lib.project_channel_performance import page
+        path=invoke(studio.project_path,pid)
+        return invoke(page,path,studio.read_json(path/'production_request.json'),offset,limit)
     @router.post('/api/studio/projects/{pid}/restore-channel-research')
     async def restore_channel_research(pid:str,request:Request):
         if await body(request):raise HTTPException(400,'Esta acción no admite parámetros')

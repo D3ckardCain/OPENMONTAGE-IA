@@ -28,12 +28,18 @@ def research_index(project):
     from lib import production_studio as studio
     try:
         request=studio.read_json(project/'production_request.json')
-        if not request.get('research_idea'):return None
+        if not request.get('research_idea') and not request.get('performance_import_id'):return None
+        from lib.project_channel_performance import verified as verified_performance
+        performance=verified_performance(project,request)
+        result=({'performance_import_id':request['performance_import_id'],
+                 'performance_import_sha256':performance['sha256']}
+                if performance else {})
+        if not request.get('research_idea'):return result
         from lib.project_channel_evidence import verified
         from lib.project_video_observations import verified_rows
         snapshot,_,_=verified(project,request)
         verified_rows(project,request)
-        return {'research_idea':request['research_idea'],
+        return {**result,'research_idea':request['research_idea'],
                 'research_idea_sha256':request['research_idea_sha256'],
                 'snapshot_sha256':snapshot['report_sha256'],
                 'research_observations_sha256':request.get('research_observations_sha256')}

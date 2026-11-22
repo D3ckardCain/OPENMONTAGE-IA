@@ -25,16 +25,19 @@ def verified(path, request):
 def require_valid(path,request):
     if request.get('research_idea') is not None:
         verified(path,request)
+    from lib.project_channel_performance import verified as verified_performance
+    verified_performance(path,request)
 
 
 def project_problem(path):
     """Preflight for queues; return a concrete problem without mutating the project."""
     request=studio.read_json(path/'production_request.json')
-    if not request.get('research_idea'):return None
+    if not request.get('research_idea') and not request.get('performance_import_id'):return None
     try:
-        verified(path,request)
-        from lib.project_video_observations import verified_rows
-        verified_rows(path,request)
+        require_valid(path,request)
+        if request.get('research_idea'):
+            from lib.project_video_observations import verified_rows
+            verified_rows(path,request)
     except (ValueError,KeyError,TypeError,OverflowError,OSError) as exc:
         return 'Investigación del proyecto no válida: '+str(exc)[:300]
     return None

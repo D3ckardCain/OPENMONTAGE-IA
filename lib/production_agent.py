@@ -47,6 +47,7 @@ TOOLS=[
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
  descriptor('project_channel_evidence','Lee el expediente copiado en este proyecto en páginas verificadas de hasta 50 publicaciones.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
  descriptor('project_vidiq_observations','Lee observaciones manuales de vidIQ de los videos de referencia, separadas de las cifras de YouTube, en páginas de hasta 50.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
+ descriptor('project_channel_performance','Lee la copia verificada del CSV de rendimiento de este proyecto en páginas de hasta 50 filas. Son cifras aportadas, no datos oficiales.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
  descriptor('project_translation','Lee una traducción local guardada por fragmentos antes de repetirla. Conserva la obligación de revisar idioma y adaptación cultural; no genera ni aprueba el guion.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
  descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
  descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
@@ -171,6 +172,9 @@ class LocalAgent:
             return page(self.path,self.request,**args)
         if name=='project_vidiq_observations':
             from lib.project_video_observations import page
+            return page(self.path,self.request,**args)
+        if name=='project_channel_performance':
+            from lib.project_channel_performance import page
             return page(self.path,self.request,**args)
         if name=='read_instruction':return self.instruction(args['path'])
         if name=='sports_sources':
