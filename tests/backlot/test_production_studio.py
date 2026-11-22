@@ -361,11 +361,37 @@ def test_qatar_edition_preview_uses_explicit_metrics(isolated, monkeypatch):
     encoded = json.dumps(unsigned, sort_keys=True, separators=(',', ':'),
                          ensure_ascii=False, allow_nan=False).encode('utf-8')
     assert hashlib.sha256(encoded).hexdigest() == evidence['sha256']
+    pid = project()
+    saved = isolated.post(path + '/projects/' + pid, json=payload)
+    assert saved.status_code == 200 and saved.json()['duplicate'] is False
+    again = isolated.post(path + '/projects/' + pid, json=payload)
+    assert again.status_code == 200 and again.json()['duplicate'] is True
+    assert saved.json()['selection']['selection_id'] == again.json()['selection']['selection_id']
+    folder = studio.project_path(pid) / 'artifacts' / 'football_comparisons'
+    assert len(list(folder.glob('*.json'))) == 1
+    selected = agent.LocalAgent(pid, chat=lambda *args: None).dispatch('football_saved_selection', {})
+    assert selected['available'] and selected['selected_metrics'] == ['shots']
+    assert selected['selected_evidence'][0]['selected_facts'][0]['source_url'] == urls['shots']
+    revision = isolated.post(path + '/projects/' + pid, json={**payload, 'metrics': ['goals']})
+    assert revision.status_code == 200 and revision.json()['duplicate'] is False
+    assert len(list(folder.glob('*.json'))) == 2
+    assert agent.LocalAgent(pid, chat=lambda *args: None).dispatch(
+        'football_saved_selection', {})['selected_metrics'] == ['goals']
+    with pytest.raises(ValueError, match='reservado'):
+        agent.LocalAgent(pid, chat=lambda *args: None).dispatch('write_artifact', {
+            'name': 'football_comparison_selection', 'data': {}})
     altered = {**payload, 'report': {**report, 'scope': {**scope, 'season': 2023}}}
     assert isolated.post(path + '/dossier', json=altered).status_code == 400
+    assert isolated.post(path + '/projects/' + pid, json=altered).status_code == 400
     payload['metrics'] = ['saves']
     assert isolated.post(path + '/preview', json=payload).status_code == 400
     assert isolated.post(path + '/dossier', json=payload).status_code == 400
+    archived = studio.project_path(pid) / revision.json()['selection']['dossier_path']
+    tampered = studio.read_json(archived)
+    tampered['selected_evidence'][0]['selected_facts'][0]['value'] = 999
+    studio.save_json(archived, tampered)
+    with pytest.raises(ValueError, match='cambió'):
+        agent.LocalAgent(pid, chat=lambda *args: None).dispatch('football_saved_selection', {})
 
 
 def test_partial_edition_report_cannot_be_exported(isolated, monkeypatch):

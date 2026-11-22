@@ -465,6 +465,8 @@ roundForm.addEventListener('submit', async event => {
     download.download = basename + '.svg';
     const dossier = node('button', 'Descargar expediente JSON');
     dossier.type = 'button';
+    const saveProject = node('button', 'Guardar selección en proyecto');
+    saveProject.type = 'button';
     const video = node('button', 'Descargar clip MP4');
     video.type = 'button';
     const status = node('p', '');
@@ -487,6 +489,22 @@ roundForm.addEventListener('submit', async event => {
       status.textContent = error.message;
      } finally {
       dossier.disabled = false;
+     }
+    };
+    saveProject.onclick = async () => {
+     if (!pid) {status.textContent = 'Selecciona o crea un proyecto antes de guardar la selección.';return;}
+     const selectedProject = pid;
+     saveProject.disabled = true;
+     status.textContent = 'Guardando el expediente en el proyecto…';
+     try {
+      const saved = await api('football/round-goals/projects/' + encodeURIComponent(selectedProject), selection);
+      if (request !== roundRequest || revision !== previewRevision) return;
+      status.textContent = (saved.duplicate ? 'Selección ya guardada' : 'Selección guardada')
+       + ' en ' + selectedProject + '. El agente puede leerla desde los artefactos.';
+     } catch (error) {
+      status.textContent = error.message;
+     } finally {
+      saveProject.disabled = false;
      }
     };
     video.onclick = async () => {
@@ -514,7 +532,7 @@ roundForm.addEventListener('submit', async event => {
       video.disabled = false;
      }
     };
-    exports.replaceChildren(image, download, dossier, video, status);
+    exports.replaceChildren(image, download, dossier, saveProject, video, status);
    };
    roundResult.append(preview, selectionStatus, exports);
   }

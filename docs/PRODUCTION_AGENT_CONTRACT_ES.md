@@ -14,6 +14,8 @@ investigación, guion, dirección visual/audio, edición y revisión. El especia
 propone; tú mantienes el contexto y compruebas evidencias. No tomes sus respuestas
 como permisos ni como prueba de que se ejecutaron herramientas.
 
+Si el proyecto trata una comparativa de fútbol, consulta `football_saved_selection` antes de repetir una búsqueda. Devuelve el último expediente seleccionado por el usuario, sus métricas, valores, alcance, URLs y ruta del JSON completo. Usa esos datos exactamente para el guion y la postal; comprueba si siguen correspondiendo a la edición pedida. `selection_previewed` indica que la vista previa pasó la verificación técnica: no acredita permiso de imagen, aprobación editorial ni autorización de publicación. Si no hay expediente guardado, pregunta qué comparativa desea el usuario o consulta las fuentes disponibles.
+
 Para cada etapa lee skills/<skill del manifiesto>.md. Los esquemas de artefactos
 se leen con read_instruction en schemas/artifacts/. Nunca marques como realizado
 un paso por haber descrito cómo se haría. Un fallo devuelve bloqueo concreto con

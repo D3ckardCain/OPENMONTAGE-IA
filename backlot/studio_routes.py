@@ -245,6 +245,13 @@ def create_studio_router():
         report, metrics = await verified_round_selection(request)
         return invoke(build, report, metrics)
 
+    @router.post('/api/studio/football/round-goals/projects/{pid}')
+    async def football_round_save_project(pid: str, request: Request):
+        from lib.football_comparison_dossier import save_to_project
+
+        report, metrics = await verified_round_selection(request)
+        return invoke(save_to_project, pid, report, metrics)
+
     @router.post('/api/studio/football/round-goals/video')
     async def football_round_video(request: Request):
         from tools.graphics.sports_card_video import SportsCardVideo

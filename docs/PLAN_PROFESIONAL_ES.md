@@ -39,7 +39,7 @@ La matriz común muestra las 54 métricas con nombres en español y grupos de pa
 
 Antes de ofrecer una postal o clip, la mesa compara la competición, la edición y la fase devueltas por la fuente con la opción elegida. Si difieren, descarta el informe y muestra el error de alcance sin emitir token de exportación. Para UEFA usa `seasonYear` y `phase`; para FIFA comprueba los IDs de competición y temporada y el alcance publicado.
 
-Después de la vista previa, «Descargar expediente JSON» reúne el informe firmado durante la sesión, la matriz completa, la selección de hasta seis métricas y las cifras y URLs usadas para cada jugador. Incluye marca de tiempo UTC y checksum SHA-256 para detectar cambios accidentales en el archivo. No certifica derechos comerciales ni sustituye la revisión editorial. El siguiente paso será vincular ese expediente a un proyecto y a sus versiones de video sin perder la selección original.
+Después de la vista previa, «Descargar expediente JSON» reúne el informe firmado durante la sesión, la matriz completa, la selección de hasta seis métricas y las cifras y URLs usadas para cada jugador. Incluye marca de tiempo UTC y checksum SHA-256 para detectar cambios accidentales en el archivo. «Guardar selección en proyecto» archiva cada revisión distinta sin sobrescribir las anteriores y crea un índice de la última para el agente productor. No certifica derechos comerciales ni sustituye la revisión editorial. Sigue pendiente asociar el expediente al render final y a cada versión en español e inglés.
 
 ## Modelos candidatos
 

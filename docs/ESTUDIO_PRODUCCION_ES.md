@@ -31,9 +31,10 @@ mediante «Crear video a partir de este canal». El storyboard original sigue en
 1. En «Fútbol», elige competición y edición e introduce dos jugadores. Consulta la fuente antes de escoger cifras.
 2. Revisa las 54 métricas comunes, los datos adicionales y los enlaces de origen. Marca entre una y seis cifras disponibles para ambos jugadores y pulsa «Ver postal con la selección».
 3. Descarga la postal SVG, el clip MP4 o «Descargar expediente JSON». El expediente incluye el informe completo, la matriz, las cifras exactas elegidas con sus URLs y un SHA-256 del contenido para comprobar si cambió durante un traslado.
-4. Si cambias la selección, genera una vista previa nueva antes de descargar. Si reinicias el estudio, consulta otra vez la fuente: el token de exportación es temporal.
+4. Si tienes un proyecto seleccionado, pulsa «Guardar selección en proyecto». Cada selección distinta conserva su expediente en `artifacts/football_comparisons/`; el índice `artifacts/football_comparison_selection.json` señala la última. El agente usa `football_saved_selection` para leer sus cifras y fuentes sin repetir la consulta.
+5. Si cambias la selección, genera una vista previa nueva antes de descargar o guardar. Si reinicias el estudio, consulta otra vez la fuente: el token de exportación es temporal.
 
-El expediente indica `selection_previewed`: acredita la selección comprobada por el exportador, pero no equivale a aprobación editorial, permiso de imagen, licencia para publicar ni comprobación del video final. No envía el expediente a servicios externos ni guarda una copia en el proyecto.
+El expediente indica `selection_previewed`: acredita la selección comprobada por el exportador, pero no equivale a aprobación editorial, permiso de imagen, licencia para publicar ni comprobación del video final. La descarga no envía el expediente a servicios externos; «Guardar selección en proyecto» lo conserva en el disco de proyectos configurado. Guardar de nuevo la misma combinación de informe y métricas reutiliza el expediente existente. El proyecto conserva hasta 100 selecciones distintas, de un máximo de 500 KB cada una.
 
 ## Qué está integrado
 

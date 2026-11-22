@@ -38,6 +38,7 @@ TOOLS=[
  descriptor('sports_sources','Localiza fuentes oficiales por deporte y región para comparativas y tarjetas. No contiene estadísticas ni certifica conectores pendientes.',{'sport':{'enum':['football','boxing','baseball']},'region':{'enum':['world','europe','americas','asia','africa','arab','oceania']}}),
  descriptor('football_comparison','Reúne todas las métricas publicadas de dos jugadores por fuente y edición. En modo player consulta las eliminatorias verificables en secciones aparte. Presenta los datos y espera la selección explícita del usuario antes de exportar.',FOOTBALL_COMPARISON_PROPERTIES,['scope','sources']),
  descriptor('select_football_comparison_metrics','Valida la selección explícita del usuario y prepara los datos para sports_card_svg o sports_card_video.',{'comparison':{'type':'object'},'section':{'type':'integer','minimum':0},'metrics':{'type':'array','minItems':1,'maxItems':6,'uniqueItems':True,'items':{'type':'string'}}},['comparison','section','metrics']),
+ descriptor('football_saved_selection','Lee la última selección deportiva guardada por el usuario en este proyecto, con cifras y fuentes verificadas. La vista previa no es autorización para publicar.'),
  descriptor('world_cup_2022_round','Consulta por ronda de Qatar 2022 los partidos jugados, goles y tiros de dos jugadores con datos de StatsBomb para investigación. Sus términos excluyen uso comercial y este informe queda fuera de los exportadores.',WORLD_CUP_ROUND_PROPERTIES,['round','players']),
  descriptor('world_cup_2022_round_goals','Compara goles acreditados en una ronda de Qatar 2022 con OpenFootball. Presenta las cifras y espera la selección del usuario antes de exportar.',WORLD_CUP_ROUND_PROPERTIES,['round','players']),
  descriptor('select_round_research_metrics','Selecciona cifras de Qatar 2022 para revisar en pantalla. Disponible para investigación con StatsBomb.',{'report':{'type':'object'},'metrics':{'type':'array','minItems':1,'maxItems':3,'uniqueItems':True,'items':{'enum':['matches_played','goals','shots']}}},['report','metrics']),
@@ -160,6 +161,9 @@ class LocalAgent:
         if name=='select_football_comparison_metrics':
             from lib.football_comparisons import select
             return select(**args)
+        if name=='football_saved_selection':
+            from lib.football_comparison_dossier import latest_for_agent
+            return latest_for_agent(self.pid)
         if name=='world_cup_2022_round':
             from lib.world_cup_rounds import compare
             return compare(**args)
@@ -233,7 +237,8 @@ class LocalAgent:
             return {'saved':str(p),'bytes':p.stat().st_size}
         if name=='read_artifact':return studio.read_json(self.artifact_path(args['name']),{})
         if name=='write_artifact':
-            if args['name']=='decision_log':raise ValueError('Registra decisiones mediante checkpoint')
+            if args['name'] in ('decision_log', 'football_comparison_selection'):
+                raise ValueError('Artefacto reservado del estudio')
             from schemas.artifacts import ARTIFACT_NAMES, validate_artifact
             if args['name'] in ARTIFACT_NAMES:validate_artifact(args['name'],args['data'])
             studio.save_json(self.artifact_path(args['name']),args['data'])
@@ -343,6 +348,8 @@ class LocalAgent:
             auto=self.request.get('automatic',False)
             status=args['status']
             if status=='completed' and stage_def.get('human_approval_default') and not auto:status='awaiting_human'
+            if 'football_comparison_selection' in args['artifacts']:
+                raise ValueError('La selección deportiva solo se guarda desde la mesa del estudio')
             path=write_checkpoint(studio.PROJECTS_DIR,self.pid,stage,status,args['artifacts'],pipeline_type=self.request['pipeline'],
                                   human_approved=bool(auto),metadata={'approval_policy':'automatic_user_request' if auto else 'guided'})
             for artifact,data in args['artifacts'].items():
