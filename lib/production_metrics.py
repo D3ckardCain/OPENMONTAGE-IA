@@ -31,6 +31,8 @@ def snapshot():
         approved_stages = []
         first_decisions = {}
         try:
+            if item.get('projects_root',str(studio.PROJECTS_DIR.resolve()))!=str(studio.PROJECTS_DIR.resolve()):
+                raise ValueError('Proyecto en otro disco')
             project = studio.project_path(item['project_id'])
             usage = studio.read_json(project/'resource_usage.json')
             if history and isinstance(usage,dict):
@@ -61,7 +63,7 @@ def snapshot():
                 stages=summarize(events,item['started_at'],item.get('finished_at'))
         except (OSError, ValueError, TypeError, KeyError):
             pass
-        rows.append({'project_id': item['project_id'], 'title': item.get('title'),
+        rows.append({'project_id': item['project_id'], 'projects_root':item.get('projects_root',str(studio.PROJECTS_DIR.resolve())), 'title': item.get('title'),
                      'status': item['status'], 'started_at': item.get('started_at'),
                      'finished_at': item.get('finished_at'), 'elapsed_seconds': duration,
                      'message': item.get('message', ''),
@@ -88,17 +90,32 @@ def snapshot():
                 causes[status] = causes.get(status, 0) + 1
     first_decisions = [decision for row in rows for decision in row['editorial_first_decisions'].values()]
     first_approvals = first_decisions.count('approved')
-    pilot=rows[:10]
+    saved=studio.read_json(studio.CONFIG_DIR/'production_pilots.json',[])
+    frozen=saved[-1] if isinstance(saved,list) and saved and isinstance(saved[-1],dict) else None
+    current_root=str(studio.PROJECTS_DIR.resolve())
+    valid_frozen=(frozen and frozen.get('projects_root')==current_root and
+                  isinstance(frozen.get('project_ids'),list) and len(frozen['project_ids'])==10)
+    if valid_frozen:
+        by_id={row['project_id']:row for row in rows if row['projects_root']==current_root}
+        pilot=[by_id[pid] for pid in frozen['project_ids'] if pid in by_id]
+        missing=sum(pid not in by_id for pid in frozen['project_ids'])
+    else:
+        pilot=rows[:10]
+        missing=0
     finished=[row for row in pilot if row['status']=='completed']
     pilot_report={
         'target_projects':10,'queue_projects_considered':len(pilot),
         'queue_projects_total':len(rows),
+        'projects':[{'project_id':row['project_id'],'title':row['title'],'status':row['status']} for row in pilot],
+        'missing_from_queue':missing,
+        'saved_pilot_on_other_root':bool(frozen and frozen.get('projects_root')!=current_root),
+        'frozen':bool(valid_frozen),'frozen_at':frozen.get('created_at') if valid_frozen else None,
         'completed':len(finished),
         'blocked_or_waiting':sum(row['status'] in ('blocked','interrupted','awaiting_input','awaiting_human','stopped') for row in pilot),
         'completed_with_duration':sum(row['elapsed_seconds'] is not None for row in finished),
         'completed_with_ram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('host_ram_peak_mb')) is int for row in finished),
         'completed_with_vram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('gpu_vram_peak_mb')) is int for row in finished),
-        'scope':'first_ten_current_queue_records_not_a_frozen_cohort',
+        'scope':'fixed_ten_project_cohort' if valid_frozen else 'first_ten_current_queue_records_not_a_frozen_cohort',
     }
     pilot_report['measurements_complete']=(len(pilot)==10 and len(finished)==10 and
         pilot_report['completed_with_duration']==10 and pilot_report['completed_with_ram']==10 and

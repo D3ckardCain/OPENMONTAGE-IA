@@ -109,6 +109,21 @@ def test_retry_preserves_prior_cause_and_resets_current_duration(isolated):
     assert history[1]['stage_active_seconds']=={}
 
 
+def test_freeze_pilot_requires_ten_projects_and_preserves_order(isolated):
+    queue.enqueue('first')
+    with pytest.raises(ValueError,match='diez proyectos'):queue.freeze_pilot()
+    for index in range(9):
+        pid=f'pilot-{index}'
+        studio.save_json(studio.PROJECTS_DIR/pid/'production_request.json',{'title':pid})
+        queue.enqueue(pid)
+    result=queue.freeze_pilot()
+    assert result['generation_started'] is False
+    assert result['pilot']['project_ids'][0]=='first'
+    assert len(result['pilot']['project_ids'])==10
+    with pytest.raises(ValueError,match='ya están fijados'):queue.freeze_pilot()
+    assert queue.WORKER is None
+
+
 def test_approval_cannot_be_bypassed_by_requeueing(isolated,monkeypatch):
     started=fake_producer(monkeypatch)
     queue.enqueue('first')

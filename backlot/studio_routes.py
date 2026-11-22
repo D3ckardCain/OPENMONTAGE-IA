@@ -62,6 +62,9 @@ def create_studio_router():
     async def production_queue_action(action:str,request:Request):
         from lib import production_queue
         data=await body(request)
+        if action=='freeze-pilot':
+            if data:raise HTTPException(400,'Esta acción no admite parámetros')
+            return invoke(production_queue.freeze_pilot)
         if action in ('start','pause'):
             if data:raise HTTPException(400,'Esta acción no admite parámetros')
             return invoke(getattr(production_queue,action))

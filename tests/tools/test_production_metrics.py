@@ -51,6 +51,37 @@ def test_pilot_candidate_measurement_coverage_requires_all_ten(tmp_path,monkeypa
     assert result['completed_with_ram']==10 and result['completed_with_vram']==10
 
 
+def test_frozen_pilot_keeps_membership_when_queue_changes(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
+    monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
+    ids=[f'pilot-{index}' for index in range(10)]
+    studio.save_json(studio.CONFIG_DIR/'production_pilots.json',[
+        {'id':'fixed','created_at':'2026-11-22T10:00:00+00:00',
+         'projects_root':str(studio.PROJECTS_DIR.resolve()),'project_ids':ids}])
+    items=[{'project_id':'other','status':'completed'}]+[
+        {'project_id':pid,'status':'pending'} for pid in reversed(ids[1:])]
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':items})
+    report=production_metrics.snapshot()['pilot_candidate']
+    assert report['frozen'] is True and report['missing_from_queue']==1
+    assert report['queue_projects_considered']==9 and report['completed']==0
+    assert report['measurements_complete'] is False
+
+
+def test_frozen_pilot_ignores_same_project_id_from_another_disk(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
+    monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
+    ids=[f'pilot-{index}' for index in range(10)]
+    studio.save_json(studio.CONFIG_DIR/'production_pilots.json',[
+        {'projects_root':str(studio.PROJECTS_DIR.resolve()),'project_ids':ids}])
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':[
+        {'project_id':ids[0],'projects_root':str(tmp_path/'other'),'status':'completed'}]})
+    pilot=production_metrics.snapshot()['pilot_candidate']
+    assert pilot['frozen'] is True and pilot['missing_from_queue']==10
+    assert pilot['completed']==0
+
+
 def test_invalid_or_reversed_timestamps_never_make_up_a_duration():
     assert production_metrics._seconds('bad', '2026-11-22T10:00:00+00:00') is None
     assert production_metrics._seconds('2026-11-22T10:01:00+00:00',

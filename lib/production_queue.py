@@ -15,6 +15,28 @@ def _load():return studio.read_json(_path(),{'status':'paused','items':[]})
 def _save(value):value['updated_at']=studio.now();studio.save_json(_path(),value)
 
 
+def freeze_pilot():
+    """Save a fixed ten-project cohort from the current queue without starting work."""
+    with LOCK:
+        if WORKER is not None:raise ValueError('Pausa la cola antes de fijar el piloto')
+        state=read();items=state['items'][:10]
+        root=str(studio.PROJECTS_DIR.resolve())
+        if len(items)!=10 or len({item['project_id'] for item in items})!=10:
+            raise ValueError('Necesitas diez proyectos distintos en los primeros diez lugares de la cola')
+        if any(item['projects_root']!=root for item in items):
+            raise ValueError('Conecta la raíz original de los diez proyectos')
+        path=studio.CONFIG_DIR/'production_pilots.json'
+        pilots=studio.read_json(path,[])
+        if not isinstance(pilots,list):raise ValueError('El registro de pilotos no es válido')
+        ids=[item['project_id'] for item in items]
+        if pilots and pilots[-1].get('project_ids')==ids and pilots[-1].get('projects_root')==root:
+            raise ValueError('Estos mismos diez proyectos ya están fijados como piloto actual')
+        pilot={'id':uuid.uuid4().hex,'created_at':studio.now(),'projects_root':root,'project_ids':ids}
+        pilots.append(pilot)
+        studio.save_json(path,pilots[-20:])
+    return {'pilot':pilot,'generation_started':False}
+
+
 def _progress(item):
     """Expose saved producer evidence; never infer percentage or ETA."""
     if Path(item['projects_root']).resolve()!=studio.PROJECTS_DIR.resolve():
