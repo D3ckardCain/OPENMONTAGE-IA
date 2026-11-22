@@ -1,5 +1,5 @@
 """Read verified local channel evidence in bounded parts for agents."""
-from jsonschema import validate
+from jsonschema import validate,ValidationError
 
 from tools.base_tool import BaseTool,ToolResult,ToolTier,ToolRuntime,ToolStability
 
@@ -43,5 +43,5 @@ class SavedChannelEvidence(BaseTool):
                 'publication_total':len(rows),'offset':offset,'publications':rows[offset:offset+limit],
                 'next_offset':next_offset,'idea':idea,
                 'limits':'Vistas acumuladas en la fecha de consulta. El borrador no aprueba hechos, derechos ni publicación.'})
-        except (ValueError,KeyError,TypeError,FileNotFoundError):
+        except (ValidationError,ValueError,KeyError,TypeError,FileNotFoundError):
             return ToolResult(success=False,error='SAVED_CHANNEL_EVIDENCE_INVALID: revisa IDs, expediente e integridad',cost_usd=0)
