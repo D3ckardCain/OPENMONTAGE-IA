@@ -19,6 +19,21 @@ def test_pending_sources_do_not_claim_statistics_or_coverage():
     assert next(x for x in result['sources'] if x['id']=='saudi')['status']=='implemented_requires_live_check'
 
 
+def test_every_listed_football_competition_has_the_same_metric_contract_and_honest_adapter_capability():
+    from lib.sports_sources import FOOTBALL_STANDARD_METRICS
+    result = catalog('football')
+    assert result['football_standard']['metrics'] == list(FOOTBALL_STANDARD_METRICS)
+    rows = {row['id']: row for row in result['sources']}
+    assert all(row['metric_capability']['scope'] == 'configured_adapter_fields_not_verified_player_values'
+               and not row['coverage_verified'] for row in rows.values())
+    assert rows['uae']['metric_capability']['standard_metrics'] == []
+    assert rows['ofc_nations_cup']['metric_capability']['standard_metrics'] == ['goals']
+    assert rows['fifa']['metric_capability']['dynamic_metric_discovery']
+    assert rows['uefa']['metric_capability']['dynamic_metric_discovery']
+    assert {'goals', 'assists', 'saves'} <= set(rows['premier']['metric_capability']['standard_metrics'])
+    assert 'expected_goals_excl_pk' in rows['jleague']['metric_capability']['additional_configured_metrics']
+
+
 def test_copy_and_validation():
     import pytest
     first=catalog(); first['sources'][0]['name']='changed'

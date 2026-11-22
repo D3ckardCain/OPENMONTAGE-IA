@@ -99,13 +99,24 @@ _ROWS = [
 def catalog(sport=None, region=None):
     if sport not in (None,'football','boxing','baseball'): raise ValueError('Deporte no admitido')
     if region not in (None,'world','europe','americas','asia','africa','arab','oceania'): raise ValueError('Región no admitida')
+    from lib.football_source_capabilities import configured_fields
+    configured = configured_fields() if sport in (None, 'football') else {}
     rows=[]
     for ident,kind,area,label,url,tool in _ROWS:
         if sport and kind!=sport: continue
         if region and area not in (region,'world'): continue
-        rows.append(dict(id=ident,sport=kind,region=area,name=label,url=url,
+        row=dict(id=ident,sport=kind,region=area,name=label,url=url,
             connector=tool or None,status='source_inspection_only' if tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
-            coverage_verified=False))
+            coverage_verified=False)
+        if kind=='football':
+            keys, dynamic = configured.get(tool, (set(), False))
+            row['metric_capability'] = {
+                'standard_metrics': [metric for metric in FOOTBALL_STANDARD_METRICS if metric in keys],
+                'additional_configured_metrics': sorted(keys - set(FOOTBALL_STANDARD_METRICS)),
+                'dynamic_metric_discovery': dynamic,
+                'scope': 'configured_adapter_fields_not_verified_player_values',
+            }
+        rows.append(row)
     football_contract = {
         'metrics': list(FOOTBALL_STANDARD_METRICS),
         'missing_value': None,

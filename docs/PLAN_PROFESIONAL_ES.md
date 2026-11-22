@@ -41,6 +41,23 @@ La consulta del agente conserva esa misma matriz de 54 campos incluso cuando una
 La mesa de la app también muestra la matriz ausente en un desplegable cuando una consulta falla o devuelve otra fase. Ninguna cifra del informe rechazado se conserva en ese desplegable.
 Cada fila de una consulta de comparativa indica `availability`: `both_players`, `one_player` o `not_observed` según las cifras que esa consulta devolvió para los dos jugadores. El cero publicado cuenta como cifra observada. Este estado describe el resultado puntual, no la cobertura total de la fuente o del campeonato; los errores de consulta permanecen separados y bloquean la exportación.
 
+El catálogo `sports_sources` ahora enumera para cada competición los campos comunes configurados en su adaptador y los campos adicionales. UEFA y FIFA marcan además el descubrimiento dinámico de métricas: sus cifras publicadas pueden superar el conjunto de equivalencias conocido. Estos recuentos describen código, no jugadores encontrados ni cobertura verificada:
+
+| Conector compartido por competiciones de la lista | Campos comunes configurados | Pendiente principal |
+|---|---:|---|
+| UEFA | 34 | Verificar por competición y fase las cifras adicionales descubiertas. |
+| FIFA | 3 equivalencias conocidas | Inventariar y definir el resto del feed de cada edición sin suponer unidades. |
+| J.League | 32 | Comprobar disponibilidad por división, copa y jugador. |
+| AS (Liga MX y torneos configurados) | 26 | Verificar rankings por edición; algunos pueden estar vacíos. |
+| Premier League | 20 | Ampliar más allá del informe de líderes hasta la jornada 29. |
+| DFL | 14 | Ampliar el universo de jugadores de los rankings y vistas previas. |
+| AFC | 9 | Superar el informe de líderes de la Copa Asiática. |
+| Classificação Geral | 7 | Acreditar fases y ampliar estadísticas de sus ligas y copas. |
+| MLS y Eredivisie | 4 cada uno | Completar métricas y universo de jugadores. |
+| OFC Nations Cup | 1 | Completar el resto de estadísticas con fuentes acreditadas. |
+
+CONMEBOL y CONCACAF como instituciones; AFC, CAF y OFC como directorios; K League, Emiratos, Qatar, Sudáfrica, Marruecos y Egipto siguen sin conector de cifras en el catálogo. La matriz común permanece habilitada para todas, con valores ausentes hasta que una fuente verificable aporte cada cifra.
+
 Antes de ofrecer una postal o clip, la mesa compara la competición, la edición y la fase devueltas por la fuente con la opción elegida. Si difieren, descarta el informe y muestra el error de alcance sin emitir token de exportación. Para UEFA usa `seasonYear` y `phase`; para FIFA comprueba los IDs de competición y temporada y el alcance publicado.
 
 Después de la vista previa, «Descargar expediente JSON» reúne el informe firmado durante la sesión, la matriz completa, la selección de hasta seis métricas y las cifras y URLs usadas para cada jugador. Incluye marca de tiempo UTC y checksum SHA-256 para detectar cambios accidentales en el archivo. «Guardar selección en proyecto» archiva cada revisión distinta sin sobrescribir las anteriores y crea un índice de la última para el agente productor. No certifica derechos comerciales ni sustituye la revisión editorial. Sigue pendiente asociar el expediente al render final y a cada versión en español e inglés.
