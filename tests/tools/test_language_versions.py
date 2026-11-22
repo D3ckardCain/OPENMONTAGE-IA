@@ -78,6 +78,11 @@ def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new
     assert any('selección deportiva' in problem for problem in inspected['items'][0]['problems'])
     with pytest.raises(ValueError,match='selección deportiva'):
         queue.start()
+    from lib import production_agent as agent
+    with pytest.raises(ValueError,match='selección deportiva'):
+        agent.start(en['project_id'])
+    with pytest.raises(ValueError,match='selección deportiva'):
+        agent.approve(en['project_id'])
     assert create_versions('base',['en'])['versions'][0]['project_id']==new['project_id']
     save_to_project('base',report,['goals'])
     assert create_versions('base',['en'])['versions'][0]['status']=='selection_changed'

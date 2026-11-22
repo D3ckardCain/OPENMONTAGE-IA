@@ -440,7 +440,9 @@ class LocalAgent:
 
 
 def start(pid):
-    studio.project_path(pid)
+    project=studio.project_path(pid)
+    from lib.language_versions import selection_provenance_problem
+    if problem:=selection_provenance_problem(project):raise ValueError(problem)
     from lib.storage_layout import readiness
     storage=readiness(studio.REPO_ROOT,studio.PROJECTS_DIR)
     if not storage['ready']:raise ValueError('Almacenamiento no preparado: '+'; '.join(storage['problems']))
@@ -467,6 +469,8 @@ def stop(pid):
 
 def approve(pid):
     p=studio.project_path(pid);req=studio.read_json(p/'production_request.json')
+    from lib.language_versions import selection_provenance_problem
+    if problem:=selection_provenance_problem(p):raise ValueError(problem)
     with ACTIVE_LOCK:
         if pid in ACTIVE:raise ValueError('El agente sigue activo')
     current=get_next_stage(studio.PROJECTS_DIR,pid,req['pipeline'])
