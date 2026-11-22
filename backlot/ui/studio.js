@@ -349,6 +349,23 @@ roundForm.addEventListener('submit', async event => {
   if (!report) {
    roundResult.append(node('p', 'No se verificaron los dos jugadores. Usa el nombre que publica la fuente.'));
    for (const error of errors || []) roundResult.append(node('p', error));
+   if (metric_matrix?.length) {
+    const details = document.createElement('details');
+    details.append(node('summary', 'Ver ' + metric_matrix.length + ' métricas comunes sin cifra verificada'));
+    const table = document.createElement('table');
+    const heading = table.createTHead().insertRow();
+    for (const label of ['Métrica', 'Jugador 1', 'Jugador 2']) {
+     const cell = node('th', label); cell.scope = 'col'; heading.append(cell);
+    }
+    const rows = table.createTBody();
+    for (const metric of metric_matrix) {
+     const row = rows.insertRow();
+     row.append(node('td', metric.label || metric.metric));
+     for (const fact of metric.values) row.append(node('td', fact?.value ?? 'Sin dato'));
+    }
+    const wrap = node('div', ''); wrap.className = 'football-table-wrap';
+    wrap.append(table); details.append(wrap); roundResult.append(details);
+   }
    return;
   }
   if (coverage_note) roundResult.append(node('p', coverage_note));

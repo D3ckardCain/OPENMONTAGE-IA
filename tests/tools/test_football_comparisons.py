@@ -164,7 +164,9 @@ def test_desk_discards_other_phase_before_selection(monkeypatch, edition, source
     monkeypatch.setattr(tool_class, 'execute', execute)
     result = desk.compare_edition([{'name': 'A'}, {'name': 'B'}], edition)
     assert result['report'] is None
-    assert not result['display_metrics'] and not result['metric_matrix']
+    assert not result['display_metrics'] and len(result['metric_matrix']) == 54
+    assert all(row['values'] == [None, None] and row['display_metric'] is None
+               for row in result['metric_matrix'])
     assert any('otra competición, edición o fase' in error for error in result['errors'])
 
 

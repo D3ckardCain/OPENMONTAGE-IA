@@ -1,5 +1,5 @@
 """Build the studio comparison table for the supported football editions."""
-from lib.football_comparisons import collect
+from lib.football_comparisons import collect, metric_matrix
 from tools.football.brasileirao import COMPETITIONS as CG_COMPETITIONS, ClassificacaoLeague, competition_scope
 from tools.football.ligamx import ASCompetition, LigaMX, TOURNAMENTS
 
@@ -166,7 +166,7 @@ def compare_edition(players, edition=DEFAULT_EDITION):
     if report and isinstance(tool, OfficialUEFA):
         from tools.graphics.sports_card import uefa_report
         report = uefa_report(report, selected=True) if report.get('tipo') == 'comparativa_jugadores' else None
-    return {'report': report, 'metric_matrix': section['metric_matrix'] if report else [],
+    return {'report': report, 'metric_matrix': section['metric_matrix'] if report else metric_matrix(None),
             'display_metrics': section['display_metrics'] if report else [],
             'errors': section['errors'] + ([scope_error] if scope_error else
                 ['La fuente no identificó con certeza a los dos jugadores']
