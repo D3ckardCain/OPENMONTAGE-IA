@@ -74,6 +74,29 @@ def test_recent_sample_filters_return_channels(filters):
     assert row['id']==A and row['content_review']['matched']==1
     assert 'videos' not in row and not row['content_review']['complete_history']
 
+
+def test_research_shows_full_observed_sample_including_filtered_out_videos():
+    videos=[video('v1',views=100000),video('v2',views=1000),video('v3',views=1000)]
+    result=search(API([channel(A,200000)],{A:videos}),published_within='month',
+                  min_publication_views=50000,sample_size=3)
+    review=result['results'][0]['content_review']
+    assert review['matched']==1
+    assert [v['matches_filters'] for v in review['sample_publications']]==[True,False,False]
+    assert review['sample_analysis']['median_views']==1000
+    assert review['sample_analysis']['top_publication_share']>.98
+    assert review['sample_analysis']['top_to_other_median_ratio']==100
+    assert review['sample_analysis']['complete_period'] is False
+
+
+def test_incomplete_or_unknown_sample_does_not_claim_outlier_ratio():
+    from tools.research.youtube_channels import sample_analysis
+    rows=[video('v1',views=100),video('v2',views=10),video('v3',views=1)]
+    rows[1]['statistics'].pop('viewCount')
+    analysis=sample_analysis(rows,20)
+    assert analysis['sample_returned']==3 and analysis['views_unknown']==1
+    assert analysis['top_publication_share'] is None
+    assert analysis['complete_period'] is False
+
 def test_language_unknown_and_old_content_rejected():
     assert not search(API([channel(A,100)],{A:[video('v1',lang=None)]}),language='es')['results']
     assert not search(API([channel(A,100)],{A:[video('v1',age=8)]}),published_within='week')['results']

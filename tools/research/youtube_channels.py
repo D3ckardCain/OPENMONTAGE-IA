@@ -4,6 +4,7 @@ No derived viral/earnings score, media download or persistent cache.
 """
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone, timedelta
+from statistics import median
 import re
 import time
 
@@ -85,6 +86,24 @@ def sort_channels(rows, sort_by):
         return (views is None, -views if views is not None else 0,
                 -subs if subs is not None else 1, row['id'])
     rows.sort(key=key)
+
+
+def sample_analysis(videos,requested):
+    """Describe only the observed uploads; never infer period growth or earnings."""
+    views=[count(v.get('statistics',{}).get('viewCount')) for v in videos]
+    known=[v for v in views if v is not None]
+    result={'sample_requested':requested,'sample_returned':len(videos),
+            'views_known':len(known),'views_unknown':len(videos)-len(known),
+            'median_views':median(known) if known else None,
+            'top_publication_share':None,'top_to_other_median_ratio':None,
+            'complete_period':False}
+    if len(known)>=3 and len(known)==len(videos):
+        ordered=sorted(known,reverse=True)
+        total=sum(ordered)
+        if total:result['top_publication_share']=round(ordered[0]/total,4)
+        others=median(ordered[1:])
+        if others:result['top_to_other_median_ratio']=round(ordered[0]/others,2)
+    return result
 
 
 class ChannelSearch(YouTube):
@@ -202,7 +221,9 @@ class ChannelSearch(YouTube):
                                  for x in reply['items'] if x.get('contentDetails',{}).get('videoId')))
                 videos = self.batches('videos',video_ids,'snippet,statistics,contentDetails,liveStreamingDetails')
                 # Count distinct requested publications, even if upstream repeats records.
-                videos = list({v['id']:v for v in videos if v.get('id') in video_ids}.values())
+                found={v['id']:v for v in videos if v.get('id') in video_ids}
+                videos=[found[vid] for vid in video_ids if vid in found]
+                videos = [v for v in videos if v.get('snippet',{}).get('channelId')==row['id']]
                 matches = [v for v in videos if self._matches(v,row['id'],filters,now)]
                 if not matches:
                     reject('no_match_in_recent_sample'); continue
@@ -210,6 +231,7 @@ class ChannelSearch(YouTube):
                     reject('insufficient_matching_publications'); continue
                 dates = [v['snippet']['publishedAt'] for v in matches if v['snippet'].get('publishedAt')]
                 matched_views = [count(v.get('statistics',{}).get('viewCount')) for v in matches]
+                matched_ids={v['id'] for v in matches}
                 row['content_review'] = dict(sample_requested=filters.sample_size,
                     inspected=len(videos),matched=len(matches),
                     minimum_required=filters.min_matching_publications,
@@ -220,6 +242,13 @@ class ChannelSearch(YouTube):
                         duration_iso8601=v.get('contentDetails',{}).get('duration'),
                         audio_language_declared=v.get('snippet',{}).get('defaultAudioLanguage'))
                         for v in matches],
+                    sample_analysis=sample_analysis(videos,filters.sample_size),
+                    sample_publications=[dict(id=v['id'],title=v.get('snippet',{}).get('title'),
+                        published_at=v.get('snippet',{}).get('publishedAt'),
+                        viewCount=count(v.get('statistics',{}).get('viewCount')),
+                        duration_iso8601=v.get('contentDetails',{}).get('duration'),
+                        matches_filters=v['id'] in matched_ids)
+                        for v in videos],
                     latest_matching_publication=max(dates) if dates else None,
                     complete_history=False,shorts_confirmed=None)
                 reviewed.append(row)

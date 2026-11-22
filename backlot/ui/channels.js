@@ -71,6 +71,19 @@ function showChannel(ch,index){
     const r=ch.content_review;
     if('matching_publication_views_sum' in r)card.append(element('p',`Vistas de publicaciones coincidentes: ${format(r.matching_publication_views_sum)} · suma de la muestra revisada.`));
     card.append(element('p',`${r.matched} coincidencias entre ${r.inspected} publicaciones revisadas (muestra de ${r.sample_requested}).`));
+    if(r.sample_analysis){
+      const a=r.sample_analysis;
+      const box=element('details',''),heading=element('summary','Analizar toda la muestra revisada');box.append(heading);
+      box.append(element('p',`${a.sample_returned} publicaciones devueltas de ${a.sample_requested} solicitadas · ${a.views_known} con vistas conocidas · ${a.views_unknown} sin cifra. Mediana de vistas acumuladas: ${format(a.median_views)}.`));
+      if(a.top_publication_share!==null)box.append(element('p',`El video más visto reúne ${(a.top_publication_share*100).toFixed(1)} % de las vistas conocidas en esta muestra. Relación con la mediana de los demás: ${format(a.top_to_other_median_ratio)}×.`));
+      box.append(element('p','Muestra limitada a las publicaciones solicitadas. No cubre necesariamente todos los videos del periodo ni mide vistas ganadas durante él.'));
+      const list=element('ul','');for(const video of r.sample_publications||[]){
+        if(!/^[A-Za-z0-9_-]{11}$/.test(video.id))continue;
+        const item=element('li',''),link=element('a',video.title||video.id);
+        link.href=`https://www.youtube.com/watch?v=${encodeURIComponent(video.id)}`;link.target='_blank';link.rel='noopener noreferrer';
+        item.append(link,element('span',` · ${format(video.viewCount)} vistas acumuladas · ${video.published_at||'fecha desconocida'} · ${video.matches_filters?'Cumple los filtros':'Fuera de los filtros'}`));list.append(item);
+      }box.append(list);card.append(box);
+    }
     if(r.matching_publications?.length){
       const details=element('details',''),summary=element('summary','Ver publicaciones coincidentes');details.append(summary);
       const list=element('ul','');
