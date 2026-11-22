@@ -82,6 +82,36 @@ def test_frozen_pilot_ignores_same_project_id_from_another_disk(tmp_path,monkeyp
     assert pilot['completed']==0
 
 
+def test_pilot_aggregates_exclude_other_queue_projects(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
+    monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
+    ids=[f'pilot-{index}' for index in range(10)]
+    studio.save_json(studio.CONFIG_DIR/'production_pilots.json',[
+        {'projects_root':str(studio.PROJECTS_DIR.resolve()),'project_ids':ids}])
+    items=[]
+    for pid in ids+['outside']:
+        studio.save_json(studio.PROJECTS_DIR/pid/'production_request.json',{})
+        studio.save_json(studio.PROJECTS_DIR/pid/'resource_usage.json',{
+            'host_ram_peak_mb':9000 if pid=='outside' else 1000,
+            'gpu_vram_peak_mb':8000 if pid=='outside' else 500,
+            'recorded_at':'2026-11-22T10:01:00+00:00'})
+        studio.save_json(studio.PROJECTS_DIR/pid/'editorial_reviews.json',[
+            {'stage':'idea','decision':'revision_requested' if pid=='outside' else 'approved'}])
+        items.append({'project_id':pid,'status':'completed',
+                      'started_at':'2026-11-22T10:00:00+00:00',
+                      'finished_at':'2026-11-22T10:01:00+00:00',
+                      'retry_history':[{'status':'blocked'}] if pid=='outside' else []})
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'completed','items':items})
+    report=production_metrics.snapshot()
+    assert report['ram_peak_mb']==9000
+    pilot=report['pilot_candidate']
+    assert pilot['completed_elapsed_seconds_total']==600
+    assert pilot['ram_peak_mb']==1000 and pilot['vram_peak_mb']==500
+    assert pilot['retries_recorded']==0
+    assert pilot['editorial_first_decisions_count']==10 and pilot['first_pass_approval_rate']==1
+
+
 def test_invalid_or_reversed_timestamps_never_make_up_a_duration():
     assert production_metrics._seconds('bad', '2026-11-22T10:00:00+00:00') is None
     assert production_metrics._seconds('2026-11-22T10:01:00+00:00',

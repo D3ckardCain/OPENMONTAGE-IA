@@ -103,6 +103,13 @@ def snapshot():
         pilot=rows[:10]
         missing=0
     finished=[row for row in pilot if row['status']=='completed']
+    pilot_ram=[usage['host_ram_peak_mb'] for row in pilot
+               for usage in [row['resource_usage'],*(entry.get('resource_usage') for entry in row['retry_history'])]
+               if isinstance(usage,dict) and type(usage.get('host_ram_peak_mb')) is int]
+    pilot_vram=[usage['gpu_vram_peak_mb'] for row in pilot
+                for usage in [row['resource_usage'],*(entry.get('resource_usage') for entry in row['retry_history'])]
+                if isinstance(usage,dict) and type(usage.get('gpu_vram_peak_mb')) is int]
+    pilot_decisions=[decision for row in pilot for decision in row['editorial_first_decisions'].values()]
     pilot_report={
         'target_projects':10,'queue_projects_considered':len(pilot),
         'queue_projects_total':len(rows),
@@ -115,6 +122,12 @@ def snapshot():
         'completed_with_duration':sum(row['elapsed_seconds'] is not None for row in finished),
         'completed_with_ram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('host_ram_peak_mb')) is int for row in finished),
         'completed_with_vram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('gpu_vram_peak_mb')) is int for row in finished),
+        'completed_elapsed_seconds_total':round(sum(row['elapsed_seconds'] for row in finished if row['elapsed_seconds'] is not None),3),
+        'ram_peak_mb':max(pilot_ram) if pilot_ram else None,
+        'vram_peak_mb':max(pilot_vram) if pilot_vram else None,
+        'retries_recorded':sum(row['retry_count_recorded'] for row in pilot),
+        'editorial_first_decisions_count':len(pilot_decisions),
+        'first_pass_approval_rate':round(pilot_decisions.count('approved')/len(pilot_decisions),3) if pilot_decisions else None,
         'scope':'fixed_ten_project_cohort' if valid_frozen else 'first_ten_current_queue_records_not_a_frozen_cohort',
     }
     pilot_report['measurements_complete']=(len(pilot)==10 and len(finished)==10 and
