@@ -207,25 +207,18 @@ def _run():
 
 def start():
     global WORKER
-    from lib import reference_analysis
     with LOCK:
         if WORKER is not None:raise ValueError('La cola ya está activa')
         read()
         value=_load()
         if not value['items'] or all(item['status']=='completed' for item in value['items']):raise ValueError('No hay proyectos pendientes')
-        with agent.ACTIVE_LOCK,reference_analysis.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise ValueError('Espera a que termine la tarea local activa')
-        first=next(item for item in value['items'] if item['status']!='completed')
-        if first['status']!='pending':
-            raise ValueError('Revisa el primer trabajo y vuelve a ponerlo pendiente antes de ejecutar la cola')
-        if Path(first['projects_root']).resolve()!=studio.PROJECTS_DIR.resolve():
-            raise ValueError('Selecciona el disco de trabajo original antes de ejecutar este proyecto')
-        job=studio.read_json(studio.project_path(first['project_id'])/'job.json',{})
-        if job.get('status')=='awaiting_human':
-            raise ValueError('Aprueba la etapa desde el proyecto antes de reanudar la cola')
-        if job.get('status')!='rendered':
-            _,problem=_selected_model_status()
-            if problem:raise ValueError(problem)
+        report=inspect()
+        if not report['ready']:
+            problems=report['storage']['problems']+report['problems']
+            for item in report['items']:
+                if item['status']!='completed' and item['problems']:
+                    problems.append(item['title']+': '+item['problems'][0])
+            raise ValueError('; '.join(problems)[:1200] or 'La cola no está preparada')
         value['status']='running';_save(value);PAUSE.clear()
         WORKER=threading.Thread(target=_run,daemon=True,name='production-queue');WORKER.start()
     return {'started':True,'publication_authorized':False}
@@ -245,8 +238,6 @@ def inspect():
     queue_problems=[]
     if local_task_active:queue_problems.append('Espera a que termine la producción, análisis o entrega local activa')
     if active:queue_problems.append('La cola ya está activa')
-    model_status,problem=_selected_model_status()
-    if problem:queue_problems.append(problem)
     reports=[]
     for item in items:
         problems=[];job_status=None
@@ -263,6 +254,10 @@ def inspect():
         reports.append({'id':item['id'],'title':item['title'],'status':item['status'],
             'job_status':job_status,'problems':problems,'ready':not problems})
     pending=[item for item in reports if item['status']!='completed']
+    model_status={'configured':studio.settings().get('model') or None,'installed':False,'checked':False}
+    if any(item['ready'] and item['job_status']!='rendered' for item in pending):
+        model_status,problem=_selected_model_status()
+        if problem:queue_problems.append(problem)
     return {'ready':bool(pending) and storage['ready'] and not queue_problems and all(item['ready'] for item in pending),
         'worker_active':active,'local_task_active':local_task_active,'problems':queue_problems,'storage':storage,'items':reports,'generation_started':False,
         'model_status':model_status,'scope':'queue_storage_and_selected_local_model',

@@ -7,6 +7,7 @@ from lib import production_studio as studio,production_queue as queue,production
 
 @pytest.fixture
 def isolated(tmp_path,monkeypatch):
+    from lib import storage_layout
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
     monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
     monkeypatch.setattr(agent,'ACTIVE',{})
@@ -15,6 +16,7 @@ def isolated(tmp_path,monkeypatch):
     monkeypatch.setattr(queue,'PAUSE',threading.Event())
     monkeypatch.setattr(studio,'settings',lambda:{'model':'fixture:latest','ollama_url':'http://127.0.0.1:11434'})
     monkeypatch.setattr(studio,'local_request',lambda *args,**kwargs:{'models':[{'name':'fixture:latest'}]})
+    monkeypatch.setattr(storage_layout,'readiness',lambda *args:{'ready':True,'problems':[]})
     for pid in ('first','second'):
         studio.save_json(studio.PROJECTS_DIR/pid/'production_request.json',{'title':pid})
         studio.save_json(studio.PROJECTS_DIR/pid/'job.json',{'status':'ready'})
@@ -79,7 +81,7 @@ def test_restart_requires_review_before_generation(isolated,monkeypatch):
     started=fake_producer(monkeypatch)
     queue.enqueue('first');value=queue._load();value['status']='running';value['items'][0]['status']='starting';queue._save(value)
     assert queue.read()['items'][0]['status']=='interrupted'
-    with pytest.raises(ValueError,match='primer trabajo'):queue.start()
+    with pytest.raises(ValueError,match='vuelve a ponerlo pendiente'):queue.start()
     assert started==[] and queue.read()['items'][0]['status']=='interrupted'
     queue.retry(queue.read()['items'][0]['id']);queue.start();wait()
     assert started==['first']
@@ -131,7 +133,7 @@ def test_approval_cannot_be_bypassed_by_requeueing(isolated,monkeypatch):
     started=fake_producer(monkeypatch)
     queue.enqueue('first')
     studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'awaiting_human'})
-    with pytest.raises(ValueError,match='Aprueba'):queue.start()
+    with pytest.raises(ValueError,match='requiere aprobación'):queue.start()
     assert queue.read()['items'][0]['status']=='pending' and started==[]
 
 
@@ -140,8 +142,20 @@ def test_rendered_projects_are_not_generated_again_and_wrong_disk_blocks(isolate
     queue.enqueue('first');studio.save_json(studio.PROJECTS_DIR/'first/job.json',{'status':'rendered'})
     queue.start();wait();assert started==[] and queue.read()['status']=='completed'
     queue.enqueue('second');value=queue._load();value['items'][1]['projects_root']=str(isolated/'other-disk');queue._save(value)
-    with pytest.raises(ValueError,match='disco de trabajo original'):queue.start()
+    with pytest.raises(ValueError,match='disco original'):queue.start()
     assert started==[] and queue.read()['items'][1]['status']=='pending'
+
+
+def test_start_checks_later_queue_item_before_running_first(isolated,monkeypatch):
+    started=fake_producer(monkeypatch)
+    queue.enqueue('first');queue.enqueue('second')
+    studio.save_json(studio.PROJECTS_DIR/'second/job.json',{'status':'awaiting_human'})
+    before=queue._path().read_bytes()
+    with pytest.raises(ValueError,match='second: La etapa requiere aprobación'):queue.start()
+    assert started==[] and queue._path().read_bytes()==before
+    studio.save_json(studio.PROJECTS_DIR/'second/job.json',{'status':'ready'})
+    queue.start();wait()
+    assert started==['first','second']
 
 
 def test_active_local_work_prevents_start(isolated):

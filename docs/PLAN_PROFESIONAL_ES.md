@@ -35,7 +35,7 @@ Para los trabajos marcados como terminados, el piloto cuenta los recibos `render
 
 «Ejecutar cola local» repite la comprobación justo antes de lanzar un agente para el primer trabajo pendiente y rechaza el inicio si falta el modelo o no responde Ollama; la cola conserva su estado. Si ese trabajo ya tiene estado `rendered`, puede marcarlo como terminado sin exigir el modelo ni volver a generar.
 
-El inicio también rechaza, sin activar el controlador, un primer registro bloqueado o interrumpido que aún no se haya puesto pendiente, un proyecto perteneciente a otro disco y una etapa con aprobación humana pendiente. La revisión y el cambio de estado se hacen desde el proyecto o el registro correspondiente; el mensaje indica la causa.
+El inicio usa la misma comprobación puntual que «Comprobar cola sin ejecutar» para todos los registros pendientes: estado, disco, aprobaciones, almacenamiento y modelo seleccionado cuando hace falta generar. Si cualquier registro no está preparado, muestra la causa sin activar el controlador ni procesar parcialmente el lote. Un trabajo que ya está `rendered` se puede reconciliar sin modelo; la revisión y el cambio de estado se hacen desde el proyecto o el registro correspondiente.
 
 ### Desglose por ronda de Qatar 2022
 
