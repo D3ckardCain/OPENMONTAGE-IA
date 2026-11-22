@@ -1,0 +1,33 @@
+# Video largo por escenas con personajes consistentes
+
+## Video revisado y alcance de la comparación
+
+[Edwin Arenas, «Cómo CREAR VIDEOS LARGOS con IA GRATIS + Personajes Consistentes»](https://www.youtube.com/watch?v=rd8TQwkQ4zs), publicado el 20 de septiembre de 2026. Se revisaron la descripción y la transcripción del tutorial (24:24). Su ejemplo final dura **41 segundos** y tiene **seis escenas**; la propuesta para piezas de varios minutos consiste en repetir el proceso con más escenas, no demuestra por sí sola una generación continua de 10–15 minutos.
+
+| Paso observado | Minuto aproximado | Estado en OPENMONTAGE‑IA | Decisión |
+|---|---:|---|---|
+| ChatGPT prepara historia, personajes y prompts por escena; el número de escenas se cambia varias veces a mano | 02–05 | Hay guion, `scene_plan` y pipeline de animación de personajes | Crear un manifiesto único que fije duración, formato, personajes y cantidad de escenas; derivar de él los prompts, sin copiar números a mano. |
+| Google Flow crea imágenes numeradas | 05–07 | Hay generación de imágenes y adaptadores locales; los pesos requieren configuración y prueba | Usar imagen local disponible; guardar imagen, prompt, modelo, semilla y hash por escena. |
+| Vibes anima imágenes, produce varias opciones, espera 45–60 s entre envíos y reintenta un fallo manualmente | 07–17 | Hay ComfyUI, modelos I2V, registros de trabajos y cola secuencial por proyecto | Añadir cola **por escena** con resultado, opciones, pausa, reintento acotado y reanudación explícita; la espera debe ajustarse al runtime local, no copiar 45 s como regla. |
+| Selección manual de una toma entre varias y renombrado de archivos | 15–17 | Hay revisión por etapas y artefactos, pero falta una selección estructurada de toma para cada escena | Conservar todas las opciones; registrar la toma elegida con ID, hash y aprobación. Nunca inferir el orden por nombre u hora de descarga. |
+| ElevenLabs hace voz; Gemini, música; CapCut, montaje, subtítulos y exportación | 17–24 | Hay TTS local, audio, subtítulos, composición y verificación de exportación | Sincronizar voz y música con la duración medida de cada toma; ofrecer revisión de subtítulos, mezcla y corte editable local antes del render final. |
+
+## Primer módulo a implementar: mesa de escenas
+
+Crear `scene_batch.json` **por proyecto**, derivado de `scene_plan` aprobado. Cada fila tendrá `scene_id` estable y orden, duración objetivo, formato, IDs de personajes, descripción y ancla visual de identidad, prompt de imagen y de movimiento, recursos de entrada, proveedor/modelo local, semilla cuando el modelo la admita, candidatos generados, toma aprobada y estado. Los recursos se referenciarán con rutas bajo el proyecto y SHA-256; no se moverán pesos ni medios ajenos. Guardar por separado la versión del manifiesto y el hash de sus campos creativos para invalidar solamente las escenas afectadas por una revisión.
+
+**Contrato de aceptación:**
+
+1. El número de prompts de imagen y de animación coincide exactamente con el número de escenas; cada prompt se une por `scene_id`, nunca separando párrafos por espacios.
+2. Dos escenas que comparten personaje remiten al mismo expediente visual aprobado: rasgos, vestuario, paleta, vistas y referencias. El modelo local recibe esos anclajes cuando su adaptador los soporta. La app marca «consistencia pendiente de revisión» hasta que una persona compare las tomas; una semilla idéntica no la garantiza.
+3. Cada escena conserva al menos una imagen y puede tener varias tomas de video. Un fallo se registra con causa y deja reintentar esa escena sin repetir las completadas. Reiniciar la app no inicia generación automáticamente.
+4. El montaje solo admite una toma aprobada por escena y verifica que archivo, hash, duración y formato correspondan al manifiesto. La música y la voz se mezclan con niveles revisables; los subtítulos se inspeccionan en ambos formatos 9:16 y 16:9 antes de exportar.
+5. Un cambio en personaje, prompt, imagen o toma invalida las escenas dependientes y el render anterior. El resultado final mantiene el expediente, decisiones, licencias de recursos y verificación técnica.
+
+**Orden de entrega:** (1) esquema y validador del manifiesto, (2) vista de escenas y selección de toma, (3) trabajador I2V secuencial con reintentos y recuperación, (4) montaje y audio/subtítulos por escena, (5) piloto local de seis escenas y después uno de varios minutos. Medir tiempo y VRAM por escena en el hardware del usuario antes de prometer duración o volumen semanal.
+
+## Restricciones del proyecto y fuentes
+
+El tutorial usa cuentas y una extensión externa para automatizar Vibes. No se integrará esa extensión ni se asumirán generaciones ilimitadas. [Meta describe Vibes como creación de videos cortos](https://about.fb.com/news/2025/09/introducing-vibes-ai-videos/); [Meta One añade más uso de generación mediante suscripción](https://about.fb.com/news/2026/09/introducing-meta-one-subscription-service-more-features-ai/). [Google Flow ofrece créditos diarios limitados en su plan gratuito](https://labs.google/fx/tools/flow). [ElevenLabs limita el plan gratuito y reserva derechos comerciales a planes de pago](https://elevenlabs.io/docs/overview/administration/billing). [CapCut distingue herramientas gratuitas de recursos Pro que pueden bloquear la exportación](https://www.capcut.com/help/join-capcut-pro-for-exporting). El flujo principal será local: modelos ya inventariados, ComfyUI, TTS local y composición propia. Los servicios del tutorial sirven de referencia visual y de proceso, no de dependencia operativa.
+
+Antes de generar el piloto hay que comprobar qué adaptadores I2V funcionan de verdad con los pesos disponibles y qué licencia cubre las imágenes, voz y música elegidas. Una descarga registrada no equivale a inferencia validada.

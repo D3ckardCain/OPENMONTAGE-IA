@@ -120,6 +120,8 @@ Cotejar los inventarios antes de descargar. Faster‑Whisper y PaddleOCR latino 
 
 ## Formatos iniciales
 
+La [mesa de escenas para videos largos con personajes consistentes](VIDEO_LARGO_PERSONAJES_ES.md) recoge el análisis del tutorial de Edwin Arenas y define el primer módulo, sus pruebas de aceptación y el orden de implementación local.
+
 - **Duelo en 30 segundos.** Dos jugadores y tres métricas aprobadas. Una pieza vertical animada y una postal desde el mismo informe.
 - **La jugada explicada.** Diagramas tácticos propios. Añadir velocidad, balón y fuera de juego después de validar la medición con referencias conocidas.
 - **Ficha de leyenda.** Fútbol, béisbol y boxeo con corte y fuente visibles. Distinguir bateo y pitcheo, y ranking, récord y resultado de combate.
