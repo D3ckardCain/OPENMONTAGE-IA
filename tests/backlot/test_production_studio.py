@@ -60,6 +60,15 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert state['channel_research']['complete_period'] is False
     assert state['channel_research']['publication_total']==2
     assert state['channel_research']['vidiq_observation_total']==1
+    from lib.editorial_freshness import research_index
+    research=research_index(project)
+    assert research['snapshot_sha256']==source['report_sha256']
+    studio.save_json(project/'render_verification.json',{'status':'passed','finished_at':'2026-11-22T10:00:00+00:00',
+        'channel_research':research,'outputs':[{'path':str(project/'renders/final.mp4'),'sha256':'a'*64}]})
+    studio.save_json(project/'final_delivery.json',{'copied':True,'delivered_at':'2026-11-22T10:01:00+00:00',
+        'outputs':[{'source':str(project/'renders/final.mp4'),'sha256':'a'*64}]})
+    assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['verification_current'] is True
+    assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['final_copy_current'] is True
     publications=isolated.get('/api/studio/channel-research/'+response.json()['project_id']+'?limit=1').json()
     assert publications['publication_total']==2 and publications['next_offset']==1
     manual=isolated.get('/api/studio/vidiq-observations/'+response.json()['project_id']+'?limit=1').json()
@@ -79,6 +88,11 @@ def test_project_copies_verified_research_idea_link(isolated):
     with pytest.raises(ValueError,match='alteradas'):
         worker.dispatch('project_vidiq_observations',{})
     assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['channel_research']['status']=='invalid'
+    state=isolated.get('/api/studio/projects/'+response.json()['project_id']).json()
+    assert state['verification_current'] is False and state['final_copy_current'] is False
+    from lib.final_catalog import catalog
+    entry=next(row for row in catalog()['projects'] if row['project_id']==response.json()['project_id'])
+    assert entry['verification_current'] is False and entry['final_copy_current'] is False
     assert isolated.get('/api/studio/vidiq-observations/'+response.json()['project_id']).status_code==400
     with pytest.raises(ValueError,match='alteradas'):
         agent.start(response.json()['project_id'])

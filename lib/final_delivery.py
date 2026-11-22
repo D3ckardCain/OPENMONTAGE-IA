@@ -17,6 +17,13 @@ def digest(path):
 
 def deliver(project_id,outputs):
     project=studio.project_path(project_id)
+    from lib.editorial_freshness import research_index
+    research=research_index(project)
+    if isinstance(research,dict) and research.get('invalid'):
+        raise ValueError('La investigación del proyecto está ausente o alterada')
+    saved=studio.read_json(project/'render_verification.json',{})
+    if research is not None and saved.get('channel_research')!=research:
+        raise ValueError('La verificación del render no corresponde a la investigación actual')
     if not isinstance(outputs,list) or not 1<=len(outputs)<=16:
         raise ValueError('La entrega requiere entre una y dieciséis salidas verificadas')
     configured=read_config(studio.REPO_ROOT).get('final_outputs_dir')
@@ -74,9 +81,9 @@ def retry_verified_delivery(project_id):
     if not read_config(studio.REPO_ROOT).get('final_outputs_dir'):raise ValueError('Configura el destino de videos finales antes de reintentar la entrega')
     evidence=studio.read_json(project/'render_verification.json',{})
     if evidence.get('status')!='passed':raise ValueError('Falta una verificación técnica aprobada')
-    from lib.editorial_freshness import current as verification_current,selection_index
-    if not verification_current(evidence,studio.read_json(project/'editorial_reviews.json',[]),selection_index(project)):
-        raise ValueError('La verificación no corresponde a la revisión o selección deportiva actual; verifica el render actualizado')
+    from lib.editorial_freshness import current as verification_current,selection_index,research_index
+    if not verification_current(evidence,studio.read_json(project/'editorial_reviews.json',[]),selection_index(project),research_index(project)):
+        raise ValueError('La verificación no corresponde a la revisión o selección deportiva actual, o a la investigación vinculada; verifica el render actualizado')
     receipts={}
     for record in evidence.get('outputs',[]):
         path=Path(record['path']).resolve();path.relative_to((project/'renders').resolve())

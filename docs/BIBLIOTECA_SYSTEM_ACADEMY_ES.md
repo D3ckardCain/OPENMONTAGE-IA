@@ -40,6 +40,8 @@ Si falta solo la copia de observaciones vidIQ, «Recuperar copia local» busca e
 
 La inspección de la cola valida también las copias de investigación de cada proyecto. Una captura ausente o alterada aparece como problema antes de iniciar el productor; la cola no se presenta como lista en ese estado.
 
+La verificación técnica del render conserva la identidad de la propuesta, expediente y observaciones vinculadas. Si la investigación cambia o falta después, el estudio y el catálogo de videos finales dejan de marcar el render y la entrega como vigentes; una nueva entrega exige verificar con la evidencia actual. Esta huella acredita continuidad del archivo local, no la veracidad de las cifras ni la calidad editorial.
+
 ### Observación puntual con vidIQ en Edge
 
 El 22 de noviembre de 2026 se revisó [este video de Edwin Arenas](https://www.youtube.com/watch?v=rd8TQwkQ4zs) con la extensión ya instalada. La ficha visible indicaba **80,1 mil vistas acumuladas**, **21 VPH**, **2,7 % Engagement**, **19,7× Outlier** y **40,3/100 puntuación SEO**. También mostraba etiquetas del video y canal y una gráfica histórica de vistas. Son valores mostrados por vidIQ en ese momento; VPH y puntuaciones son cálculos del proveedor y no equivalen a CTR, retención, ingresos ni crecimiento certificado del canal. La propia interfaz reservaba ciertas etiquetas y opciones para planes de pago.

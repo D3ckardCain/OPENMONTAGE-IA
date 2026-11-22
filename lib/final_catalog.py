@@ -1,7 +1,7 @@
 """Read saved delivery receipts without scanning resource disks or hashing video."""
 from pathlib import Path
 from lib import production_studio as studio
-from lib.editorial_freshness import current as verification_current,delivery_current,selection_index
+from lib.editorial_freshness import current as verification_current,delivery_current,selection_index,research_index
 from lib.storage_layout import read_config
 
 
@@ -29,7 +29,8 @@ def catalog(limit=500):
             verification=studio.read_json(project/'render_verification.json',{})
             reviews=studio.read_json(project/'editorial_reviews.json',[])
             selection=selection_index(project)
-            current=verification_current(verification,reviews,selection)
+            research=research_index(project)
+            current=verification_current(verification,reviews,selection,research)
             if not receipt and not verification:continue
             outputs=[]
             copied=receipt.get('copied') is True
@@ -43,7 +44,7 @@ def catalog(limit=500):
             rows.append({'project_id':project.name,'title':request.get('title',project.name),
                 'delivery_mode':receipt.get('mode','project_renders'),'copied':receipt.get('copied',False),
                 'delivered_at':receipt.get('delivered_at'),'verification_status':verification.get('status','unknown'),
-                'verification_current':current,'final_copy_current':delivery_current(verification,receipt,reviews,selection),
+                'verification_current':current,'final_copy_current':delivery_current(verification,receipt,reviews,selection,research),
                 'football_selection':verification.get('football_selection') if verification.get('status')=='passed' else None,
                 'outputs':outputs,'studio_url':'/studio?project='+project.name})
         except (OSError,ValueError,KeyError,TypeError) as exc:

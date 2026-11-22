@@ -193,18 +193,19 @@ def production_state(pid):
     try:reference_video_url=youtube_url(request.get('reference',''))
     except ValueError:reference_video_url=None
     from lib.project_translation import summary as translation_summary
-    from lib.editorial_freshness import current as verification_current,delivery_current,selection_index
+    from lib.editorial_freshness import current as verification_current,delivery_current,selection_index,research_index
     verification=read_json(p/'render_verification.json')
     delivery=read_json(p/'final_delivery.json')
     reviews=read_json(p/'editorial_reviews.json',[])
     selection=selection_index(p)
-    current=verification_current(verification,reviews,selection)
+    research=research_index(p)
+    current=verification_current(verification,reviews,selection,research)
     from lib.project_channel_evidence import summary as channel_research_summary
     return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,
         'channel_research':channel_research_summary(p,request),
         'translation':translation_summary(pid),
         'reference_video_url':reference_video_url,'render_verification':verification,
-        'verification_current':current,'final_copy_current':delivery_current(verification,delivery,reviews,selection),
+        'verification_current':current,'final_copy_current':delivery_current(verification,delivery,reviews,selection,research),
         'delivery_retry':read_json(p/'delivery_retry.json'),
         'final_delivery':delivery,'board_url':'/p/'+pid}
 

@@ -24,13 +24,33 @@ def selection_index(project):
         return {'invalid':True}
 
 
-def current(verification,reviews,selection_index=None):
+def research_index(project):
+    from lib import production_studio as studio
+    try:
+        request=studio.read_json(project/'production_request.json')
+        if not request.get('research_idea'):return None
+        from lib.project_channel_evidence import verified
+        from lib.project_video_observations import verified_rows
+        snapshot,_,_=verified(project,request)
+        verified_rows(project,request)
+        return {'research_idea':request['research_idea'],
+                'research_idea_sha256':request['research_idea_sha256'],
+                'snapshot_sha256':snapshot['report_sha256'],
+                'research_observations_sha256':request.get('research_observations_sha256')}
+    except (OSError,ValueError,KeyError,TypeError,OverflowError):
+        return {'invalid':True}
+
+
+def current(verification,reviews,selection_index=None,research_index=None):
     if not isinstance(verification,dict) or verification.get('status')!='passed':return False
     selected=verification.get('football_selection')
     if selected is not None or selection_index is not None:
         if not isinstance(selected,dict) or not isinstance(selection_index,dict):return False
         if any(selected.get(key)!=selection_index.get(key) or not isinstance(selected.get(key),str)
                for key in ('selection_id','sha256')):return False
+    if verification.get('channel_research') is not None or research_index is not None:
+        if not isinstance(research_index,dict) or research_index.get('invalid') or verification.get('channel_research')!=research_index:
+            return False
     verified=_time(verification.get('finished_at'))
     if not isinstance(reviews,list):return False
     for review in reviews:
@@ -40,9 +60,9 @@ def current(verification,reviews,selection_index=None):
     return True
 
 
-def delivery_current(verification,delivery,reviews,selection_index=None):
+def delivery_current(verification,delivery,reviews,selection_index=None,research_index=None):
     """Match saved delivery receipt to the latest verified source hashes."""
-    if not current(verification,reviews,selection_index) or not isinstance(delivery,dict) or delivery.get('copied') is not True:
+    if not current(verification,reviews,selection_index,research_index) or not isinstance(delivery,dict) or delivery.get('copied') is not True:
         return False
     verified_at=_time(verification.get('finished_at'))
     delivered_at=_time(delivery.get('delivered_at'))

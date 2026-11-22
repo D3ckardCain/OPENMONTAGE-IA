@@ -34,11 +34,11 @@ def _selected_model_status():
 
 
 def _render_receipt_current(project):
-    from lib.editorial_freshness import current,selection_index
+    from lib.editorial_freshness import current,selection_index,research_index
     verification=studio.read_json(project/'render_verification.json',{})
     reviews=studio.read_json(project/'editorial_reviews.json',[])
     outputs=verification.get('outputs') if isinstance(verification,dict) else None
-    return (current(verification,reviews,selection_index(project)) and isinstance(outputs,list)
+    return (current(verification,reviews,selection_index(project),research_index(project)) and isinstance(outputs,list)
             and bool(outputs) and all(isinstance(output,dict) and output.get('full_decode_passed') is True
                                       and isinstance(output.get('path'),str) and bool(output['path'])
                                       and isinstance(output.get('sha256'),str) and re.fullmatch('[0-9a-f]{64}',output['sha256'])
