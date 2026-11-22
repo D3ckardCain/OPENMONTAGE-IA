@@ -92,6 +92,10 @@ def test_pilot_aggregates_exclude_other_queue_projects(tmp_path,monkeypatch):
     items=[]
     for pid in ids+['outside']:
         studio.save_json(studio.PROJECTS_DIR/pid/'production_request.json',{})
+        if pid!='pilot-9':
+            studio.save_json(studio.PROJECTS_DIR/pid/'render_verification.json',{'status':'passed'})
+        if pid not in ('pilot-8','pilot-9'):
+            studio.save_json(studio.PROJECTS_DIR/pid/'final_delivery.json',{'copied':True})
         studio.save_json(studio.PROJECTS_DIR/pid/'resource_usage.json',{
             'host_ram_peak_mb':9000 if pid=='outside' else 1000,
             'gpu_vram_peak_mb':8000 if pid=='outside' else 500,
@@ -110,6 +114,8 @@ def test_pilot_aggregates_exclude_other_queue_projects(tmp_path,monkeypatch):
     assert pilot['ram_peak_mb']==1000 and pilot['vram_peak_mb']==500
     assert pilot['retries_recorded']==0
     assert pilot['editorial_first_decisions_count']==10 and pilot['first_pass_approval_rate']==1
+    assert pilot['completed_with_render_verification']==9
+    assert pilot['completed_with_final_copy']==8
 
 
 def test_invalid_or_reversed_timestamps_never_make_up_a_duration():

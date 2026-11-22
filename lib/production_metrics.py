@@ -30,10 +30,16 @@ def snapshot():
         usage = None
         approved_stages = []
         first_decisions = {}
+        verification_status = None
+        final_copy_registered = False
         try:
             if item.get('projects_root',str(studio.PROJECTS_DIR.resolve()))!=str(studio.PROJECTS_DIR.resolve()):
                 raise ValueError('Proyecto en otro disco')
             project = studio.project_path(item['project_id'])
+            verification=studio.read_json(project/'render_verification.json',{})
+            delivery=studio.read_json(project/'final_delivery.json',{})
+            if isinstance(verification,dict):verification_status=verification.get('status')
+            if isinstance(delivery,dict):final_copy_registered=delivery.get('copied') is True
             usage = studio.read_json(project/'resource_usage.json')
             if history and isinstance(usage,dict):
                 recorded=usage.get('recorded_at')
@@ -69,6 +75,8 @@ def snapshot():
                      'message': item.get('message', ''),
                      'progress': item.get('progress'), 'stage_active_seconds': stages,
                      'approved_stages': approved_stages,
+                     'verification_status':verification_status,
+                     'final_copy_registered':final_copy_registered,
                      'editorial_first_decisions': first_decisions,
                      'resource_usage': usage, 'retry_count_recorded': len(history),
                      'retry_history': history})
@@ -122,6 +130,8 @@ def snapshot():
         'completed_with_duration':sum(row['elapsed_seconds'] is not None for row in finished),
         'completed_with_ram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('host_ram_peak_mb')) is int for row in finished),
         'completed_with_vram':sum(isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('gpu_vram_peak_mb')) is int for row in finished),
+        'completed_with_render_verification':sum(row['verification_status']=='passed' for row in finished),
+        'completed_with_final_copy':sum(row['final_copy_registered'] for row in finished),
         'completed_elapsed_seconds_total':round(sum(row['elapsed_seconds'] for row in finished if row['elapsed_seconds'] is not None),3),
         'ram_peak_mb':max(pilot_ram) if pilot_ram else None,
         'vram_peak_mb':max(pilot_vram) if pilot_vram else None,
