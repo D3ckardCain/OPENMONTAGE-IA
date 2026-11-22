@@ -35,6 +35,15 @@ def test_catalog_rejects_receipt_paths_outside_configured_final_folder(projects,
     assert catalog()['projects'][0]['outputs'][0]['available'] is False
 
 
+def test_catalog_does_not_present_copied_render_as_final_without_destination(projects,monkeypatch):
+    from lib import final_catalog
+    render=projects/'first/renders/video.mp4';render.parent.mkdir();render.write_bytes(b'fixture')
+    monkeypatch.setattr(final_catalog,'read_config',lambda *args:{})
+    studio.save_json(projects/'first/final_delivery.json',{'copied':True,'outputs':[{'path':str(render)}]})
+    row=catalog()['projects'][0]
+    assert row['copied'] is True and row['outputs'][0]['available'] is False
+
+
 def test_catalog_preserves_errors_and_marks_partial_results(projects):
     (projects/'first/final_delivery.json').write_text('{broken')
     studio.save_json(projects/'second/render_verification.json',{'status':'failed','outputs':[]})

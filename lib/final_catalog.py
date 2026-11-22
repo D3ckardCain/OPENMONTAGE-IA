@@ -33,7 +33,7 @@ def catalog(limit=500):
             if not receipt and not verification:continue
             outputs=[]
             copied=receipt.get('copied') is True
-            base=Path(configured)/project.name if configured and copied else project/'renders'
+            base=(Path(configured)/project.name if configured else None) if copied else project/'renders'
             for record in receipt.get('outputs',[]) if copied else verification.get('outputs',[]):
                 raw=record['path']
                 path=_available_path(raw,base,base if copied else project)
