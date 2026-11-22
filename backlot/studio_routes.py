@@ -163,6 +163,16 @@ def create_studio_router():
     def scene_edit_readiness(pid:str):
         from lib.scene_edit import readiness
         return invoke(readiness,pid)
+    @router.get('/api/studio/scene-edit-preview/{pid}')
+    def scene_edit_preview_state(pid:str):
+        from lib.scene_preview import state
+        return invoke(state,pid)
+    @router.post('/api/studio/scene-edit-preview/{pid}')
+    async def scene_edit_preview_start(pid:str,request:Request):
+        from lib.scene_preview import start
+        data=await body(request)
+        if set(data)!={'fit_policy'}:raise HTTPException(400,'Indica la política de duración')
+        return invoke(start,pid,data['fit_policy'])
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)

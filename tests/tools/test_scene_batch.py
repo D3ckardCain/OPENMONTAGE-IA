@@ -178,3 +178,46 @@ def test_edit_readiness_checks_every_approved_take_against_plan(planned,monkeypa
     (project/'assets/s01.mp4').write_bytes(b'altered')
     assert not readiness('demo')['ready']
     assert 'Cambió la toma aprobada' in readiness('demo')['scenes'][0]['problems']
+
+
+def test_silent_scene_preview_requires_explicit_fit_and_records_output(planned,monkeypatch):
+    import time
+    from PIL import Image
+    from types import SimpleNamespace
+    from lib import scene_batch as batch,scene_preview,production_agent,reference_analysis
+    import lib.media_executables as executables
+    project,_,payload=planned
+    prepare('demo',payload)
+    (project/'assets').mkdir()
+    monkeypatch.setattr(executables,'require_media',lambda name:name)
+    monkeypatch.setattr(scene_preview,'require_media',lambda name:name)
+    def run(cmd,**kwargs):
+        if cmd[0]=='ffprobe':
+            if 'scene-preview-' in cmd[-1]:
+                return SimpleNamespace(returncode=0,stdout='{"streams":[{"codec_type":"video","width":720,"height":1280}],"format":{"duration":"10"}}',stderr='')
+            return SimpleNamespace(returncode=0,stdout='{"streams":[{"codec_type":"video","width":288,"height":512}],"format":{"duration":"4"}}',stderr='')
+        output=__import__('pathlib').Path(cmd[-1]);output.write_bytes(b'rendered '+output.name.encode())
+        return SimpleNamespace(returncode=0,stdout='',stderr='')
+    monkeypatch.setattr(batch.subprocess,'run',run)
+    monkeypatch.setattr(production_agent,'ACTIVE',{})
+    monkeypatch.setattr(reference_analysis,'ACTIVE',{})
+    for name in ('s01','s02'):
+        Image.new('RGB',(288,512),'blue').save(project/'assets'/f'{name}.png')
+        (project/'assets'/f'{name}.mp4').write_bytes(name.encode())
+        record_media('demo',{'scene_id':name,'kind':'image','relative_path':f'assets/{name}.png'})
+        take=record_media('demo',{'scene_id':name,'kind':'video','relative_path':f'assets/{name}.mp4'})['scene']['takes'][0]
+        approve_take('demo',{'scene_id':name,'sha256':take['sha256'],'identity_reviewed':True})
+    from lib.scene_edit import readiness
+    assert not readiness('demo')['ready']
+    assert readiness('demo','trim_or_hold')['ready']
+    with pytest.raises(ValueError,match='Montaje pendiente'):
+        scene_preview.start('demo','exact')
+    scene_preview.start('demo','trim_or_hold')
+    for _ in range(200):
+        if scene_preview.state('demo')['status']!='running':break
+        time.sleep(.01)
+    report=scene_preview.state('demo')
+    assert report['status']=='completed',report
+    assert [item['scene_id'] for item in report['choices']]==['s01','s02']
+    assert report['audio_included'] is False
+    assert (project/report['output']['path']).is_file()

@@ -5,7 +5,9 @@ from lib import production_studio as studio
 from lib import scene_batch
 
 
-def readiness(project_id):
+def readiness(project_id,fit_policy='exact'):
+    if fit_policy not in ('exact','trim_or_hold'):
+        raise ValueError('Elige duración exacta o recortar/mantener último fotograma')
     project=studio.project_path(project_id)
     manifest=scene_batch.read(project_id)
     if not manifest.get('scenes'):
@@ -39,10 +41,13 @@ def readiness(project_id):
                 expected=9/16 if manifest['aspect_ratio']=='9:16' else 16/9
                 if abs(ratio/expected-1)>.03:errors.append('Formato de la toma incompatible con '+manifest['aspect_ratio'])
                 target=scene['end_seconds']-scene['start_seconds']
-                if not math.isfinite(target) or abs(actual-target)>max(.25,target*.02):
+                if not math.isfinite(target) or target<=0:
+                    errors.append('Duración objetivo inválida')
+                elif fit_policy=='exact' and abs(actual-target)>max(.25,target*.02):
                     errors.append(f'Duración real {actual:.2f} s frente a {target:.2f} s del plan; requiere decidir ajuste')
             except (ValueError,OSError,KeyError) as exc:errors.append('Toma inaccesible: '+str(exc))
         rows.append({'scene_id':scene['scene_id'],'ready':not errors,'problems':errors,
                      'approved_take':selected['path'] if selected else None,'duration_seconds':actual})
     return {'ready':not problems and all(row['ready'] for row in rows),'problems':problems,
-            'scenes':rows,'scene_count':len(rows),'aspect_ratio':manifest['aspect_ratio']}
+            'scenes':rows,'scene_count':len(rows),'aspect_ratio':manifest['aspect_ratio'],
+            'fit_policy':fit_policy}

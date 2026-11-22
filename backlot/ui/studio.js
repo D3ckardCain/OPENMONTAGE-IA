@@ -577,6 +577,20 @@ roundForm.addEventListener('submit', async event => {
 });
 
 let scenePlan=null,scenePlanProject=null;
+$('#scene-preview-form').onsubmit=async event=>{
+ event.preventDefault();if(!pid){notice('Selecciona primero una producción.');return;}
+ const selected=pid,policy=event.target.elements.namedItem('fit_policy').value;
+ try{const result=await api('scene-edit-preview/'+encodeURIComponent(selected),{fit_policy:policy});if(pid===selected)$('#scene-preview-result').replaceChildren(node('p','Montaje iniciado: '+result.attempt+'. Consulta su estado aquí.'));}
+ catch(error){notice(error.message);}
+};
+$('#scene-preview-status').onclick=async()=>{
+ const box=$('#scene-preview-result');box.replaceChildren();if(!pid)return;
+ try{const selected=pid,result=await api('scene-edit-preview/'+encodeURIComponent(selected));if(pid!==selected)return;
+  box.append(node('p','Estado: '+result.status+(result.fit_policy?' · '+result.fit_policy:'')));
+  if(result.error)box.append(node('p',result.error));
+  if(result.output){box.append(link('Ver montaje sin audio',result.output.url),node('p','SHA-256 '+result.output.sha256));}
+ }catch(error){box.append(node('p',error.message));}
+};
 $('#scene-edit-check').onclick=async()=>{
  const box=$('#scene-edit-result');box.replaceChildren();if(!pid){box.append(node('p','Selecciona primero una producción.'));return;}
  try{const selected=pid,report=await api('scene-edit-readiness/'+encodeURIComponent(selected));if(pid!==selected)return;
