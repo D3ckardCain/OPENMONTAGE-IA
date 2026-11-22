@@ -153,6 +153,36 @@ def test_guided_checkpoint_waits_and_explicit_approval_resumes(isolated,monkeypa
     assert cp['status']=='completed' and cp['human_approved']
     assert started==[pid]
 
+
+def test_editorial_revision_preserves_checkpoint_and_does_not_start_generation(isolated,monkeypatch):
+    from tests.contracts.test_phase0_contracts import sample_artifact
+    pid=studio.create_production({'title':'Revisión','brief':'Video original','pipeline':'hybrid','language':'es','automatic':False})['project_id']
+    worker=agent.LocalAgent(pid)
+    stage=worker.manifest['stages'][0]
+    worker.instruction('skills/'+stage['skill']+'.md')
+    with pytest.raises(agent.Pause):
+        worker.dispatch('checkpoint',{'stage':'idea','status':'completed','artifacts':{'brief':sample_artifact('brief')}})
+    monkeypatch.setattr(agent,'start',lambda _:pytest.fail('La revisión no debe iniciar generación'))
+    with pytest.raises(ValueError,match='Describe'):agent.request_revision(pid,' ')
+    result=agent.request_revision(pid,'Cambiar el encuadre')
+    assert result['generation_started'] is False
+    path=studio.project_path(pid)
+    cp=studio.read_json(path/'checkpoint_idea.json')
+    assert cp['status']=='failed' and cp['review']['reason']=='Cambiar el encuadre'
+    assert studio.read_json(path/'editorial_reviews.json')[0]['decision']=='revision_requested'
+    assert studio.read_json(path/'job.json')['status']=='awaiting_input'
+    assert list((path/'history').glob('checkpoint_idea_*.json'))
+    with pytest.raises(ValueError,match='pendiente'):agent.approve(pid)
+
+
+def test_revision_route_rejects_unexpected_fields_and_blank_reason(isolated):
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    pid=studio.create_production({'title':'Revisión','brief':'Video','pipeline':'hybrid','language':'es','automatic':False})['project_id']
+    assert client.post('/api/studio/revision/'+pid,json={'reason':' ','extra':1}).status_code==400
+    assert client.post('/api/studio/revision/'+pid,json={'reason':' '}).status_code==400
+
 def test_image_review_sends_actual_project_image_to_transport(isolated):
     from PIL import Image
     pid=project();p=studio.project_path(pid)/'assets'/'sample.png';p.parent.mkdir(exist_ok=True)

@@ -460,4 +460,34 @@ def approve(pid):
     cp=studio.read_json(p/('checkpoint_'+str(current)+'.json'),{})
     if cp.get('status')!='awaiting_human' or current=='publish':raise ValueError('No hay una etapa de producción pendiente de aprobación')
     write_checkpoint(studio.PROJECTS_DIR,pid,current,'completed',cp['artifacts'],pipeline_type=req['pipeline'],human_approved=True)
+    _record_editorial_review(p,current,'approved','')
     return start(pid)
+
+
+def _record_editorial_review(path,stage,decision,reason):
+    with studio.LOCK:
+        reviews=studio.read_json(path/'editorial_reviews.json',[])
+        if not isinstance(reviews,list):reviews=[]
+        reviews.append({'stage':stage,'decision':decision,'reason':reason,'at':studio.now()})
+        studio.save_json(path/'editorial_reviews.json',reviews[-200:])
+
+
+def request_revision(pid,reason):
+    if not isinstance(reason,str) or not 1<=len(reason.strip())<=2000:
+        raise ValueError('Describe el cambio solicitado (máximo 2000 caracteres)')
+    p=studio.project_path(pid);req=studio.read_json(p/'production_request.json')
+    with ACTIVE_LOCK:
+        if pid in ACTIVE:raise ValueError('El agente sigue activo')
+    current=get_next_stage(studio.PROJECTS_DIR,pid,req['pipeline'])
+    cp=studio.read_json(p/('checkpoint_'+str(current)+'.json'),{})
+    if cp.get('status')!='awaiting_human' or current=='publish':
+        raise ValueError('No hay una etapa pendiente de revisión')
+    reason=reason.strip()
+    write_checkpoint(studio.PROJECTS_DIR,pid,current,'failed',cp['artifacts'],pipeline_type=req['pipeline'],
+                     review={'editorial_decision':'revision_requested','reason':reason})
+    _record_editorial_review(p,current,'revision_requested',reason)
+    with studio.LOCK:
+        job=studio.read_json(p/'job.json',{})
+        job.update(status='awaiting_input',message='Revisión solicitada en '+current+': '+reason,updated_at=studio.now())
+        studio.save_json(p/'job.json',job)
+    return {'revision_requested':True,'stage':current,'generation_started':False}

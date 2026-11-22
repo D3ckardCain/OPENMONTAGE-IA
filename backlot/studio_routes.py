@@ -140,6 +140,11 @@ def create_studio_router():
         fn={'start':agent.start,'resume':agent.start,'stop':agent.stop,'approve':agent.approve}.get(action)
         if fn is None:raise HTTPException(404,'Acción desconocida')
         return invoke(fn,pid)
+    @router.post('/api/studio/revision/{pid}')
+    async def revision(pid:str,request:Request):
+        data=await body(request)
+        if set(data)!={'reason'}:raise HTTPException(400,'Indica solo reason')
+        return invoke(agent.request_revision,pid,data['reason'])
     @router.post('/api/studio/clarifications/{pid}')
     async def clarify(pid:str,request:Request):
         data=await body(request)

@@ -28,9 +28,16 @@ def snapshot():
         stages = {}
         usage = None
         approved_stages = []
+        first_decisions = {}
         try:
             project = studio.project_path(item['project_id'])
             usage = studio.read_json(project/'resource_usage.json')
+            reviews = studio.read_json(project/'editorial_reviews.json',[])
+            if isinstance(reviews,list):
+                for review in reviews:
+                    if (isinstance(review,dict) and isinstance(review.get('stage'),str)
+                            and review.get('decision') in ('approved','revision_requested')):
+                        first_decisions.setdefault(review['stage'],review['decision'])
             request = studio.read_json(project/'production_request.json', {})
             if isinstance(request, dict) and isinstance(request.get('pipeline'), str):
                 manifest = studio.load_pipeline_readonly(request['pipeline'])
@@ -57,6 +64,7 @@ def snapshot():
                      'message': item.get('message', ''),
                      'progress': item.get('progress'), 'stage_active_seconds': stages,
                      'approved_stages': approved_stages,
+                     'editorial_first_decisions': first_decisions,
                      'resource_usage': usage, 'retry_count_recorded': len(history),
                      'retry_history': history})
     observed = [row['elapsed_seconds'] for row in rows if row['elapsed_seconds'] is not None]
@@ -70,6 +78,8 @@ def snapshot():
             status = entry.get('status')
             if status in ('blocked','stopped','interrupted','awaiting_input','awaiting_human'):
                 causes[status] = causes.get(status, 0) + 1
+    first_decisions = [decision for row in rows for decision in row['editorial_first_decisions'].values()]
+    first_approvals = first_decisions.count('approved')
     return {'queue_status': state['status'], 'projects': rows,
             'completed_runs_measured': len(observed),
             'elapsed_seconds_total': round(sum(observed), 3),
@@ -77,6 +87,7 @@ def snapshot():
             'retries_recorded': sum(row['retry_count_recorded'] for row in rows),
             'retry_causes_by_status': causes,
             'approved_stage_count': sum(len(row['approved_stages']) for row in rows),
-            'first_pass_approval_rate': None,
+            'editorial_first_decisions_count':len(first_decisions),
+            'first_pass_approval_rate':round(first_approvals/len(first_decisions),3) if first_decisions else None,
             'generation_started': False, 'estimate_48_per_week': None,
-            'note': 'La cola mide inicio-fin con esperas. Las etapas muestran tiempo activo hasta cada checkpoint. Las aprobaciones son checkpoints actuales con human_approved; no hay registro suficiente para medir aprobación editorial al primer intento. Las causas de reintento agrupan estados guardados, incluida la espera de aprobación. RAM es del equipo completo y VRAM de la GPU NVIDIA más ocupada, muestreadas durante el último intento; no se atribuyen al proyecto. Los picos entre muestras pueden faltar. No predice capacidad semanal.'}
+            'note': 'La cola mide inicio-fin con esperas. Las etapas muestran tiempo activo hasta cada checkpoint. La tasa editorial usa la primera decisión explícita registrada por etapa; no incluye etapas sin decisión ni datos anteriores a este registro. Las aprobaciones automáticas no cuentan en esta tasa. El historial conserva hasta 200 decisiones por proyecto. Las causas de reintento agrupan estados guardados. RAM es del equipo completo y VRAM de la GPU NVIDIA más ocupada durante el último intento; no se atribuyen al proyecto. No predice capacidad semanal.'}

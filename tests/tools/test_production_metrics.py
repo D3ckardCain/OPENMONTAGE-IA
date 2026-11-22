@@ -50,6 +50,20 @@ def test_approved_stages_require_saved_checkpoint_evidence(tmp_path,monkeypatch)
     assert report['first_pass_approval_rate'] is None
 
 
+def test_editorial_first_decision_rate_uses_explicit_reviews_only(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
+    studio.save_json(tmp_path/'one/production_request.json',{})
+    studio.save_json(tmp_path/'one/editorial_reviews.json',[
+        {'stage':'idea','decision':'revision_requested','reason':'Corregir'},
+        {'stage':'idea','decision':'approved'},
+        {'stage':'script','decision':'approved'}])
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':[{'project_id':'one','status':'pending'}]})
+    report=production_metrics.snapshot()
+    assert report['editorial_first_decisions_count']==2
+    assert report['first_pass_approval_rate']==0.5
+
+
 def test_stage_timings_are_summed_only_from_saved_valid_events(tmp_path, monkeypatch):
     from lib import production_studio as studio
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
