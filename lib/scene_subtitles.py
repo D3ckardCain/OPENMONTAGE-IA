@@ -34,7 +34,7 @@ def parse_srt(content,duration):
         if not match:raise ValueError('Tiempo SRT inválido en '+str(index))
         start=_seconds(match.groups()[:4]);end=_seconds(match.groups()[4:])
         text='\n'.join(lines[2:]).strip()
-        if start<previous or end<=start or end>duration+.1 or not text or len(text)>400 or '\x00' in text:
+        if start<previous or end<=start or end>duration+.02 or not text or len(text)>400 or '\x00' in text:
             raise ValueError('Texto o intervalo SRT inválido en '+str(index))
         cues.append({'start_seconds':start,'end_seconds':end,'text':text})
         previous=end
