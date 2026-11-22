@@ -2,7 +2,7 @@
 
 Abre un proyecto y despliega «Preparar versiones en otros idiomas». Indica entre uno y diez códigos separados por comas, por ejemplo `en, ko, de, pt-BR`. Pulsa «Crear proyectos por idioma».
 
-Cada versión recibe el encargo base y las instrucciones de localización. Conserva el pipeline y la URL de referencia, utiliza su propio espacio de trabajo y exige aprobación por etapas aunque el proyecto base sea automático. No copia medios, artefactos, aclaraciones posteriores ni resultados del proyecto base; no ejecuta traducción o modelos al crearla. Después abre cada versión, revisa el encargo y utiliza el productor habitual o la cola.
+Cada versión recibe el encargo base y las instrucciones de localización. Conserva el pipeline y la URL de referencia, utiliza su propio espacio de trabajo y exige aprobación por etapas aunque el proyecto base sea automático. Si hay una selección deportiva vigente, guarda su propio expediente validado y registra en el proyecto base el ID y SHA-256 del expediente de origen. No copia medios, otros artefactos, aclaraciones posteriores ni resultados del proyecto base; no ejecuta traducción o modelos al crearla. Después abre cada versión, revisa el encargo y utiliza el productor habitual o la cola.
 
 Las instrucciones requieren adaptar narración, subtítulos, títulos, miniaturas, música y referencias culturales. El análisis debe confirmar el idioma de los diálogos y canciones y la autorización de sus recursos. No existe todavía una comprobación automática que certifique esa adaptación cultural.
 
@@ -22,7 +22,7 @@ La prueba de integración crea proyectos reales en carpetas temporales, comprueb
 
 ## Estado de las versiones
 
-La consulta de versiones guardadas muestra el estado del productor, su último mensaje, la verificación técnica guardada y si existe una copia final registrada. Resume las terminadas, bloqueadas, pendientes de aprobación y no disponibles. Una versión con el productor en estado `rendered` no se ofrece para añadir otra vez a la cola. Una copia registrada no confirma que su disco siga conectado; consulta «Videos finales» para comprobar disponibilidad. Los datos se actualizan al pulsar «Consultar versiones guardadas».
+La consulta de versiones guardadas muestra el estado del productor, su último mensaje, la verificación técnica guardada y si existe una copia final registrada. Resume las terminadas, bloqueadas, pendientes de aprobación y no disponibles. Si el expediente seleccionado dentro de una versión cambia respecto al ID de selección guardado al crearla, muestra «selection_changed» y deja de ofrecer esa versión para añadirla a la cola desde el panel. Revisa ese proyecto y su nueva selección. El SHA-256 del expediente de origen queda como procedencia: cada versión genera un expediente propio con fecha distinta. Una versión con el productor en estado `rendered` no se ofrece para añadir otra vez a la cola. Una copia registrada no confirma que su disco siga conectado; consulta «Videos finales» para comprobar disponibilidad. Los datos se actualizan al pulsar «Consultar versiones guardadas».
 
 ## Compartir análisis de referencia
 

@@ -58,6 +58,8 @@ def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new
     assert en['source_football_selection']['selection_id']==first['selection_id']
     inherited=latest_for_agent(en['project_id'],include_report=True)
     assert inherited['report']==report and inherited['selected_metrics']==['goals']
+    from lib.language_versions import list_versions
+    assert list_versions('base')['versions'][0]['status']=='existing'
     assert create_versions('base',['en'])['versions'][0]['status']=='existing'
     second=save_to_project('base',report,['shots'])['selection']
     new=create_versions('base',['en'])['versions'][0]
@@ -65,6 +67,12 @@ def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new
     assert new['source_football_selection']['selection_id']==second['selection_id']
     assert latest_for_agent(en['project_id'])['selected_metrics']==['goals']
     assert latest_for_agent(new['project_id'])['selected_metrics']==['shots']
+    save_to_project(en['project_id'],report,['shots'])
+    changed=next(row for row in list_versions('base')['versions'] if row['project_id']==en['project_id'])
+    assert changed['status']=='selection_changed' and changed['can_enqueue'] is False
+    assert create_versions('base',['en'])['versions'][0]['project_id']==new['project_id']
+    save_to_project('base',report,['goals'])
+    assert create_versions('base',['en'])['versions'][0]['status']=='selection_changed'
 
 
 @pytest.mark.parametrize('languages',[[],['es'],['en','EN'],['../../bad'],['en']*11,'en'])

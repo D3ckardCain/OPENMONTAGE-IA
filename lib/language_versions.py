@@ -31,6 +31,12 @@ def create_versions(project_id,languages):
                 try:studio.project_path(existing['project_id'])
                 except (OSError,ValueError):
                     results.append({'language':language,'status':'unavailable','project_id':existing['project_id'],'message':'La versión registrada no está disponible; revisa su carpeta antes de duplicarla'});continue
+                if existing.get('source_football_selection'):
+                    child=latest_for_agent(existing['project_id'])
+                    original=existing['source_football_selection']
+                    if not child['available'] or child.get('selection_id')!=original.get('selection_id'):
+                        results.append({**existing,'status':'selection_changed','can_enqueue':False,
+                            'message':'La selección deportiva de esta versión cambió; revisa el proyecto antes de producir'});continue
                 results.append({**existing,'status':'existing'});continue
             brief=request['brief']+'\n\nVersión localizada para '+language+'. Investigar y escribir un guion propio en el idioma objetivo. Adaptar voz, subtítulos, títulos, miniatura, música y referencias culturales. Detectar el idioma de canciones y diálogos; sustituir recursos cuando corresponda con material autorizado. No basta con traducir letras ni invertir la imagen. Revisar exactitud, licencias y naturalidad antes de exportar.'
             if len(brief)>12000:raise ValueError('El encargo base es demasiado largo para añadir las instrucciones de localización')
@@ -65,14 +71,20 @@ def list_versions(project_id):
     for entry in records:
         try:
             path=studio.project_path(entry['project_id']);entry['status']='existing'
+            if entry.get('source_football_selection'):
+                from lib.football_comparison_dossier import latest_for_agent
+                child=latest_for_agent(entry['project_id'])
+                original=entry['source_football_selection']
+                if not child['available'] or child.get('selection_id')!=original.get('selection_id'):
+                    entry.update(status='selection_changed',message='La selección deportiva de esta versión cambió; revisa el proyecto antes de producir')
             job=studio.read_json(path/'job.json',{})
             verification=studio.read_json(path/'render_verification.json',{})
             delivery=studio.read_json(path/'final_delivery.json',{})
-            entry.update(job_status=job.get('status','unknown'),message=job.get('message',''),
+            entry.update(job_status=job.get('status','unknown'),message=entry.get('message') or job.get('message',''),
                 updated_at=job.get('updated_at'),verification_status=verification.get('status','unknown'),
                 final_copy_registered=delivery.get('copied',False))
             if entry['job_status'] in ('rendered','awaiting_human','blocked'):summary[entry['job_status']]+=1
-            entry['can_enqueue']=entry['job_status']!='rendered'
+            entry['can_enqueue']=entry['job_status']!='rendered' and entry['status']=='existing'
         except (OSError,ValueError,KeyError,TypeError) as exc:
             entry.update(status='unavailable',can_enqueue=False,message=str(exc)[:600]);summary['unavailable']+=1
     return {'versions':records,'summary':summary,'generation_started':False}

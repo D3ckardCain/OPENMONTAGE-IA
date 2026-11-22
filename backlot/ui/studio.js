@@ -231,7 +231,7 @@ function renderVersions(report,selected){
  if(pid!==selected)return;const box=$('#versions-result');box.replaceChildren(node('p','Versiones guardadas; añadirlas a la cola no inicia generación.'));
  if(report.summary)box.append(node('p',report.summary.total+' versiones · '+report.summary.rendered+' terminadas · '+report.summary.awaiting_human+' requieren aprobación · '+report.summary.blocked+' bloqueadas · '+report.summary.unavailable+' no disponibles'));
  const selectedIds=new Set();
- for(const version of report.versions){const row=node('p',version.language+' · '+version.status+' '+(version.message||''));
+ for(const version of report.versions){const row=node('p',version.language+' · '+(version.status==='selection_changed'?'selección deportiva modificada':version.status)+' '+(version.message||''));
   if(version.source_football_selection)row.append(node('span',' · Selección deportiva original: '+version.source_football_selection.selection_id.slice(0,12)));
   if(version.job_status)row.append(node('span',' · Productor: '+version.job_status+' · Verificación: '+version.verification_status+' · '+(version.final_copy_registered?'copia final registrada':'sin copia final registrada')));
   if(version.project_id)row.append(link(' Abrir versión','/studio?project='+encodeURIComponent(version.project_id)));
