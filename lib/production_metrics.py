@@ -4,7 +4,7 @@ from datetime import datetime
 from lib import production_queue as queue
 from lib import production_studio as studio
 from lib.stage_timing import summarize
-from lib.editorial_freshness import current as verification_current,delivery_current
+from lib.editorial_freshness import current as verification_current,delivery_current,selection_index
 
 
 def _seconds(start, end):
@@ -46,10 +46,11 @@ def snapshot():
                 if not isinstance(recorded,str) or not isinstance(started,str) or recorded<started:
                     usage=None
             reviews = studio.read_json(project/'editorial_reviews.json',[])
+            selection=selection_index(project)
             if isinstance(verification,dict):
-                verification_status=verification.get('status') if verification_current(verification,reviews) else 'superseded' if verification.get('status')=='passed' else verification.get('status')
+                verification_status=verification.get('status') if verification_current(verification,reviews,selection) else 'superseded' if verification.get('status')=='passed' else verification.get('status')
             if isinstance(delivery,dict):
-                final_copy_registered=delivery_current(verification,delivery,reviews)
+                final_copy_registered=delivery_current(verification,delivery,reviews,selection)
             if isinstance(reviews,list):
                 for review in reviews:
                     if (isinstance(review,dict) and isinstance(review.get('stage'),str)

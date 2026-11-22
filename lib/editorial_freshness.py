@@ -11,8 +11,26 @@ def _time(value):
         return None
 
 
-def current(verification,reviews):
+def selection_index(project):
+    """Read the selected dossier identity; malformed indices fail closed."""
+    from lib import production_studio as studio
+    path=project/'artifacts/football_comparison_selection.json'
+    if not path.exists() and not path.is_symlink():return None
+    if path.is_symlink():return {'invalid':True}
+    try:
+        value=studio.read_json(path)
+        return value if isinstance(value,dict) else {'invalid':True}
+    except (OSError,ValueError,TypeError):
+        return {'invalid':True}
+
+
+def current(verification,reviews,selection_index=None):
     if not isinstance(verification,dict) or verification.get('status')!='passed':return False
+    selected=verification.get('football_selection')
+    if selected is not None or selection_index is not None:
+        if not isinstance(selected,dict) or not isinstance(selection_index,dict):return False
+        if any(selected.get(key)!=selection_index.get(key) or not isinstance(selected.get(key),str)
+               for key in ('selection_id','sha256')):return False
     verified=_time(verification.get('finished_at'))
     if not isinstance(reviews,list):return False
     for review in reviews:
@@ -22,9 +40,9 @@ def current(verification,reviews):
     return True
 
 
-def delivery_current(verification,delivery,reviews):
+def delivery_current(verification,delivery,reviews,selection_index=None):
     """Match saved delivery receipt to the latest verified source hashes."""
-    if not current(verification,reviews) or not isinstance(delivery,dict) or delivery.get('copied') is not True:
+    if not current(verification,reviews,selection_index) or not isinstance(delivery,dict) or delivery.get('copied') is not True:
         return False
     verified_at=_time(verification.get('finished_at'))
     delivered_at=_time(delivery.get('delivered_at'))

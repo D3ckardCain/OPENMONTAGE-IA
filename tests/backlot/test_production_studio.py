@@ -54,7 +54,7 @@ def test_delivery_retry_rejects_verification_before_editorial_revision(isolated,
         'status':'passed','finished_at':'2026-11-22T10:00:00+00:00'})
     studio.save_json(path/'editorial_reviews.json',[
         {'decision':'revision_requested','at':'2026-11-22T10:01:00+00:00'}])
-    with pytest.raises(ValueError,match='anterior a una revisión editorial'):
+    with pytest.raises(ValueError,match='revisión o selección deportiva actual'):
         final_delivery.retry_verified_delivery(pid)
 
 
@@ -70,6 +70,20 @@ def test_new_verification_does_not_reuse_old_final_copy_receipt(isolated):
     state=isolated.get('/api/studio/projects/'+pid).json()
     assert state['verification_current'] is True
     assert state['final_copy_current'] is False
+
+
+def test_new_football_selection_marks_prior_render_as_superseded(isolated):
+    from lib.final_catalog import catalog
+    pid=project();path=studio.project_path(pid)
+    studio.save_json(path/'render_verification.json',{
+        'status':'passed','finished_at':'2026-11-22T10:00:00+00:00',
+        'football_selection':{'selection_id':'a'*64,'sha256':'b'*64},'outputs':[]})
+    index=path/'artifacts/football_comparison_selection.json'
+    studio.save_json(index,{'selection_id':'a'*64,'sha256':'b'*64})
+    assert isolated.get('/api/studio/projects/'+pid).json()['verification_current'] is True
+    studio.save_json(index,{'selection_id':'c'*64,'sha256':'d'*64})
+    assert isolated.get('/api/studio/projects/'+pid).json()['verification_current'] is False
+    assert next(row for row in catalog()['projects'] if row['project_id']==pid)['verification_current'] is False
 
 
 @pytest.mark.parametrize('reference,expected',[
