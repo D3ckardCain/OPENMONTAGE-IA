@@ -70,7 +70,12 @@ function showChannel(ch,index){
   pagesSelect.onchange=updateEstimate;updateEstimate();
   const periodButton=element('button','Auditar periodo seleccionado','secondary');periodButton.type='button';
   const historyButton=element('button','Ver auditorías guardadas','secondary');historyButton.type='button';
-  const periodBox=element('div','','scope');card.append(windowLabel,pagesLabel,estimate,periodButton,historyButton,periodBox);
+  const draftsButton=element('button','Ver propuestas guardadas','secondary');draftsButton.type='button';
+  const periodBox=element('div','','scope');card.append(windowLabel,pagesLabel,estimate,periodButton,historyButton,draftsButton,periodBox);
+  function showDraft(draft,box){const p=element('p',`${draft.title} · ${draft.format} · ${draft.language} · ${new Date(draft.created_at_utc).toLocaleString('es-MX')} · borrador sujeto a revisión factual y de derechos.`);
+    const brief=`Propuesta editorial original: ${draft.title}\nEnfoque: ${draft.angle}\nAudiencia: ${draft.audience}\nFormato: ${draft.format}; idioma: ${draft.language}.\nExpediente de canal: ${draft.channel_id}/${draft.snapshot_id}; SHA-256 ${draft.snapshot_sha256}; consultado ${draft.source_retrieved_at_utc}.\nReferencias: ${draft.references.map(r=>r.url).join(', ')}. Las vistas son cifras acumuladas de la captura, no predicción de rendimiento. Investiga hechos y revisa derechos antes de producir.`;
+    const url='/studio?'+new URLSearchParams({reference:draft.references[0].url,title:draft.title,brief});const link=element('a','Preparar producción desde este borrador');link.href=url;box.append(p,link);}
+  draftsButton.onclick=async()=>{try{const response=await fetch('/api/research/channels/ideas/'+encodeURIComponent(ch.id));const data=await response.json();if(!response.ok)throw Error(data.detail||'No se pudieron leer las propuestas');periodBox.replaceChildren(element('p',`${data.drafts.length} propuestas locales.`));for(const draft of data.drafts)showDraft(draft,periodBox);}catch(error){periodBox.textContent=error.message;}};
   function showPeriod(data){
     periodBox.replaceChildren(element('p',`${data.publications.length} publicaciones visibles · ${data.pages_read} páginas de ${data.max_pages} permitidas · ${data.complete_period?'Periodo cubierto en la lista pública':'Cobertura incompleta'}. Consultado: ${new Date(data.retrieved_at_utc).toLocaleString('es-MX')}.`),
       element('p',`Mediana de vistas acumuladas: ${format(data.analysis.median_views)}. Sin cifra: ${data.analysis.views_unknown}. ${data.note}`));
@@ -80,6 +85,21 @@ function showChannel(ch,index){
     const details=element('details',''),summary=element('summary','Ver todas las publicaciones consultadas'),list=element('ul','');details.append(summary);
     for(const video of data.publications){const item=element('li',''),a=element('a',video.title||video.id);a.href=video.url;a.target='_blank';a.rel='noopener noreferrer';item.append(a,element('span',` · ${format(video.viewCount)} vistas · ${video.published_at||'fecha desconocida'}`));list.append(item);}
     details.append(list);periodBox.append(details);
+    if(data.saved_snapshot&&data.publications.length){const ideaDetails=element('details',''),form=element('form',''),title=element('input',''),angle=element('textarea',''),audience=element('input','');
+      title.required=true;title.maxLength=150;title.placeholder='Título propio (no copies el de la referencia)';
+      angle.required=true;angle.minLength=30;angle.maxLength=2000;angle.placeholder='Nuevo enfoque, investigación y diferencia frente a las referencias';
+      audience.required=true;audience.maxLength=200;audience.placeholder='Audiencia';
+      ideaDetails.append(element('summary','Crear propuesta original desde este expediente'));
+      form.append(element('p','Marca de uno a cinco videos como referencia. La propuesta queda en borrador; revisa hechos y derechos antes de producir.'));
+      const refs=element('div','');for(const video of data.publications){const label=element('label',''),check=element('input','');check.type='checkbox';check.value=video.id;label.append(check,document.createTextNode(' '+(video.title||video.id)));refs.append(label);}form.append(refs);
+      const language=element('select',''),formatSelect=element('select','');for(const [value,label] of [['es','Español'],['en','Inglés']]){const o=element('option',label);o.value=value;language.append(o);}for(const [value,label] of [['long','Video largo'],['short','Video corto'],['poster','Postal']]){const o=element('option',label);o.value=value;formatSelect.append(o);}
+      const labeled=(label,input)=>{const node=element('label',label);node.append(input);return node;};
+      const button=element('button','Guardar propuesta original');button.type='submit';form.append(labeled('Título propio',title),labeled('Enfoque original',angle),labeled('Audiencia',audience),labeled('Idioma',language),labeled('Formato',formatSelect),button);const feedback=element('div','');ideaDetails.append(form,feedback);periodBox.append(ideaDetails);
+      form.onsubmit=async event=>{event.preventDefault();const ids=[...refs.querySelectorAll('input:checked')].map(input=>input.value);if(ids.length<1||ids.length>5){feedback.textContent='Elige de uno a cinco videos.';return;}
+        const payload={channel_id:ch.id,snapshot_id:data.saved_snapshot.id,video_ids:ids,title:title.value,angle:angle.value,audience:audience.value,language:language.value,format:formatSelect.value};
+        try{const response=await fetch('/api/research/channels/ideas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo guardar la propuesta');feedback.replaceChildren(element('p','Propuesta guardada como borrador.'));showDraft(result,feedback);}catch(error){feedback.textContent=error.message;}
+      };
+    }
   }
   periodButton.onclick=async()=>{
     periodButton.disabled=true;periodBox.textContent='Consultando páginas del canal por partes…';

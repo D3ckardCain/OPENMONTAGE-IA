@@ -7,7 +7,7 @@ Revisión del catálogo de 26 recursos en [la biblioteca](https://biblioteca.sys
 | Orden | Aporte observado | Adaptación a nuestra app | Estado |
 | --- | --- | --- | --- |
 | 1 | Subtítulos y montaje para video corto | Exportación local con subtítulos visibles y márgenes para 9:16 y 16:9, además del MP4 con pista editable y SRT | En desarrollo |
-| 2 | Nichos y canales: analizar muestra completa, consistencia, antigüedad y excepciones | El buscador audita ventanas de 7, 30, 90 o 365 días por páginas, conserva cada informe local con hash y compara dos expedientes elegidos solo por videos comunes. Las observaciones manuales de vidIQ se guardan por video y fecha. Pendiente: decisión editorial | Parcial |
+| 2 | Nichos y canales: analizar muestra completa, consistencia, antigüedad y excepciones | El buscador audita ventanas de 7, 30, 90 o 365 días por páginas, conserva cada informe local con hash y compara dos expedientes elegidos solo por videos comunes. Permite guardar una propuesta original vinculada a un expediente; las observaciones manuales de vidIQ se guardan por video y fecha | Parcial |
 | 3 | Filtrado de ideas y diagnóstico de alcance, clics y retención | Módulo editorial que compare propuestas y, cuando haya datos aportados, explique impresiones, CTR y retención por pieza y periodo | Pendiente |
 | 4 | Guiones: título, apertura, bloques, voz, indicaciones visuales y revisión factual | Plantilla original de guion por escenas, duración estimada por palabras, marcas de verificación factual y aprobación antes de voz y video | Pendiente |
 | 5 | Títulos y miniaturas | Variantes, vista previa legible en móvil y decisión editorial guardada; modelos locales ya registrados antes de añadir otros | Pendiente |
@@ -21,6 +21,8 @@ La búsqueda inicial consulta como máximo veinte publicaciones recientes por ca
 Cada auditoría exitosa genera un expediente local nuevo con SHA-256 del informe, fecha y alcance; «Ver auditorías guardadas» permite recuperarlo sin gastar solicitudes API. Se conservan hasta cincuenta expedientes por canal; al alcanzar el límite, la consulta sigue mostrando sus datos pero explica que no pudo guardarlos. El hash detecta cambios en el expediente guardado; no demuestra que YouTube mantenga esos valores posteriormente. El historial no realiza descargas de videos ni contiene métricas privadas de vidIQ.
 
 La comparación de dos expedientes elegidos mide diferencias entre capturas solo para videos con ID común y cifras conocidas que no hayan disminuido. Enumera por separado nuevas publicaciones, ausentes, cifras desconocidas y cifras reducidas. Avisa cuando las dos ventanas tienen duraciones diferentes. La suma de diferencias y el promedio por hora se refieren únicamente a esos videos comparables y a ese intervalo entre consultas. No representan visitas totales del canal, CTR, retención, ingresos ni el rendimiento completo del periodo.
+
+Desde un expediente guardado se pueden seleccionar de uno a cinco videos como referencias y redactar un título, enfoque y audiencia propios. La propuesta conserva el hash y fecha del informe, las cifras de esas referencias en ese momento y queda como **borrador** con revisión de hechos y derechos pendiente. Un enlace prepara un proyecto en el estudio con ese contexto; no aprueba el guion ni genera o publica el video. Los títulos idénticos al de una referencia seleccionada se rechazan, aunque la originalidad exige revisión editorial real.
 
 ### Observación puntual con vidIQ en Edge
 

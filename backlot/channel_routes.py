@@ -145,6 +145,20 @@ def create_channel_router():
         except FileNotFoundError as exc:raise HTTPException(404,str(exc))
         except ValueError as exc:raise HTTPException(400,str(exc))
 
+    @router.get('/api/research/channels/ideas/{channel_id}')
+    def channel_ideas(channel_id:str):
+        from lib.channel_ideas import list_drafts
+        try:return JSONResponse({'drafts':list_drafts(channel_id)},headers={'Cache-Control':'no-store'})
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
+    @router.post('/api/research/channels/ideas')
+    async def channel_idea_create(request:Request):
+        from lib.channel_ideas import create
+        data=await local_body(request,8192)
+        try:return JSONResponse(create(data),headers={'Cache-Control':'no-store'})
+        except FileNotFoundError as exc:raise HTTPException(404,str(exc))
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
     @router.get('/api/research/video-observations/{video_id}')
     def observations(video_id:str):
         from lib.video_observations import read
