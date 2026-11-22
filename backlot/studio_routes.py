@@ -133,6 +133,14 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'languages'}:raise HTTPException(400,'Indica solo languages')
         return invoke(create_versions,pid,data['languages'])
+    @router.get('/api/studio/scene-batch/{pid}')
+    def scene_batch_read(pid:str):
+        from lib.scene_batch import read
+        return invoke(read,pid)
+    @router.post('/api/studio/scene-batch/{pid}')
+    async def scene_batch_prepare(pid:str,request:Request):
+        from lib.scene_batch import prepare
+        return invoke(prepare,pid,await body(request,250000))
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)

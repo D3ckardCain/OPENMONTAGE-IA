@@ -14,6 +14,8 @@
 
 ## Primer módulo a implementar: mesa de escenas
 
+**Base implementada:** `POST /api/studio/scene-batch/{proyecto}` recibe `aspect_ratio` (`9:16` o `16:9`), `image_prompts` y `motion_prompts` como mapas por ID de escena y `character_anchors` como mapa por ID de personaje. Exige `checkpoint_scene_plan.json` completado y aprobado, valida el esquema y guarda `artifacts/scene_batch.json`. `GET` en la misma ruta lee el manifiesto. Repetir una solicitud idéntica reutiliza el registro; una distinta se rechaza para evitar sobrescribir decisiones sin revisión. Admite hasta 240 escenas de máximo 120 segundos cada una. Esta base no ejecuta modelos, no selecciona tomas y aún no ofrece controles visuales en el Estudio.
+
 Crear `scene_batch.json` **por proyecto**, derivado de `scene_plan` aprobado. Cada fila tendrá `scene_id` estable y orden, duración objetivo, formato, IDs de personajes, descripción y ancla visual de identidad, prompt de imagen y de movimiento, recursos de entrada, proveedor/modelo local, semilla cuando el modelo la admita, candidatos generados, toma aprobada y estado. Los recursos se referenciarán con rutas bajo el proyecto y SHA-256; no se moverán pesos ni medios ajenos. Guardar por separado la versión del manifiesto y el hash de sus campos creativos para invalidar solamente las escenas afectadas por una revisión.
 
 **Contrato de aceptación:**
