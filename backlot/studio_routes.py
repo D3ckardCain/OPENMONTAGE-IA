@@ -215,6 +215,14 @@ def create_studio_router():
     def script_diagnostic(pid:str,words_per_minute:int=Query(150,ge=80,le=220)):
         from lib.script_diagnostic import inspect
         return invoke(inspect,pid,words_per_minute)
+    @router.get('/api/studio/script-outline/{pid}')
+    def script_outline_read(pid:str):
+        from lib.script_outline import read
+        return invoke(read,pid)
+    @router.post('/api/studio/script-outline/{pid}')
+    async def script_outline_save(pid:str,request:Request):
+        from lib.script_outline import save
+        return invoke(save,pid,await body(request,35000))
     @router.get('/api/studio/channel-research/{pid}')
     def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_channel_evidence import page
