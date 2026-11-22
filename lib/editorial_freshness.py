@@ -28,12 +28,16 @@ def research_index(project):
     from lib import production_studio as studio
     try:
         request=studio.read_json(project/'production_request.json')
-        if not request.get('research_idea') and not request.get('performance_import_id'):return None
+        from lib.packaging_options import read as read_packaging
+        packaging=read_packaging(request['project_id'])
+        packaging_revision=packaging['revision']
+        if not request.get('research_idea') and not request.get('performance_import_id') and not packaging_revision:return None
         from lib.project_channel_performance import verified as verified_performance
         performance=verified_performance(project,request)
         result=({'performance_import_id':request['performance_import_id'],
                  'performance_import_sha256':performance['sha256']}
                 if performance else {})
+        if packaging_revision:result['packaging_revision']=packaging_revision
         if not request.get('research_idea'):return result
         from lib.project_channel_evidence import verified
         from lib.project_video_observations import verified_rows
@@ -59,7 +63,7 @@ def stale_reasons(verification,reviews,selection_index=None,research_index=None)
             reasons.append('La selección deportiva cambió o falta desde la verificación.')
     if verification.get('channel_research') is not None or research_index is not None:
         if not isinstance(research_index,dict) or research_index.get('invalid') or verification.get('channel_research')!=research_index:
-            reasons.append('La investigación de canal cambió o falta desde la verificación.')
+            reasons.append('La investigación de canal o selección editorial cambió o falta desde la verificación.')
     verified=_time(verification.get('finished_at'))
     if not isinstance(reviews,list):
         reasons.append('No se pudo leer el historial de revisión editorial.')

@@ -8,7 +8,9 @@ def _path(pid):
 
 
 def read(pid):
-    record=studio.read_json(_path(pid))
+    path=_path(pid)
+    if path.is_symlink():raise ValueError('Opciones de título y miniatura alteradas')
+    record=studio.read_json(path)
     if record is None:
         return {'status':'empty','revision':None,'selected_id':None,'options':[],
                 'limits':'Conceptos editoriales. Vista de texto, sin imagen creada ni predicción de clics.'}

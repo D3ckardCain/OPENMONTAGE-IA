@@ -62,6 +62,8 @@ El agente dispone de `saved_channel_performance` con el ID de importación visib
 
 «Títulos y miniaturas» permite redactar dos a cinco títulos, textos de miniatura, conceptos visuales y notas de fuente. La comparación de texto a 320 píxeles muestra cortes y densidad aproximados; no genera imágenes. La selección explícita se guarda con versión para prevenir sobrescrituras y `project_packaging_options` la deja disponible al agente. No se estima CTR ni se autoriza automáticamente una portada o publicación.
 
+La revisión técnica del render incluye la versión de las variantes editoriales si se guardaron. Cambiar título, texto, concepto o selección después de verificarlo hace que el render y su entrega ya no aparezcan vigentes. Una copia alterada bloquea la cola y el inicio hasta que se revise; los proyectos previos sin variantes conservan su verificación anterior.
+
 ### Enlaces revisados
 
 - [Catálogo de recursos](https://biblioteca.systemacademy.es/recursos)

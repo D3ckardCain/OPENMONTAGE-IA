@@ -27,12 +27,24 @@ def require_valid(path,request):
         verified(path,request)
     from lib.project_channel_performance import verified as verified_performance
     verified_performance(path,request)
+    from lib.packaging_options import read as read_packaging
+    packaging=read_packaging(request['project_id'])
+    receipt=studio.read_json(path/'render_verification.json',{})
+    previous=receipt.get('channel_research') if isinstance(receipt,dict) else None
+    if (isinstance(previous,dict) and previous.get('packaging_revision')
+            and packaging['revision'] is None):
+        raise ValueError('Selección editorial del render ausente')
 
 
 def project_problem(path):
     """Preflight for queues; return a concrete problem without mutating the project."""
     request=studio.read_json(path/'production_request.json')
-    if not request.get('research_idea') and not request.get('performance_import_id'):return None
+    saved=studio.read_json(path/'render_verification.json',{})
+    previous=saved.get('channel_research') if isinstance(saved,dict) else None
+    if (not request.get('research_idea') and not request.get('performance_import_id')
+            and not (path/'artifacts/packaging_options.json').exists()
+            and not (path/'artifacts/packaging_options.json').is_symlink()
+            and not (isinstance(previous,dict) and previous.get('packaging_revision'))):return None
     try:
         require_valid(path,request)
         if request.get('research_idea'):
