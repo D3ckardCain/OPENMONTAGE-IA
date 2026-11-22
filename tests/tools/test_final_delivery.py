@@ -1,7 +1,7 @@
 import pytest
 from lib import production_studio as studio
 from lib import storage_layout as storage
-from lib.final_delivery import deliver
+from lib.final_delivery import deliver,digest
 
 
 @pytest.fixture
@@ -18,7 +18,8 @@ def setup(tmp_path,monkeypatch):
 
 def test_final_disk_copy_is_verified_and_repeatable(setup):
     project,source,finals=setup
-    first=deliver('one',[{'path':str(source)}]);second=deliver('one',[{'path':str(source)}])
+    verified={'path':str(source),'verified_sha256':digest(source)}
+    first=deliver('one',[verified]);second=deliver('one',[verified])
     assert first['outputs']==second['outputs']
     assert source.read_bytes()==b'verified-render-fixture'
     assert len(list((finals/'one').glob('*.mp4')))==1
@@ -27,12 +28,21 @@ def test_final_disk_copy_is_verified_and_repeatable(setup):
 
 def test_missing_final_disk_preserves_working_render(setup):
     project,source,finals=setup;finals.rmdir()
-    with pytest.raises(ValueError,match='no está conectado'):deliver('one',[{'path':str(source)}])
+    with pytest.raises(ValueError,match='no está conectado'):deliver('one',[{'path':str(source),'verified_sha256':digest(source)}])
     assert source.is_file() and not (project/'final_delivery.json').exists()
 
 
 def test_final_destination_may_share_model_disk(setup):
     project,source,finals=setup
     (finals/'model.safetensors').write_bytes(b'model-fixture')
-    deliver('one',[{'path':str(source)}])
+    deliver('one',[{'path':str(source),'verified_sha256':digest(source)}])
     assert (finals/'model.safetensors').read_bytes()==b'model-fixture'
+
+
+def test_final_copy_rejects_missing_or_changed_verification_hash(setup):
+    project,source,finals=setup
+    with pytest.raises(ValueError,match='Falta el SHA-256'):
+        deliver('one',[{'path':str(source)}])
+    with pytest.raises(ValueError,match='render cambió'):
+        deliver('one',[{'path':str(source),'verified_sha256':'0'*64}])
+    assert not list(finals.rglob('*.mp4')) and not (project/'final_delivery.json').exists()

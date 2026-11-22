@@ -26,12 +26,15 @@ def deliver(project_id,outputs):
     folder.mkdir(exist_ok=True)
     records=[]
     for item in outputs:
+        verified=item.get('verified_sha256')
+        if not isinstance(verified,str) or not re.fullmatch('[0-9a-f]{64}',verified):
+            raise ValueError('Falta el SHA-256 de la verificación técnica; no se entregó')
         source=Path(item['path'])
         if not source.is_absolute():source=project/source
         source=source.resolve();source.relative_to((project/'renders').resolve())
         if not source.is_file() or not source.stat().st_size:raise ValueError('Falta el render verificado')
         checksum=digest(source)
-        if item.get('verified_sha256') is not None and item['verified_sha256']!=checksum:raise ValueError('El render cambió después de su verificación; no se entregó')
+        if verified!=checksum:raise ValueError('El render cambió después de su verificación; no se entregó')
         dest=folder/(source.stem+'-'+checksum[:12]+source.suffix)
         if dest.is_symlink():raise ValueError('El archivo final no puede ser un enlace simbólico')
         if dest.exists():
