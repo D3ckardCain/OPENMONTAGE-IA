@@ -577,6 +577,22 @@ roundForm.addEventListener('submit', async event => {
 });
 
 let scenePlan=null,scenePlanProject=null;
+$('#scene-audio-form').onsubmit=async event=>{
+ event.preventDefault();if(!pid){notice('Selecciona primero una producción.');return;}
+ const selected=pid,form=event.target;
+ try{const result=await api('scene-audio-preview/'+encodeURIComponent(selected),{
+  narration_path:form.elements.namedItem('narration_path').value.trim(),music_path:form.elements.namedItem('music_path').value.trim(),
+  narration_db:Number(form.elements.namedItem('narration_db').value),music_db:Number(form.elements.namedItem('music_db').value)});
+  if(pid===selected)$('#scene-audio-result').replaceChildren(node('p','Mezcla iniciada: '+result.attempt+'. Consulta su estado aquí.'));
+ }catch(error){notice(error.message);}
+};
+$('#scene-audio-status').onclick=async()=>{
+ const box=$('#scene-audio-result');box.replaceChildren();if(!pid)return;
+ try{const selected=pid,result=await api('scene-audio-preview/'+encodeURIComponent(selected));if(pid!==selected)return;
+  box.append(node('p','Estado: '+result.status));if(result.error)box.append(node('p',result.error));
+  if(result.output)box.append(link('Escuchar montaje de revisión',result.output.url),node('p','SHA-256 '+result.output.sha256));
+ }catch(error){box.append(node('p',error.message));}
+};
 $('#scene-preview-form').onsubmit=async event=>{
  event.preventDefault();if(!pid){notice('Selecciona primero una producción.');return;}
  const selected=pid,policy=event.target.elements.namedItem('fit_policy').value;

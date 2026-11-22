@@ -173,6 +173,14 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'fit_policy'}:raise HTTPException(400,'Indica la política de duración')
         return invoke(start,pid,data['fit_policy'])
+    @router.get('/api/studio/scene-audio-preview/{pid}')
+    def scene_audio_preview_state(pid:str):
+        from lib.scene_audio_preview import state
+        return invoke(state,pid)
+    @router.post('/api/studio/scene-audio-preview/{pid}')
+    async def scene_audio_preview_start(pid:str,request:Request):
+        from lib.scene_audio_preview import start
+        return invoke(start,pid,await body(request))
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)

@@ -221,3 +221,25 @@ def test_silent_scene_preview_requires_explicit_fit_and_records_output(planned,m
     assert [item['scene_id'] for item in report['choices']]==['s01','s02']
     assert report['audio_included'] is False
     assert (project/report['output']['path']).is_file()
+
+
+def test_scene_audio_requires_local_narration_and_finished_video(planned,monkeypatch):
+    from types import SimpleNamespace
+    from lib import scene_audio_preview as audio
+    project,_,payload=planned
+    prepare('demo',payload)
+    (project/'assets').mkdir()
+    (project/'assets/voice.wav').write_bytes(b'example')
+    monkeypatch.setattr(audio,'require_media',lambda name:name)
+    monkeypatch.setattr(audio.subprocess,'run',lambda *a,**kw:SimpleNamespace(returncode=0,stdout='{"streams":[{"codec_type":"audio"}],"format":{"duration":"2"}}'))
+    assert audio._track(project,'assets/voice.wav')['duration_seconds']==2
+    with pytest.raises(ValueError,match='Ruta o formato'):
+        audio._track(project,'../voice.wav')
+    with pytest.raises(ValueError,match='Crea primero'):
+        audio.start('demo',{'narration_path':'assets/voice.wav','music_path':'',
+                            'narration_db':0,'music_db':-24})
+    from fastapi.testclient import TestClient
+    from backlot.server import create_app
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    assert client.get('/api/studio/scene-audio-preview/demo').json()['status']=='not_started'
+    assert client.post('/api/studio/scene-audio-preview/demo',json={'narration_path':'../voice.wav'}).status_code==400
