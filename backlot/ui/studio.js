@@ -463,10 +463,32 @@ roundForm.addEventListener('submit', async event => {
      : [scope.competition || report.competition || 'uefa', scope.season || scope.seasonYear,
         scope.round || scope.phase].join('-');
     download.download = basename + '.svg';
+    const dossier = node('button', 'Descargar expediente JSON');
+    dossier.type = 'button';
     const video = node('button', 'Descargar clip MP4');
     video.type = 'button';
     const status = node('p', '');
     status.setAttribute('role', 'status');
+    dossier.onclick = async () => {
+     dossier.disabled = true;
+     status.textContent = 'Preparando expediente de cifras y fuentes…';
+     try {
+      const record = await api('football/round-goals/dossier', selection);
+      if (request !== roundRequest || revision !== previewRevision) return;
+      const url = URL.createObjectURL(new Blob([JSON.stringify(record, null, 2)], {type:'application/json'}));
+      const file = link('Expediente JSON', url);
+      file.download = basename + '-expediente.json';
+      document.body.append(file);
+      file.click();
+      file.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status.textContent = 'Expediente listo para descargar.';
+     } catch (error) {
+      status.textContent = error.message;
+     } finally {
+      dossier.disabled = false;
+     }
+    };
     video.onclick = async () => {
      video.disabled = true;
      status.textContent = 'Generando clip vertical…';
@@ -492,7 +514,7 @@ roundForm.addEventListener('submit', async event => {
       video.disabled = false;
      }
     };
-    exports.replaceChildren(image, download, video, status);
+    exports.replaceChildren(image, download, dossier, video, status);
    };
    roundResult.append(preview, selectionStatus, exports);
   }

@@ -348,8 +348,24 @@ def test_qatar_edition_preview_uses_explicit_metrics(isolated, monkeypatch):
     assert preview.status_code == 200
     assert 'Tiros' in preview.json()['preview_svg']
     assert '>Goles<' not in preview.json()['preview_svg']
+    dossier = isolated.post(path + '/dossier', json=payload)
+    assert dossier.status_code == 200
+    evidence = dossier.json()
+    assert evidence['status'] == 'selection_previewed'
+    assert evidence['selected_metrics'] == ['shots']
+    assert len(evidence['selected_evidence']) == 2
+    assert all(row['selected_facts'][0]['source_url'] == urls['shots']
+               for row in evidence['selected_evidence'])
+    import hashlib
+    unsigned = {key: value for key, value in evidence.items() if key != 'sha256'}
+    encoded = json.dumps(unsigned, sort_keys=True, separators=(',', ':'),
+                         ensure_ascii=False, allow_nan=False).encode('utf-8')
+    assert hashlib.sha256(encoded).hexdigest() == evidence['sha256']
+    altered = {**payload, 'report': {**report, 'scope': {**scope, 'season': 2023}}}
+    assert isolated.post(path + '/dossier', json=altered).status_code == 400
     payload['metrics'] = ['saves']
     assert isolated.post(path + '/preview', json=payload).status_code == 400
+    assert isolated.post(path + '/dossier', json=payload).status_code == 400
 
 
 def test_partial_edition_report_cannot_be_exported(isolated, monkeypatch):
@@ -393,6 +409,12 @@ def test_euro_edition_can_preview_verified_metric(isolated, monkeypatch):
                                                       'metrics': ['goals']})
     assert preview.status_code == 200
     assert '<svg' in preview.json()['preview_svg']
+    dossier = isolated.post(path + '/dossier', json={'report': payload['report'],
+                                                      'export_token': payload['export_token'],
+                                                      'metrics': ['goals']})
+    assert dossier.status_code == 200
+    assert len([row for row in dossier.json()['metric_matrix'] if row['standard']]) == 54
+    assert dossier.json()['selected_evidence'][0]['selected_facts'][0]['source_url'] == origin['url']
 
 
 def test_fifa_partial_metrics_allow_verified_goals_only(isolated, monkeypatch):
@@ -422,6 +444,10 @@ def test_fifa_partial_metrics_allow_verified_goals_only(isolated, monkeypatch):
                                                       'metrics': ['Goals']})
     assert preview.status_code == 200
     assert '<svg' in preview.json()['preview_svg']
+    dossier = isolated.post(path + '/dossier', json={'report': report, 'export_token': token,
+                                                      'metrics': ['Goals']})
+    assert dossier.status_code == 200
+    assert dossier.json()['selected_evidence'][0]['selected_facts'][0]['source_url'] == source['url']
     blocked = isolated.post(path + '/preview', json={'report': report, 'export_token': token,
                                                       'metrics': ['Assists']})
     assert blocked.status_code == 400

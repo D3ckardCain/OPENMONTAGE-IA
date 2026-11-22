@@ -26,6 +26,15 @@ mediante «Crear video a partir de este canal». El storyboard original sigue en
    El estado `rendered` exige etapas completas y archivos reconocibles por ffprobe.
    La publicación externa no está autorizada por este flujo.
 
+## Comparativas de fútbol
+
+1. En «Fútbol», elige competición y edición e introduce dos jugadores. Consulta la fuente antes de escoger cifras.
+2. Revisa las 54 métricas comunes, los datos adicionales y los enlaces de origen. Marca entre una y seis cifras disponibles para ambos jugadores y pulsa «Ver postal con la selección».
+3. Descarga la postal SVG, el clip MP4 o «Descargar expediente JSON». El expediente incluye el informe completo, la matriz, las cifras exactas elegidas con sus URLs y un SHA-256 del contenido para comprobar si cambió durante un traslado.
+4. Si cambias la selección, genera una vista previa nueva antes de descargar. Si reinicias el estudio, consulta otra vez la fuente: el token de exportación es temporal.
+
+El expediente indica `selection_previewed`: acredita la selección comprobada por el exportador, pero no equivale a aprobación editorial, permiso de imagen, licencia para publicar ni comprobación del video final. No envía el expediente a servicios externos ni guarda una copia en el proyecto.
+
 ## Qué está integrado
 
 - Los 12 pipelines públicos existentes, con sus esquemas, requisitos y skills.
