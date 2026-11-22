@@ -211,6 +211,10 @@ def create_studio_router():
         if state['job'].get('status')=='running' and not active:
             state['job'].update(status='interrupted',message='El proceso anterior terminó. Puedes reanudar desde los artefactos guardados.')
         return state
+    @router.get('/api/studio/script-diagnostic/{pid}')
+    def script_diagnostic(pid:str,words_per_minute:int=Query(150,ge=80,le=220)):
+        from lib.script_diagnostic import inspect
+        return invoke(inspect,pid,words_per_minute)
     @router.get('/api/studio/channel-research/{pid}')
     def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_channel_evidence import page
