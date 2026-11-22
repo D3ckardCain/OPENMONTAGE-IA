@@ -12,7 +12,11 @@ def test_versions_reference_and_queue_share_state_without_bypassing_blockers(tmp
     monkeypatch.setattr(reference_analysis,'ACTIVE',set())
     monkeypatch.setattr(queue,'WORKER',None)
     monkeypatch.setattr(queue,'PAUSE',threading.Event())
-    monkeypatch.setattr(studio,'local_request',lambda *args,**kwargs:(_ for _ in ()).throw(AssertionError('No runtime requests in integration test')))
+    monkeypatch.setattr(studio,'settings',lambda:{'model':'fixture:latest','ollama_url':'http://127.0.0.1:11434'})
+    def local_models(url,path,**kwargs):
+        assert path=='/api/tags'
+        return {'models':[{'name':'fixture:latest'}]}
+    monkeypatch.setattr(studio,'local_request',local_models)
     client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
     created=client.post('/api/studio/projects',json={'title':'Original research','brief':'Investigate facts and create original material','pipeline':'animated-explainer','language':'es','reference':'https://youtu.be/abcdefghijk','automatic':False})
     assert created.status_code==200
