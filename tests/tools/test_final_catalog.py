@@ -12,8 +12,10 @@ def projects(tmp_path,monkeypatch):
     return tmp_path
 
 
-def test_catalog_reports_saved_delivery_without_rehashing(projects):
-    final=projects/'delivered.mp4';final.write_bytes(b'fixture')
+def test_catalog_reports_saved_delivery_without_rehashing(projects,monkeypatch):
+    final=projects/'finals/first/delivered.mp4';final.parent.mkdir(parents=True);final.write_bytes(b'fixture')
+    from lib import final_catalog
+    monkeypatch.setattr(final_catalog,'read_config',lambda *args:{'final_outputs_dir':str(projects/'finals')})
     studio.save_json(projects/'first/final_delivery.json',{'copied':True,'mode':'dedicated_final_directory','outputs':[{'path':str(final),'sha256':'saved'}]})
     studio.save_json(projects/'first/render_verification.json',{'status':'passed',
                      'football_selection':{'selection_id':'a'*64,'selected_metrics':['goals']}})
@@ -23,6 +25,14 @@ def test_catalog_reports_saved_delivery_without_rehashing(projects):
     assert row['football_selection']['selection_id'] == 'a'*64
     final.unlink();assert catalog()['projects'][0]['outputs'][0]['available'] is False
     assert report['generation_started'] is False
+
+
+def test_catalog_rejects_receipt_paths_outside_configured_final_folder(projects,monkeypatch):
+    from lib import final_catalog
+    outside=projects/'other.mp4';outside.write_bytes(b'fixture')
+    monkeypatch.setattr(final_catalog,'read_config',lambda *args:{'final_outputs_dir':str(projects/'finals')})
+    studio.save_json(projects/'first/final_delivery.json',{'copied':True,'outputs':[{'path':str(outside)}]})
+    assert catalog()['projects'][0]['outputs'][0]['available'] is False
 
 
 def test_catalog_preserves_errors_and_marks_partial_results(projects):

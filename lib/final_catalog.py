@@ -2,10 +2,22 @@
 from pathlib import Path
 from lib import production_studio as studio
 from lib.editorial_freshness import current as verification_current,delivery_current,selection_index
+from lib.storage_layout import read_config
+
+
+def _available_path(raw, base, relative_base):
+    if not isinstance(raw,str) or not raw or base is None:return None
+    path=Path(raw)
+    if not path.is_absolute():path=relative_base/path
+    if path.is_symlink():return None
+    try:path.resolve().relative_to(base.resolve())
+    except (OSError,ValueError):return None
+    return path
 
 
 def catalog(limit=500):
     rows=[];errors=[];scanned=0;truncated=False
+    configured=read_config(studio.REPO_ROOT).get('final_outputs_dir')
     for marker in sorted(studio.PROJECTS_DIR.glob('*/production_request.json')):
         if scanned>=limit:truncated=True;break
         scanned+=1
@@ -20,11 +32,13 @@ def catalog(limit=500):
             current=verification_current(verification,reviews,selection)
             if not receipt and not verification:continue
             outputs=[]
-            for record in receipt.get('outputs',[]) if receipt.get('copied') else verification.get('outputs',[]):
-                path=Path(record['path'])
-                if not path.is_absolute():path=project/path
-                available=path.is_file() and not path.is_symlink()
-                outputs.append({'path':str(path),'available':available,'bytes':record.get('bytes'),
+            copied=receipt.get('copied') is True
+            base=Path(configured)/project.name if configured and copied else project/'renders'
+            for record in receipt.get('outputs',[]) if copied else verification.get('outputs',[]):
+                raw=record['path']
+                path=_available_path(raw,base,base if copied else project)
+                available=path.is_file() if path else False
+                outputs.append({'path':str(path) if path else str(raw),'available':available,'bytes':record.get('bytes'),
                     'sha256_saved':record.get('sha256'),'integrity_rechecked':False})
             rows.append({'project_id':project.name,'title':request.get('title',project.name),
                 'delivery_mode':receipt.get('mode','project_renders'),'copied':receipt.get('copied',False),
