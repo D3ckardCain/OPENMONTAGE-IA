@@ -40,6 +40,10 @@ def test_project_copies_verified_research_idea_link(isolated):
     idea=create({'channel_id':channel,'snapshot_id':source['id'],'video_ids':['abcdefghijk'],
                  'title':'Enfoque original para el canal','angle':'Investigar y producir un relato nuevo con hechos y fuentes comprobables.',
                  'audience':'Creadores','language':'es','format':'long'})
+    from lib.video_observations import add
+    observation={'views':100,'vph':12,'engagement_percent':2.7,'outlier_ratio':1.5,'seo_score':40,'notes':'Observación manual'}
+    add({'video_url':'https://www.youtube.com/watch?v=abcdefghijk',**observation})
+    add({'video_url':'https://www.youtube.com/watch?v=bbbbbbbbbbb',**observation})
     payload={'title':idea['title'],'brief':idea['angle'],'pipeline':'animated-explainer','language':'es',
              'reference':'https://www.youtube.com/watch?v=abcdefghijk','automatic':False,
              'research_idea':{'channel_id':channel,'snapshot_id':source['id'],'idea_id':idea['id']}}
@@ -55,11 +59,24 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert state['channel_research']['status']=='verified'
     assert state['channel_research']['complete_period'] is False
     assert state['channel_research']['publication_total']==2
+    assert state['channel_research']['vidiq_observation_total']==1
     worker=agent.LocalAgent(response.json()['project_id'])
     first=worker.dispatch('project_channel_evidence',{'limit':1})
     assert first['publication_total']==2 and first['next_offset']==1
     assert first['publications'][0]['id']=='abcdefghijk'
     assert worker.dispatch('project_channel_evidence',{'offset':1,'limit':1})['next_offset'] is None
+    observed=worker.dispatch('project_vidiq_observations',{'limit':1})
+    assert observed['observation_total']==1 and observed['observations'][0]['video_id']=='abcdefghijk'
+    assert observed['next_offset'] is None
+    observation_path=project/'artifacts/video_observations_snapshot.json'
+    copied_observations=studio.read_json(observation_path)
+    studio.save_json(observation_path,[{**copied_observations[0],'vph':999}])
+    with pytest.raises(ValueError,match='alteradas'):
+        worker.dispatch('project_vidiq_observations',{})
+    assert isolated.get('/api/studio/projects/'+response.json()['project_id']).json()['channel_research']['status']=='invalid'
+    with pytest.raises(ValueError,match='alteradas'):
+        agent.start(response.json()['project_id'])
+    studio.save_json(observation_path,copied_observations)
     source_copy=studio.read_json(project/'artifacts/channel_research_snapshot.json')
     copied=studio.read_json(project/'artifacts/channel_research_snapshot.json')
     copied['report']['publications'][0]['viewCount']=999

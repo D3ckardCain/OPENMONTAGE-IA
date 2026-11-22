@@ -32,6 +32,8 @@ El estudio muestra fecha de consulta, cantidad de publicaciones, cobertura del p
 
 Proyectos antiguos con la propuesta local conservada pueden recuperar un expediente faltante desde los registros locales mediante «Recuperar copia local». La operación comprueba IDs, referencia, hash cuando exista y contenido de cualquier copia superviviente; nunca sobrescribe una copia alterada. Si los registros originales ya no están disponibles o falta una referencia de integridad, la recuperación se rechaza.
 
+Al crear un proyecto desde una propuesta, se copian únicamente las observaciones manuales ya guardadas para los videos de referencia elegidos. El agente las consulta con `project_vidiq_observations` en páginas de hasta 50, con fecha y atribución, separadas del expediente oficial. La copia tiene hash en la solicitud; una modificación posterior bloquea el inicio. Los proyectos antiguos sin copia muestran esa ausencia, sin inventar valores.
+
 ### Observación puntual con vidIQ en Edge
 
 El 22 de noviembre de 2026 se revisó [este video de Edwin Arenas](https://www.youtube.com/watch?v=rd8TQwkQ4zs) con la extensión ya instalada. La ficha visible indicaba **80,1 mil vistas acumuladas**, **21 VPH**, **2,7 % Engagement**, **19,7× Outlier** y **40,3/100 puntuación SEO**. También mostraba etiquetas del video y canal y una gráfica histórica de vistas. Son valores mostrados por vidIQ en ese momento; VPH y puntuaciones son cálculos del proveedor y no equivalen a CTR, retención, ingresos ni crecimiento certificado del canal. La propia interfaz reservaba ciertas etiquetas y opciones para planes de pago.

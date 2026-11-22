@@ -70,13 +70,16 @@ def summary(path,request):
     if not request.get('research_idea'):return None
     if not (path/'artifacts/channel_research_snapshot.json').is_file() or not (path/'artifacts/channel_idea_source.json').is_file():
         return {'status':'missing','message':'Falta la copia de investigación. Recupera desde registros locales si siguen disponibles.'}
-    try:snapshot,idea,report=verified(path,request)
+    try:
+        snapshot,idea,report=verified(path,request)
+        from lib.project_video_observations import verified_rows
+        observations=verified_rows(path,request)
     except (ValueError,KeyError,TypeError,OverflowError):
-        return {'status':'invalid','message':'Expediente o propuesta ausente o alterada; revisa el proyecto antes de producir.'}
+        return {'status':'invalid','message':'Expediente, propuesta u observaciones ausentes o alteradas; revisa el proyecto antes de producir.'}
     return {'status':'verified','channel_id':report['channel_id'],'snapshot_id':snapshot['id'],
             'snapshot_sha256':snapshot['report_sha256'],'retrieved_at_utc':report['retrieved_at_utc'],
             'complete_period':report['complete_period'],'publication_total':len(report['publications']),
-            'idea_title':idea['title'],
+            'idea_title':idea['title'],'vidiq_observation_total':len(observations) if observations is not None else None,
             'message':'Captura histórica: comprueba vigencia, hechos y derechos antes de publicar.'}
 
 

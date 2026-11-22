@@ -46,6 +46,7 @@ TOOLS=[
  descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
  descriptor('project_channel_evidence','Lee el expediente copiado en este proyecto en páginas verificadas de hasta 50 publicaciones.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
+ descriptor('project_vidiq_observations','Lee observaciones manuales de vidIQ de los videos de referencia, separadas de las cifras de YouTube, en páginas de hasta 50.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
  descriptor('project_translation','Lee una traducción local guardada por fragmentos antes de repetirla. Conserva la obligación de revisar idioma y adaptación cultural; no genera ni aprueba el guion.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
  descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
  descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
@@ -168,6 +169,9 @@ class LocalAgent:
         if name=='project_channel_evidence':
             from lib.project_channel_evidence import page
             return page(self.path,self.request,**args)
+        if name=='project_vidiq_observations':
+            from lib.project_video_observations import page
+            return page(self.path,self.request,**args)
         if name=='read_instruction':return self.instruction(args['path'])
         if name=='sports_sources':
             from lib.sports_sources import catalog
@@ -256,7 +260,8 @@ class LocalAgent:
         if name=='read_artifact':return studio.read_json(self.artifact_path(args['name']),{})
         if name=='write_artifact':
             if args['name'] in ('decision_log', 'football_comparison_selection',
-                                'channel_idea_source', 'channel_research_snapshot'):
+                                'channel_idea_source', 'channel_research_snapshot',
+                                'video_observations_snapshot'):
                 raise ValueError('Artefacto reservado del estudio')
             from schemas.artifacts import ARTIFACT_NAMES, validate_artifact
             if args['name'] in ARTIFACT_NAMES:validate_artifact(args['name'],args['data'])
@@ -446,8 +451,11 @@ class LocalAgent:
 
 def start(pid):
     project=studio.project_path(pid)
+    request=studio.read_json(project/'production_request.json')
     from lib.project_channel_evidence import require_valid
-    require_valid(project,studio.read_json(project/'production_request.json'))
+    require_valid(project,request)
+    from lib.project_video_observations import verified_rows
+    if request.get('research_idea'):verified_rows(project,request)
     from lib.language_versions import selection_provenance_problem
     if problem:=selection_provenance_problem(project):raise ValueError(problem)
     from lib.storage_layout import readiness
@@ -478,6 +486,9 @@ def approve(pid):
     p=studio.project_path(pid);req=studio.read_json(p/'production_request.json')
     from lib.project_channel_evidence import require_valid
     require_valid(p,req)
+    if req.get('research_idea'):
+        from lib.project_video_observations import verified_rows
+        verified_rows(p,req)
     from lib.language_versions import selection_provenance_problem
     if problem:=selection_provenance_problem(p):raise ValueError(problem)
     with ACTIVE_LOCK:
