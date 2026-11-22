@@ -434,7 +434,7 @@ class LocalAgent:
             self.status('blocked','El agente se detuvo: '+str(exc)[:600])
         finally:
             try:
-                studio.save_json(self.path/'resource_usage.json',sampler.finish())
+                studio.save_json(self.path/'resource_usage.json',{**sampler.finish(),'recorded_at':studio.now()})
             finally:
                 with ACTIVE_LOCK:ACTIVE.pop(self.pid,None)
 

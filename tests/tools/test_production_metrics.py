@@ -64,6 +64,20 @@ def test_editorial_first_decision_rate_uses_explicit_reviews_only(tmp_path,monke
     assert report['first_pass_approval_rate']==0.5
 
 
+def test_retry_resource_peaks_are_preserved_without_treating_old_sample_as_current(tmp_path,monkeypatch):
+    from lib import production_studio as studio
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)
+    studio.save_json(tmp_path/'one/production_request.json',{})
+    studio.save_json(tmp_path/'one/resource_usage.json',{
+        'host_ram_peak_mb':2500,'gpu_vram_peak_mb':800,'recorded_at':'2026-11-22T10:02:00+00:00'})
+    monkeypatch.setattr(production_queue,'read',lambda:{'status':'paused','items':[
+        {'project_id':'one','status':'pending','retry_history':[
+            {'status':'blocked','resource_usage':{'host_ram_peak_mb':2500,'gpu_vram_peak_mb':800}}]}]})
+    report=production_metrics.snapshot()
+    assert report['projects'][0]['resource_usage'] is None
+    assert report['ram_peak_mb']==2500 and report['vram_peak_mb']==800
+
+
 def test_stage_timings_are_summed_only_from_saved_valid_events(tmp_path, monkeypatch):
     from lib import production_studio as studio
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path)

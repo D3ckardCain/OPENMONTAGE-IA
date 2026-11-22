@@ -32,6 +32,11 @@ def snapshot():
         try:
             project = studio.project_path(item['project_id'])
             usage = studio.read_json(project/'resource_usage.json')
+            if history and isinstance(usage,dict):
+                recorded=usage.get('recorded_at')
+                started=item.get('started_at')
+                if not isinstance(recorded,str) or not isinstance(started,str) or recorded<started:
+                    usage=None
             reviews = studio.read_json(project/'editorial_reviews.json',[])
             if isinstance(reviews,list):
                 for review in reviews:
@@ -72,6 +77,11 @@ def snapshot():
            if isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('host_ram_peak_mb')) is int]
     vram = [row['resource_usage']['gpu_vram_peak_mb'] for row in rows
             if isinstance(row['resource_usage'],dict) and type(row['resource_usage'].get('gpu_vram_peak_mb')) is int]
+    prior_usage=[entry.get('resource_usage') for row in rows for entry in row['retry_history']]
+    ram.extend(usage['host_ram_peak_mb'] for usage in prior_usage
+               if isinstance(usage,dict) and type(usage.get('host_ram_peak_mb')) is int)
+    vram.extend(usage['gpu_vram_peak_mb'] for usage in prior_usage
+                if isinstance(usage,dict) and type(usage.get('gpu_vram_peak_mb')) is int)
     causes = {}
     for row in rows:
         for entry in row['retry_history']:
@@ -90,4 +100,4 @@ def snapshot():
             'editorial_first_decisions_count':len(first_decisions),
             'first_pass_approval_rate':round(first_approvals/len(first_decisions),3) if first_decisions else None,
             'generation_started': False, 'estimate_48_per_week': None,
-            'note': 'La cola mide inicio-fin con esperas. Las etapas muestran tiempo activo hasta cada checkpoint. La tasa editorial usa la primera decisión explícita registrada por etapa; no incluye etapas sin decisión ni datos anteriores a este registro. Las aprobaciones automáticas no cuentan en esta tasa. El historial conserva hasta 200 decisiones por proyecto. Las causas de reintento agrupan estados guardados. RAM es del equipo completo y VRAM de la GPU NVIDIA más ocupada durante el último intento; no se atribuyen al proyecto. No predice capacidad semanal.'}
+            'note': 'La cola mide inicio-fin del intento actual con esperas. Las etapas muestran tiempo activo acumulado hasta cada checkpoint. La tasa editorial usa la primera decisión explícita registrada por etapa; no incluye etapas sin decisión ni datos anteriores a este registro. Las aprobaciones automáticas no cuentan. Las causas de reintento agrupan estados guardados. Los máximos RAM y VRAM incluyen muestras guardadas de intentos previos desde esta versión; son del equipo y GPU completos, no atribuibles al proyecto. No predice capacidad semanal.'}
