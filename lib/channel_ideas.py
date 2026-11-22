@@ -54,3 +54,12 @@ def list_drafts(channel_id):
         if item.get('id')!=path.stem or item.get('channel_id')!=channel_id:raise ValueError('Propuesta alterada')
         rows.append(item)
     return sorted(rows,key=lambda row:row['created_at_utc'],reverse=True)
+
+
+def read_draft(channel_id,idea_id):
+    folder=_folder(channel_id)
+    if not isinstance(idea_id,str) or not re.fullmatch(r'[0-9a-f]{32}',idea_id):raise ValueError('ID de propuesta inválido')
+    item=studio.read_json(folder/(idea_id+'.json'))
+    if not item:raise FileNotFoundError('Propuesta no encontrada')
+    if item.get('id')!=idea_id or item.get('channel_id')!=channel_id:raise ValueError('Propuesta alterada')
+    return item

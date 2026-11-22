@@ -24,6 +24,8 @@ La comparación de dos expedientes elegidos mide diferencias entre capturas solo
 
 Desde un expediente guardado se pueden seleccionar de uno a cinco videos como referencias y redactar un título, enfoque y audiencia propios. La propuesta conserva el hash y fecha del informe, las cifras de esas referencias en ese momento y queda como **borrador** con revisión de hechos y derechos pendiente. Un enlace prepara un proyecto en el estudio con ese contexto; no aprueba el guion ni genera o publica el video. Los títulos idénticos al de una referencia seleccionada se rechazan, aunque la originalidad exige revisión editorial real.
 
+El agente local dispone de `saved_channel_evidence` para leer ese expediente y, opcionalmente, la propuesta vinculada. La herramienta exige IDs exactos, comprueba integridad y devuelve las publicaciones en páginas de hasta 50 con `next_offset`. El encargo del estudio incluye los IDs para solicitarla. Es lectura local de costo cero: no consulta otra vez YouTube, no incorpora los cálculos de vidIQ y conserva la advertencia sobre cobertura, fecha y revisiones pendientes.
+
 ### Observación puntual con vidIQ en Edge
 
 El 22 de noviembre de 2026 se revisó [este video de Edwin Arenas](https://www.youtube.com/watch?v=rd8TQwkQ4zs) con la extensión ya instalada. La ficha visible indicaba **80,1 mil vistas acumuladas**, **21 VPH**, **2,7 % Engagement**, **19,7× Outlier** y **40,3/100 puntuación SEO**. También mostraba etiquetas del video y canal y una gráfica histórica de vistas. Son valores mostrados por vidIQ en ese momento; VPH y puntuaciones son cálculos del proveedor y no equivalen a CTR, retención, ingresos ni crecimiento certificado del canal. La propia interfaz reservaba ciertas etiquetas y opciones para planes de pago.
