@@ -176,3 +176,21 @@ $('query-plan').onclick=async()=>{
 };
 
 $('query').addEventListener('input',()=>$('query-plan-result').replaceChildren());
+
+function observationId(value){const url=new URL(value);if(url.protocol!=='https:'||!['www.youtube.com','youtube.com'].includes(url.hostname)||url.pathname!=='/watch')throw Error('Usa un enlace HTTPS de YouTube');const id=url.searchParams.get('v');if(!/^[A-Za-z0-9_-]{11}$/.test(id||''))throw Error('ID de video inválido');return id;}
+const observationForm=$('observation-form'),observationBox=$('observation-result');
+function showObservations(rows){observationBox.replaceChildren(element('p',`${rows.length} observaciones guardadas para este video.`));for(const row of rows.slice().reverse())observationBox.append(element('p',`${new Date(row.observed_at_utc).toLocaleString('es-MX')} · ${row.source} · vistas ${format(row.views)} · VPH ${format(row.vph)} · engagement ${format(row.engagement_percent)} % · outlier ${format(row.outlier_ratio)}× · SEO ${format(row.seo_score)}/100${row.notes?' · '+row.notes:''}`));}
+$('observation-load').onclick=async()=>{
+ try{const id=observationId(observationForm.elements.namedItem('video_url').value.trim());
+  const response=await fetch('/api/research/video-observations/'+encodeURIComponent(id));const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo leer el historial');showObservations(result.observations);
+ }catch(error){observationBox.textContent=error.message;}
+};
+observationForm.onsubmit=async event=>{
+ event.preventDefault();const fields=observationForm.elements;
+ const data={video_url:fields.namedItem('video_url').value.trim(),notes:fields.namedItem('notes').value.trim()};
+ for(const name of ['views','vph','engagement_percent','outlier_ratio','seo_score']){const value=fields.namedItem(name).value;data[name]=value===''?null:Number(value);}
+ try{const response=await fetch('/api/research/video-observations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudo guardar');
+  $('observation-load').click();
+ }catch(error){observationBox.textContent=error.message;}
+};

@@ -7,7 +7,7 @@ Revisión del catálogo de 26 recursos en [la biblioteca](https://biblioteca.sys
 | Orden | Aporte observado | Adaptación a nuestra app | Estado |
 | --- | --- | --- | --- |
 | 1 | Subtítulos y montaje para video corto | Exportación local con subtítulos visibles y márgenes para 9:16 y 16:9, además del MP4 con pista editable y SRT | En desarrollo |
-| 2 | Nichos y canales: analizar muestra completa, consistencia, antigüedad y excepciones | El buscador muestra la muestra solicitada y permite auditar un canal por páginas para los últimos 30 días, con fecha de corte y cobertura explícita. Pendiente: expediente guardado y extensión a otros periodos desde la interfaz | Parcial |
+| 2 | Nichos y canales: analizar muestra completa, consistencia, antigüedad y excepciones | El buscador muestra la muestra solicitada y permite auditar un canal por páginas para los últimos 30 días, con fecha de corte y cobertura explícita. Las observaciones manuales de vidIQ quedan guardadas por video y fecha. Pendiente: expediente de consultas de canal y extensión a otros periodos desde la interfaz | Parcial |
 | 3 | Filtrado de ideas y diagnóstico de alcance, clics y retención | Módulo editorial que compare propuestas y, cuando haya datos aportados, explique impresiones, CTR y retención por pieza y periodo | Pendiente |
 | 4 | Guiones: título, apertura, bloques, voz, indicaciones visuales y revisión factual | Plantilla original de guion por escenas, duración estimada por palabras, marcas de verificación factual y aprobación antes de voz y video | Pendiente |
 | 5 | Títulos y miniaturas | Variantes, vista previa legible en móvil y decisión editorial guardada; modelos locales ya registrados antes de añadir otros | Pendiente |
@@ -22,7 +22,7 @@ La búsqueda inicial consulta como máximo veinte publicaciones recientes por ca
 
 El 22 de noviembre de 2026 se revisó [este video de Edwin Arenas](https://www.youtube.com/watch?v=rd8TQwkQ4zs) con la extensión ya instalada. La ficha visible indicaba **80,1 mil vistas acumuladas**, **21 VPH**, **2,7 % Engagement**, **19,7× Outlier** y **40,3/100 puntuación SEO**. También mostraba etiquetas del video y canal y una gráfica histórica de vistas. Son valores mostrados por vidIQ en ese momento; VPH y puntuaciones son cálculos del proveedor y no equivalen a CTR, retención, ingresos ni crecimiento certificado del canal. La propia interfaz reservaba ciertas etiquetas y opciones para planes de pago.
 
-Aplicación prevista: campos opcionales de observación de un video concreto (URL, fecha, proveedor, vistas, VPH, engagement, puntuación y notas) en un expediente de investigación, separados de la respuesta oficial de YouTube. El backend local no puede acceder a la extensión de Edge ni debe prometer extracción automática de datos privados de vidIQ. Cuando sea necesario, el operador registra la observación visible y conserva el enlace y su fecha; los análisis periódicos siguen usando la fuente pública disponible.
+La página «Canales» incluye un formulario para registrar vistas, VPH, engagement, outlier y SEO del video con fecha automática y fuente «vidIQ Edge (transcripción manual)». Cada observación se añade al historial local del ID del video; no sustituye registros anteriores ni se mezcla con la respuesta oficial de YouTube. El backend local no puede acceder a la extensión de Edge ni promete extracción automática de datos privados de vidIQ. El operador introduce solo cifras que ve; los análisis periódicos siguen usando la fuente pública disponible.
 
 ### Enlaces revisados
 

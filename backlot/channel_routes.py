@@ -122,4 +122,17 @@ def create_channel_router():
             finally:active_queries-=1
         return JSONResponse(result,headers={'Cache-Control':'no-store'})
 
+    @router.get('/api/research/video-observations/{video_id}')
+    def observations(video_id:str):
+        from lib.video_observations import read
+        try:return JSONResponse({'observations':read(video_id)},headers={'Cache-Control':'no-store'})
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
+    @router.post('/api/research/video-observations')
+    async def save_observation(request:Request):
+        from lib.video_observations import add
+        data=await local_body(request,4096)
+        try:return JSONResponse(add(data),headers={'Cache-Control':'no-store'})
+        except ValueError as exc:raise HTTPException(400,str(exc))
+
     return router
