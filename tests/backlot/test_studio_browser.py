@@ -261,7 +261,7 @@ def test_queue_controls_inspection_and_progress(staged_backlot_server):
             {'id':'second','project_id':'second','title':'Segundo','status':'pending','projects_root':'/other/projects','progress':{'available':False,'message':'Conecta el disco original'}}]}
         calls=[]
         page.route('**/api/studio/queue',lambda route:route.fulfill(json=state))
-        page.route('**/api/studio/queue/inspect',lambda route:route.fulfill(json={'ready':False,'worker_active':False,'note':'No ejecuta modelos','storage':{'problems':['Videos finales: disco no disponible']},'items':[]}))
+        page.route('**/api/studio/queue/inspect',lambda route:route.fulfill(json={'ready':False,'worker_active':False,'note':'No ejecuta modelos','model_status':{'configured':'fixture','installed':True,'checked':True},'storage':{'problems':['Videos finales: disco no disponible']},'problems':[],'items':[]}))
         def mutate(route):
             action=route.request.url.rsplit('/',1)[-1];payload=route.request.post_data_json;calls.append((action,payload))
             if action=='move':state['items'].reverse()
