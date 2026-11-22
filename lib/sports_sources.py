@@ -77,7 +77,7 @@ _ROWS = [
  ('jleague','football','asia','J.League','https://www.jleague.jp/','official_jleague_live'),
  ('kleague','football','asia','K League','https://www.kleague.com/record/player.do',''),
  ('saudi','football','arab','Saudi Pro League','https://www.spl.com.sa/en/stats','as_competition_player_stats'),
- ('uae','football','arab','UAE Pro League','https://www.uaeproleague.ae/',''),
+ ('uae','football','arab','UAE Pro League','https://www.uaeproleague.ae/en/stats',''),
  ('qatar','football','arab','Qatar Stars League','https://www.qsl.qa/',''),
  ('mls','football','americas','MLS','https://www.mlssoccer.com/','official_mls_live'),
  ('ligamx','football','americas','Liga MX','https://ligamx.net/','ligamx_player_stats'),
@@ -106,7 +106,7 @@ def catalog(sport=None, region=None):
         if sport and kind!=sport: continue
         if region and area not in (region,'world'): continue
         row=dict(id=ident,sport=kind,region=area,name=label,url=url,
-            connector=tool or None,status='source_inspection_only' if ident=='kleague' or tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
+            connector=tool or None,status='source_inspection_only' if ident in ('kleague','uae') or tool=='official_spl_source_status' else 'implemented_requires_live_check' if tool else 'integration_pending',
             coverage_verified=False)
         if kind=='football':
             keys, dynamic = configured.get(tool, (set(), False))
@@ -120,6 +120,11 @@ def catalog(sport=None, region=None):
                 row['integration_note'] = ('Tabla pública disponible; API oficial con authKey obligatorio. '
                                            'El portal restringe copia, almacenamiento y distribución de registros '
                                            'fuera de usos de prensa sin permiso previo. No habilitar exportación del canal.')
+            if ident=='uae':
+                row['integration_note'] = ('La página ofrece filtros por temporada y competición y comparación de jugadores. '
+                                           'Las condiciones permiten reproducción del contenido solo para uso personal no comercial; '
+                                           'el sitio advierte que sus estadísticas no deben considerarse oficiales. '
+                                           'No habilitar exportación del canal desde esta fuente.')
         rows.append(row)
     football_contract = {
         'metrics': list(FOOTBALL_STANDARD_METRICS),
