@@ -137,10 +137,10 @@ def create_production(data):
     if type(data.get('automatic',False)) is not bool:raise ValueError('Política automática inválida')
     if not re.fullmatch(r'[a-z]{2,3}(?:-[A-Za-z0-9]+)*',data['language']):raise ValueError('Idioma inválido')
     if not isinstance(data.get('reference',''),str):raise ValueError('Referencia inválida')
-    linked_idea=None
+    linked_idea=None;dossier=None;idea_sha256=None
     if data.get('research_idea') is not None:
         from lib.channel_ideas import read_draft
-        from lib.channel_dossiers import read as read_dossier
+        from lib.channel_dossiers import read as read_dossier, _digest
         ref=data['research_idea']
         if not isinstance(ref,dict) or set(ref)!={'channel_id','snapshot_id','idea_id'}:
             raise ValueError('Vínculo de investigación inválido')
@@ -150,14 +150,16 @@ def create_production(data):
             raise ValueError('La propuesta no corresponde al expediente')
         if data.get('reference') not in [item['url'] for item in linked_idea['references']]:
             raise ValueError('La referencia elegida no está en la propuesta')
+        idea_sha256=_digest(linked_idea)
     if data['pipeline']=='framework-smoke':raise ValueError('Pipeline reservado para pruebas')
     manifest=load_pipeline_readonly(data['pipeline'])
     pid='video-'+uuid.uuid4().hex[:12]
     with LOCK:
         p=init_project(pid,title=data['title'],pipeline_type=data['pipeline'],pipeline_dir=PROJECTS_DIR)
-        save_json(p/'production_request.json',{**data,'project_id':pid,'created_at':now(),'budget_usd':0,'publish_authorized':False})
+        save_json(p/'production_request.json',{**data,'research_idea_sha256':idea_sha256,'project_id':pid,'created_at':now(),'budget_usd':0,'publish_authorized':False})
         if linked_idea is not None:
             save_json(p/'artifacts/channel_idea_source.json',linked_idea)
+            save_json(p/'artifacts/channel_research_snapshot.json',dossier)
         decision={'version':'1.0','project_id':pid,'decisions':[{'decision_id':'approval-start','stage':manifest['stages'][0]['name'],
           'category':'approval_policy','subject':'Production stage automation','options_considered':[
            {'option_id':'automatic','label':'Automatizar producción local, detener antes de publicar','score':1 if data.get('automatic') else 0,'reason':'Selección explícita del usuario'},

@@ -34,7 +34,8 @@ def test_project_copies_verified_research_idea_link(isolated):
     channel='UC'+'a'*22
     source=save({'source':'YouTube Data API','channel_id':channel,'retrieved_at_utc':'2026-11-22T00:00:00Z',
                  'since_utc':'2026-10-23T00:00:00Z','cutoff_at_utc':'2026-11-22T00:00:00Z',
-                 'complete_period':False,'publications':[{'id':'abcdefghijk','title':'Otro video','viewCount':100}]})
+                 'complete_period':False,'publications':[{'id':'abcdefghijk','title':'Otro video','viewCount':100},
+                                                       {'id':'bbbbbbbbbbb','title':'Segundo video','viewCount':200}]})
     idea=create({'channel_id':channel,'snapshot_id':source['id'],'video_ids':['abcdefghijk'],
                  'title':'Enfoque original para el canal','angle':'Investigar y producir un relato nuevo con hechos y fuentes comprobables.',
                  'audience':'Creadores','language':'es','format':'long'})
@@ -45,7 +46,27 @@ def test_project_copies_verified_research_idea_link(isolated):
     assert response.status_code==200,response.text
     project=studio.project_path(response.json()['project_id'])
     assert studio.read_json(project/'artifacts/channel_idea_source.json')['snapshot_sha256']==source['report_sha256']
+    assert studio.read_json(project/'artifacts/channel_research_snapshot.json')['report_sha256']==source['report_sha256']
     assert studio.read_json(project/'production_request.json')['research_idea']==payload['research_idea']
+    from lib.channel_dossiers import _digest
+    assert studio.read_json(project/'production_request.json')['research_idea_sha256']==_digest(idea)
+    worker=agent.LocalAgent(response.json()['project_id'])
+    first=worker.dispatch('project_channel_evidence',{'limit':1})
+    assert first['publication_total']==2 and first['next_offset']==1
+    assert first['publications'][0]['id']=='abcdefghijk'
+    assert worker.dispatch('project_channel_evidence',{'offset':1,'limit':1})['next_offset'] is None
+    source_copy=studio.read_json(project/'artifacts/channel_research_snapshot.json')
+    copied=studio.read_json(project/'artifacts/channel_research_snapshot.json')
+    copied['report']['publications'][0]['viewCount']=999
+    studio.save_json(project/'artifacts/channel_research_snapshot.json',copied)
+    with pytest.raises(ValueError,match='alterado'):
+        worker.dispatch('project_channel_evidence',{})
+    studio.save_json(project/'artifacts/channel_research_snapshot.json',source_copy)
+    idea_copy=studio.read_json(project/'artifacts/channel_idea_source.json')
+    altered={**idea_copy,'title':'Título cambiado'}
+    studio.save_json(project/'artifacts/channel_idea_source.json',altered)
+    with pytest.raises(ValueError,match='alterado'):
+        worker.dispatch('project_channel_evidence',{})
     bad={**payload,'reference':'https://www.youtube.com/watch?v=bbbbbbbbbbb'}
     assert isolated.post('/api/studio/projects',json=bad).status_code==400
 

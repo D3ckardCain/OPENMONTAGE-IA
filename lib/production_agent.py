@@ -45,6 +45,7 @@ TOOLS=[
  descriptor('select_round_research_metrics','Selecciona cifras de Qatar 2022 para revisar en pantalla. Disponible para investigación con StatsBomb.',{'report':{'type':'object'},'metrics':{'type':'array','minItems':1,'maxItems':3,'uniqueItems':True,'items':{'enum':['matches_played','goals','shots']}}},['report','metrics']),
  descriptor('read_instruction','Lee instrucciones o esquemas del repositorio.',{'path':{'type':'string'}},['path']),
  descriptor('project_state','Lee solicitud, etapas, resultados y artefactos del proyecto.'),
+ descriptor('project_channel_evidence','Lee el expediente copiado en este proyecto en páginas verificadas de hasta 50 publicaciones.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
  descriptor('project_translation','Lee una traducción local guardada por fragmentos antes de repetirla. Conserva la obligación de revisar idioma y adaptación cultural; no genera ni aprueba el guion.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
  descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
  descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
@@ -164,6 +165,33 @@ class LocalAgent:
         spec=next((t['function'] for t in TOOLS if t['function']['name']==name),None)
         if not spec:raise ValueError('Llamada desconocida')
         validate(args,spec['parameters'])
+        if name=='project_channel_evidence':
+            from lib.channel_dossiers import _digest
+            ref=self.request.get('research_idea')
+            snapshot=studio.read_json(self.artifact_path('channel_research_snapshot'),{})
+            idea=studio.read_json(self.artifact_path('channel_idea_source'),{})
+            report=snapshot.get('report') if isinstance(snapshot,dict) else None
+            if (not isinstance(ref,dict) or not isinstance(report,dict) or not isinstance(idea,dict)
+                    or snapshot.get('id')!=ref.get('snapshot_id')
+                    or report.get('channel_id')!=ref.get('channel_id')
+                    or snapshot.get('report_sha256')!=_digest(report)
+                    or idea.get('id')!=ref.get('idea_id')
+                    or idea.get('channel_id')!=ref.get('channel_id')
+                    or idea.get('snapshot_id')!=snapshot['id']
+                    or idea.get('snapshot_sha256')!=snapshot['report_sha256']
+                    or _digest(idea)!=self.request.get('research_idea_sha256')
+                    or not isinstance(report.get('publications'),list)):
+                raise ValueError('Expediente del proyecto ausente o alterado')
+            rows=report['publications'];offset=args.get('offset',0);limit=args.get('limit',20)
+            return {'source':'YouTube Data API (copia local del proyecto)',
+                    'channel_id':ref['channel_id'],'snapshot_id':snapshot['id'],
+                    'snapshot_sha256':snapshot['report_sha256'],
+                    'retrieved_at_utc':report['retrieved_at_utc'],
+                    'since_utc':report['since_utc'],'cutoff_at_utc':report['cutoff_at_utc'],
+                    'complete_period':report['complete_period'],'analysis':report.get('analysis'),
+                    'publication_total':len(rows),'offset':offset,'publications':rows[offset:offset+limit],
+                    'next_offset':offset+limit if offset+limit<len(rows) else None,'idea':idea,
+                    'limits':'Vistas acumuladas en la fecha de consulta. Revisa hechos y derechos antes de publicar.'}
         if name=='read_instruction':return self.instruction(args['path'])
         if name=='sports_sources':
             from lib.sports_sources import catalog
@@ -251,7 +279,8 @@ class LocalAgent:
             return {'saved':str(p),'bytes':p.stat().st_size}
         if name=='read_artifact':return studio.read_json(self.artifact_path(args['name']),{})
         if name=='write_artifact':
-            if args['name'] in ('decision_log', 'football_comparison_selection'):
+            if args['name'] in ('decision_log', 'football_comparison_selection',
+                                'channel_idea_source', 'channel_research_snapshot'):
                 raise ValueError('Artefacto reservado del estudio')
             from schemas.artifacts import ARTIFACT_NAMES, validate_artifact
             if args['name'] in ARTIFACT_NAMES:validate_artifact(args['name'],args['data'])
