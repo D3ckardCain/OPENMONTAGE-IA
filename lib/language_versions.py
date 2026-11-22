@@ -12,6 +12,13 @@ def create_versions(project_id,languages):
     with studio.LOCK:
         source=studio.project_path(project_id)
         request=studio.read_json(source/'production_request.json')
+        research=None
+        if request.get('research_idea'):
+            from lib.project_channel_evidence import verified
+            from lib.project_video_observations import verified_rows
+            snapshot,idea,_=verified(source,request)
+            observations=verified_rows(source,request)
+            research={'snapshot':snapshot,'idea':idea,'observations':observations}
         from lib.football_comparison_dossier import latest_for_agent, save_to_project
         selection=latest_for_agent(project_id, include_report=True)
         from lib.reference_language import read as source_language
@@ -22,6 +29,9 @@ def create_versions(project_id,languages):
         fingerprint_data={key:request.get(key) for key in ('title','brief','pipeline','reference','language')}
         if selection['available']:
             fingerprint_data['football_selection_id']=selection['selection_id']
+        if research:
+            fingerprint_data['research_idea_sha256']=request['research_idea_sha256']
+            fingerprint_data['research_observations_sha256']=request.get('research_observations_sha256')
         fingerprint=hashlib.sha256(json.dumps(fingerprint_data,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
         results=[]
         for language in languages:
@@ -37,6 +47,9 @@ def create_versions(project_id,languages):
                     if not child['available'] or child.get('selection_id')!=original.get('selection_id'):
                         results.append({**existing,'status':'selection_changed','can_enqueue':False,
                             'message':'La selección deportiva de esta versión cambió; revisa el proyecto antes de producir'});continue
+                if existing.get('source_channel_research'):
+                    if problem:=research_provenance_problem(studio.project_path(existing['project_id']),existing['source_channel_research']):
+                        results.append({**existing,'status':'research_changed','can_enqueue':False,'message':problem});continue
                 results.append({**existing,'status':'existing'});continue
             brief=request['brief']+'\n\nVersión localizada para '+language+'. Investigar y escribir un guion propio en el idioma objetivo. Adaptar voz, subtítulos, títulos, miniatura, música y referencias culturales. Detectar el idioma de canciones y diálogos; sustituir recursos cuando corresponda con material autorizado. No basta con traducir letras ni invertir la imagen. Revisar exactitud, licencias y naturalidad antes de exportar.'
             if len(brief)>12000:raise ValueError('El encargo base es demasiado largo para añadir las instrucciones de localización')
@@ -44,6 +57,19 @@ def create_versions(project_id,languages):
             try:
                 created=studio.create_production({'title':(request['title'][:140]+' · '+language)[:150],
                     'brief':brief,'pipeline':request['pipeline'],'language':language,'reference':request.get('reference',''),'automatic':False})
+                if research:
+                    child=studio.project_path(created['project_id'])
+                    child_request=studio.read_json(child/'production_request.json')
+                    for field in ('research_idea','research_idea_sha256','research_observations_sha256'):
+                        child_request[field]=request.get(field)
+                    studio.save_json(child/'artifacts/channel_research_snapshot.json',research['snapshot'])
+                    studio.save_json(child/'artifacts/channel_idea_source.json',research['idea'])
+                    if research['observations'] is not None:
+                        studio.save_json(child/'artifacts/video_observations_snapshot.json',research['observations'])
+                    studio.save_json(child/'production_request.json',child_request)
+                    from lib.project_channel_evidence import verified
+                    verified(child,child_request)
+                    verified_rows(child,child_request)
                 if selection['available']:
                     copied=save_to_project(created['project_id'], selection['report'], selection['selected_metrics'])
                     if copied['selection']['selection_id']!=selection['selection_id']:
@@ -54,6 +80,14 @@ def create_versions(project_id,languages):
                 if selection['available']:
                     entry['source_football_selection']={'project_id':project_id,
                         'selection_id':selection['selection_id'],'sha256':selection['sha256']}
+                if research:
+                    entry['source_channel_research']={'project_id':project_id,
+                        'research_idea':request['research_idea'],
+                        'research_idea_sha256':request['research_idea_sha256'],
+                        'snapshot_sha256':research['snapshot']['report_sha256'],
+                        'research_observations_sha256':request.get('research_observations_sha256')}
+                    studio.save_json(studio.project_path(created['project_id'])/'artifacts/source_channel_research.json',
+                        entry['source_channel_research'])
                 ledger['versions'][key]=entry
                 studio.save_json(source/'language_versions.json',ledger)
                 results.append({**entry,'status':'created'})
@@ -66,6 +100,14 @@ def create_versions(project_id,languages):
 
 def selection_provenance_problem(project):
     """Check a localized project's own selection against its creation snapshot."""
+    research_marker=project/'artifacts/source_channel_research.json'
+    if research_marker.is_symlink():return 'Procedencia de investigación inválida; revisa la versión'
+    if research_marker.is_file():
+        try:
+            original=studio.read_json(research_marker)
+            if problem:=research_provenance_problem(project,original):return problem
+        except (OSError,ValueError,KeyError,TypeError):
+            return 'No se pudo validar la procedencia de investigación de esta versión'
     marker=project/'artifacts/source_football_selection.json'
     if not marker.exists() and not marker.is_symlink():return None
     if marker.is_symlink():return 'Procedencia deportiva inválida; revisa la versión'
@@ -78,6 +120,24 @@ def selection_provenance_problem(project):
             return 'La selección deportiva de la versión cambió; revisa el proyecto antes de producir'
     except (OSError,ValueError,KeyError,TypeError):
         return 'No se pudo validar la selección deportiva de esta versión'
+    return None
+
+
+def research_provenance_problem(project,original):
+    from lib.project_channel_evidence import verified
+    from lib.project_video_observations import verified_rows
+    try:
+        if not isinstance(original,dict):return 'Procedencia de investigación inválida; revisa la versión'
+        request=studio.read_json(project/'production_request.json')
+        snapshot,_,_=verified(project,request)
+        verified_rows(project,request)
+        if (request.get('research_idea')!=original.get('research_idea')
+                or request.get('research_idea_sha256')!=original.get('research_idea_sha256')
+                or request.get('research_observations_sha256')!=original.get('research_observations_sha256')
+                or snapshot['report_sha256']!=original.get('snapshot_sha256')):
+            return 'La investigación de esta versión cambió; revisa el proyecto antes de producir'
+    except (OSError,ValueError,KeyError,TypeError):
+        return 'No se pudo validar la investigación de esta versión'
     return None
 
 
@@ -96,6 +156,9 @@ def list_versions(project_id):
                 original=entry['source_football_selection']
                 if not child['available'] or child.get('selection_id')!=original.get('selection_id'):
                     entry.update(status='selection_changed',message='La selección deportiva de esta versión cambió; revisa el proyecto antes de producir')
+            if entry.get('source_channel_research'):
+                if problem:=research_provenance_problem(path,entry['source_channel_research']):
+                    entry.update(status='research_changed',message=problem)
             job=studio.read_json(path/'job.json',{})
             verification=studio.read_json(path/'render_verification.json',{})
             delivery=studio.read_json(path/'final_delivery.json',{})

@@ -39,6 +39,54 @@ def test_without_football_selection_keeps_original_version_fingerprint(source):
     assert ledger['versions'][fingerprint+':en']['project_id']==created['project_id']
 
 
+def test_localized_version_preserves_channel_evidence_without_global_registry(source):
+    import shutil
+    from lib.channel_dossiers import save,read,_digest
+    from lib.channel_ideas import create
+    from lib.video_observations import add
+    from lib.project_channel_evidence import verified
+    from lib.project_video_observations import verified_rows
+    from lib.language_versions import list_versions
+    channel='UC'+'v'*22
+    report={'source':'YouTube Data API','channel_id':channel,'retrieved_at_utc':'2026-11-22T00:00:00Z',
+            'since_utc':'2026-10-23T00:00:00Z','cutoff_at_utc':'2026-11-22T00:00:00Z',
+            'complete_period':True,'publications':[{'id':'abcdefghijk','title':'Video fuente','viewCount':100}]}
+    saved=save(report);snapshot=read(channel,saved['id'])
+    idea=create({'channel_id':channel,'snapshot_id':saved['id'],'video_ids':['abcdefghijk'],
+                 'title':'Tema propio documentado','angle':'Investigar un enfoque nuevo y comprobar las fuentes del tema.',
+                 'audience':'Creadores','language':'es','format':'long'})
+    rows=[add({'video_url':'https://www.youtube.com/watch?v=abcdefghijk','views':100,'vph':2,
+               'engagement_percent':None,'outlier_ratio':None,'seo_score':None,'notes':''})]
+    base=studio.project_path('base');request=studio.read_json(base/'production_request.json')
+    request.update(reference='https://www.youtube.com/watch?v=abcdefghijk',
+                   research_idea={'channel_id':channel,'snapshot_id':saved['id'],'idea_id':idea['id']},
+                   research_idea_sha256=_digest(idea),research_observations_sha256=_digest(rows))
+    studio.save_json(base/'production_request.json',request)
+    studio.save_json(base/'artifacts/channel_research_snapshot.json',snapshot)
+    studio.save_json(base/'artifacts/channel_idea_source.json',idea)
+    studio.save_json(base/'artifacts/video_observations_snapshot.json',rows)
+    shutil.rmtree(studio.CONFIG_DIR/'research')
+    entry=create_versions('base',['en'])['versions'][0]
+    assert entry['status']=='created' and 'source_channel_research' in entry
+    child=studio.project_path(entry['project_id']);child_request=studio.read_json(child/'production_request.json')
+    assert child_request['language']=='en' and child_request['research_idea']==request['research_idea']
+    assert verified(child,child_request)[0]==snapshot
+    assert verified_rows(child,child_request)==rows
+    from lib.language_versions import selection_provenance_problem
+    assert selection_provenance_problem(child) is None
+    assert create_versions('base',['en'])['versions'][0]['status']=='existing'
+    tampered=studio.read_json(child/'artifacts/video_observations_snapshot.json')
+    tampered[0]['vph']=999
+    studio.save_json(child/'artifacts/video_observations_snapshot.json',tampered)
+    assert list_versions('base')['versions'][0]['status']=='research_changed'
+    assert list_versions('base')['versions'][0]['can_enqueue'] is False
+    assert create_versions('base',['en'])['versions'][0]['status']=='research_changed'
+    assert selection_provenance_problem(child)
+    from lib import production_agent as agent
+    with pytest.raises(ValueError,match='investigación'):
+        agent.start(entry['project_id'])
+
+
 def test_localized_version_inherits_selected_evidence_and_new_selection_gets_new_version(source,monkeypatch):
     from lib.football_comparison_dossier import latest_for_agent, save_to_project
     from tools.football.ligamx import ranking_urls, tournament_scope

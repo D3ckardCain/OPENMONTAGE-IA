@@ -261,7 +261,7 @@ class LocalAgent:
         if name=='write_artifact':
             if args['name'] in ('decision_log', 'football_comparison_selection',
                                 'channel_idea_source', 'channel_research_snapshot',
-                                'video_observations_snapshot'):
+                                'video_observations_snapshot', 'source_channel_research'):
                 raise ValueError('Artefacto reservado del estudio')
             from schemas.artifacts import ARTIFACT_NAMES, validate_artifact
             if args['name'] in ARTIFACT_NAMES:validate_artifact(args['name'],args['data'])
