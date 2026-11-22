@@ -40,6 +40,27 @@ def test_duplicate_final_receipt_cannot_report_all_files_matching(tmp_path,monke
     assert result['receipt_manifest_matches'] is False and result['all_files_match'] is False
 
 
+def test_relative_render_path_and_duplicate_verification(tmp_path,monkeypatch):
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
+    project=studio.PROJECTS_DIR/'one'
+    studio.save_json(project/'production_request.json',{'title':'one'})
+    source=project/'renders/video.mp4';source.parent.mkdir();source.write_bytes(b'video')
+    sha=hashlib.sha256(b'video').hexdigest()
+    monkeypatch.setattr(final_integrity,'read_config',lambda *args:{})
+    record={'path':'renders/video.mp4','sha256':sha}
+    studio.save_json(project/'render_verification.json',{'status':'passed','outputs':[record]})
+    result=final_integrity.inspect('one')
+    assert result['outputs'][0]['source_result']=='matches'
+    assert result['all_files_match'] is True
+    studio.save_json(project/'render_verification.json',{'status':'passed','outputs':[record,record]})
+    result=final_integrity.inspect('one')
+    assert result['receipt_manifest_matches'] is False
+    assert result['all_files_match'] is False
+    studio.save_json(project/'render_verification.json',{'status':'passed','outputs':[
+        record,{'path':str(source),'sha256':sha}]})
+    assert final_integrity.inspect('one')['all_files_match'] is False
+
+
 def test_integrity_rejects_path_outside_project_and_missing_video(tmp_path,monkeypatch):
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
     project=studio.PROJECTS_DIR/'one'
