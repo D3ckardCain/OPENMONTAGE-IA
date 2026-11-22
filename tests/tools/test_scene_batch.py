@@ -177,4 +177,4 @@ def test_edit_readiness_checks_every_approved_take_against_plan(planned,monkeypa
     assert readiness('demo')['ready']
     (project/'assets/s01.mp4').write_bytes(b'altered')
     assert not readiness('demo')['ready']
-    assert 'Cambió la toma' in readiness('demo')['scenes'][0]['problems']
+    assert 'Cambió la toma aprobada' in readiness('demo')['scenes'][0]['problems']
