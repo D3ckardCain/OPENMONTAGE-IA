@@ -39,6 +39,7 @@ La matriz común muestra las 54 métricas con nombres en español y grupos de pa
 
 La consulta del agente conserva esa misma matriz de 54 campos incluso cuando una fuente no responde o no devuelve dos jugadores. En tal caso todas las cifras quedan ausentes, se conserva el error en la sección y no hay informe exportable. La presencia del campo común no acredita que la fuente publique esa métrica.
 La mesa de la app también muestra la matriz ausente en un desplegable cuando una consulta falla o devuelve otra fase. Ninguna cifra del informe rechazado se conserva en ese desplegable.
+Cada fila de una consulta de comparativa indica `availability`: `both_players`, `one_player` o `not_observed` según las cifras que esa consulta devolvió para los dos jugadores. El cero publicado cuenta como cifra observada. Este estado describe el resultado puntual, no la cobertura total de la fuente o del campeonato; los errores de consulta permanecen separados y bloquean la exportación.
 
 Antes de ofrecer una postal o clip, la mesa compara la competición, la edición y la fase devueltas por la fuente con la opción elegida. Si difieren, descarta el informe y muestra el error de alcance sin emitir token de exportación. Para UEFA usa `seasonYear` y `phase`; para FIFA comprueba los IDs de competición y temporada y el alcance publicado.
 

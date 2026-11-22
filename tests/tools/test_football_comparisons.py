@@ -25,6 +25,27 @@ def test_failed_source_keeps_the_same_metric_schema_without_inventing_values():
     assert section['metric_matrix'] == metric_matrix(None)
     assert all(row['values'] == [None, None] and row['display_metric'] is None
                for row in section['metric_matrix'])
+    assert all(row['availability'] == 'not_observed' for row in section['metric_matrix'])
+
+
+def test_same_metric_matrix_marks_observed_values_per_player_without_turning_zero_into_missing():
+    from lib.football_comparisons import metric_matrix
+    scope = {'competition': 'j1', 'season': 2025}
+    source = {'url': 'https://www.jleague.jp/standings/', 'retrieved_at': '2026-11-22'}
+    records = []
+    for name, values in [('A', {'goals': 0, 'assists': 2}), ('B', {'goals': 4})]:
+        records.append({'entity_id': name, 'identity': {'entity_id': name, 'name': name},
+                        'statistics': values, 'facts': [
+                            {'metric': key, 'value': value, 'entity_id': name, 'scope': scope,
+                             'source_url': source['url'], 'retrieved_at': source['retrieved_at']}
+                            for key, value in values.items()]})
+    rows = {row['metric']: row for row in metric_matrix({
+        'source': 'J.League', 'type': 'player_comparison', 'scope': scope,
+        'records': records, 'queries': [source]})}
+    assert rows['goals']['availability'] == 'both_players'
+    assert rows['goals']['values'][0]['value'] == 0
+    assert rows['assists']['availability'] == 'one_player'
+    assert rows['shots']['availability'] == 'not_observed'
 
 
 def test_premier_desk_preserves_matchweek_and_source(monkeypatch):

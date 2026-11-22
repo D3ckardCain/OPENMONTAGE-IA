@@ -165,10 +165,15 @@ def display_metrics(report):
 
 def metric_matrix(report):
     """Report all common fields and preserve source-native alternatives."""
+    def availability(values):
+        found = sum(isinstance(value, dict) and value.get('value') is not None for value in values)
+        return ('not_observed', 'one_player', 'both_players')[found]
+
     groups = {metric: group for group, fields in FOOTBALL_METRIC_GROUPS.items() for metric in fields}
     empty = [{'metric': metric, 'label': FOOTBALL_METRIC_LABELS_ES[metric],
               'group': groups[metric], 'standard': True, 'values': [None, None],
-              'display_metric': None} for metric in FOOTBALL_STANDARD_METRICS]
+              'display_metric': None, 'availability': 'not_observed'}
+             for metric in FOOTBALL_STANDARD_METRICS]
     if not report:
         return empty
     report = add_standard_statistics(deepcopy(report))
@@ -186,7 +191,8 @@ def metric_matrix(report):
         display_key = next(iter(keys)) if len(keys) == 1 and all(values) else None
         matrix.append({'metric': metric, 'label': FOOTBALL_METRIC_LABELS_ES[metric],
                        'group': groups[metric], 'standard': True, 'values': values,
-                       'display_metric': display_key if display_key in common else None})
+                       'display_metric': display_key if display_key in common else None,
+                       'availability': availability(values)})
     try:
         export = uefa_report(report, selected=True) if report.get('fuente') == 'UEFA' else report
     except (KeyError, ValueError):
@@ -201,8 +207,10 @@ def metric_matrix(report):
         native.append(facts)
     if len(native) == 2:
         for metric in sorted((native[0].keys() | native[1].keys()) - mapped):
-            matrix.append({'metric': metric, 'standard': False, 'values': [row.get(metric) for row in native],
-                           'display_metric': metric if metric in common else None})
+            values = [row.get(metric) for row in native]
+            matrix.append({'metric': metric, 'standard': False, 'values': values,
+                           'display_metric': metric if metric in common else None,
+                           'availability': availability(values)})
     return matrix
 
 
