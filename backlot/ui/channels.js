@@ -253,7 +253,7 @@ observationForm.onsubmit=async event=>{
 
 const performanceForm=$('performance-form'),performanceBox=$('performance-result');
 function showPerformance(batch){
- const box=element('div','','scope');box.append(element('h3',batch.row_total+' filas · '+batch.imported_at_utc),element('p',batch.source+' · SHA-256 '+batch.sha256));
+ const box=element('div','','scope');box.append(element('h3',batch.row_total+' filas · '+batch.imported_at_utc),element('p','ID de importación: '+batch.id),element('p',batch.source+' · SHA-256 '+batch.sha256));
  for(const row of batch.rows)box.append(element('p',row.video_id+' · '+row.period_start+' a '+row.period_end+' · impresiones '+format(row.impressions)+' · clics '+format(row.clicks)+' · vistas '+format(row.views)+' · clics/impresiones '+format(row.clicks_per_impression_percent)+' % · duración media '+format(row.average_view_duration_seconds)+' s · porcentaje medio visto '+format(row.average_watch_percent)+' %'));
  if(batch.row_total>batch.rows.length)box.append(element('p','Página '+batch.offset+'–'+(batch.offset+batch.rows.length)+' de '+batch.row_total+' filas.'));
  if(batch.row_total){const first=element('button',batch.rows.length?'Volver a la primera página':'Ver filas','secondary');first.type='button';first.onclick=()=>loadPerformancePage(batch.id,0,box);box.append(first);}

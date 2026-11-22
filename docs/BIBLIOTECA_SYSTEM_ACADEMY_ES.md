@@ -54,6 +54,8 @@ La página «Canales» incluye un formulario para registrar vistas, VPH, engagem
 
 El formulario «Analizar CSV propio por video y periodo» acepta hasta 500 filas y 200 KB por archivo, con ocho columnas exactas indicadas en la interfaz. Cada importación se guarda localmente con hash del CSV recibido y hash del registro, y se recupera por páginas. Impresiones, clics, vistas y duraciones proceden exclusivamente del archivo que aporta el operador; su origen real no se puede verificar. Se calcula clics/impresiones solo cuando ambos campos existen e impresiones es mayor que cero. Duración media/duración del video es un promedio descriptivo, no una curva de retención. Estos datos aún no se vinculan a proyectos ni se extraen automáticamente de cuentas privadas.
 
+El agente dispone de `saved_channel_performance` con el ID de importación visible en «Canales». Verifica el hash del registro y devuelve hasta 50 filas por página, con periodo, procedencia, campos ausentes y `next_offset`. Su lectura no genera nuevas consultas ni convierte el CSV en datos oficiales. Todavía no hay una copia congelada de esta importación dentro de un proyecto: para usarla al producir, se debe conservar el ID y revisar la vigencia del archivo antes de publicar.
+
 ### Enlaces revisados
 
 - [Catálogo de recursos](https://biblioteca.systemacademy.es/recursos)
