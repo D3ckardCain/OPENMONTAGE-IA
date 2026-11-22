@@ -577,6 +577,14 @@ roundForm.addEventListener('submit', async event => {
 });
 
 let scenePlan=null,scenePlanProject=null;
+$('#scene-edit-check').onclick=async()=>{
+ const box=$('#scene-edit-result');box.replaceChildren();if(!pid){box.append(node('p','Selecciona primero una producción.'));return;}
+ try{const selected=pid,report=await api('scene-edit-readiness/'+encodeURIComponent(selected));if(pid!==selected)return;
+  box.append(node('p',report.ready?'Todas las tomas están listas para preparar el montaje.':'El montaje aún tiene pendientes.'));
+  for(const message of report.problems)box.append(node('p',message));
+  for(const scene of report.scenes){const detail=document.createElement('details');detail.append(node('summary',scene.scene_id+' · '+(scene.ready?'Lista':'Pendiente')));if(scene.approved_take)detail.append(node('p',scene.approved_take));for(const problem of scene.problems)detail.append(node('p',problem));box.append(detail);}
+ }catch(error){box.append(node('p',error.message));}
+};
 function showSceneManifest(manifest){
  const box=$('#scene-batch-result'),form=$('#scene-media-form');box.replaceChildren();
  box.append(node('p','Manifiesto guardado: '+manifest.scene_count+' escenas · '+manifest.aspect_ratio+' · generación '+(manifest.generation_started?'iniciada':'sin iniciar')+'.'));
@@ -587,7 +595,7 @@ function showSceneManifest(manifest){
   d.append(node('p','Imagen: '+scene.image_prompt),node('p','Movimiento: '+scene.motion_prompt));
   if(scene.image)d.append(node('p','Imagen registrada: '+scene.image.path+' · SHA-256 '+scene.image.sha256));
   if(scene.last_error)d.append(node('p','Último intento: '+scene.last_error));
-  if(scene.image&&!scene.approved_take_id&&scene.takes.length<8&&scene.status!=='generating'){
+  if(scene.image&&!scene.approved_take_id&&scene.takes.length<8){
    const generate=node('button','Generar vista previa I2V local');generate.type='button';
    generate.onclick=async()=>{if(pid!==scenePlanProject)return;try{const response=await api('scene-batch-preview/'+encodeURIComponent(pid),{scene_id:scene.scene_id});notice('Iniciada la escena '+response.scene_id+'. Consulta de nuevo la mesa para ver el resultado.');generate.disabled=true;}catch(error){notice(error.message);}};
    d.append(generate);

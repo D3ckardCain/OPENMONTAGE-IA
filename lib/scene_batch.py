@@ -141,7 +141,7 @@ def _media(project,relative,kind):
     with path.open('rb') as stream:
         for chunk in iter(lambda:stream.read(1024*1024),b''):digest.update(chunk)
     result={'path':relative,'sha256':digest.hexdigest(),'bytes':size,'url':'/media/'+project.name+'/'+relative}
-    if kind=='video':result['duration_seconds']=duration
+    if kind=='video':result.update(duration_seconds=duration,width=streams[0]['width'],height=streams[0]['height'])
     return result
 
 
@@ -211,7 +211,7 @@ def start_preview(project_id,scene_id):
         image=_media(project,scene['image']['path'],'image')
         if image['sha256']!=scene['image']['sha256']:raise ValueError('La imagen cambió desde su registro')
         if image['bytes']>8_000_000:raise ValueError('Imagen superior a 8 MB para el adaptador I2V')
-        previous=scene.get('active_attempt') if scene['status']=='generation_failed' else None
+        previous=scene.get('active_attempt') if scene['status'] in ('generation_failed','generating') else None
         if not isinstance(previous,str) or not re.fullmatch('[0-9a-f]{32}',previous):previous=None
         prior=studio.read_json(project/'assets/video'/scene_id/str(previous)/'comfy-wan-job.json',{}) if previous else {}
         attempt=previous if prior.get('prompt_id') else uuid.uuid4().hex

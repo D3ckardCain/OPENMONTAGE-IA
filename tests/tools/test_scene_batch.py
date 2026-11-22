@@ -150,3 +150,31 @@ def test_preview_requires_explicit_i2v_profile(planned,monkeypatch):
     monkeypatch.setattr(model_adapters,'configuration',lambda family:{'preset':'wan22-14b-t2v-4step'})
     with pytest.raises(ValueError,match='Selecciona explícitamente'):
         start_preview('demo','s01')
+
+
+def test_edit_readiness_checks_every_approved_take_against_plan(planned,monkeypatch):
+    from PIL import Image
+    from types import SimpleNamespace
+    from lib import scene_batch as batch
+    from lib.scene_edit import readiness
+    import lib.media_executables as executables
+    project,_,payload=planned
+    prepare('demo',payload)
+    (project/'assets').mkdir()
+    monkeypatch.setattr(executables,'require_media',lambda name:'ffprobe')
+    monkeypatch.setattr(batch.subprocess,'run',lambda *a,**k:SimpleNamespace(returncode=0,stdout='{"streams":[{"codec_type":"video","width":288,"height":512}],"format":{"duration":"5"}}'))
+    for name in ('s01','s02'):
+        Image.new('RGB',(288,512),'blue').save(project/'assets'/f'{name}.png')
+        (project/'assets'/f'{name}.mp4').write_bytes(name.encode())
+        record_media('demo',{'scene_id':name,'kind':'image','relative_path':f'assets/{name}.png'})
+        take=record_media('demo',{'scene_id':name,'kind':'video','relative_path':f'assets/{name}.mp4'})['scene']['takes'][0]
+        if name=='s01':approve_take('demo',{'scene_id':name,'sha256':take['sha256'],'identity_reviewed':True})
+    assert not readiness('demo')['ready']
+    assert readiness('demo')['scenes'][0]['ready']
+    assert 'Falta una toma aprobada' in readiness('demo')['scenes'][1]['problems'][0]
+    second=read('demo')['scenes'][1]['takes'][0]
+    approve_take('demo',{'scene_id':'s02','sha256':second['sha256'],'identity_reviewed':True})
+    assert readiness('demo')['ready']
+    (project/'assets/s01.mp4').write_bytes(b'altered')
+    assert not readiness('demo')['ready']
+    assert 'Cambió la toma' in readiness('demo')['scenes'][0]['problems']

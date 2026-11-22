@@ -159,6 +159,10 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'scene_id'}:raise HTTPException(400,'Indica la escena')
         return invoke(start_preview,pid,data['scene_id'])
+    @router.get('/api/studio/scene-edit-readiness/{pid}')
+    def scene_edit_readiness(pid:str):
+        from lib.scene_edit import readiness
+        return invoke(readiness,pid)
     @router.get('/api/studio/projects/{pid}')
     def project(pid:str):
         state=invoke(studio.production_state,pid)
