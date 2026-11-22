@@ -55,6 +55,7 @@ def list_saved(channel_id):
         rows.append({'id':record['id'],'saved_at_utc':record['saved_at_utc'],
                      'report_sha256':record['report_sha256'],'retrieved_at_utc':report['retrieved_at_utc'],
                      'since_utc':report['since_utc'],'cutoff_at_utc':report['cutoff_at_utc'],
+                     'window_days':round((_time(report['cutoff_at_utc'])-_time(report['since_utc'])).total_seconds()/86400,2),
                      'complete_period':report['complete_period'],'publication_count':len(report['publications'])})
     return sorted(rows,key=lambda row:row['saved_at_utc'],reverse=True)
 
@@ -72,6 +73,8 @@ def compare(channel_id,older_id,newer_id):
     before=older['report'];after=newer['report']
     hours=(_time(after['retrieved_at_utc'])-_time(before['retrieved_at_utc'])).total_seconds()/3600
     if hours<=0:raise ValueError('El segundo expediente debe tener una consulta posterior')
+    before_days=round((_time(before['cutoff_at_utc'])-_time(before['since_utc'])).total_seconds()/86400,2)
+    after_days=round((_time(after['cutoff_at_utc'])-_time(after['since_utc'])).total_seconds()/86400,2)
     previous={v['id']:v for v in before['publications']}
     current={v['id']:v for v in after['publications']}
     shared=sorted(previous.keys() & current.keys())
@@ -91,7 +94,9 @@ def compare(channel_id,older_id,newer_id):
     return {'channel_id':channel_id,'older_id':older_id,'newer_id':newer_id,
             'older_retrieved_at_utc':before['retrieved_at_utc'],'newer_retrieved_at_utc':after['retrieved_at_utc'],
             'elapsed_hours':round(hours,2),'older_complete_period':before['complete_period'],
-            'newer_complete_period':after['complete_period'],'shared_publication_count':len(shared),
+            'newer_complete_period':after['complete_period'],'older_window_days':before_days,
+            'newer_window_days':after_days,'same_window_length':before_days==after_days,
+            'shared_publication_count':len(shared),
             'new_video_ids':sorted(current.keys()-previous.keys()),
             'absent_video_ids':sorted(previous.keys()-current.keys()),
             'unknown_view_ids':unknown,'decreased_views':decreased,

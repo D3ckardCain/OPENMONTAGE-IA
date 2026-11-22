@@ -21,6 +21,7 @@ def test_snapshots_are_immutable_and_attributed(tmp_path,monkeypatch):
     assert read(CHANNEL,first['id'])['report']['publications'][0]['viewCount']==100
     assert read(CHANNEL,second['id'])['report']['publications'][0]['viewCount']==150
     assert len(list_saved(CHANNEL))==2
+    assert list_saved(CHANNEL)[0]['window_days']==30
 
 
 def test_changed_snapshot_is_rejected(tmp_path,monkeypatch):
@@ -46,6 +47,7 @@ def test_comparison_uses_only_same_video_with_non_decreasing_known_views(tmp_pat
     second=save(new)
     result=compare(CHANNEL,first['id'],second['id'])
     assert result['elapsed_hours']==24
+    assert result['same_window_length'] is True
     assert result['comparable_count']==1 and result['comparable_views_delta']==50
     assert result['changes'][0]['average_views_per_hour']==2.08
     assert result['new_video_ids']==['eeeeeeeeeee']

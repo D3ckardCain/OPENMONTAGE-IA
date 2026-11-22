@@ -62,9 +62,15 @@ function showChannel(ch,index){
   const card=element('article','','channel');card.append(element('span',`CANAL ${index+1}`,'rank'));
   const h=element('h2',''),a=element('a',ch.title||ch.id);a.href=`https://www.youtube.com/channel/${encodeURIComponent(ch.id)}`;a.target='_blank';a.rel='noopener noreferrer';h.append(a);card.append(h);
   const produce=element('a','Crear video a partir de este canal','chip');produce.href=productionLink(ch);card.append(produce);
-  const periodButton=element('button','Auditar publicaciones de 30 días','secondary');periodButton.type='button';
+  const windowLabel=element('label','Periodo a revisar');const windowSelect=element('select','');
+  for(const [value,label] of [['7','7 días'],['30','30 días'],['90','90 días'],['365','365 días']]){const option=element('option',label);option.value=value;windowSelect.append(option);}windowSelect.value='30';windowLabel.append(windowSelect);
+  const pagesLabel=element('label','Máximo de páginas');const pagesSelect=element('select','');
+  for(const value of [2,5,10]){const option=element('option',`${value} páginas`);option.value=String(value);pagesSelect.append(option);}pagesSelect.value='10';pagesLabel.append(pagesSelect);
+  const estimate=element('p','');function updateEstimate(){estimate.textContent=`Hasta ${pagesSelect.value} páginas de 50 videos · alrededor de ${1+2*Number(pagesSelect.value)} solicitudes HTTP como máximo. No son unidades de cuota; la consulta puede terminar antes.`;}
+  pagesSelect.onchange=updateEstimate;updateEstimate();
+  const periodButton=element('button','Auditar periodo seleccionado','secondary');periodButton.type='button';
   const historyButton=element('button','Ver auditorías guardadas','secondary');historyButton.type='button';
-  const periodBox=element('div','','scope');card.append(periodButton,historyButton,periodBox);
+  const periodBox=element('div','','scope');card.append(windowLabel,pagesLabel,estimate,periodButton,historyButton,periodBox);
   function showPeriod(data){
     periodBox.replaceChildren(element('p',`${data.publications.length} publicaciones visibles · ${data.pages_read} páginas de ${data.max_pages} permitidas · ${data.complete_period?'Periodo cubierto en la lista pública':'Cobertura incompleta'}. Consultado: ${new Date(data.retrieved_at_utc).toLocaleString('es-MX')}.`),
       element('p',`Mediana de vistas acumuladas: ${format(data.analysis.median_views)}. Sin cifra: ${data.analysis.views_unknown}. ${data.note}`));
@@ -78,7 +84,7 @@ function showChannel(ch,index){
   periodButton.onclick=async()=>{
     periodButton.disabled=true;periodBox.textContent='Consultando páginas del canal por partes…';
     try{
-      const response=await fetch('/api/research/channels/period',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel_id:ch.id,days:30,max_pages:10})});
+      const response=await fetch('/api/research/channels/period',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel_id:ch.id,days:Number(windowSelect.value),max_pages:Number(pagesSelect.value)})});
       const data=await response.json();if(!response.ok)throw Error(data.detail||'No se pudo auditar el canal');
       showPeriod(data);
     }catch(error){periodBox.textContent=error.message;}finally{periodButton.disabled=false;}
@@ -87,14 +93,18 @@ function showChannel(ch,index){
     historyButton.disabled=true;periodBox.textContent='Leyendo expedientes locales…';
     try{const response=await fetch('/api/research/channels/period/history/'+encodeURIComponent(ch.id));const data=await response.json();if(!response.ok)throw Error(data.detail||'No se pudo leer el historial');
       periodBox.replaceChildren(element('p',`${data.snapshots.length} auditorías guardadas. Cada una conserva la fecha y cifras de su consulta.`));
-      if(data.snapshots.length>=2){const compare=element('button','Comparar las dos consultas más recientes','secondary');compare.type='button';compare.onclick=async()=>{
-        try{const [newer,older]=data.snapshots;const response=await fetch('/api/research/channels/period/compare/'+encodeURIComponent(ch.id)+'/'+older.id+'/'+newer.id);const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudieron comparar los expedientes');
+      if(data.snapshots.length>=2){const olderLabel=element('label','Consulta anterior'),newerLabel=element('label','Consulta posterior');const olderSelect=element('select',''),newerSelect=element('select','');
+        for(const row of data.snapshots){for(const select of [olderSelect,newerSelect]){const option=element('option',`${new Date(row.retrieved_at_utc).toLocaleString('es-MX')} · ${row.window_days} días · ${row.publication_count} videos · ${row.id.slice(0,8)}`);option.value=row.id;select.append(option);}}
+        olderSelect.value=data.snapshots[1].id;newerSelect.value=data.snapshots[0].id;olderLabel.append(olderSelect);newerLabel.append(newerSelect);periodBox.append(olderLabel,newerLabel);
+        const compare=element('button','Comparar consultas elegidas','secondary');compare.type='button';compare.onclick=async()=>{
+        try{const response=await fetch('/api/research/channels/period/compare/'+encodeURIComponent(ch.id)+'/'+olderSelect.value+'/'+newerSelect.value);const result=await response.json();if(!response.ok)throw Error(result.detail||'No se pudieron comparar los expedientes');
           periodBox.replaceChildren(element('p',`Entre ${new Date(result.older_retrieved_at_utc).toLocaleString('es-MX')} y ${new Date(result.newer_retrieved_at_utc).toLocaleString('es-MX')} (${result.elapsed_hours} horas): ${result.comparable_count} videos comparables, ${format(result.comparable_views_delta)} vistas adicionales acumuladas en ellos.`),
+            element('p',`Ventanas: ${result.older_window_days} y ${result.newer_window_days} días. ${result.same_window_length?'Misma duración.':'Duraciones distintas; los videos nuevos o ausentes pueden deberse al alcance elegido.'}`),
             element('p',`${result.new_video_ids.length} nuevos en la lista · ${result.absent_video_ids.length} ausentes · ${result.unknown_view_ids.length} sin cifras · ${result.decreased_views.length} con cifras reducidas. Cobertura: ${result.older_complete_period&&result.newer_complete_period?'ambos periodos cubiertos':'al menos un periodo incompleto'}. ${result.note}`));
           const details=element('details',''),list=element('ul','');details.append(element('summary','Ver diferencias por video'));for(const row of result.changes){const item=element('li',''),link=element('a',row.title||row.id);link.href=row.url;link.target='_blank';link.rel='noopener noreferrer';item.append(link,element('span',` · +${format(row.views_delta)} vistas · ${format(row.average_views_per_hour)} por hora entre capturas`));list.append(item);}details.append(list);periodBox.append(details);
         }catch(error){periodBox.textContent=error.message;}
       };periodBox.append(compare);}
-      for(const row of data.snapshots){const button=element('button',`${new Date(row.retrieved_at_utc).toLocaleString('es-MX')} · ${row.publication_count} videos · ${row.complete_period?'periodo cubierto':'incompleto'}`,'secondary');button.type='button';
+      for(const row of data.snapshots){const button=element('button',`${new Date(row.retrieved_at_utc).toLocaleString('es-MX')} · ${row.window_days} días · ${row.publication_count} videos · ${row.complete_period?'periodo cubierto':'incompleto'}`,'secondary');button.type='button';
         button.onclick=async()=>{try{const response=await fetch('/api/research/channels/period/history/'+encodeURIComponent(ch.id)+'/'+encodeURIComponent(row.id));const saved=await response.json();if(!response.ok)throw Error(saved.detail||'No se pudo abrir el expediente');showPeriod({...saved.report,saved_snapshot:saved});}catch(error){periodBox.textContent=error.message;}};
         periodBox.append(button);
       }

@@ -39,3 +39,9 @@ def test_page_limit_marks_period_incomplete():
     report=audit_channel(CHANNEL,30,1,Client(),NOW)
     assert report['complete_period'] is False
     assert report['pages_read']==1
+
+
+def test_shorter_window_stops_at_old_page():
+    report=audit_channel(CHANNEL,7,10,Client(),NOW)
+    assert report['complete_period'] is True
+    assert (datetime.fromisoformat(report['cutoff_at_utc'])-datetime.fromisoformat(report['since_utc'])).days==7
