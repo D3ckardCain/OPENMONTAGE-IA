@@ -305,3 +305,33 @@ estados históricos, reanudación explícita, cambio de ruta, límite y fallo de
 guardado y escritura de progreso limitada. La regresión visual comprueba que
 el trabajo recuperado espera al botón. Se usan archivos y transferencias simulados;
 no se descargaron modelos reales. La CI del incremento anterior quedó aprobada.
+
+### Revisar impacto en familias y adaptadores
+
+En la lista de archivos pulsa **Revisar impacto del archivo**. Funciona sin
+Internet: relaciona la fuente por repositorio y ruta remota exactos, incluyendo
+copias previstas en otras carpetas y familias que comparten esa dependencia.
+Dos archivos con el mismo nombre pero distinta ruta remota no se equiparan.
+La API es `/api/studio/updates/impact` y el agente usa
+`update_impact(identifier, index)`.
+
+El informe muestra familia, motor nativo o ComfyUI, dependencias declaradas,
+configuración actual declarada del adaptador y archivos acompañantes del
+catálogo. Se muestran como máximo veinte acompañantes por familia, junto al
+recuento completo. Una familia puede necesitar configuraciones, tokenizadores,
+VAE o encoders de la misma distribución: actualizar un peso aislado no demuestra
+que el conjunto siga siendo compatible.
+
+Es un mapa del catálogo, no un seguimiento del uso real dentro de cada grafo.
+No lee los pesos, ejecuta modelos, consulta servidores ni instala dependencias.
+Tampoco certifica que una ruta configurada exista o sea el modelo utilizado en
+una producción. Si no encuentra familias vinculadas, muestra esa ausencia sin
+considerarla aprobación de compatibilidad. La activación del candidato y una
+muestra real siguen pendientes; este informe no modifica la configuración.
+
+Validación: 177 pruebas locales de actualización, descargas, estudio e
+instrucciones aprobadas; sintaxis JavaScript y diff correctos. Incluye fuente
+compartida entre carpetas, exclusión de archivos homónimos, dependencias,
+configuración sin cambios y acceso mediante API/agente sin consultar la red.
+La regresión visual consulta el impacto antes de comparar con la fuente remota.
+Son pruebas con manifiestos y transportes simulados, sin inferencia real.

@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from backlot.server import create_app
+from lib import model_adapters as adapters
 from lib import update_center as updates
 from lib import production_studio as studio
 
@@ -585,3 +586,57 @@ def test_candidate_space_without_remote_candidate_does_not_inspect_disk(remote_c
     monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':[]})
     monkeypatch.setattr(updates.shutil,'disk_usage',lambda path:pytest.fail('No disk should be inspected'))
     assert updates.check_candidate_space('Org/Video',0,'f'*40)['status']=='not_checked_no_candidate'
+
+
+@pytest.fixture
+def impact_catalog(remote_catalog):
+    path=studio.REPO_ROOT/'docs/models/test.json';manifest=studio.read_json(path)
+    original=manifest['files'][0]
+    manifest['files'] += [
+        {**original,'destination':'D:/shared/model.safetensors'},
+        {'destination':'D:/models/config.json','url':'https://huggingface.co/Org/Video/resolve/'+'a'*40+'/config.json'},
+        {**original,'destination':'D:/other/model.safetensors','url':'https://huggingface.co/Org/Video/resolve/'+'a'*40+'/other/model.safetensors'}]
+    manifest['groups']=[
+        {'id':'framepack','title':'FramePack','files':[original['destination'],'D:/models/config.json']},
+        {'id':'shared-comfy','title':'Shared workflow','files':['D:/shared/model.safetensors']},
+        {'id':'unrelated','title':'Other file','files':['D:/other/model.safetensors']}]
+    studio.save_json(path,manifest)
+    return path
+
+
+def test_update_impact_uses_exact_source_and_all_catalog_locations(impact_catalog,monkeypatch):
+    from lib import model_adapters as adapters
+    from lib.update_impact import inspect
+    monkeypatch.setattr(updates,'_json',lambda url:pytest.fail('Impact must work offline'))
+    monkeypatch.setattr(adapters,'dependency_probe',lambda *args:pytest.fail('Impact must not probe runtimes'))
+    report=inspect('Org/Video',0)
+    assert [row['family'] for row in report['families']]==['framepack','shared-comfy']
+    native=report['families'][0]
+    assert native['backend']=='native' and 'torch' in native['required_modules']
+    assert native['companion_file_count']==1 and native['companion_files'][0]['destination']=='D:/models/config.json'
+    assert report['families'][1]['matched_catalog_locations'][0]['destination']=='D:/shared/model.safetensors'
+    assert report['network_checked'] is False and report['inference_started'] is False
+    assert report['update_allowed'] is False and report['configuration_changed'] is False
+
+
+def test_update_impact_api_and_agent_show_configuration_without_changing_it(impact_catalog):
+    from lib.production_agent import LocalAgent
+    studio.save_json(studio.CONFIG_DIR/'settings.json',{'adapter_settings':{'framepack':{'model_dir':'D:/current','python_executable':'private-local-config'}}})
+    args={'identifier':'Org/Video','index':0}
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.get('/api/studio/updates/impact',params=args)
+    assert response.status_code==200,response.text
+    row=response.json()['families'][0]
+    assert row['declared_configuration']=={'model_dir':'D:/current'}
+    worker=LocalAgent.__new__(LocalAgent)
+    assert worker.dispatch('update_impact',args)['families']==response.json()['families']
+    assert studio.read_json(studio.CONFIG_DIR/'settings.json')['adapter_settings']['framepack']['model_dir']=='D:/current'
+
+
+def test_update_impact_unmapped_file_is_not_compatible_by_default(remote_catalog):
+    from lib.update_impact import inspect
+    report=inspect('Org/Video',0)
+    assert report['status']=='no_catalog_relationships' and report['family_count']==0
+    assert report['update_allowed'] is False
+    for index in (-1,True,1):
+        with pytest.raises(ValueError):inspect('Org/Video',index)

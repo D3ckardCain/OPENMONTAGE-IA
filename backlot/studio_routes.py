@@ -455,6 +455,10 @@ def create_studio_router():
     def update_remote_file_check(identifier:str,index:int,revision:str|None=None):
         from lib.update_center import check_remote_file
         return invoke(check_remote_file,identifier,index,revision)
+    @router.get('/api/studio/updates/impact')
+    def update_impact(identifier:str,index:int):
+        from lib.update_impact import inspect
+        return invoke(inspect,identifier,index)
     @router.get('/api/studio/updates/plan')
     def update_plan(identifier:str,index:int,revision:str):
         from lib.update_center import prepare_file_update

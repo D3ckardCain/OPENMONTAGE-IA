@@ -33,6 +33,14 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
                     'access_review':{'gated':'manual','private':False},
                     'note':'Comparación del catálogo; no comprueba el disco local.'})
         page.route('**/api/studio/updates/remote-file-check?*',compare)
+        impacts=[]
+        def impact(route):
+            impacts.append(route.request.url)
+            route.fulfill(json={'family_count':1,'note':'Relaciones locales; compatibilidad sin verificar.',
+                'families':[{'title':'Family fixture','backend':'native','required_modules':['torch'],
+                    'declared_configuration':{'model_dir':'D:/current'},'companion_file_count':1,
+                    'companion_files':[{'destination':'D:/models/config.json'}]}]})
+        page.route('**/api/studio/updates/impact?*',impact)
         plan_calls=[]
         def plan(route):
             plan_calls.append(route.request.url)
@@ -90,6 +98,12 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         page.locator('#updates-load').click()
         page.locator('#updates-result summary').click()
         page.get_by_role('button',name='Ver archivos y comprobar uno',exact=True).click()
+        page.get_by_role('button',name='Revisar impacto del archivo',exact=True).click()
+        page.get_by_text('1 familias relacionadas por el catálogo',exact=True).wait_for()
+        assert len(impacts)==1 and not calls
+        page.locator('[data-update-impact] summary').click()
+        assert 'torch' in page.locator('[data-update-impact]').inner_text()
+        assert 'D:/models/config.json' in page.locator('[data-update-impact]').inner_text()
         button=page.get_by_role('button',name='Comparar archivo con revisión remota actual',exact=True)
         button.click()
         page.get_by_text('El archivo remoto coincide con el catálogo',exact=True).wait_for()
