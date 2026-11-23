@@ -113,3 +113,19 @@ Los subprocesos de composición Node iniciados por VideoCompose y el CLI de Hype
 La configuración multimedia también se usa en previews de personajes, medición de pistas de la biblioteca musical y ComfyUI Music, inspección de animaciones matemáticas, escalado y sondeo compartido de video. Manim recibe las rutas multimedia en su entorno privado. El cambio no instala Manim, Playwright ni modelos de música, y no inicia generación al comprobar rutas.
 
 Las pruebas del entorno privado identifican el proceso de composición concreto, sin asumir que es la primera llamada: la detección de ejecutables en Windows puede añadir llamadas auxiliares. También se prueba esa secuencia con detección simulada.
+
+
+## Tarea pendiente: integrar aplicaciones del otro disco
+
+Autorizado por el usuario. Los ZIP, portables e instaladores grandes están en otro disco. No se han revisado ni instalado esos paquetes en esta tarea.
+
+- [ ] Avisar al usuario cuando sea necesario cambiar/conectar el otro disco para acceder a los archivos. No solicitar el cambio todavía ni asumir letra de unidad; dar una sola instrucción cada vez.
+- [ ] Inventariar los paquetes existentes y evitar descargas duplicadas.
+- [ ] Revisar requisitos, licencias, uso comercial y redistribución; mantener costo obligatorio de $0, sin tarjetas, pruebas temporales ni APIs de pago.
+- [ ] Integrar portables/ZIP en carpetas administradas por OPENMONTAGE-IA cuando sea compatible, conservando los archivos originales como respaldo.
+- [ ] Instalar aplicaciones grandes dentro de la estructura del proyecto cuando lo permitan; vincular instalaciones externas cuando requieran componentes del sistema.
+- [ ] Aislar motores y librerías para evitar conflictos de dependencias.
+- [ ] Crear adaptadores para que los agentes ejecuten tareas, consulten progreso, cancelen y recojan resultados mediante CLI o API local. Evaluar automatización de interfaz cuando no haya otra vía.
+- [ ] Incorporar diagnóstico, actualización controlada, recuperación y manual por aplicación; documentar operación offline y validar cada integración por separado cuando corresponda.
+
+El registro del ejecutable no equivale a integración funcional completa. El acceso al otro disco es requisito para inventariar e instalar los paquetes reales, no para continuar otros módulos. Esta tarea queda pendiente hasta que llegue ese paso.
