@@ -72,6 +72,8 @@ Las lecturas repetidas reutilizan el hash calculado mientras coincidan dispositi
 
 «Buscar medios sin procedencia» inspecciona archivos multimedia en las tres carpetas del proyecto y distingue registrados de pendientes, en páginas de veinte. Se omiten enlaces simbólicos; la inspección se limita a mil medios, dos mil entradas exploradas y seis niveles, y declara cobertura incompleta al alcanzar un límite. `project_asset_coverage` ofrece el mismo informe al agente en páginas de hasta cincuenta. El listado no presume que todos los archivos estén usados en el render ni valida licencias; sirve para identificar trabajo editorial pendiente.
 
+«Revisar medios declarados en escenas» cruza las rutas de `asset_manifest.json` y `scene_batch.json` con el registro de procedencia. Una ruta repetida aparece una vez con sus dos referencias. Indica archivo faltante, procedencia ausente y rutas fuera de alcance, en páginas de veinte; el agente dispone de `project_asset_usage` en páginas de hasta cincuenta. El informe es de manifiestos de trabajo y no prueba qué medios entraron en el render final ni bloquea proyectos antiguos por no haber llenado el registro.
+
 ### Enlaces revisados
 
 - [Catálogo de recursos](https://biblioteca.systemacademy.es/recursos)

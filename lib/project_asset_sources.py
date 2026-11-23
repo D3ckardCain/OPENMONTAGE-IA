@@ -142,3 +142,59 @@ def coverage(pid,offset=0,limit=20):
         'next_offset':offset+limit if offset+limit<count else None,
         'complete_scan':complete,'skipped_symlinks':skipped_links,
         'limits':'Solo extensiones multimedia en assets, source_images y thumbnails; máximo 1000 medios, 2000 entradas exploradas y profundidad 6. Un archivo registrado aún requiere revisar derechos y vigencia de licencia.'}
+
+
+def usage(pid,offset=0,limit=20):
+    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=50:
+        raise ValueError('Página inválida')
+    project=studio.project_path(pid)
+    registered={item['path']:item for item in read(pid)['entries']}
+    found={};problems=[]
+    def add(value,source):
+        if not isinstance(value,str) or not value or len(value)>500 or '\\' in value:
+            problems.append('Ruta inválida en '+source);return
+        path=Path(value)
+        if not path.parts or path.is_absolute() or '..' in path.parts or path.parts[0] not in ('assets','source_images','thumbnails'):
+            problems.append('Ruta fuera del registro: '+value[:150]);return
+        relative=path.as_posix()
+        found.setdefault(relative,set()).add(source)
+    manifest=project/'artifacts/asset_manifest.json'
+    if manifest.is_symlink():raise ValueError('Manifiesto de activos inválido')
+    assets=studio.read_json(manifest)
+    if assets is not None:
+        if not isinstance(assets,dict) or not isinstance(assets.get('assets'),list) or len(assets['assets'])>500:
+            raise ValueError('Manifiesto de activos inválido o demasiado grande')
+        for asset in assets['assets']:
+            if not isinstance(asset,dict):raise ValueError('Activo inválido en el manifiesto')
+            add(asset.get('path'),'asset_manifest')
+    scenes=project/'artifacts/scene_batch.json'
+    if scenes.is_symlink():raise ValueError('Manifiesto de escenas inválido')
+    batch=studio.read_json(scenes)
+    if batch is not None:
+        if not isinstance(batch,dict) or not isinstance(batch.get('scenes'),list) or len(batch['scenes'])>240:
+            raise ValueError('Manifiesto de escenas inválido o demasiado grande')
+        for scene in batch['scenes']:
+            if not isinstance(scene,dict):raise ValueError('Escena inválida en el manifiesto')
+            image=scene.get('image')
+            if isinstance(image,dict):add(image.get('path'),'scene_batch:image')
+            takes=scene.get('takes',[])
+            if not isinstance(takes,list) or len(takes)>8:raise ValueError('Tomas inválidas en el manifiesto')
+            for take in takes:
+                if not isinstance(take,dict):raise ValueError('Toma inválida en el manifiesto')
+                add(take.get('path'),'scene_batch:take')
+    rows=[]
+    for relative,sources in sorted(found.items()):
+        path=project/relative;record=registered.get(relative)
+        parts=Path(relative).parts
+        safe=not any(project.joinpath(*parts[:index]).is_symlink() for index in range(1,len(parts)+1))
+        rows.append({'path':relative,'declared_in':sorted(sources),
+            'registered':record is not None,
+            'commercial_use':record['commercial_use'] if record else None,
+            'source_kind':record['source_kind'] if record else None,
+            'file_present':safe and path.is_file()})
+    return {'total':len(rows),'registered_total':sum(row['registered'] for row in rows),
+        'unregistered_total':sum(not row['registered'] for row in rows),
+        'offset':offset,'rows':rows[offset:offset+limit],
+        'next_offset':offset+limit if offset+limit<len(rows) else None,
+        'problems':problems[:20],
+        'limits':'Rutas declaradas en asset_manifest y scene_batch, no certificación de uso en el render. Puede faltar material usado por otras rutas; revisa licencias y decisiones antes de publicar.'}

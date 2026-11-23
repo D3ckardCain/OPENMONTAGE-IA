@@ -254,6 +254,10 @@ def create_studio_router():
     def asset_coverage(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_asset_sources import coverage
         return invoke(coverage,pid,offset,limit)
+    @router.get('/api/studio/asset-usage/{pid}')
+    def asset_usage(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
+        from lib.project_asset_sources import usage
+        return invoke(usage,pid,offset,limit)
     @router.get('/api/studio/channel-research/{pid}')
     def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_channel_evidence import page
