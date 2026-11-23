@@ -106,7 +106,7 @@ def inspect(project_id, input_path):
             xml = read('maindoc.xml', MAX_XML)
             result = xml_metadata(xml)
             result['merged_preview_present'] = 'mergedimage.png' in names
-    except (zipfile.BadZipFile, KeyError, expat.ExpatError, NotImplementedError, RuntimeError) as exc:
+    except (zipfile.BadZipFile, LookupError, expat.ExpatError, NotImplementedError, RuntimeError) as exc:
         raise ValueError('KRITA_FORMAT: contenedor o XML no admitido') from exc
     return {'schema_version': '1.0', **result, 'scope': 'declared_document_metadata_only',
             'pixels_decoded': False, 'document_modified': False, 'krita_launched': False,

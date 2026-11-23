@@ -72,7 +72,7 @@ class KritaDocumentInspectionTests(unittest.TestCase):
             self.assertIn('KRITA_XML_UNSAFE', result.error)
 
     def test_invalid_dimensions_missing_image_and_malformed_xml(self):
-        for xml in (b'<DOC/>', b'<bad/>', b'<DOC>', XML.replace(b'640', b'-1'),
+        for xml in (b'<DOC/>', b'<bad/>', b'<DOC>', b'<?xml version="1.0" encoding="unknown-codec"?><DOC/>', XML.replace(b'640', b'-1'),
                     XML.replace(b'640', b'1000001'), XML.replace(b'640', b'NaN')):
             self.fixture(xml=xml)
             self.assertFalse(self.inspect().success)
