@@ -7,8 +7,11 @@ Abre **Videos finales** en el menú del Estudio y pulsa **Actualizar videos fina
 1. Expande el proyecto. Revisa el estado técnico, la selección deportiva asociada si existe, y si la copia final sigue vigente.
 2. Pulsa **Abrir proyecto** para ver el video y sus artefactos. Una verificación técnica confirma formato, decodificación y hashes guardados durante el render; revisa tú la calidad visual y la exactitud del contenido.
 3. Pulsa **Comprobar integridad ahora** cuando necesites confirmar el estado actual de los archivos. La app calcula SHA-256 de los renders y, si hay una entrega registrada, de sus copias. Muestra por archivo si coincide, falta, cambió, no puede leerse o tiene una ruta o recibo inválido. Repetir la comprobación sustituye el resultado anterior.
+4. Pulsa **Ver fuentes del render** para consultar las tomas, narración, música y SRT que los recibos de montaje por escenas enlazan con una salida verificada. El enlace exige que coincidan la ruta y el SHA-256 de la salida; los renders de otros motores se muestran con trazabilidad desconocida. El agente puede leer la misma información con `project_final_sources`.
 
 La comprobación es local, de solo lectura y se limita a dieciséis salidas por proyecto. Lee en bloques de 4 MiB; con videos grandes puede tardar. No inicia modelos ni publica videos. Comprueba bytes, no calidad editorial, licencias ni derechos.
+
+La consulta de fuentes lee hashes guardados, sin volver a comprobar los archivos actuales. «Procedencia registrada» indica una declaración local cuyo hash coincide con el de la entrada; no certifica permisos comerciales ni confirma la apariencia final del video. Usa **Comprobar integridad ahora** para revisar los bytes actuales.
 
 ## Cuando aparece «revisar datos o revisión»
 

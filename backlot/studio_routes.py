@@ -82,6 +82,10 @@ def create_studio_router():
     def final_integrity(pid:str):
         from lib.final_integrity import inspect
         return invoke(inspect,pid)
+    @router.get('/api/studio/finals/{pid}/sources')
+    def final_sources(pid:str):
+        from lib.final_source_trace import inspect
+        return invoke(inspect,pid)
     @router.get('/api/studio/runtime')
     async def runtime():return await asyncio.to_thread(studio.runtime_status)
     @router.post('/api/studio/settings')

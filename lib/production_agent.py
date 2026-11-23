@@ -54,6 +54,7 @@ TOOLS=[
  descriptor('project_asset_sources','Lee el registro de procedencia de medios locales del proyecto, con hash y declaraciones de licencia. No verifica licencias externamente.'),
  descriptor('project_asset_coverage','Lista por páginas medios locales sin registro de procedencia. Hasta 1000 archivos por inspección; no certifica licencias.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
  descriptor('project_asset_usage','Compara rutas declaradas en manifiestos de activos y escenas con el registro de procedencia, por páginas. No confirma uso final ni licencia.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
+ descriptor('project_final_sources','Consulta entradas exactas de renders de escenas verificadas mediante recibos y hashes guardados. Para otros renders declara trazabilidad desconocida; no comprueba archivos actuales ni licencias.'),
  descriptor('project_translation','Lee una traducción local guardada por fragmentos antes de repetirla. Conserva la obligación de revisar idioma y adaptación cultural; no genera ni aprueba el guion.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
  descriptor('project_source_image','Consulta la imagen de entrada preparada de este proyecto; no la envía a ComfyUI ni inicia generación.'),
  descriptor('project_comfy_jobs','Lee registros locales del proyecto para recuperar prompt_id y output_dir. No verifica la cola del servidor ni inicia trabajos.'),
@@ -200,6 +201,9 @@ class LocalAgent:
         if name=='project_asset_usage':
             from lib.project_asset_sources import usage
             return usage(self.pid,**args)
+        if name=='project_final_sources':
+            from lib.final_source_trace import inspect
+            return inspect(self.pid)
         if name=='read_instruction':return self.instruction(args['path'])
         if name=='sports_sources':
             from lib.sports_sources import catalog
