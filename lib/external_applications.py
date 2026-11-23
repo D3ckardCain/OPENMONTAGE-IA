@@ -5,6 +5,7 @@ import threading
 from lib import production_studio as studio
 
 CATALOG={
+ 'openscad':{'label':'OpenSCAD','purpose':'Abrir y editar diseños CAD paramétricos','executables':['openscad.exe','openscad'],'extensions':['.scad'],'mode':'desktop'},
  'kinovea':{'label':'Kinovea','purpose':'Revisar y anotar videos para análisis de movimiento','executables':['Kinovea.exe'],'extensions':['.mp4','.avi','.mkv','.mov','.wmv','.kva'],'mode':'desktop'},
  'krita':{'label':'Krita','purpose':'Editar ilustraciones y proyectos de pintura','executables':['krita.exe','krita'],'extensions':['.kra','.ora','.png','.jpg','.jpeg','.tif','.tiff','.psd'],'mode':'desktop'},
  'ffmpeg':{'label':'FFmpeg','purpose':'Extracción, montaje y exportación desde los flujos del Estudio','executables':['ffmpeg.exe','ffmpeg'],'extensions':[],'mode':'managed_cli','setting':'ffmpeg_path'},
