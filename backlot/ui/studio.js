@@ -111,7 +111,15 @@ function remoteFileCheckButton(identifier,file,line){
       }
       if(result.compatibility_review)panel.append(node('p','Compatibilidad: '+result.compatibility_review.reason));
       if(result.access_review)panel.append(node('p','Acceso sujeto a autorización: '+String(result.access_review.gated)+' · Privado: '+String(result.access_review.private)));
-      panel.append(node('p',result.note));line.append(panel);
+      const planButton=node('button','Preparar plan de candidato separado');planButton.type='button';
+      const planDetail=node('div','');
+      planButton.onclick=async()=>{planButton.disabled=true;try{
+        const plan=await api('updates/plan?'+new URLSearchParams({identifier,index:String(file.index),revision:result.remote_revision}));
+        const statuses={candidate_plan_prepared:'Plan preparado; comprobaciones pendientes',catalog_content_unchanged:'Sin cambio de contenido respecto al catálogo',blocked_missing_remote_file:'Plan bloqueado: archivo remoto ausente',blocked_insufficient_remote_metadata:'Plan bloqueado: faltan hash o tamaño remotos'};
+        planDetail.replaceChildren(node('p',statuses[plan.status]||plan.status),node('p',plan.note));
+        if(plan.candidate){planDetail.append(node('p','Ruta actual conservada: '+plan.original_destination),node('p','Candidato propuesto: '+plan.candidate.destination),node('p','Espacio adicional mínimo: '+plan.additional_storage_bytes_at_least+' bytes · espacio libre sin comprobar'),node('pre',plan.pending_checks.join('\n')));}
+      }catch(error){planDetail.replaceChildren(node('p',error.message));}finally{planButton.disabled=false;}};
+      panel.append(node('p',result.note),planButton,planDetail);line.append(panel);
     }catch(error){notice(error.message);}finally{button.disabled=false;}
   };
   return button;

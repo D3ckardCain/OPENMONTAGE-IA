@@ -6,7 +6,7 @@ from itertools import islice
 import re
 import urllib.error
 import urllib.request
-from pathlib import Path
+from pathlib import Path, PureWindowsPath, PurePosixPath
 from urllib.parse import quote, urlsplit, urlencode
 
 from lib import production_studio as studio
@@ -254,6 +254,44 @@ def check_remote_file(identifier,index,revision=None):
     else:status='remote_comparison_inconclusive'
     return {**result,'status':status,'remote_sha256':digest,'remote_bytes':size,
             **_remote_review(payload,identifier,payload['sha'],status)}
+
+
+def prepare_file_update(identifier,index,revision):
+    """Describe a separate candidate; do not download, copy or switch files."""
+    if not isinstance(revision,str) or not _SHA.fullmatch(revision):
+        raise ValueError('El plan requiere un commit remoto completo')
+    comparison=check_remote_file(identifier,index,revision)
+    result={'id':identifier,'index':index,'remote_revision':revision,'checked_at':studio.now(),
+            'comparison_status':comparison['status'],'original_destination':comparison['destination'],
+            'catalog_sha256':comparison['catalog_sha256'],'catalog_bytes':comparison['catalog_bytes'],
+            'update_allowed':False,'downloads_started':0,'local_files_read':0,'files_changed':0,
+            'license_review':comparison['license_review'],'compatibility_review':comparison['compatibility_review'],
+            'note':'Plan revisable; no descarga, no mide espacio libre, no verifica el archivo instalado ni cambia configuraciones. La versión actual permanece en su ruta.'}
+    if comparison['status']=='missing_at_remote_revision':return {**result,'status':'blocked_missing_remote_file'}
+    if comparison['status']=='remote_matches_catalog':return {**result,'status':'catalog_content_unchanged'}
+    digest=comparison.get('remote_sha256');size=comparison.get('remote_bytes')
+    if not isinstance(digest,str) or not re.fullmatch(r'[0-9a-f]{64}',digest) or type(size) is not int or size<=0:
+        return {**result,'status':'blocked_insufficient_remote_metadata'}
+    name=comparison['filename']
+    if not name or name.startswith('/') or '\\' in name or any(part in ('','.','..') for part in name.split('/')):
+        raise ValueError('Ruta remota de archivo inválida')
+    destination=comparison['destination']
+    path=PureWindowsPath(destination) if PureWindowsPath(destination).drive else PurePosixPath(destination)
+    if not path.is_absolute() or '..' in path.parts or not re.fullmatch(r'[A-Za-z0-9_.-]+',path.name):
+        raise ValueError('La ruta de destino no permite preparar un candidato separado')
+    key=hashlib.sha256((destination+'\n'+name).encode('utf-8')).hexdigest()[:16]
+    candidate=path.parent/'.openmontage-updates'/revision/key/path.name
+    return {**result,'status':'candidate_plan_prepared',
+            'candidate':{'destination':candidate.as_posix(),'sha256':digest,'size_bytes':size,
+                         'url':'https://huggingface.co/'+identifier+'/resolve/'+revision+'/'+quote(name,safe='/')},
+            'additional_storage_bytes_at_least':size,'free_space_verified':False,
+            'pending_checks':['Revisar términos y condiciones de coste, incluidos modelos base.',
+                              'Verificar hash del archivo instalado y conservar su ruta y configuración.',
+                              'Medir espacio libre en el disco de destino.',
+                              'Obtener el candidato por separado y comprobar su SHA-256 completo.',
+                              'Validar dependencias y una muestra con el adaptador y hardware reales.'],
+            'rollback':{'original_preserved':True,'configuration_changed':False,
+                        'procedure':'Si se cambia de modelo después de validar el candidato, registrar la configuración anterior para volver a la ruta original. El plan no ejecuta ese cambio.'}}
 
 
 def _document_cache_path(identifier,revision,filename):

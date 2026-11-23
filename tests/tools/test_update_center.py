@@ -413,3 +413,49 @@ def test_cache_capacity_and_pagination(remote_catalog,monkeypatch):
     result=updates.read_remote_document('Org/Video','d'*40,'LICENSE')
     assert result['cache_saved'] is False and 'cache_warning' in result
     assert updates.cached_documents('Org/Video')['total']==2
+
+
+def test_update_plan_keeps_original_and_pins_separate_candidate(remote_catalog,monkeypatch):
+    from lib.production_agent import LocalAgent
+    urls=[]
+    def fetch(url):
+        urls.append(url)
+        return {'sha':'f'*40,'siblings':[{'rfilename':'nested/model.safetensors','size':9,'lfs':{'sha256':'c'*64}}]}
+    monkeypatch.setattr(updates,'_json',fetch)
+    plan=updates.prepare_file_update('Org/Video',0,'f'*40)
+    assert plan['status']=='candidate_plan_prepared'
+    assert plan['original_destination']=='D:/models/model.safetensors'
+    assert plan['candidate']['destination'].startswith('D:/models/.openmontage-updates/'+'f'*40+'/')
+    assert plan['candidate']['destination'].endswith('/model.safetensors')
+    assert plan['candidate']['url']=='https://huggingface.co/Org/Video/resolve/'+'f'*40+'/nested/model.safetensors'
+    assert plan['candidate']['sha256']=='c'*64 and plan['additional_storage_bytes_at_least']==9
+    assert plan['update_allowed'] is False and plan['free_space_verified'] is False
+    assert plan['downloads_started']==plan['files_changed']==plan['local_files_read']==0
+    assert plan['rollback']['configuration_changed'] is False
+    worker=LocalAgent.__new__(LocalAgent)
+    args={'identifier':'Org/Video','index':0,'revision':'f'*40}
+    assert worker.dispatch('update_prepare_plan',args)['candidate']==plan['candidate']
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    assert client.get('/api/studio/updates/plan',params=args).json()['candidate']==plan['candidate']
+    assert all('/revision/'+'f'*40 in url for url in urls)
+
+
+@pytest.mark.parametrize('metadata,status',[
+    (None,'blocked_missing_remote_file'),
+    ({'size':7,'lfs':{'sha256':'b'*64}},'catalog_content_unchanged'),
+    ({'size':9},'blocked_insufficient_remote_metadata'),
+    ({'lfs':{'sha256':'c'*64}},'blocked_insufficient_remote_metadata'),
+    ({'size':0,'lfs':{'sha256':'c'*64}},'blocked_insufficient_remote_metadata'),
+])
+def test_update_plan_does_not_propose_unverifiable_candidates(remote_catalog,monkeypatch,metadata,status):
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':[] if metadata is None else [
+        {'rfilename':'nested/model.safetensors',**metadata}]})
+    result=updates.prepare_file_update('Org/Video',0,'f'*40)
+    assert result['status']==status and 'candidate' not in result
+    assert result['files_changed']==0
+
+
+def test_update_plan_requires_explicit_commit_before_network(remote_catalog,monkeypatch):
+    monkeypatch.setattr(updates,'_json',lambda url:pytest.fail('Unexpected network'))
+    for revision in (None,'main','a'*39):
+        with pytest.raises(ValueError):updates.prepare_file_update('Org/Video',0,revision)

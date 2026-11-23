@@ -33,6 +33,14 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
                     'access_review':{'gated':'manual','private':False},
                     'note':'Comparación del catálogo; no comprueba el disco local.'})
         page.route('**/api/studio/updates/remote-file-check?*',compare)
+        plan_calls=[]
+        def plan(route):
+            plan_calls.append(route.request.url)
+            route.fulfill(json={'status':'candidate_plan_prepared','note':'Plan sin cambios en disco.',
+                'original_destination':'D:/models/model.safetensors',
+                'candidate':{'destination':'D:/models/.openmontage-updates/candidate.safetensors'},
+                'additional_storage_bytes_at_least':9,'pending_checks':['Validar compatibilidad real.']})
+        page.route('**/api/studio/updates/plan?*',plan)
         document_calls=[]
         def document(route):
             document_calls.append(route.request.url)
@@ -60,6 +68,10 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         assert 'Licencia declarada: mit' in page.locator('[data-remote-file-check]').inner_text()
         assert 'hardware sin validar' in page.locator('[data-remote-file-check]').inner_text()
         assert page.get_by_role('link',name='Consultar evidencia en la revisión').get_attribute('href')=='https://huggingface.co/Org/Video/blob/'+'f'*40+'/README.md'
+        page.get_by_role('button',name='Preparar plan de candidato separado',exact=True).click()
+        page.get_by_text('Plan preparado; comprobaciones pendientes',exact=True).wait_for()
+        assert len(plan_calls)==1 and 'revision='+'f'*40 in plan_calls[0]
+        assert 'D:/models/model.safetensors' in page.locator('[data-remote-file-check]').inner_text()
         document_button=page.get_by_role('button',name='Leer README.md en el panel',exact=True)
         document_button.click()
         page.get_by_text('Documento no disponible',exact=True).wait_for()

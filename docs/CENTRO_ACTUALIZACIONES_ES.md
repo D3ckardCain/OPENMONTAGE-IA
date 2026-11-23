@@ -128,3 +128,34 @@ aprobadas; sintaxis JavaScript y diff correctos. Las pruebas cubren lectura y
 listado sin red, revisión exacta, integridad, duplicados, capacidad y fallo de
 guardado. La regresión visual se amplió para abrir la copia y mostrar su fecha;
 su ejecución queda para CI por la restricción local de Chromium documentada.
+
+### Preparar un candidato sin sustituir el archivo actual
+
+Después de comparar un archivo, pulsa **Preparar plan de candidato separado**.
+Se vuelven a consultar metadatos del commit que acabas de revisar. El plan solo
+propone un candidato cuando hay SHA-256 y tamaño remoto positivo. Si falta el
+archivo o no hay metadatos suficientes, muestra el bloqueo; si el contenido
+coincide con el catálogo, indica que no hay cambio de contenido respecto a él.
+Esto no certifica el archivo instalado ni descarta que necesite reparación.
+
+El plan muestra una ruta separada bajo `.openmontage-updates` junto al destino
+del catálogo, identificada por commit y archivo; el enlace de origen también
+queda fijado al commit. Muestra bytes adicionales mínimos, sin afirmar que se
+haya medido el espacio libre ni incluir sobrecostes de dependencias o pruebas.
+No crea carpetas, descarga pesos, copia archivos ni cambia modelos o workflows.
+La ruta original se conserva en el plan: su existencia y SHA-256 requieren la
+comprobación local aparte. La reversión futura exige registrar también la
+configuración anterior antes de cambiar de modelo; todavía no hay ejecución
+de instalación o reversión.
+
+La API es `/api/studio/updates/plan` y el agente usa
+`update_prepare_plan(identifier, index, revision)`, con commit obligatorio.
+Requiere Internet y el plan no se conserva todavía para consulta offline.
+Las comprobaciones pendientes incluyen términos y coste, archivo instalado,
+espacio, SHA-256 del candidato y muestra real con adaptador/hardware. Preparar
+el plan no marca ninguna de ellas como aprobada.
+
+Validación: 132 pruebas locales de actualización, estudio e instrucciones
+aprobadas; sintaxis JavaScript y diff correctos. Regresión visual ampliada
+para preparar el plan con el commit mostrado, pendiente de CI. Son pruebas
+con metadatos simulados; no se han descargado pesos ni ejecutado inferencias.
