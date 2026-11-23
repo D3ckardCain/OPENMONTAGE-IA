@@ -37,6 +37,7 @@ try {
     }
     $ArchivePath = [IO.Path]::GetFullPath($ArchivePath)
     $archiveHash = (Get-FileHash -LiteralPath $ArchivePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $zip = [IO.Compression.ZipFile]::OpenRead($ArchivePath)
     $rootName = "OPENMONTAGE-IA-$Revision"

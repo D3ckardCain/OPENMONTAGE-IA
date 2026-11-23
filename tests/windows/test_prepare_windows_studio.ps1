@@ -2,6 +2,7 @@ $ErrorActionPreference = 'Stop'
 $prepare = Join-Path $PSScriptRoot '../../scripts/prepare_windows_studio.ps1'
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('openmontage-test-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $temp | Out-Null
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $revision = 'a' * 40
 function Make-Archive([string]$Name, [bool]$Missing, [bool]$Traversal) {
