@@ -523,6 +523,12 @@ def create_studio_router():
     def applications():
         from lib.external_applications import catalog
         return {'applications':catalog()}
+    @router.post('/api/studio/applications/krita/inspect')
+    async def krita_document_inspect(request:Request):
+        from tools.analysis.local_applications import KritaDocumentInspect
+        result=KritaDocumentInspect().execute(await body(request))
+        if not result.success:raise HTTPException(400,result.error)
+        return result.data
     @router.post('/api/studio/applications/{identifier}')
     async def application_configure(identifier:str,request:Request):
         from lib.external_applications import configure

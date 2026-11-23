@@ -23,7 +23,9 @@ registrado en Studio. La distribución dedicada no lo reemplaza.
 La API de aplicaciones confirma Node.js configurado y el ejecutable localizado.
 La inspección del panel mediante Chrome con depuración remota fue rechazada por
 la revisión automática de comandos con «blocked by policy». No se presenta esa
-inspección visual como realizada. El issue #26 conserva ese pendiente.
+inspección visual como realizada por Codex. Posteriormente el usuario confirmó
+«Node.js · Ejecutable localizado» en el panel y cerró #26. Esa confirmación
+resuelve el pendiente visual; no se repite la instalación ni la comprobación.
 
 Las pruebas verifican conservación, PATH del proceso sin mutación del entorno
 original, deduplicación, discos ausentes, runtime parcial, rechazo de instaladores

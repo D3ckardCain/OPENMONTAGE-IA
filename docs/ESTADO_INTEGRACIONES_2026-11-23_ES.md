@@ -10,7 +10,7 @@ Seguimiento del inventario #3 en `feat/local-agent-research-foundation`. Prepara
 | #23 | SoccerTacticalVision: imports CPU y homografía sintética | Sin imágenes, detección ni tracking |
 | #24 | MuseTalk: clases e imports MMLab y operadores nativos CPU | Sin cargar pesos, CUDA, audio ni avatar |
 | #25 | TVCalib: Python 3.9 aislado, imports y tensores sintéticos | Sin calibración de vídeo ni mapas |
-| #26 | Node portable, npm/npx y binding API; PATH del proceso de Studio | Comprobación visual del panel bloqueada por rechazo automático de Chrome headless |
+| #26 | Node portable, npm/npx y binding API; PATH del proceso de Studio; panel confirmado por el usuario y issue cerrado | No acredita render de los compositores |
 | #27 | Ollama local sin nube; preparación del Qwen GGUF existente | Sin inferencia, prueba del director ni benchmark |
 
 Detalles y huellas en `COORDENADAS_DEPORTIVAS_ES.md`, `BIBLIOTECAS_AISLADAS_ES.md`, `ENTORNO_CLI_STUDIO_ES.md`, `OLLAMA_LOCAL_ES.md` y los issues respectivos. Las tareas de preparación #6 y #8–#16 se reconciliaron con sus evidencias existentes y se cerraron sin repetir instalaciones. #7 conserva pendiente su fase de edición/pintura. Se mantienen Blender, FreeCAD, Krita, Kinovea, OpenSCAD, Avogadro, OpenModelica y QGIS y sus rutas guardadas.
