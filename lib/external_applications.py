@@ -5,6 +5,7 @@ import threading
 from lib import production_studio as studio
 
 CATALOG={
+ 'node':{'label':'Node.js','purpose':'Motor JavaScript local para los flujos de composición','executables':['node.exe','node'],'extensions':[],'mode':'managed_cli'},
  'rhubarb':{'label':'Rhubarb Lip Sync','purpose':'Diagnóstico y claves de boca desde audio local','executables':['rhubarb.exe','rhubarb'],'extensions':[],'mode':'managed_cli','automation_tools':['rhubarb_doctor','rhubarb_lip_sync']},
  'openscad':{'label':'OpenSCAD','purpose':'Abrir y editar diseños CAD paramétricos','executables':['openscad.exe','openscad'],'extensions':['.scad'],'mode':'desktop'},
  'kinovea':{'label':'Kinovea','purpose':'Revisar y anotar videos para análisis de movimiento','executables':['Kinovea.exe'],'extensions':['.mp4','.avi','.mkv','.mov','.wmv','.kva'],'mode':'desktop'},

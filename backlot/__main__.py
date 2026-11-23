@@ -83,6 +83,9 @@ def cmd_open(project_id: str | None, *, studio: bool = False) -> int:
 
 def cmd_serve(port: int) -> int:
     import uvicorn
+    from lib.local_cli_environment import configured_environment
+
+    os.environ.update(configured_environment())
 
     uvicorn.run("backlot.server:app", host="127.0.0.1", port=port, log_level="warning")
     return 0
