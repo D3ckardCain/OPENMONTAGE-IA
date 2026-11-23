@@ -41,6 +41,12 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
                 'candidate':{'destination':'D:/models/.openmontage-updates/candidate.safetensors'},
                 'additional_storage_bytes_at_least':9,'pending_checks':['Validar compatibilidad real.']})
         page.route('**/api/studio/updates/plan?*',plan)
+        candidate_checks=[]
+        def check_candidate(route):
+            candidate_checks.append(route.request.url)
+            route.fulfill(json={'status':'candidate_matches_remote','bytes_read':9,
+                'note':'Integridad comprobada; compatibilidad pendiente.'})
+        page.route('**/api/studio/updates/candidate-check?*',check_candidate)
         document_calls=[]
         def document(route):
             document_calls.append(route.request.url)
@@ -72,13 +78,16 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         page.get_by_text('Plan preparado; comprobaciones pendientes',exact=True).wait_for()
         assert len(plan_calls)==1 and 'revision='+'f'*40 in plan_calls[0]
         assert 'D:/models/model.safetensors' in page.locator('[data-remote-file-check]').inner_text()
+        page.get_by_role('button',name='Comprobar SHA-256 del candidato',exact=True).click()
+        page.get_by_text('El candidato coincide con la revisión remota',exact=True).wait_for()
+        assert len(candidate_checks)==1 and 'revision='+'f'*40 in candidate_checks[0]
         document_button=page.get_by_role('button',name='Leer README.md en el panel',exact=True)
         document_button.click()
         page.get_by_text('Documento no disponible',exact=True).wait_for()
         assert document_button.is_enabled()
         document_button.click()
-        page.locator('[data-remote-file-check] pre').wait_for()
-        assert '<script>window.remoteExecuted=true</script>' in page.locator('[data-remote-file-check] pre').inner_text()
+        page.locator('[data-remote-file-check] [data-update-document-text]').wait_for()
+        assert '<script>window.remoteExecuted=true</script>' in page.locator('[data-remote-file-check] [data-update-document-text]').inner_text()
         assert page.evaluate('window.remoteExecuted') is None
         assert all('revision='+'f'*40 in url and 'filename=README.md' in url for url in document_calls)
         page.get_by_role('button',name='Ver documentos guardados',exact=True).click()

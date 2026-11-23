@@ -71,7 +71,8 @@ function remoteDocumentButton(identifier,revision,filename,panel,offline=false){
     button.disabled=true;detail.replaceChildren(node('p','Leyendo documento oficial…'));
     try{
       const result=await api('updates/document?'+new URLSearchParams({identifier,revision,filename,offline:String(offline)}));
-      detail.replaceChildren(node('p',result.note),node('p','Revisión: '+result.remote_revision+' · SHA-256 del documento: '+result.sha256),node('pre',result.text));
+      const content=node('pre',result.text);content.dataset.updateDocumentText='true';
+      detail.replaceChildren(node('p',result.note),node('p','Revisión: '+result.remote_revision+' · SHA-256 del documento: '+result.sha256),content);
       detail.append(node('p',(result.retrieval==='offline_cache'?'Copia guardada · Sin consulta de red':'Consulta online')+' · Obtenido: '+result.checked_at));
       if(result.cache_warning)detail.append(node('p',result.cache_warning));
     }catch(error){detail.replaceChildren(node('p',error.message));}finally{button.disabled=false;}
@@ -117,7 +118,15 @@ function remoteFileCheckButton(identifier,file,line){
         const plan=await api('updates/plan?'+new URLSearchParams({identifier,index:String(file.index),revision:result.remote_revision}));
         const statuses={candidate_plan_prepared:'Plan preparado; comprobaciones pendientes',catalog_content_unchanged:'Sin cambio de contenido respecto al catálogo',blocked_missing_remote_file:'Plan bloqueado: archivo remoto ausente',blocked_insufficient_remote_metadata:'Plan bloqueado: faltan hash o tamaño remotos'};
         planDetail.replaceChildren(node('p',statuses[plan.status]||plan.status),node('p',plan.note));
-        if(plan.candidate){planDetail.append(node('p','Ruta actual conservada: '+plan.original_destination),node('p','Candidato propuesto: '+plan.candidate.destination),node('p','Espacio adicional mínimo: '+plan.additional_storage_bytes_at_least+' bytes · espacio libre sin comprobar'),node('pre',plan.pending_checks.join('\n')));}
+        if(plan.candidate){planDetail.append(node('p','Ruta actual conservada: '+plan.original_destination),node('p','Candidato propuesto: '+plan.candidate.destination),node('p','Espacio adicional mínimo: '+plan.additional_storage_bytes_at_least+' bytes · espacio libre sin comprobar'),node('pre',plan.pending_checks.join('\n')));
+          const verify=node('button','Comprobar SHA-256 del candidato');verify.type='button';const verification=node('div','');
+          verify.onclick=async()=>{verify.disabled=true;verification.replaceChildren(node('p','Leyendo candidato…'));try{
+            const checked=await api('updates/candidate-check?'+new URLSearchParams({identifier,index:String(file.index),revision:result.remote_revision}));
+            const labels={candidate_matches_remote:'El candidato coincide con la revisión remota',candidate_differs_remote:'El candidato difiere de la revisión remota',not_checked_no_candidate:'No hay candidato verificable',missing_or_link:'Candidato ausente o enlace',unavailable_on_this_host:'Ruta no disponible en este equipo',changed_during_check:'El candidato cambió durante la lectura',candidate_parent_is_link:'La ruta del candidato contiene un enlace'};
+            verification.replaceChildren(node('p',labels[checked.status]||checked.status),node('p',checked.bytes_read+' bytes leídos'),node('p',checked.note));
+          }catch(error){verification.replaceChildren(node('p',error.message));}finally{verify.disabled=false;}};
+          planDetail.append(verify,verification);
+        }
       }catch(error){planDetail.replaceChildren(node('p',error.message));}finally{planButton.disabled=false;}};
       panel.append(node('p',result.note),planButton,planDetail);line.append(panel);
     }catch(error){notice(error.message);}finally{button.disabled=false;}

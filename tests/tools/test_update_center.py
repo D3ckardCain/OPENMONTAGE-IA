@@ -459,3 +459,76 @@ def test_update_plan_requires_explicit_commit_before_network(remote_catalog,monk
     monkeypatch.setattr(updates,'_json',lambda url:pytest.fail('Unexpected network'))
     for revision in (None,'main','a'*39):
         with pytest.raises(ValueError):updates.prepare_file_update('Org/Video',0,revision)
+
+
+@pytest.fixture
+def candidate_catalog(remote_catalog,monkeypatch):
+    original=studio.REPO_ROOT/'installed/model.safetensors'
+    original.parent.mkdir();original.write_bytes(b'original')
+    manifest_path=studio.REPO_ROOT/'docs/models/test.json'
+    manifest=studio.read_json(manifest_path)
+    manifest['files'][0]['destination']=str(original)
+    studio.save_json(manifest_path,manifest)
+    digest=hashlib.sha256(b'candidate').hexdigest()
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':[
+        {'rfilename':'nested/model.safetensors','size':9,'lfs':{'sha256':digest}}]})
+    plan=updates.prepare_file_update('Org/Video',0,'f'*40)
+    candidate=Path(plan['candidate']['destination'])
+    candidate.parent.mkdir(parents=True)
+    return original,candidate
+
+
+@pytest.mark.parametrize('content,status',[
+    (b'candidate','candidate_matches_remote'),(b'wrongdata','candidate_differs_remote'),
+    (b'incomplete','candidate_differs_remote'),(None,'missing_or_link'),
+])
+def test_candidate_integrity_preserves_original(candidate_catalog,content,status):
+    original,candidate=candidate_catalog
+    if content is not None:candidate.write_bytes(content)
+    result=updates.check_candidate('Org/Video',0,'f'*40)
+    assert result['status']==status
+    assert result['candidate_destination']==str(candidate).replace('\\','/')
+    assert result['update_allowed'] is False and result['files_changed']==0
+    assert original.read_bytes()==b'original'
+    assert not (studio.CONFIG_DIR/'settings.json').exists()
+
+
+def test_candidate_api_and_agent_check_same_file(candidate_catalog):
+    from lib.production_agent import LocalAgent
+    original,candidate=candidate_catalog;candidate.write_bytes(b'candidate')
+    args={'identifier':'Org/Video','index':0,'revision':'f'*40}
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.get('/api/studio/updates/candidate-check',params=args)
+    assert response.status_code==200,response.text
+    assert response.json()['status']=='candidate_matches_remote'
+    worker=LocalAgent.__new__(LocalAgent)
+    assert worker.dispatch('update_check_candidate',args)['local_sha256']==response.json()['local_sha256']
+    assert original.read_bytes()==b'original'
+
+
+def test_candidate_growth_is_bounded(candidate_catalog,monkeypatch):
+    original,candidate=candidate_catalog;candidate.write_bytes(b'candidate')
+    original_open=Path.open
+    def growing(path,*args,**kwargs):
+        if path==candidate:return io.BytesIO(b'candidate'+b'x'*100)
+        return original_open(path,*args,**kwargs)
+    monkeypatch.setattr(Path,'open',growing)
+    result=updates.check_candidate('Org/Video',0,'f'*40)
+    assert result['status']=='changed_during_check' and result['bytes_read']==10
+
+
+def test_candidate_rejects_linked_parent(candidate_catalog):
+    original,candidate=candidate_catalog
+    folder=candidate.parent;folder.rmdir()
+    target=folder.parent/'linked';target.mkdir()
+    try:folder.symlink_to(target,target_is_directory=True)
+    except OSError:pytest.skip('Directory symlink unavailable on this host')
+    result=updates.check_candidate('Org/Video',0,'f'*40)
+    assert result['status']=='candidate_parent_is_link' and result['bytes_read']==0
+
+
+def test_candidate_without_plan_does_not_read_local_files(remote_catalog,monkeypatch):
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':[]})
+    monkeypatch.setattr(updates,'_check_local_entry',lambda *args:pytest.fail('No candidate may be read'))
+    result=updates.check_candidate('Org/Video',0,'f'*40)
+    assert result['status']=='not_checked_no_candidate' and result['bytes_read']==0

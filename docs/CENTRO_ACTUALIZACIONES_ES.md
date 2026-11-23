@@ -159,3 +159,29 @@ Validación: 132 pruebas locales de actualización, estudio e instrucciones
 aprobadas; sintaxis JavaScript y diff correctos. Regresión visual ampliada
 para preparar el plan con el commit mostrado, pendiente de CI. Son pruebas
 con metadatos simulados; no se han descargado pesos ni ejecutado inferencias.
+
+### Comprobar un candidato ya obtenido
+
+En un plan con candidato, pulsa **Comprobar SHA-256 del candidato**. La API
+`/api/studio/updates/candidate-check` y el agente `update_check_candidate`
+reciben modelo, índice y commit; no aceptan una ruta de archivo libre.
+Se consultan nuevamente metadatos de ese commit y se lee únicamente la ruta
+separada que deriva del plan. El archivo debe existir previamente: este botón
+no lo descarga ni lo instala. La consulta requiere Internet para los metadatos;
+la lectura de los bytes del candidato se hace localmente.
+
+La lectura usa bloques de 4 MiB y queda limitada al tamaño inicial más un byte,
+con máximo de 100 GB por archivo. Distingue coincidencia SHA-256 y tamaño,
+diferencias, ausencia, ruta de otro sistema, fallo de acceso y cambio durante
+la lectura. Rechaza enlaces en el archivo o sus directorios padre. No altera
+el peso original ni la configuración. Coincidir con la revisión remota acredita
+integridad de ese candidato, sin aprobar compatibilidad, licencia o calidad.
+
+Validación de este incremento: 140 pruebas locales de actualización, estudio e
+instrucciones aprobadas; sintaxis JavaScript y diff correctos. Se usan archivos
+pequeños simulados, con comprobación de conservación del original y detección
+de crecimiento durante lectura. La CI anterior detectó que la prueba visual
+confundía el texto del plan con el de la licencia; ahora selecciona explícitamente
+el bloque del documento. La nueva regresión incluye también la comprobación del
+candidato. La ejecución local de Chromium sigue bloqueada al iniciar por
+restricción de sockets; queda pendiente confirmar el resultado en CI.

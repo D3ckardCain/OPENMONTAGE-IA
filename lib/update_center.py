@@ -414,7 +414,11 @@ def check_local(identifier,index):
     if type(index) is not int or index<0:raise ValueError('Índice inválido')
     records=_files(identifier)
     if index>=len(records):raise ValueError('Archivo fuera del catálogo')
-    entry=records[index];path=Path(entry['destination'])
+    return _check_local_entry(records[index],index)
+
+
+def _check_local_entry(entry,index):
+    path=Path(entry['destination'])
     result={**entry,'index':index,'checked_at':studio.now(),'bytes_read':0}
     if not path.is_absolute():return {**result,'status':'unavailable_on_this_host'}
     digest=hashlib.sha256();count=0
@@ -440,3 +444,24 @@ def check_local(identifier,index):
     result['status']='matches_catalog' if digest.hexdigest()==expected and (size is None or size==count) else 'differs_from_catalog'
     result['note']='Coincidencia con el archivo fijado en el catálogo, no con el último commit remoto ni una prueba de inferencia.'
     return result
+
+
+def check_candidate(identifier,index,revision):
+    """Hash only the proposed candidate; runtime and usage checks stay pending."""
+    plan=prepare_file_update(identifier,index,revision)
+    result={'id':identifier,'index':index,'remote_revision':revision,'checked_at':studio.now(),
+            'plan_status':plan['status'],'update_allowed':False,'files_changed':0,
+            'note':'Comprobación de integridad del candidato separado; no demuestra compatibilidad, permisos ni calidad. No sustituye archivos ni cambia configuraciones.'}
+    if 'candidate' not in plan:return {**result,'status':'not_checked_no_candidate','bytes_read':0}
+    candidate=plan['candidate']
+    path=Path(candidate['destination'])
+    try:
+        if any(parent.is_symlink() for parent in path.parents):
+            return {**result,'status':'candidate_parent_is_link','bytes_read':0}
+    except OSError:return {**result,'status':'unreadable','bytes_read':0}
+    checked=_check_local_entry({'destination':candidate['destination'],
+                                'catalog_sha256':candidate['sha256'],'catalog_bytes':candidate['size_bytes']},index)
+    status={'matches_catalog':'candidate_matches_remote','differs_from_catalog':'candidate_differs_remote'}.get(checked['status'],checked['status'])
+    return {**result,'status':status,'candidate_destination':candidate['destination'],
+            'expected_sha256':candidate['sha256'],'expected_bytes':candidate['size_bytes'],
+            **{key:checked[key] for key in ('bytes_read','local_bytes','local_sha256') if key in checked}}
