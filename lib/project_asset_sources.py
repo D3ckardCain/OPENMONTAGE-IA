@@ -2,6 +2,8 @@
 import hashlib
 from functools import lru_cache
 from pathlib import Path
+import os
+from itertools import islice
 from urllib.parse import urlsplit
 
 from lib import production_studio as studio
@@ -92,3 +94,51 @@ def save(pid,data):
         record['revision']=_digest(record)
         studio.save_json(_record_path(project),record)
     return read(pid)
+
+
+MEDIA_SUFFIXES={'.png','.jpg','.jpeg','.webp','.gif','.mp4','.mov','.mkv','.webm','.wav','.mp3','.flac','.srt'}
+
+
+def coverage(pid,offset=0,limit=20):
+    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=50:
+        raise ValueError('Página inválida')
+    project=studio.project_path(pid)
+    registered={item['path']:item for item in read(pid)['entries']}
+    rows=[];scanned=0;examined=0;complete=True;skipped_links=0
+    for root in ('assets','source_images','thumbnails'):
+        folder=project/root
+        if folder.is_symlink():skipped_links+=1;continue
+        if not folder.is_dir():continue
+        stack=[(folder,0)]
+        while stack:
+            parent,depth=stack.pop()
+            with os.scandir(parent) as entries:
+                children=list(islice(entries,max(0,2001-examined)))
+            examined+=len(children)
+            if examined>2000:complete=False;children=children[:max(0,len(children)-(examined-2000))]
+            children.sort(key=lambda entry:entry.name)
+            for child in children:
+                if child.is_symlink():skipped_links+=1;continue
+                if child.is_dir(follow_symlinks=False):
+                    if depth<5:stack.append((Path(child.path),depth+1))
+                    else:complete=False
+                    continue
+                if not child.is_file(follow_symlinks=False) or Path(child.name).suffix.lower() not in MEDIA_SUFFIXES:continue
+                scanned+=1
+                if scanned>1000:complete=False;break
+                relative=Path(child.path).relative_to(project).as_posix()
+                row=registered.get(relative)
+                rows.append({'path':relative,'bytes':child.stat(follow_symlinks=False).st_size,
+                    'status':'registered' if row else 'unregistered',
+                    'source_kind':row['source_kind'] if row else None,
+                    'commercial_use':row['commercial_use'] if row else None})
+            if scanned>1000 or examined>2000:break
+        if scanned>1000 or examined>2000:break
+    rows.sort(key=lambda row:row['path'])
+    count=len(rows)
+    return {'total':count,'registered_total':sum(row['status']=='registered' for row in rows),
+        'unregistered_total':sum(row['status']=='unregistered' for row in rows),
+        'offset':offset,'rows':rows[offset:offset+limit],
+        'next_offset':offset+limit if offset+limit<count else None,
+        'complete_scan':complete,'skipped_symlinks':skipped_links,
+        'limits':'Solo extensiones multimedia en assets, source_images y thumbnails; máximo 1000 medios, 2000 entradas exploradas y profundidad 6. Un archivo registrado aún requiere revisar derechos y vigencia de licencia.'}

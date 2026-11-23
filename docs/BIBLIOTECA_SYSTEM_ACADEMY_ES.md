@@ -70,6 +70,8 @@ La imagen real de una variante seleccionada puede cargarse en PNG o JPEG estáti
 
 Las lecturas repetidas reutilizan el hash calculado mientras coincidan dispositivo, archivo, tamaño y tiempos de modificación y cambio del sistema de archivos. Un cambio de archivo invalida esa reutilización; se comprueba también que no cambie durante el cálculo. Es una optimización del estudio local para evitar volver a leer el mismo medio en cada refresco.
 
+«Buscar medios sin procedencia» inspecciona archivos multimedia en las tres carpetas del proyecto y distingue registrados de pendientes, en páginas de veinte. Se omiten enlaces simbólicos; la inspección se limita a mil medios, dos mil entradas exploradas y seis niveles, y declara cobertura incompleta al alcanzar un límite. `project_asset_coverage` ofrece el mismo informe al agente en páginas de hasta cincuenta. El listado no presume que todos los archivos estén usados en el render ni valida licencias; sirve para identificar trabajo editorial pendiente.
+
 ### Enlaces revisados
 
 - [Catálogo de recursos](https://biblioteca.systemacademy.es/recursos)

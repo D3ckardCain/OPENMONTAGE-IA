@@ -250,6 +250,10 @@ def create_studio_router():
     async def asset_sources_save(pid:str,request:Request):
         from lib.project_asset_sources import save
         return invoke(save,pid,await body(request,6000))
+    @router.get('/api/studio/asset-coverage/{pid}')
+    def asset_coverage(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
+        from lib.project_asset_sources import coverage
+        return invoke(coverage,pid,offset,limit)
     @router.get('/api/studio/channel-research/{pid}')
     def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_channel_evidence import page
