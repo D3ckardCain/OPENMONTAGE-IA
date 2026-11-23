@@ -455,6 +455,10 @@ def create_studio_router():
     def update_remote_file_check(identifier:str,index:int,revision:str|None=None):
         from lib.update_center import check_remote_file
         return invoke(check_remote_file,identifier,index,revision)
+    @router.get('/api/studio/updates/document')
+    def update_document(identifier:str,revision:str,filename:str):
+        from lib.update_center import read_remote_document
+        return invoke(read_remote_document,identifier,revision,filename)
     @router.get('/api/studio/integration-coverage')
     def integration_coverage():
         from lib.integration_coverage import coverage

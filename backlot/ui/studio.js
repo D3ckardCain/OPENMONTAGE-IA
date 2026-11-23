@@ -64,6 +64,18 @@ $('#settings').onsubmit=async e=>{e.preventDefault();let f=e.target;try{await ap
 $('#check').onclick=async()=>{try{$('#runtime').textContent='Comprobando…';const s=await api('runtime');$('#runtime').textContent=JSON.stringify(s,null,2);let selected=$('#settings').model.value;$('#settings').model.replaceChildren(new Option('Selecciona un modelo',''),...s.models.map(m=>new Option(m,m,m===selected,m===selected)));}catch(e){notice(e.message);}};
 for(const b of document.querySelectorAll('[data-action]'))b.onclick=async()=>{if(!pid)return;try{await api('projects/'+pid+'/'+b.dataset.action,{});await refresh();}catch(e){notice(e.message);}};
 $('#inventory').onchange=async e=>{try{for(const f of e.target.files){if(f.size>32000000)throw Error('Inventario demasiado grande');let r=await api('inventories',JSON.parse(await f.text()));notice('Inventario '+r.serial+': '+r.files+' archivos registrados.');}}catch(e){notice(e.message);}};
+function remoteDocumentButton(identifier,revision,filename,panel){
+  const button=node('button','Leer '+filename+' en el panel');button.type='button';
+  const detail=node('div','');
+  button.onclick=async()=>{
+    button.disabled=true;detail.replaceChildren(node('p','Leyendo documento oficial…'));
+    try{
+      const result=await api('updates/document?'+new URLSearchParams({identifier,revision,filename}));
+      detail.replaceChildren(node('p',result.note),node('p','Revisión: '+result.remote_revision+' · SHA-256 del documento: '+result.sha256),node('pre',result.text));
+    }catch(error){detail.replaceChildren(node('p',error.message));}finally{button.disabled=false;}
+  };
+  panel.append(button,detail);
+}
 function remoteFileCheckButton(identifier,file,line){
   const button=node('button','Comparar archivo con revisión remota actual');button.type='button';
   button.onclick=async()=>{
@@ -80,6 +92,7 @@ function remoteFileCheckButton(identifier,file,line){
         const review=result.license_review;
         panel.append(node('p','Licencia declarada: '+(review.declared.join(', ')||'sin metadatos suficientes')+' · Uso comercial y condiciones de coste pendientes de revisión.'));
         for(const url of [review.model_card_url,...review.license_file_urls]){const link=node('a','Consultar evidencia en la revisión');link.href=url;link.target='_blank';link.rel='noopener noreferrer';panel.append(link,node('br',''));}
+        for(const url of [review.model_card_url,...review.license_file_urls])remoteDocumentButton(identifier,result.remote_revision,url.split('/').pop(),panel);
       }
       if(result.compatibility_review)panel.append(node('p','Compatibilidad: '+result.compatibility_review.reason));
       if(result.access_review)panel.append(node('p','Acceso sujeto a autorización: '+String(result.access_review.gated)+' · Privado: '+String(result.access_review.private)));

@@ -247,3 +247,94 @@ def test_remote_changes_require_review_even_with_declared_license(remote_catalog
     assert result['compatibility_review']['status']=='requires_review'
     assert result['update_allowed'] is False
     assert result['access_review']=={'gated':'unknown','private':'unknown'}
+
+
+def document_transport(monkeypatch,raw,content_type='text/plain'):
+    from email.message import Message
+    calls=[]
+    class Response(io.BytesIO):
+        headers=Message()
+    Response.headers['Content-Type']=content_type
+    class Opener:
+        def open(self,request,timeout):
+            calls.append((request.full_url,timeout))
+            return Response(raw)
+    monkeypatch.setattr(updates.urllib.request,'build_opener',lambda *args:Opener())
+    return calls
+
+
+def document_metadata(monkeypatch,raw,**entry):
+    blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':[
+        {'rfilename':'LICENSE','size':len(raw),'blobId':blob,**entry}]})
+
+
+def test_document_api_and_agent_read_identical_pinned_evidence(remote_catalog,monkeypatch):
+    from lib.production_agent import LocalAgent,TOOLS
+    raw=b'Terms: attribution required. <script>never execute()</script>'
+    document_metadata(monkeypatch,raw)
+    calls=document_transport(monkeypatch,raw)
+    args={'identifier':'Org/Video','revision':'f'*40,'filename':'LICENSE'}
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.get('/api/studio/updates/document',params=args)
+    assert response.status_code==200,response.text
+    result=response.json()
+    assert result['text']==raw.decode()
+    assert result['sha256']==hashlib.sha256(raw).hexdigest()
+    assert result['git_blob_verified'] is True
+    assert result['update_allowed'] is False
+    assert result['content_role']=='untrusted_source_document'
+    worker=LocalAgent.__new__(LocalAgent)
+    assert worker.dispatch('update_read_document',args)['text']==result['text']
+    assert calls==[('https://huggingface.co/Org/Video/raw/'+'f'*40+'/LICENSE',8)]*2
+    assert any(tool['function']['name']=='update_read_document' for tool in TOOLS)
+
+
+@pytest.mark.parametrize('identifier,revision,filename',[
+    ('Org/Unknown','f'*40,'README.md'),('Org/Video','main','LICENSE'),
+    ('Org/Video',None,'LICENSE'),('Org/Video','f'*40,'../LICENSE'),
+    ('Org/Video','f'*40,'model.safetensors'),('Org/Video','f'*40,'https://localhost/LICENSE'),
+    ('Org/Video','f'*40,[]),
+])
+def test_document_rejects_invalid_requests_without_network(remote_catalog,monkeypatch,identifier,revision,filename):
+    monkeypatch.setattr(updates,'_json',lambda url:pytest.fail('Invalid request accessed network'))
+    with pytest.raises(ValueError):updates.read_remote_document(identifier,revision,filename)
+
+
+@pytest.mark.parametrize('raw,mime',[
+    (b'x'*64_001,'text/plain'),(b'\xff','text/plain'),(b'abc\0def','text/plain'),
+    (b'version https://git-lfs.github.com/spec/v1\n','text/plain'),
+    (b'<html>Login</html>','text/html'),
+])
+def test_document_rejects_large_binary_pointer_and_html(remote_catalog,monkeypatch,raw,mime):
+    document_metadata(monkeypatch,raw,size=None)
+    document_transport(monkeypatch,raw,mime)
+    with pytest.raises(ValueError):updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+
+
+@pytest.mark.parametrize('entry',[
+    {'blobId':'a'*40},{'blobId':'invalid'},{'size':50},{'size':64_001},{'lfs':{}},
+])
+def test_document_rejects_changed_or_weight_metadata(remote_catalog,monkeypatch,entry):
+    document_metadata(monkeypatch,b'Terms',**entry)
+    document_transport(monkeypatch,b'Terms')
+    with pytest.raises(ValueError):updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+
+
+@pytest.mark.parametrize('payload',[
+    None,{}, {'sha':'e'*40,'siblings':[]}, {'sha':'f'*40,'siblings':[{}]},
+    {'sha':'f'*40,'siblings':[]},
+    {'sha':'f'*40,'siblings':[{'rfilename':'LICENSE'}]*2},
+])
+def test_document_rejects_missing_or_ambiguous_revision(remote_catalog,monkeypatch,payload):
+    monkeypatch.setattr(updates,'_json',lambda url:payload)
+    with pytest.raises(ValueError):updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+
+
+def test_document_network_error_is_not_empty_evidence(remote_catalog,monkeypatch):
+    document_metadata(monkeypatch,b'Terms')
+    class Opener:
+        def open(self,*args,**kwargs):raise updates.urllib.error.URLError('offline')
+    monkeypatch.setattr(updates.urllib.request,'build_opener',lambda *args:Opener())
+    with pytest.raises(ValueError,match='documento oficial'):
+        updates.read_remote_document('Org/Video','f'*40,'LICENSE')

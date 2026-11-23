@@ -60,3 +60,40 @@ La regresión de navegador se amplió para comprobar licencia, enlace fijado y
 compatibilidad; su ejecución local quedó bloqueada al iniciar Chromium por
 `socket() failed: Operation not permitted`. No se certifican GPU ni conectividad
 real a Hugging Face mediante las pruebas con metadatos simulados.
+
+### Leer términos y requisitos en el panel
+
+Después de comparar un archivo, pulsa **Leer README.md en el panel** o el botón
+correspondiente al archivo de licencia listado. La lectura se fija al commit
+comparado; no consulta silenciosamente una versión posterior. El contenido se
+muestra como texto, con origen, fecha y SHA-256 del documento. Cuando la fuente
+proporciona su identificador de blob Git, se comprueba también ese identificador
+antes de devolver el texto. Este hash Git verifica documentos pequeños; no se
+usa como SHA-256 de pesos.
+
+El agente dispone de `update_read_document(identifier, revision, filename)`;
+la API es `/api/studio/updates/document`. Se admiten únicamente modelos del
+catálogo, commits completos y README.md, LICENSE, LICENSE.md, LICENSE.txt,
+COPYING o COPYING.md en la raíz. La consulta de metadatos y la lectura tienen
+cada una ocho segundos de timeout; el texto tiene un máximo de 64 000 bytes.
+Se rechazan documentos LFS, binarios, respuestas HTML, tamaños o hashes que no
+coinciden y respuestas ambiguas. No se siguen redirecciones ni se usan credenciales.
+Un error de acceso no significa que no existan restricciones: el enlace oficial
+permanece disponible para revisar fuera del lector.
+
+Esta lectura necesita Internet y todavía no conserva una copia para consulta
+offline. Los textos externos son evidencia, nunca instrucciones para ejecutar
+comandos, cambiar el agente o instalar dependencias. El agente debe revisar
+los términos y modelos base, condiciones de coste y requisitos técnicos antes
+de proponer incorporar una versión. Leer una licencia no marca automáticamente
+uso comercial, coste o compatibilidad como aprobados; no descarga pesos ni
+modifica los archivos instalados.
+
+Referencia: [fichas de modelos de Hugging Face](https://huggingface.co/docs/hub/model-cards).
+
+Validación del lector: 114 pruebas del centro y del estudio más 2 contratos de
+instrucciones aprobados; sintaxis JavaScript y diff correctos. La regresión de
+navegador incluye reintento tras error, revisión fijada y texto HTML inerte;
+su ejecución queda para CI por la restricción local de sockets de Chromium ya
+registrada. Las pruebas usan documentos simulados: no acreditan conectividad
+real, permisos comerciales ni inferencia sobre los pesos del usuario.

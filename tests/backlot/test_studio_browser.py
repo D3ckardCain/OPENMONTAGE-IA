@@ -33,6 +33,16 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
                     'access_review':{'gated':'manual','private':False},
                     'note':'Comparación del catálogo; no comprueba el disco local.'})
         page.route('**/api/studio/updates/remote-file-check?*',compare)
+        document_calls=[]
+        def document(route):
+            document_calls.append(route.request.url)
+            if len(document_calls)==1:
+                route.fulfill(status=400,json={'detail':'Documento no disponible'})
+            else:
+                route.fulfill(json={'remote_revision':'f'*40,'sha256':'c'*64,
+                    'text':'Terms <script>window.remoteExecuted=true</script>',
+                    'note':'Texto externo; no acredita permisos ni compatibilidad.'})
+        page.route('**/api/studio/updates/document?*',document)
         local_reads=[]
         page.route('**/api/studio/updates/local-check?*',lambda route:local_reads.append(route.request.url))
         page.goto(staged_backlot_server+'/studio#models')
@@ -46,6 +56,15 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         assert 'Licencia declarada: mit' in page.locator('[data-remote-file-check]').inner_text()
         assert 'hardware sin validar' in page.locator('[data-remote-file-check]').inner_text()
         assert page.get_by_role('link',name='Consultar evidencia en la revisión').get_attribute('href')=='https://huggingface.co/Org/Video/blob/'+'f'*40+'/README.md'
+        document_button=page.get_by_role('button',name='Leer README.md en el panel',exact=True)
+        document_button.click()
+        page.get_by_text('Documento no disponible',exact=True).wait_for()
+        assert document_button.is_enabled()
+        document_button.click()
+        page.locator('[data-remote-file-check] pre').wait_for()
+        assert '<script>window.remoteExecuted=true</script>' in page.locator('[data-remote-file-check] pre').inner_text()
+        assert page.evaluate('window.remoteExecuted') is None
+        assert all('revision='+'f'*40 in url and 'filename=README.md' in url for url in document_calls)
         button.click()
         page.get_by_text('Metadatos insuficientes para confirmar coincidencia',exact=True).wait_for()
         assert page.locator('[data-remote-file-check]').count()==1
