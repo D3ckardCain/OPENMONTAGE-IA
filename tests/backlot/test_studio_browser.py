@@ -47,6 +47,13 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
             route.fulfill(json={'status':'candidate_matches_remote','bytes_read':9,
                 'note':'Integridad comprobada; compatibilidad pendiente.'})
         page.route('**/api/studio/updates/candidate-check?*',check_candidate)
+        space_checks=[]
+        def check_space(route):
+            space_checks.append(route.request.url)
+            route.fulfill(json={'status':'insufficient_space','free_space_verified':True,
+                'free_bytes':8,'required_bytes':9,'checked_at':'2026-11-22T20:00:00+00:00',
+                'measured_path':'D:/models','note':'Medición puntual; no reserva espacio.'})
+        page.route('**/api/studio/updates/candidate-space?*',check_space)
         document_calls=[]
         def document(route):
             document_calls.append(route.request.url)
@@ -78,6 +85,10 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         page.get_by_text('Plan preparado; comprobaciones pendientes',exact=True).wait_for()
         assert len(plan_calls)==1 and 'revision='+'f'*40 in plan_calls[0]
         assert 'D:/models/model.safetensors' in page.locator('[data-remote-file-check]').inner_text()
+        page.get_by_role('button',name='Comprobar espacio para el candidato',exact=True).click()
+        page.get_by_text('Espacio insuficiente para el candidato',exact=True).wait_for()
+        assert len(space_checks)==1 and 'revision='+'f'*40 in space_checks[0]
+        assert 'Libre: 8 bytes' in page.locator('[data-remote-file-check]').inner_text()
         page.get_by_role('button',name='Comprobar SHA-256 del candidato',exact=True).click()
         page.get_by_text('El candidato coincide con la revisión remota',exact=True).wait_for()
         assert len(candidate_checks)==1 and 'revision='+'f'*40 in candidate_checks[0]

@@ -185,3 +185,31 @@ confundía el texto del plan con el de la licencia; ahora selecciona explícitam
 el bloque del documento. La nueva regresión incluye también la comprobación del
 candidato. La ejecución local de Chromium sigue bloqueada al iniciar por
 restricción de sockets; queda pendiente confirmar el resultado en CI.
+
+### Comprobar espacio del candidato
+
+En el plan pulsa **Comprobar espacio para el candidato**. Se muestra el espacio
+libre medido, la carpeta examinada y la fecha. El mínimo comparado es una copia
+completa del peso, incluso si ya existe un candidato; no se descuenta el tamaño
+de archivos parciales ni se presupone una descarga reanudable.
+
+La API `/api/studio/updates/candidate-space` y el agente `update_candidate_space`
+reciben modelo, índice y commit. La operación vuelve a consultar los metadatos
+remotos de esa revisión y mide el sistema de archivos del directorio existente
+más cercano al candidato. Nunca asciende por encima de la carpeta original del
+catálogo: si no está disponible, informa del problema y no usa el espacio de
+otro directorio como sustituto. Tampoco atraviesa enlaces de directorios.
+No crea carpetas ni lee pesos. El servidor debe ejecutarse en el equipo donde
+está el destino; una ruta Windows no se declara disponible desde Linux.
+
+La medición requiere Internet para los metadatos y acceso local al disco.
+Es una observación puntual, no reserva espacio ni garantiza escritura. El total
+necesario puede ser mayor por dependencias, temporales, pruebas y margen del
+sistema. Un resultado suficiente solo cubre el tamaño de una copia del candidato;
+no habilita instalación ni acredita licencia, compatibilidad o calidad.
+
+Validación: 147 pruebas locales del centro, estudio e instrucciones aprobadas;
+sintaxis JavaScript y diff correctos. Se simulan las mediciones, incluyendo el
+umbral exacto, insuficiencia, destino ausente y fallo de acceso. La prueba visual
+incluye la medición del candidato en el commit elegido; pendiente de nueva CI.
+La CI completa del incremento anterior (`56ad8ba`) quedó aprobada.

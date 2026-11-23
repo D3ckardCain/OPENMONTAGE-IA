@@ -463,6 +463,10 @@ def create_studio_router():
     def update_candidate_check(identifier:str,index:int,revision:str):
         from lib.update_center import check_candidate
         return invoke(check_candidate,identifier,index,revision)
+    @router.get('/api/studio/updates/candidate-space')
+    def update_candidate_space(identifier:str,index:int,revision:str):
+        from lib.update_center import check_candidate_space
+        return invoke(check_candidate_space,identifier,index,revision)
     @router.get('/api/studio/updates/document')
     def update_document(identifier:str,revision:str,filename:str,offline:bool=False):
         from lib.update_center import read_remote_document

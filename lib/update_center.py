@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from itertools import islice
 import re
+import shutil
 import urllib.error
 import urllib.request
 from pathlib import Path, PureWindowsPath, PurePosixPath
@@ -465,3 +466,29 @@ def check_candidate(identifier,index,revision):
     return {**result,'status':status,'candidate_destination':candidate['destination'],
             'expected_sha256':candidate['sha256'],'expected_bytes':candidate['size_bytes'],
             **{key:checked[key] for key in ('bytes_read','local_bytes','local_sha256') if key in checked}}
+
+
+def check_candidate_space(identifier,index,revision):
+    """Measure the candidate filesystem without creating directories or files."""
+    plan=prepare_file_update(identifier,index,revision)
+    result={'id':identifier,'index':index,'remote_revision':revision,'checked_at':studio.now(),
+            'plan_status':plan['status'],'free_space_verified':False,'update_allowed':False,
+            'files_changed':0,'downloads_started':0,
+            'note':'Medición puntual para una copia completa del candidato. No reserva espacio ni incluye dependencias, temporales, pruebas o margen del sistema. No acredita permisos de escritura, licencia o compatibilidad.'}
+    if 'candidate' not in plan:return {**result,'status':'not_checked_no_candidate'}
+    path=Path(plan['candidate']['destination']);base=Path(plan['original_destination']).parent
+    result.update(candidate_destination=plan['candidate']['destination'],required_bytes=plan['candidate']['size_bytes'])
+    if not path.is_absolute() or not base.is_absolute():return {**result,'status':'unavailable_on_this_host'}
+    try:
+        if any(parent.is_symlink() for parent in path.parents):return {**result,'status':'candidate_parent_is_link'}
+        # Never ascend above the original destination directory: an absent
+        # drive must not be mistaken for free space on another disk.
+        if not base.is_dir():return {**result,'status':'destination_directory_unavailable'}
+        folder=path.parent
+        while folder!=base and not folder.exists():folder=folder.parent
+        if not folder.is_dir():return {**result,'status':'candidate_parent_not_directory'}
+        usage=shutil.disk_usage(folder)
+    except OSError:return {**result,'status':'disk_space_unreadable'}
+    return {**result,'status':'space_available_for_candidate' if usage.free>=result['required_bytes'] else 'insufficient_space',
+            'free_space_verified':True,'measured_path':folder.as_posix(),'free_bytes':usage.free,
+            'total_bytes':usage.total,'checked_at':studio.now()}

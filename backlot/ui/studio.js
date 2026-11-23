@@ -125,7 +125,14 @@ function remoteFileCheckButton(identifier,file,line){
             const labels={candidate_matches_remote:'El candidato coincide con la revisión remota',candidate_differs_remote:'El candidato difiere de la revisión remota',not_checked_no_candidate:'No hay candidato verificable',missing_or_link:'Candidato ausente o enlace',unavailable_on_this_host:'Ruta no disponible en este equipo',changed_during_check:'El candidato cambió durante la lectura',candidate_parent_is_link:'La ruta del candidato contiene un enlace'};
             verification.replaceChildren(node('p',labels[checked.status]||checked.status),node('p',checked.bytes_read+' bytes leídos'),node('p',checked.note));
           }catch(error){verification.replaceChildren(node('p',error.message));}finally{verify.disabled=false;}};
-          planDetail.append(verify,verification);
+          const spaceButton=node('button','Comprobar espacio para el candidato');spaceButton.type='button';const spaceDetail=node('div','');
+          spaceButton.onclick=async()=>{spaceButton.disabled=true;try{
+            const space=await api('updates/candidate-space?'+new URLSearchParams({identifier,index:String(file.index),revision:result.remote_revision}));
+            const labels={space_available_for_candidate:'Espacio disponible para la copia del candidato',insufficient_space:'Espacio insuficiente para el candidato',unavailable_on_this_host:'Ruta no disponible en este equipo',destination_directory_unavailable:'Carpeta de destino no disponible',candidate_parent_is_link:'La ruta contiene un enlace',candidate_parent_not_directory:'La ruta contiene un archivo en lugar de carpeta',disk_space_unreadable:'No se pudo medir el espacio',not_checked_no_candidate:'No hay candidato verificable'};
+            spaceDetail.replaceChildren(node('p',labels[space.status]||space.status),node('p',space.note));
+            if(space.free_space_verified)spaceDetail.append(node('p','Libre: '+space.free_bytes+' bytes · mínimo del candidato: '+space.required_bytes+' bytes · Medido: '+space.checked_at),node('p','Carpeta medida: '+space.measured_path));
+          }catch(error){spaceDetail.replaceChildren(node('p',error.message));}finally{spaceButton.disabled=false;}};
+          planDetail.append(spaceButton,spaceDetail,verify,verification);
         }
       }catch(error){planDetail.replaceChildren(node('p',error.message));}finally{planButton.disabled=false;}};
       panel.append(node('p',result.note),planButton,planDetail);line.append(panel);

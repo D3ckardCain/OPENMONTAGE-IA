@@ -532,3 +532,56 @@ def test_candidate_without_plan_does_not_read_local_files(remote_catalog,monkeyp
     monkeypatch.setattr(updates,'_check_local_entry',lambda *args:pytest.fail('No candidate may be read'))
     result=updates.check_candidate('Org/Video',0,'f'*40)
     assert result['status']=='not_checked_no_candidate' and result['bytes_read']==0
+
+
+@pytest.mark.parametrize('free,status',[(8,'insufficient_space'),(9,'space_available_for_candidate'),(100,'space_available_for_candidate')])
+def test_candidate_space_measures_without_creating_directories(candidate_catalog,monkeypatch,free,status):
+    from collections import namedtuple
+    original,candidate=candidate_catalog
+    candidate.parent.rmdir();candidate.parent.parent.rmdir();candidate.parent.parent.parent.rmdir()
+    # The proposed staging hierarchy is absent; measure only its existing base.
+    measured=[]
+    def usage(path):
+        measured.append(path)
+        return namedtuple('Usage','total used free')(1000,1000-free,free)
+    monkeypatch.setattr(updates.shutil,'disk_usage',usage)
+    result=updates.check_candidate_space('Org/Video',0,'f'*40)
+    assert result['status']==status and result['free_space_verified'] is True
+    assert measured==[original.parent]
+    assert result['required_bytes']==9 and result['free_bytes']==free
+    assert not candidate.parent.exists() and original.read_bytes()==b'original'
+    assert result['update_allowed'] is False and result['files_changed']==0
+
+
+def test_candidate_space_api_and_agent_share_result(candidate_catalog,monkeypatch):
+    from lib.production_agent import LocalAgent
+    from collections import namedtuple
+    monkeypatch.setattr(updates.shutil,'disk_usage',lambda path:namedtuple('Usage','total used free')(100,10,90))
+    args={'identifier':'Org/Video','index':0,'revision':'f'*40}
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.get('/api/studio/updates/candidate-space',params=args)
+    assert response.status_code==200 and response.json()['free_bytes']==90
+    worker=LocalAgent.__new__(LocalAgent)
+    assert worker.dispatch('update_candidate_space',args)['free_bytes']==90
+
+
+def test_candidate_space_does_not_measure_above_missing_destination(candidate_catalog,monkeypatch):
+    original,candidate=candidate_catalog
+    import shutil
+    shutil.rmtree(original.parent)
+    monkeypatch.setattr(updates.shutil,'disk_usage',lambda path:pytest.fail('Must not measure another directory'))
+    result=updates.check_candidate_space('Org/Video',0,'f'*40)
+    assert result['status']=='destination_directory_unavailable' and result['free_space_verified'] is False
+
+
+def test_candidate_space_reports_access_failure(candidate_catalog,monkeypatch):
+    def deny(path):raise OSError('not available')
+    monkeypatch.setattr(updates.shutil,'disk_usage',deny)
+    result=updates.check_candidate_space('Org/Video',0,'f'*40)
+    assert result['status']=='disk_space_unreadable' and result['free_space_verified'] is False
+
+
+def test_candidate_space_without_remote_candidate_does_not_inspect_disk(remote_catalog,monkeypatch):
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':[]})
+    monkeypatch.setattr(updates.shutil,'disk_usage',lambda path:pytest.fail('No disk should be inspected'))
+    assert updates.check_candidate_space('Org/Video',0,'f'*40)['status']=='not_checked_no_candidate'
