@@ -71,6 +71,7 @@ TOOLS=[
  descriptor('update_model_files','Lista archivos esperados de un modelo por páginas. No lee los pesos locales.',{'identifier':{'type':'string'},'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}},['identifier']),
  descriptor('update_local_file_check','Calcula SHA-256 de un archivo catalogado en el disco local. Puede tardar con pesos grandes; no descarga ni sustituye.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0}},['identifier','index']),
  descriptor('update_remote_file_check','Compara un archivo del catálogo con tamaño y SHA-256 remoto cuando exista. revision fija un commit; sin ella consulta la revisión actual. No lee el disco ni descarga pesos; un cambio no demuestra mejora.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0},'revision':{'type':'string','pattern':'^[0-9a-f]{40}$'}},['identifier','index']),
+ descriptor('update_application_version','Ejecuta explícitamente --version en yt-dlp o Deno configurado y compara versiones estables con el release oficial. online=false omite la consulta remota. No actualiza ni instala.',{'identifier':{'enum':['yt-dlp','deno']},'online':{'type':'boolean'}},['identifier']),
  descriptor('update_impact','Inspecciona offline familias que comparten la fuente exacta del archivo, dependencias declaradas y configuración del adaptador. No ejecuta motores ni acredita compatibilidad real.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0}},['identifier','index']),
  descriptor('update_prepare_plan','Prepara un plan de candidato separado por archivo y commit. No descarga ni verifica la instalación ni cambia configuración; devuelve comprobaciones pendientes y ruta original para reversión.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0},'revision':{'type':'string','pattern':'^[0-9a-f]{40}$'}},['identifier','index','revision']),
  descriptor('update_check_candidate','Calcula SHA-256 del candidato en la ruta separada del plan y compara con metadatos del commit solicitado. Requiere red para esos metadatos; puede tardar leyendo pesos grandes. No instala ni valida compatibilidad.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0},'revision':{'type':'string','pattern':'^[0-9a-f]{40}$'}},['identifier','index','revision']),
@@ -289,6 +290,9 @@ class LocalAgent:
         if name=='update_remote_file_check':
             from lib.update_center import check_remote_file
             return check_remote_file(args['identifier'],args['index'],args.get('revision'))
+        if name=='update_application_version':
+            from lib.application_updates import compare
+            return compare(args['identifier'],args.get('online',True))
         if name=='update_impact':
             from lib.update_impact import inspect
             return inspect(args['identifier'],args['index'])

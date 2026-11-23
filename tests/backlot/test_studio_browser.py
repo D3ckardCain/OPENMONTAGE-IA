@@ -552,3 +552,35 @@ def test_official_id_followup_prepares_form_without_new_query(staged_backlot_ser
         assert page.locator('[data-football-field=metrics]').input_value()=='goals'
         assert len(calls)==1
         browser.close()
+
+
+def test_application_version_checks_require_explicit_action(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page();calls=[];errors=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={
+            'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188',
+                        'resource_roots':[],'model':''},'pipelines':[],'projects':[]}))
+        page.route('**/api/studio/updates?*',lambda route:route.fulfill(json={
+            'models':0,'applications':1,'untracked_catalog_files':0,'next_offset':None,'note':'fixture',
+            'rows':[{'kind':'application','id':'deno','label':'Deno','configured':True,
+                     'file_found':True,'live_check_supported':True}]}))
+        def version(route):
+            args=route.request.post_data_json;calls.append(args)
+            route.fulfill(json={'status':'update_available' if args['online'] else 'local_version_checked',
+                'local_version':'2.9.0','latest_version':'v2.10.0' if args['online'] else None,
+                'note':'Consulta explícita; no instala ni actualiza.'})
+        page.route('**/api/studio/updates/application-version',version)
+        page.goto(staged_backlot_server+'/studio#models')
+        page.locator('#updates-load').click()
+        page.locator('#updates-result summary').click()
+        assert not calls
+        page.get_by_role('button',name='Ver versión local sin consulta remota',exact=True).click()
+        page.get_by_text('Versión local comprobada; sin consulta remota',exact=True).wait_for()
+        assert calls==[{'identifier':'deno','online':False}]
+        page.get_by_role('button',name='Comparar versión instalada',exact=True).click()
+        page.get_by_text('Hay una versión estable posterior',exact=True).wait_for()
+        assert calls[-1]=={'identifier':'deno','online':True}
+        assert not errors
+        browser.close()

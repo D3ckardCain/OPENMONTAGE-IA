@@ -4,7 +4,7 @@ Abre **Modelos y discos → Centro de actualizaciones**. El catálogo agrupa los
 
 ## Revisar lo que ya tenemos
 
-Pulsa **Consultar fuente oficial** en un modelo. Se consulta una fuente por vez y se compara el commit remoto actual con los commits fijados en los enlaces del catálogo. Se indica cuántos archivos catalogados ya no figuran con el mismo nombre en la revisión remota. Un commit distinto significa que cambió el repositorio; no demuestra que cada peso haya cambiado ni que exista una mejora. Para yt-dlp y Deno se consulta el último release publicado de GitHub. La versión local aún no está registrada, por lo que se muestra «desconocida». Las demás aplicaciones quedan para revisión manual de su fuente oficial.
+Pulsa **Consultar fuente oficial** en un modelo. Se consulta una fuente por vez y se compara el commit remoto actual con los commits fijados en los enlaces del catálogo. Se indica cuántos archivos catalogados ya no figuran con el mismo nombre en la revisión remota. Un commit distinto significa que cambió el repositorio; no demuestra que cada peso haya cambiado ni que exista una mejora. Para yt-dlp y Deno se consulta el último release publicado de GitHub. Esa consulta no ejecuta el programa local y mantiene su versión como «desconocida»; usa los botones de versión descritos más abajo para comprobarla explícitamente. Las demás aplicaciones quedan para revisión manual de su fuente oficial.
 
 Antes de actualizar, verifica qué fichero está realmente instalado, su hash, arquitectura y dependencias, términos de uso y compatibilidad con el workflow. Conserva la versión que funciona mientras pruebas otra copia. Consultar fuentes no ejecuta instaladores, no descarga pesos y no modifica la configuración. La descarga de candidatos es una acción separada y explícita, descrita más abajo. La consulta requiere Internet; los fallos de red o límites de la fuente se muestran como errores de esa consulta.
 
@@ -335,3 +335,44 @@ compartida entre carpetas, exclusión de archivos homónimos, dependencias,
 configuración sin cambios y acceso mediante API/agente sin consultar la red.
 La regresión visual consulta el impacto antes de comparar con la fuente remota.
 Son pruebas con manifiestos y transportes simulados, sin inferencia real.
+
+
+### Comparar la versión instalada de yt-dlp y Deno
+
+En estas dos aplicaciones hay dos acciones explícitas:
+
+- **Ver versión local sin consulta remota** ejecuta únicamente la consulta de
+  versión del archivo configurado, sin consultar GitHub.
+- **Comparar versión instalada** obtiene la versión local y consulta después el
+  último release oficial para comparar versiones estables.
+
+Se requiere una ruta absoluta al ejecutable admitido en la configuración;
+no se buscan alternativas en PATH ni se ejecutan instaladores. yt-dlp usa
+`--ignore-config --no-plugin-dirs --version` y Deno usa `--version`, con
+comprobación de actualizaciones de Deno desactivada para ese proceso. Se usa
+una lista fija de argumentos, sin shell, con timeout de cinco segundos.
+Consultar fuentes o abrir el catálogo sigue sin ejecutar estos comandos.
+
+La comparación de yt-dlp interpreta fechas válidas y la de Deno compara los
+componentes numéricos de una versión estable. Distingue versión coincidente,
+release posterior y versión local más reciente. Prereleases, formatos
+inesperados, fallo de proceso o ejecutable modificado durante la consulta
+quedan sin conclusión automática. Si falla la consulta remota, conserva la
+versión local y no afirma que esté actualizada. Las otras aplicaciones
+continúan en revisión manual; una versión coincidente no demuestra
+compatibilidad ni autoriza sustituciones.
+
+API: `POST /api/studio/updates/application-version`, con `identifier` y
+`online` opcional (por defecto `true`). El agente dispone de
+`update_application_version`; `online=false` funciona sin la consulta remota.
+No instala, descarga actualizaciones, activa modelos ni modifica configuración.
+No se guarda todavía un historial de estas versiones.
+
+Validación: 192 pruebas locales de versiones, actualización, descargas,
+estudio e instrucciones aprobadas; sintaxis JavaScript y diff correctos.
+Las consultas de procesos y releases se simulan. La nueva prueba visual
+verifica que cargar el catálogo no consulte versiones y que cada botón use
+el modo elegido. No se ejecutaron los binarios del usuario.
+
+Referencias: [opciones de yt-dlp](https://github.com/yt-dlp/yt-dlp#general-options)
+y [consulta de versión de Deno](https://docs.deno.com/runtime/getting_started/installation/).

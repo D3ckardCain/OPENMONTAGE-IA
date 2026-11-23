@@ -455,6 +455,12 @@ def create_studio_router():
     def update_remote_file_check(identifier:str,index:int,revision:str|None=None):
         from lib.update_center import check_remote_file
         return invoke(check_remote_file,identifier,index,revision)
+    @router.post('/api/studio/updates/application-version')
+    async def update_application_version(request:Request):
+        from lib.application_updates import compare
+        data=await body(request)
+        if set(data)-{'identifier','online'} or 'identifier' not in data:raise HTTPException(400,'Indica aplicación y consulta remota opcional')
+        return await asyncio.to_thread(lambda:invoke(compare,data['identifier'],data.get('online',True)))
     @router.get('/api/studio/updates/impact')
     def update_impact(identifier:str,index:int):
         from lib.update_impact import inspect
