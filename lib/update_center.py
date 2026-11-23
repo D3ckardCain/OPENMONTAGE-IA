@@ -97,13 +97,17 @@ def check(kind,identifier):
     result=_json('https://huggingface.co/api/models/'+quote(identifier,safe='/'))
     latest=result.get('sha') if isinstance(result,dict) else None
     if not isinstance(latest,str) or not _SHA.fullmatch(latest):raise ValueError('Respuesta de revisión inválida')
-    siblings={row.get('rfilename') for row in result.get('siblings',[]) if isinstance(row,dict)}
+    remote_files=result.get('siblings')
+    if not isinstance(remote_files,list) or any(not isinstance(row,dict) or not isinstance(row.get('rfilename'),str) for row in remote_files):
+        raise ValueError('Respuesta de archivos inválida')
+    siblings={row['rfilename'] for row in remote_files}
+    if len(siblings)!=len(remote_files):raise ValueError('La fuente devolvió archivos duplicados')
     catalog_files=set()
     for path in (studio.REPO_ROOT/'docs/models').glob('*.json'):
         for item in studio.read_json(path,{}).get('files',[]):
             source=_model_source(item.get('url'))
             if source and source[0]==identifier:catalog_files.add(source[3])
-    missing=sorted(catalog_files-siblings) if isinstance(result.get('siblings'),list) else []
+    missing=sorted(catalog_files-siblings)
     return {'kind':kind,'id':identifier,'status':'source_revision_changed' if latest not in found['catalog_revisions'] else 'catalog_revision_current',
             'latest_revision':latest,'catalog_revisions':found['catalog_revisions'],
             'catalog_file_count':len(catalog_files),'files_missing_at_latest':missing[:50],
@@ -171,6 +175,34 @@ def files(identifier,offset=0,limit=10):
             'note':'Rutas previstas por el catálogo; todavía no se ha leído ningún peso del disco. La comprobación local de SHA-256 se solicita por archivo y puede tardar.'}
 
 
+def _remote_review(payload,identifier,revision,status):
+    """Report declarations from the same snapshot without granting usage rights."""
+    card=payload.get('cardData')
+    card=card if isinstance(card,dict) else {}
+    declared=card.get('license')
+    values=declared if isinstance(declared,list) else [declared]
+    licenses=[value for value in values[:20]
+              if isinstance(value,str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.+-]{0,99}',value)]
+    complete=bool(licenses) and len(licenses)==len(values) and len(values)<=20
+    root='https://huggingface.co/'+identifier+'/blob/'+revision+'/'
+    filenames={row.get('rfilename') for row in payload.get('siblings',[]) if isinstance(row,dict)}
+    evidence=[root+quote(name,safe='/') for name in sorted(filenames)
+              if name in ('LICENSE','LICENSE.md','LICENSE.txt','COPYING','COPYING.md')]
+    return {
+        'license_review':{'status':'declared_requires_review' if complete else 'license_metadata_incomplete',
+                          'declared':licenses,'model_card_url':root+'README.md',
+                          'license_file_urls':evidence,
+                          'commercial_use':'not_verified','cost_conditions':'not_verified'},
+        'access_review':{'gated':payload.get('gated') if type(payload.get('gated')) is bool or payload.get('gated') in ('auto','manual') else 'unknown',
+                         'private':payload.get('private') if type(payload.get('private')) is bool else 'unknown'},
+        'compatibility_review':{
+            'status':'catalog_content_matches_runtime_unverified' if status=='remote_matches_catalog' else 'requires_review',
+            'windows':'not_tested','adapter':'not_tested','hardware':'not_tested',
+            'reason':'La igualdad de contenido no acredita ejecución. Revisa adaptador, dependencias, formato y RAM/VRAM antes de sustituir archivos.'},
+        'update_allowed':False,
+    }
+
+
 def check_remote_file(identifier,index,revision=None):
     """Compare one catalog entry with metadata from a single remote snapshot.
 
@@ -198,7 +230,9 @@ def check_remote_file(identifier,index,revision=None):
     result={**entry,'id':identifier,'index':index,'remote_revision':payload['sha'],
             'checked_at':studio.now(),'source_url':url+'?blobs=true','downloads_started':0,
             'note':'Comparación remota contra el catálogo; no comprueba el disco local ni demuestra mejora, compatibilidad o licencia. No descarga ni sustituye archivos.'}
-    if not matches:return {**result,'status':'missing_at_remote_revision'}
+    if not matches:
+        status='missing_at_remote_revision'
+        return {**result,'status':status,**_remote_review(payload,identifier,payload['sha'],status)}
     remote=matches[0];lfs=remote.get('lfs')
     digest=lfs.get('sha256') if isinstance(lfs,dict) else None
     digest=digest if isinstance(digest,str) and re.fullmatch(r'[0-9a-f]{64}',digest) else None
@@ -212,7 +246,8 @@ def check_remote_file(identifier,index,revision=None):
     elif digest and valid_hash:
         status='remote_matches_catalog'
     else:status='remote_comparison_inconclusive'
-    return {**result,'status':status,'remote_sha256':digest,'remote_bytes':size}
+    return {**result,'status':status,'remote_sha256':digest,'remote_bytes':size,
+            **_remote_review(payload,identifier,payload['sha'],status)}
 
 
 def check_local(identifier,index):
