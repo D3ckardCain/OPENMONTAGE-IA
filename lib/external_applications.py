@@ -5,6 +5,7 @@ import threading
 from lib import production_studio as studio
 
 CATALOG={
+ 'krita':{'label':'Krita','purpose':'Editar ilustraciones y proyectos de pintura','executables':['krita.exe','krita'],'extensions':['.kra','.ora','.png','.jpg','.jpeg','.tif','.tiff','.psd'],'mode':'desktop'},
  'ffmpeg':{'label':'FFmpeg','purpose':'Extracción, montaje y exportación desde los flujos del Estudio','executables':['ffmpeg.exe','ffmpeg'],'extensions':[],'mode':'managed_cli','setting':'ffmpeg_path'},
  'ffprobe':{'label':'FFprobe','purpose':'Medición de duración, resolución y pistas','executables':['ffprobe.exe','ffprobe'],'extensions':[],'mode':'managed_cli','setting':'ffprobe_path'},
  'yt-dlp':{'label':'yt-dlp','purpose':'Descargar referencias desde el Estudio','executables':['yt-dlp.exe','yt-dlp'],'extensions':[],'mode':'managed_cli','setting':'yt_dlp_path'},
