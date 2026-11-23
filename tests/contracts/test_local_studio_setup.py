@@ -59,6 +59,7 @@ def test_offline_install_uses_only_target_environment(source, monkeypatch):
     wheels.mkdir()
     report = setup.setup(source, wheels)
     assert report['status'] == 'ready'
+    assert report['dependency_state'] == 'verified_now'
     command, options = calls[0]
     assert command[0] == str(setup.environment_python(source))
     assert '--no-index' in command and '--index-url' not in command

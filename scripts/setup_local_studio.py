@@ -118,12 +118,12 @@ def setup(root: Path, wheelhouse: Path | None = None) -> dict:
         subprocess.run([str(python), '-I', '-c',
                         'import fastapi, uvicorn, yaml, pydantic, requests, jsonschema, dotenv'],
                        cwd=root, env=clean_env, check=True)
-        report.update(status='ready', environment_present=True,
+        report.update(status='ready', environment_present=True, dependency_state='verified_now',
                       completed_at=datetime.now(timezone.utc).isoformat())
         save()
         return report
     except (Exception, KeyboardInterrupt) as exc:
-        report.update(status='failed', error=str(exc) or type(exc).__name__)
+        report.update(status='failed', dependency_state='failed', error=str(exc) or type(exc).__name__)
         save()
         raise
     finally:
