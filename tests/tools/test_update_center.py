@@ -42,6 +42,18 @@ def test_application_release_is_not_local_update(monkeypatch):
     assert updates.check('application','blender')['status']=='manual_review'
 
 
+@pytest.mark.parametrize('siblings',[None,{},[None],[{}],[{'rfilename':[]}],
+    [{'rfilename':'model.bin'},{'rfilename':'model.bin'}]])
+def test_model_source_rejects_incomplete_file_lists(monkeypatch,siblings):
+    row=next(row for offset in range(0,updates.targets()['total'],20)
+             for row in updates.targets(offset,20)['rows'] if row['kind']=='model')
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':siblings})
+    with pytest.raises(ValueError):updates.check('model',row['id'])
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.get('/api/studio/updates/check',params={'kind':'model','identifier':row['id']})
+    assert response.status_code==400
+
+
 def test_discovery_is_bounded_and_does_not_install(monkeypatch):
     urls=[]
     def fetch(url):
@@ -200,3 +212,38 @@ def test_remote_file_api_and_agent_share_explicit_snapshot(remote_catalog,monkey
     assert result['status']=='remote_matches_catalog'
     assert result['remote_revision']=='f'*40
     assert any(tool['function']['name']=='update_remote_file_check' for tool in TOOLS)
+
+
+@pytest.mark.parametrize('license_value,expected',[
+    ('apache-2.0','declared_requires_review'),
+    (['mit','other'],'declared_requires_review'),
+    (None,'license_metadata_incomplete'),
+    ({'name':'mit'},'license_metadata_incomplete'),
+    (['mit',None],'license_metadata_incomplete'),
+    ('<script>alert(1)</script>','license_metadata_incomplete'),
+])
+def test_remote_review_never_grants_rights_or_runtime_approval(remote_catalog,monkeypatch,license_value,expected):
+    monkeypatch.setattr(updates,'_json',lambda url:{
+        'sha':'f'*40,'cardData':{'license':license_value},'gated':'manual','private':False,
+        'siblings':[{'rfilename':'nested/model.safetensors','size':7,'lfs':{'sha256':'b'*64}},
+                    {'rfilename':'LICENSE.md'}]})
+    result=updates.check_remote_file('Org/Video',0,'f'*40)
+    assert result['license_review']['status']==expected
+    assert result['license_review']['commercial_use']=='not_verified'
+    assert result['license_review']['cost_conditions']=='not_verified'
+    assert result['license_review']['license_file_urls']==[
+        'https://huggingface.co/Org/Video/blob/'+'f'*40+'/LICENSE.md']
+    assert result['access_review']=={'gated':'manual','private':False}
+    assert result['compatibility_review']['status']=='catalog_content_matches_runtime_unverified'
+    assert result['compatibility_review']['hardware']=='not_tested'
+    assert result['update_allowed'] is False
+
+
+@pytest.mark.parametrize('missing', [True,False])
+def test_remote_changes_require_review_even_with_declared_license(remote_catalog,monkeypatch,missing):
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'cardData':{'license':'mit'},
+        'siblings':[] if missing else [{'rfilename':'nested/model.safetensors','size':8}]})
+    result=updates.check_remote_file('Org/Video',0)
+    assert result['compatibility_review']['status']=='requires_review'
+    assert result['update_allowed'] is False
+    assert result['access_review']=={'gated':'unknown','private':'unknown'}
