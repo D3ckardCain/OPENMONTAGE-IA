@@ -410,3 +410,39 @@ sin procesos ni red, cambios de ejecutable y ruta, límite de veinte registros,
 fallo de guardado y preservación de un historial dañado. La regresión visual
 consulta el historial sin repetir la comprobación de versión. No se ejecutaron
 binarios reales del usuario; CI del incremento pendiente de completar.
+
+### Versiones locales de FFmpeg y FFprobe
+
+Ambas aplicaciones cuentan ahora con **Ver versión local sin consulta remota**
+y **Ver historial de versiones**. Se ejecuta exclusivamente `-version` en la
+ruta configurada, sin shell ni búsqueda de un sustituto en PATH. Se desactiva
+`FFREPORT` en el entorno privado del proceso para evitar informes automáticos.
+No se ejecutan conversiones, sondeos de medios ni cargas de modelos.
+
+En FFmpeg aparece además **Comparar FFmpeg y FFprobe locales**. Consulta ambos
+binarios y distingue identificadores idénticos, versión base coincidente con
+etiquetas diferentes, versiones diferentes y compilaciones de desarrollo
+no comparables numéricamente. Si falta una herramienta o no reconoce la salida,
+el resultado es inconcluso. Las diferencias se advierten, sin bloquear por sí
+solas la producción ni cambiar la configuración.
+
+La coincidencia del identificador no acredita que coincidan codecs, filtros,
+bibliotecas, arquitectura o capacidades reales. La actualización de estas
+herramientas todavía requiere revisar su distribución y condiciones; no se
+consulta un release ni se ejecutan actualizadores de FFmpeg/FFprobe.
+
+La API `POST /api/studio/updates/application-version` y la consulta de historial
+aceptan también `ffmpeg` y `ffprobe`. Para estos dos identificadores,
+`online=true` solo devuelve la versión local y deja la revisión del release
+como manual; no hace consultas remotas. El par usa
+`POST /api/studio/updates/media-versions` con `{}` y el agente
+`update_media_versions`. Las dos comprobaciones se guardan en sus historiales
+locales, con el límite existente de veinte registros por aplicación.
+
+Seguimiento: [Issue #5](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/5).
+Validación: 206 pruebas locales de versiones, centro, descargas, estudio e
+instrucciones aprobadas; sintaxis JavaScript y diff correctos. Incluye releases,
+compilaciones Git, diferencias de versión/etiqueta y herramienta ausente mediante
+procesos simulados. La nueva regresión visual comprueba la acción explícita y
+la advertencia de versiones distintas. No se ejecutaron los binarios del usuario.
+Referencia: [opciones de versión de FFmpeg/FFprobe](https://ffmpeg.org/ffprobe.html#Generic-options).

@@ -594,3 +594,33 @@ def test_application_version_checks_require_explicit_action(staged_backlot_serve
         assert len(calls)==before
         assert not errors
         browser.close()
+
+
+def test_media_version_pair_is_explicit_and_warns_about_mismatch(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page();calls=[];errors=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={
+            'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188',
+                        'resource_roots':[],'model':''},'pipelines':[],'projects':[]}))
+        page.route('**/api/studio/updates?*',lambda route:route.fulfill(json={
+            'models':0,'applications':2,'untracked_catalog_files':0,'next_offset':None,'note':'fixture',
+            'rows':[{'kind':'application','id':identifier,'label':label,'configured':True,
+                     'file_found':True,'live_check_supported':False}
+                    for identifier,label in [('ffmpeg','FFmpeg'),('ffprobe','FFprobe')]]}))
+        def media(route):
+            calls.append(route.request.post_data_json)
+            route.fulfill(json={'status':'version_mismatch','note':'Identificadores distintos; revisar sin instalar.',
+                'applications':[{'id':'ffmpeg','local_version':'7.1.1'},{'id':'ffprobe','local_version':'8.0'}]})
+        page.route('**/api/studio/updates/media-versions',media)
+        page.goto(staged_backlot_server+'/studio#models')
+        page.locator('#updates-load').click()
+        page.get_by_text('FFmpeg · ejecutable encontrado',exact=True).click()
+        assert not calls
+        page.get_by_role('button',name='Comparar FFmpeg y FFprobe locales',exact=True).click()
+        page.get_by_text('FFmpeg y FFprobe tienen versiones diferentes',exact=True).wait_for()
+        assert 'ffmpeg: 7.1.1' in page.locator('[data-media-versions]').inner_text()
+        assert 'ffprobe: 8.0' in page.locator('[data-media-versions]').inner_text()
+        assert calls==[{}] and not errors
+        browser.close()

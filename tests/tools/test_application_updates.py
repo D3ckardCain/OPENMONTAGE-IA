@@ -12,9 +12,9 @@ from lib import production_studio as studio
 def setup(tmp_path,monkeypatch):
     monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
     def configure(identifier,output,tag):
-        executable=tmp_path/('yt-dlp' if identifier=='yt-dlp' else 'deno')
+        executable=tmp_path/identifier
         executable.write_bytes(b'fixture, never execute')
-        studio.save_json(studio.CONFIG_DIR/'settings.json',{'yt_dlp_path':str(executable)} if identifier=='yt-dlp' else {'deno_path':str(executable)})
+        studio.save_json(studio.CONFIG_DIR/'settings.json',{versions.applications.CATALOG[identifier]['setting']:str(executable)})
         calls=[]
         def run(args,**kwargs):
             calls.append((args,kwargs))
@@ -147,3 +147,53 @@ def test_corrupt_history_is_not_used_or_overwritten(setup):
     result=versions.compare('deno')
     assert result['local_version']=='2.10.0' and result['history_saved'] is False
     assert path.read_text()=='broken'
+
+
+@pytest.mark.parametrize('identifier,token',[
+    ('ffmpeg','7.1.1-full_build'),('ffprobe','7.1'),('ffmpeg','N-117000-gabc123'),
+    ('ffprobe','2026-11-20-git-abc123-full_build'),
+])
+def test_media_version_probes_are_local_and_fixed(setup,monkeypatch,identifier,token):
+    calls,executable=setup(identifier,identifier+' version '+token+' Copyright\nlibavcodec 1.0','unused')
+    monkeypatch.setattr(versions.updates,'check',lambda *args:pytest.fail('No remote release check allowed'))
+    monkeypatch.setenv('FFREPORT','file=should-not-write.log')
+    report=versions.compare(identifier,False)
+    assert report['status']=='local_version_checked' and report['local_version']==token
+    assert calls[0][0]==[str(executable),'-version']
+    assert 'FFREPORT' not in calls[0][1]['env']
+    assert versions.history(identifier)['rows'][0]['local_version']==token
+    assert versions.compare(identifier,True)['status']=='release_review_required'
+
+
+@pytest.mark.parametrize('left,right,state',[
+    ('7.1.1','7.1.1','version_labels_match'),
+    ('7.1-full','7.1.0-other','same_release_different_labels'),
+    ('7.1.1','8.0','version_mismatch'),
+    ('N-117000-gabc123','N-117001-gabc124','build_labels_differ'),
+])
+def test_media_pair_compares_observed_labels_without_compatibility_claim(setup,monkeypatch,left,right,state):
+    _,ffmpeg=setup('ffmpeg','unused','unused')
+    _,ffprobe=setup('ffprobe','unused','unused')
+    studio.save_json(studio.CONFIG_DIR/'settings.json',{'ffmpeg_path':str(ffmpeg),'ffprobe_path':str(ffprobe)})
+    def run(args,**kwargs):
+        token=left if Path(args[0]).name=='ffmpeg' else right
+        return SimpleNamespace(returncode=0,stdout=(Path(args[0]).name+' version '+token).encode())
+    from pathlib import Path
+    monkeypatch.setattr(versions.subprocess,'run',run)
+    monkeypatch.setattr(versions.updates,'check',lambda *args:pytest.fail('No network'))
+    report=versions.media_versions()
+    assert report['status']==state and report['compatibility_verified'] is False
+    assert report['network_checked'] is False and report['configuration_changed'] is False
+
+
+def test_media_pair_api_and_agent_report_missing_partner(setup):
+    from lib.production_agent import LocalAgent
+    setup('ffmpeg','ffmpeg version 7.1.1','unused')
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.post('/api/studio/updates/media-versions',json={})
+    assert response.status_code==200,response.text
+    assert response.json()['status']=='media_versions_inconclusive'
+    worker=LocalAgent.__new__(LocalAgent)
+    assert worker.dispatch('update_media_versions',{})['status']=='media_versions_inconclusive'
+    assert worker.dispatch('update_application_version',{'identifier':'ffmpeg','online':False})['local_version']=='7.1.1'
+    assert client.post('/api/studio/updates/media-versions',json={'path':'other'}).status_code==400

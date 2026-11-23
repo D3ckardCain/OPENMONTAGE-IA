@@ -461,6 +461,11 @@ def create_studio_router():
         data=await body(request)
         if set(data)-{'identifier','online'} or 'identifier' not in data:raise HTTPException(400,'Indica aplicación y consulta remota opcional')
         return await asyncio.to_thread(lambda:invoke(compare,data['identifier'],data.get('online',True)))
+    @router.post('/api/studio/updates/media-versions')
+    async def update_media_versions(request:Request):
+        from lib.application_updates import media_versions
+        if await body(request):raise HTTPException(400,'La comprobación multimedia no admite parámetros')
+        return await asyncio.to_thread(lambda:invoke(media_versions))
     @router.get('/api/studio/updates/application-version-history')
     def update_application_version_history(identifier:str):
         from lib.application_updates import history

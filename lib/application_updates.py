@@ -9,7 +9,7 @@ from lib import production_studio as studio
 from lib import external_applications as applications
 from lib import update_center as updates
 
-_COMMANDS={'yt-dlp':['--ignore-config','--no-plugin-dirs','--version'],'deno':['--version']}
+_COMMANDS={'yt-dlp':['--ignore-config','--no-plugin-dirs','--version'],'deno':['--version'],'ffmpeg':['-version'],'ffprobe':['-version']}
 
 
 def _version(identifier,value,release=False):
@@ -25,7 +25,7 @@ def _version(identifier,value,release=False):
 
 
 def _compare(identifier,online=True):
-    if identifier not in _COMMANDS:raise ValueError('Comprobación disponible solo para yt-dlp y Deno')
+    if identifier not in _COMMANDS:raise ValueError('Aplicación sin comprobación de versión configurada')
     if type(online) is not bool:raise ValueError('Modo de consulta inválido')
     item=applications.CATALOG[identifier]
     configured=studio.settings().get(item['setting'],'')
@@ -41,6 +41,9 @@ def _compare(identifier,online=True):
         if not path.is_file():return {**result,'status':'local_unavailable'}
         before=path.stat()
         env={**os.environ,'DENO_NO_UPDATE_CHECK':'1'}
+        if identifier in ('ffmpeg','ffprobe'):
+            env.pop('FFREPORT',None)
+            env['AV_LOG_FORCE_NOCOLOR']='1'
         result['process_attempted']=True
         process=subprocess.run([str(path),*_COMMANDS[identifier]],stdin=subprocess.DEVNULL,
                                stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,
@@ -54,6 +57,13 @@ def _compare(identifier,online=True):
     if process.returncode!=0 or len(process.stdout)>16_384:return {**result,'status':'version_probe_failed'}
     result.update(local_executable=str(path),executable_fingerprint=_fingerprint(after))
     output=process.stdout.decode('utf-8',errors='replace').strip()
+    if identifier in ('ffmpeg','ffprobe'):
+        match=re.match(re.escape(identifier)+r' version (\S{1,120})(?:\s|$)',output)
+        token=match.group(1) if match else None
+        pattern=r'(?:n?\d+\.\d+(?:\.\d+)?(?:[-+][\w.+-]+)?|N-\d+-g[0-9a-f]+(?:[-+][\w.+-]+)?|\d{4}-\d{2}-\d{2}-git-[0-9a-f]+(?:[-+][\w.+-]+)?)'
+        if not token or not re.fullmatch(pattern,token):return {**result,'status':'local_version_unrecognized'}
+        return {**result,'local_version':token,'status':'local_version_checked' if not online else 'release_review_required',
+                'source_url':'https://ffmpeg.org/download.html'}
     match=re.fullmatch(r'\d{4}\.\d{2}\.\d{2}',output) if identifier=='yt-dlp' else re.match(r'deno (\S+)(?:\s|$)',output)
     local=match.group(0) if identifier=='yt-dlp' and match else match.group(1) if match else None
     local_parts=_version(identifier,local)
@@ -75,7 +85,7 @@ def _compare(identifier,online=True):
 _HISTORY_LIMIT=128_000
 _STATUSES={'local_unavailable','version_probe_failed','executable_changed_during_probe',
            'local_version_unrecognized','local_version_checked','remote_unavailable',
-           'comparison_inconclusive','update_available','versions_match','local_newer_than_release'}
+           'release_review_required','comparison_inconclusive','update_available','versions_match','local_newer_than_release'}
 
 
 def _fingerprint(info):
@@ -145,3 +155,22 @@ def history(identifier):
                      'historical':True,'executable_state':state,'current_version_verified':False})
     return {'id':identifier,'rows':rows,'network_checked':False,'process_started':False,
             'note':'Resultados históricos de hasta veinte consultas por aplicación. Coincidir en metadatos no equivale a verificar contenido o versión actual; vuelve a comprobar explícitamente el ejecutable si hace falta.'}
+
+
+def _media_release(token):
+    match=re.match(r'n?(\d{1,3})\.(\d{1,3})(?:\.(\d{1,3}))?(?=$|[-+])',token)
+    return tuple(int(value or 0) for value in match.groups()) if match else None
+
+
+def media_versions():
+    ffmpeg=compare('ffmpeg',False);ffprobe=compare('ffprobe',False)
+    status='media_versions_inconclusive'
+    if ffmpeg['status']==ffprobe['status']=='local_version_checked':
+        left=ffmpeg['local_version'];right=ffprobe['local_version']
+        if left==right:status='version_labels_match'
+        elif _media_release(left) is not None and _media_release(right) is not None:
+            status='same_release_different_labels' if _media_release(left)==_media_release(right) else 'version_mismatch'
+        else:status='build_labels_differ'
+    return {'status':status,'applications':[ffmpeg,ffprobe],'network_checked':False,
+            'compatibility_verified':False,'configuration_changed':False,'checked_at':studio.now(),
+            'note':'Comparación de identificadores de versión locales; una coincidencia no acredita bibliotecas, codecs, filtros, arquitectura ni compatibilidad real. Las diferencias requieren revisión, no provocan instalación ni sustitución automática.'}
