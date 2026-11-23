@@ -34,6 +34,11 @@ def require_valid(path,request):
     if (isinstance(previous,dict) and previous.get('packaging_revision')
             and packaging['revision'] is None):
         raise ValueError('Selección editorial del render ausente')
+    from lib.project_thumbnail import current as thumbnail_current
+    thumbnail=thumbnail_current(path.name)
+    if (isinstance(previous,dict) and previous.get('thumbnail_revision')
+            and thumbnail['status']=='missing'):
+        raise ValueError('Miniatura del render ausente')
 
 
 def project_problem(path):
@@ -44,6 +49,8 @@ def project_problem(path):
     if (not request.get('research_idea') and not request.get('performance_import_id')
             and not (path/'artifacts/packaging_options.json').exists()
             and not (path/'artifacts/packaging_options.json').is_symlink()
+            and not (path/'artifacts/thumbnail_review.json').exists()
+            and not (path/'artifacts/thumbnail_review.json').is_symlink()
             and not (isinstance(previous,dict) and previous.get('packaging_revision'))):return None
     try:
         require_valid(path,request)

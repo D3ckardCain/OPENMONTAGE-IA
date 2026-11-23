@@ -10,7 +10,7 @@ Revisión del catálogo de 26 recursos en [la biblioteca](https://biblioteca.sys
 | 2 | Nichos y canales: analizar muestra completa, consistencia, antigüedad y excepciones | El buscador audita ventanas de 7, 30, 90 o 365 días por páginas, conserva cada informe local con hash y compara dos expedientes elegidos solo por videos comunes. Permite guardar una propuesta original vinculada a un expediente; las observaciones manuales de vidIQ se guardan por video y fecha | Parcial |
 | 3 | Filtrado de ideas y diagnóstico de alcance, clics y retención | Comparación editorial de dos a cinco propuestas guardadas. Importación opcional de CSV propio con video, periodo, impresiones, clics, vistas y duraciones, con cálculos descriptivos y campos ausentes explícitos. El CTR oficial y la curva de retención siguen pendientes de una fuente autorizada | Parcial |
 | 4 | Guiones: título, apertura, bloques, voz, indicaciones visuales y revisión factual | Plantilla editable de cinco bloques por proyecto, con voz, visuales, referencia y duración objetivo. El estudio revisa también el guion del pipeline por secciones. La aprobación factual y la escucha de voz siguen siendo revisión humana | Parcial |
-| 5 | Títulos y miniaturas | Entre dos y cinco variantes por proyecto, vista de texto a ancho de móvil y selección editorial guardada para el agente. Generar y evaluar la imagen final sigue pendiente | Parcial |
+| 5 | Títulos y miniaturas | Entre dos y cinco variantes, selección editorial y carga opcional de PNG/JPEG 16:9 para revisión visual a ancho de móvil. La generación local automática y aprobación de la imagen siguen pendientes | Parcial |
 | 6 | Flujo de tareas y retroalimentación | Estado por etapa, trazabilidad del artefacto, medición de tiempos y revisión de calidad con datos reales del canal | Parcial |
 | 7 | Stock externo | Evaluar licencia, procedencia y restricciones de uso de cada activo antes de admitirlo como fuente de una pieza | Pendiente |
 
@@ -63,6 +63,8 @@ El agente dispone de `saved_channel_performance` con el ID de importación visib
 «Títulos y miniaturas» permite redactar dos a cinco títulos, textos de miniatura, conceptos visuales y notas de fuente. La comparación de texto a 320 píxeles muestra cortes y densidad aproximados; no genera imágenes. La selección explícita se guarda con versión para prevenir sobrescrituras y `project_packaging_options` la deja disponible al agente. No se estima CTR ni se autoriza automáticamente una portada o publicación.
 
 La revisión técnica del render incluye la versión de las variantes editoriales si se guardaron. Cambiar título, texto, concepto o selección después de verificarlo hace que el render y su entrega ya no aparezcan vigentes. Una copia alterada bloquea la cola y el inicio hasta que se revise; los proyectos previos sin variantes conservan su verificación anterior.
+
+La imagen real de una variante seleccionada puede cargarse en PNG o JPEG estático, con proporción 16:9, mínimo 640 × 360, máximo 16 megapíxeles y 8 MB. El estudio la presenta a 320 píxeles y conserva su SHA-256 y versión editorial; `project_thumbnail` expone los metadatos al agente. Cambiar la selección o los bytes de la imagen invalida la asociación; reemplazarla después del render hace que éste deje de figurar como vigente. La carga no confirma derechos, exactitud ni requisitos de una plataforma concreta.
 
 ### Enlaces revisados
 

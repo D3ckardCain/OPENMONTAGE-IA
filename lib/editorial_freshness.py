@@ -31,13 +31,16 @@ def research_index(project):
         from lib.packaging_options import read as read_packaging
         packaging=read_packaging(project.name)
         packaging_revision=packaging['revision']
-        if not request.get('research_idea') and not request.get('performance_import_id') and not packaging_revision:return None
+        from lib.project_thumbnail import current as thumbnail_current
+        thumbnail=thumbnail_current(project.name)
+        if not request.get('research_idea') and not request.get('performance_import_id') and not packaging_revision and thumbnail['status']=='missing':return None
         from lib.project_channel_performance import verified as verified_performance
         performance=verified_performance(project,request)
         result=({'performance_import_id':request['performance_import_id'],
                  'performance_import_sha256':performance['sha256']}
                 if performance else {})
         if packaging_revision:result['packaging_revision']=packaging_revision
+        if thumbnail['status']=='review':result['thumbnail_revision']=thumbnail['revision']
         if not request.get('research_idea'):return result
         from lib.project_channel_evidence import verified
         from lib.project_video_observations import verified_rows

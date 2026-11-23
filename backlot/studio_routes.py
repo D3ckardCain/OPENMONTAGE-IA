@@ -231,6 +231,17 @@ def create_studio_router():
     async def packaging_options_save(pid:str,request:Request):
         from lib.packaging_options import save
         return invoke(save,pid,await body(request,12000))
+    @router.get('/api/studio/project-thumbnail/{pid}')
+    def project_thumbnail_read(pid:str):
+        from lib.project_thumbnail import current
+        return invoke(current,pid)
+    @router.post('/api/studio/project-thumbnail/{pid}')
+    async def project_thumbnail_stage(pid:str,request:Request):
+        from lib.project_thumbnail import stage
+        data=await body(request,11000000)
+        with agent.ACTIVE_LOCK:
+            if pid in agent.ACTIVE:raise HTTPException(409,'Detén los agentes antes de cambiar la miniatura')
+            return invoke(stage,pid,data)
     @router.get('/api/studio/channel-research/{pid}')
     def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_channel_evidence import page
