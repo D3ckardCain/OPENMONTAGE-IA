@@ -1,5 +1,7 @@
 import pytest
 import hashlib
+import io
+from pathlib import Path
 from fastapi.testclient import TestClient
 
 from backlot.server import create_app
@@ -85,3 +87,33 @@ def test_explicit_local_file_hash_matches_only_catalogued_bytes(tmp_path,monkeyp
     target.unlink()
     assert updates.check_local('Org/Video',0)['status']=='missing_or_link'
     with pytest.raises(ValueError):updates.check_local('Org/Video',1)
+
+
+@pytest.mark.parametrize('content',[b'',b'weights'])
+def test_local_hash_handles_empty_files_and_stat_failure(tmp_path,monkeypatch,content):
+    target=tmp_path/'model.bin';target.write_bytes(content)
+    monkeypatch.setattr(updates,'_files',lambda identifier:[{
+        'destination':str(target),'catalog_sha256':hashlib.sha256(content).hexdigest(),
+        'catalog_bytes':len(content)}])
+    assert updates.check_local('Org/Video',0)['status']=='matches_catalog'
+    original=Path.stat
+    def unavailable(path,*args,**kwargs):
+        if path==target:raise PermissionError('unavailable')
+        return original(path,*args,**kwargs)
+    monkeypatch.setattr(Path,'stat',unavailable)
+    assert updates.check_local('Org/Video',0)['status']=='unreadable'
+
+
+def test_local_hash_stops_reading_a_growing_file(tmp_path,monkeypatch):
+    target=tmp_path/'model.bin';target.write_bytes(b'old')
+    monkeypatch.setattr(updates,'_files',lambda identifier:[{
+        'destination':str(target),'catalog_sha256':hashlib.sha256(b'old').hexdigest(),
+        'catalog_bytes':3}])
+    original=Path.open
+    def growing(path,*args,**kwargs):
+        if path==target:return io.BytesIO(b'old'+b'x'*100)
+        return original(path,*args,**kwargs)
+    monkeypatch.setattr(Path,'open',growing)
+    result=updates.check_local('Org/Video',0)
+    assert result['status']=='changed_during_check'
+    assert result['bytes_read']==4

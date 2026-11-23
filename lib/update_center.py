@@ -178,18 +178,22 @@ def check_local(identifier,index):
     entry=records[index];path=Path(entry['destination'])
     result={**entry,'index':index,'checked_at':studio.now(),'bytes_read':0}
     if not path.is_absolute():return {**result,'status':'unavailable_on_this_host'}
-    if path.is_symlink() or not path.is_file():return {**result,'status':'missing_or_link'}
-    before=path.stat()
-    if not 0<before.st_size<=100_000_000_000:return {**result,'status':'size_out_of_bounds'}
     digest=hashlib.sha256();count=0
     try:
+        if path.is_symlink() or not path.is_file():return {**result,'status':'missing_or_link'}
+        before=path.stat()
+        if not 0<=before.st_size<=100_000_000_000:return {**result,'status':'size_out_of_bounds'}
         with path.open('rb') as stream:
-            for chunk in iter(lambda:stream.read(4*1024*1024),b''):
+            # Never chase a growing file: read at most its initial size plus
+            # one byte, which is enough to detect an append during this check.
+            while count<=before.st_size:
+                chunk=stream.read(min(4*1024*1024,before.st_size-count+1))
+                if not chunk:break
                 digest.update(chunk);count+=len(chunk)
         after=path.stat()
     except OSError:return {**result,'status':'unreadable','bytes_read':count}
     result.update(bytes_read=count,local_sha256=digest.hexdigest(),local_bytes=after.st_size)
-    if (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns):
+    if count!=before.st_size or (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns):
         return {**result,'status':'changed_during_check'}
     expected=entry['catalog_sha256'];size=entry['catalog_bytes']
     if not isinstance(expected,str) or not re.fullmatch('[0-9a-f]{64}',expected):
