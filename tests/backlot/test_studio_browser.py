@@ -28,6 +28,9 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
             else:
                 route.fulfill(json={'status':'remote_matches_catalog' if len(calls)==1 else 'remote_comparison_inconclusive',
                     'remote_revision':'f'*40,'remote_bytes':7,'remote_sha256':'b'*64 if len(calls)==1 else None,
+                    'license_review':{'declared':['mit'],'model_card_url':'https://huggingface.co/Org/Video/blob/'+'f'*40+'/README.md','license_file_urls':[]},
+                    'compatibility_review':{'reason':'Windows, adaptador y hardware sin validar.'},
+                    'access_review':{'gated':'manual','private':False},
                     'note':'Comparación del catálogo; no comprueba el disco local.'})
         page.route('**/api/studio/updates/remote-file-check?*',compare)
         local_reads=[]
@@ -40,6 +43,9 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         button.click()
         page.get_by_text('El archivo remoto coincide con el catálogo',exact=True).wait_for()
         assert 'f'*40 in page.locator('[data-remote-file-check]').inner_text()
+        assert 'Licencia declarada: mit' in page.locator('[data-remote-file-check]').inner_text()
+        assert 'hardware sin validar' in page.locator('[data-remote-file-check]').inner_text()
+        assert page.get_by_role('link',name='Consultar evidencia en la revisión').get_attribute('href')=='https://huggingface.co/Org/Video/blob/'+'f'*40+'/README.md'
         button.click()
         page.get_by_text('Metadatos insuficientes para confirmar coincidencia',exact=True).wait_for()
         assert page.locator('[data-remote-file-check]').count()==1
