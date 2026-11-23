@@ -24,6 +24,25 @@ def test_on_demand_integrity_checks_source_and_final_without_modifying_files(tmp
     assert result['all_files_match'] is False and result['outputs'][0]['final_result']=='hash_mismatch'
 
 
+def test_integrity_marks_changed_research_stale_even_when_files_match(tmp_path,monkeypatch):
+    monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
+    project=studio.PROJECTS_DIR/'one'
+    studio.save_json(project/'production_request.json',{'title':'one'})
+    source=project/'renders/video.mp4';source.parent.mkdir();source.write_bytes(b'video')
+    sha=hashlib.sha256(b'video').hexdigest()
+    monkeypatch.setattr(final_integrity,'read_config',lambda *args:{})
+    monkeypatch.setattr(final_integrity,'research_index',lambda *args:{'asset_sources_revision':'new'})
+    studio.save_json(project/'render_verification.json',{'status':'passed',
+        'finished_at':'2026-11-22T10:00:00+00:00',
+        'channel_research':{'asset_sources_revision':'old'},
+        'outputs':[{'path':str(source),'sha256':sha}]})
+    result=final_integrity.inspect('one')
+    assert result['all_files_match'] is True
+    assert result['verification_current'] is False
+    assert result['final_copy_current'] is False
+    assert result['verification_reasons']
+
+
 def test_duplicate_final_receipt_cannot_report_all_files_matching(tmp_path,monkeypatch):
     monkeypatch.setattr(studio,'PROJECTS_DIR',tmp_path/'projects')
     project=studio.PROJECTS_DIR/'one'

@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 from lib import production_studio as studio
-from lib.editorial_freshness import current,delivery_current,selection_index
+from lib.editorial_freshness import current,delivery_current,selection_index,research_index,stale_reasons
 from lib.storage_layout import read_config
 
 
@@ -39,6 +39,7 @@ def inspect(project_id):
     delivery=studio.read_json(project/'final_delivery.json',{})
     reviews=studio.read_json(project/'editorial_reviews.json',[])
     index=selection_index(project)
+    research=research_index(project)
     verified=verification.get('outputs',[]) if isinstance(verification,dict) else []
     if not isinstance(verified,list) or len(verified)>16:raise ValueError('Se admiten hasta 16 salidas verificadas por consulta')
     receipts=delivery.get('outputs',[]) if isinstance(delivery,dict) and delivery.get('copied') is True else []
@@ -69,8 +70,9 @@ def inspect(project_id):
                 final_result=_check(_checked_path(dest.get('path'),final_root),expected) if final_root else 'destination_not_configured'
         outputs.append({'source':str(source) if source else None,'source_result':source_result,
                         'final_path':dest.get('path') if isinstance(dest,dict) else None,'final_result':final_result})
-    return {'project_id':project_id,'verification_current':current(verification,reviews,index),
-            'final_copy_current':delivery_current(verification,delivery,reviews,index),
+    return {'project_id':project_id,'verification_current':current(verification,reviews,index,research),
+            'verification_reasons':stale_reasons(verification,reviews,index,research),
+            'final_copy_current':delivery_current(verification,delivery,reviews,index,research),
             'outputs':outputs,'receipt_manifest_matches':copied_manifest_valid and verified_manifest_valid,
             'all_files_match':bool(outputs) and copied_manifest_valid and verified_manifest_valid and all(
                 row['source_result']=='matches' and row['final_result'] in (None,'matches') for row in outputs),
