@@ -24,6 +24,10 @@ def test_asset_provenance_binds_existing_file_and_render(tmp_path,monkeypatch):
     assert client.get(url).json()['status']=='empty'
     saved=client.post(url,json={'entry':entry(),'expected_revision':None}).json()
     assert saved['status']=='draft' and len(saved['entries'])==1
+    from lib.project_asset_sources import _hash_file
+    before=_hash_file.cache_info().hits
+    client.get(url)
+    assert _hash_file.cache_info().hits>before
     assert agent.LocalAgent(pid).dispatch('project_asset_sources',{})['revision']==saved['revision']
     assert client.post(url,json={'entry':entry(),'expected_revision':None}).status_code==400
     baseline=research_index(project)

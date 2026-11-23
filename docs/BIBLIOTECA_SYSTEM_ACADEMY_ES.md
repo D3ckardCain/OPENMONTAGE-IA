@@ -68,6 +68,8 @@ La imagen real de una variante seleccionada puede cargarse en PNG o JPEG estáti
 
 «Procedencia de medios» registra hasta veinte archivos locales de `assets/`, `source_images/` o `thumbnails/` de hasta 100 MB cada uno. Para stock requiere enlace HTTPS de origen y licencia, además de autor, condiciones declaradas de uso comercial, modificación y notas. El archivo se compara por SHA-256 y `project_asset_sources` permite al agente leer el registro. Si se altera el medio o desaparece el registro tras verificar un render, la cola y la producción se bloquean y la entrega deja de ser vigente. Este registro solo conserva declaraciones locales: no valida el texto legal de la licencia ni incorpora automáticamente todos los activos existentes; los clips grandes requieren un flujo escalable aparte.
 
+Las lecturas repetidas reutilizan el hash calculado mientras coincidan dispositivo, archivo, tamaño y tiempos de modificación y cambio del sistema de archivos. Un cambio de archivo invalida esa reutilización; se comprueba también que no cambie durante el cálculo. Es una optimización del estudio local para evitar volver a leer el mismo medio en cada refresco.
+
 ### Enlaces revisados
 
 - [Catálogo de recursos](https://biblioteca.systemacademy.es/recursos)

@@ -1,5 +1,6 @@
 """Project-scoped provenance ledger for local media proposed for production."""
 import hashlib
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -10,11 +11,22 @@ from lib.channel_dossiers import _digest
 def _record_path(project):return project/'artifacts/asset_sources.json'
 
 
-def _checksum(path):
+@lru_cache(maxsize=128)
+def _hash_file(path,key):
     digest=hashlib.sha256()
-    with path.open('rb') as stream:
+    with Path(path).open('rb') as stream:
         for block in iter(lambda:stream.read(1024*1024),b''):digest.update(block)
     return digest.hexdigest()
+
+
+def _checksum(path):
+    before=path.stat()
+    key=(before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns,before.st_ctime_ns)
+    digest=_hash_file(str(path),key)
+    after=path.stat()
+    if key!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns,after.st_ctime_ns):
+        raise ValueError('El medio cambió durante la comprobación')
+    return digest
 
 
 def _asset(project,relative):
