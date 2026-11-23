@@ -70,6 +70,7 @@ TOOLS=[
  descriptor('update_discover','Busca hasta diez nuevos modelos o aplicaciones en Hugging Face o GitHub. Son candidatos sin evaluación de licencia, coste ni compatibilidad; no instala.',{'kind':{'enum':['model','application']},'query':{'type':'string','minLength':3,'maxLength':60}},['kind','query']),
  descriptor('update_model_files','Lista archivos esperados de un modelo por páginas. No lee los pesos locales.',{'identifier':{'type':'string'},'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}},['identifier']),
  descriptor('update_local_file_check','Calcula SHA-256 de un archivo catalogado en el disco local. Puede tardar con pesos grandes; no descarga ni sustituye.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0}},['identifier','index']),
+ descriptor('update_remote_file_check','Compara un archivo del catálogo con tamaño y SHA-256 remoto cuando exista. revision fija un commit; sin ella consulta la revisión actual. No lee el disco ni descarga pesos; un cambio no demuestra mejora.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0},'revision':{'type':'string','pattern':'^[0-9a-f]{40}$'}},['identifier','index']),
  descriptor('project_files','Lista archivos existentes del proyecto, sin leer recursos externos.'),
  descriptor('read_project_file','Lee un archivo de texto del proyecto.',{'path':{'type':'string'}},['path']),
  descriptor('write_project_file','Crea textos, subtítulos o código de composición en assets/ o workspaces/.',{'path':{'type':'string'},'content':{'type':'string','maxLength':300000}},['path','content']),
@@ -275,6 +276,9 @@ class LocalAgent:
         if name=='update_local_file_check':
             from lib.update_center import check_local
             return check_local(args['identifier'],args['index'])
+        if name=='update_remote_file_check':
+            from lib.update_center import check_remote_file
+            return check_remote_file(args['identifier'],args['index'],args.get('revision'))
         if name=='model_catalog':
             data=studio.resource_catalog()
             if args.get('group_id'):

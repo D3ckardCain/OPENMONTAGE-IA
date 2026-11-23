@@ -117,3 +117,86 @@ def test_local_hash_stops_reading_a_growing_file(tmp_path,monkeypatch):
     result=updates.check_local('Org/Video',0)
     assert result['status']=='changed_during_check'
     assert result['bytes_read']==4
+
+
+@pytest.fixture
+def remote_catalog(tmp_path,monkeypatch):
+    monkeypatch.setattr(studio,'REPO_ROOT',tmp_path)
+    studio.save_json(tmp_path/'docs/models/test.json',{'files':[{
+        'destination':'D:/models/model.safetensors',
+        'url':'https://huggingface.co/Org/Video/resolve/'+'a'*40+'/nested/model.safetensors',
+        'size_bytes':7,'sha256':'b'*64}]})
+
+
+@pytest.mark.parametrize('metadata,status',[
+    ({'size':7,'lfs':{'sha256':'b'*64}},'remote_matches_catalog'),
+    ({'size':7,'lfs':{'sha256':'c'*64}},'remote_differs_from_catalog'),
+    ({'size':8,'lfs':{'sha256':'b'*64}},'remote_differs_from_catalog'),
+    ({'size':8},'remote_differs_from_catalog'),
+    ({'size':7,'blobId':'b'*40},'remote_comparison_inconclusive'),
+    ({'size':True,'lfs':{'sha256':'invalid'}},'remote_comparison_inconclusive'),
+    ({},'remote_comparison_inconclusive'),
+])
+def test_remote_file_compares_content_not_repository_commit(remote_catalog,monkeypatch,metadata,status):
+    urls=[]
+    def fetch(url):
+        urls.append(url)
+        return {'sha':'f'*40,'siblings':[{'rfilename':'nested/model.safetensors',**metadata}]}
+    monkeypatch.setattr(updates,'_json',fetch)
+    result=updates.check_remote_file('Org/Video',0)
+    assert result['status']==status
+    assert result['remote_revision']=='f'*40
+    assert result['catalog_revision']=='a'*40
+    assert result['downloads_started']==0
+    assert urls==['https://huggingface.co/api/models/Org/Video?blobs=true']
+
+
+def test_remote_file_missing_and_pinned_revision(remote_catalog,monkeypatch):
+    urls=[]
+    def fetch(url):
+        urls.append(url)
+        return {'sha':'f'*40,'siblings':[]}
+    monkeypatch.setattr(updates,'_json',fetch)
+    result=updates.check_remote_file('Org/Video',0,'f'*40)
+    assert result['status']=='missing_at_remote_revision'
+    assert urls==['https://huggingface.co/api/models/Org/Video/revision/'+'f'*40+'?blobs=true']
+    with pytest.raises(ValueError,match='revisión solicitada'):
+        updates.check_remote_file('Org/Video',0,'e'*40)
+
+
+@pytest.mark.parametrize('payload',[
+    None,{}, {'sha':'invalid','siblings':[]}, {'sha':'f'*40},
+    {'sha':'f'*40,'siblings':[{}]},
+    {'sha':'f'*40,'siblings':[{'rfilename':'nested/model.safetensors'}]*2},
+])
+def test_remote_file_rejects_incomplete_or_ambiguous_metadata(remote_catalog,monkeypatch,payload):
+    monkeypatch.setattr(updates,'_json',lambda url:payload)
+    with pytest.raises(ValueError):updates.check_remote_file('Org/Video',0)
+
+
+@pytest.mark.parametrize('identifier,index,revision',[
+    ('Org/Unknown',0,None),('Org/Video',True,None),('Org/Video',-1,None),
+    ('Org/Video',1,None),('Org/Video',0,'main'),('Org/Video',0,'f'*40+'/../'),
+])
+def test_remote_file_rejects_invalid_requests_before_network(remote_catalog,monkeypatch,identifier,index,revision):
+    def forbidden(url):pytest.fail('Invalid requests must not access the network')
+    monkeypatch.setattr(updates,'_json',forbidden)
+    with pytest.raises(ValueError):updates.check_remote_file(identifier,index,revision)
+
+
+def test_remote_file_api_and_agent_share_explicit_snapshot(remote_catalog,monkeypatch):
+    from lib.production_agent import LocalAgent,TOOLS
+    monkeypatch.setattr(updates,'_json',lambda url:{'sha':'f'*40,'siblings':[
+        {'rfilename':'nested/model.safetensors','size':7,'lfs':{'sha256':'b'*64}}]})
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    args={'identifier':'Org/Video','index':0,'revision':'f'*40}
+    response=client.get('/api/studio/updates/remote-file-check',params=args)
+    assert response.status_code==200,response.text
+    assert response.json()['status']=='remote_matches_catalog'
+    assert response.json()['remote_revision']=='f'*40
+    assert client.get('/api/studio/updates/remote-file-check',params={**args,'revision':'main'}).status_code==400
+    worker=LocalAgent.__new__(LocalAgent)
+    result=worker.dispatch('update_remote_file_check',args)
+    assert result['status']=='remote_matches_catalog'
+    assert result['remote_revision']=='f'*40
+    assert any(tool['function']['name']=='update_remote_file_check' for tool in TOOLS)

@@ -6,6 +6,53 @@ from playwright.sync_api import sync_playwright
 from tests.backlot.test_ui_bug_bash import staged_backlot_server
 
 
+def test_update_file_remote_comparison_without_local_reads(staged_backlot_server):
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={
+            'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188',
+                        'resource_roots':[],'model':''},'pipelines':[],'projects':[]}))
+        page.route('**/api/studio/updates?*',lambda route:route.fulfill(json={
+            'models':1,'applications':0,'untracked_catalog_files':0,'next_offset':None,'note':'fixture',
+            'rows':[{'kind':'model','id':'Org/Video','catalog_file_count':1,'catalog_revisions':['a'*40]}]}))
+        page.route('**/api/studio/updates/files?*',lambda route:route.fulfill(json={
+            'note':'fixture','next_offset':None,'rows':[{
+                'index':0,'filename':'nested/model.safetensors','destination':'D:/models/model.safetensors'}]}))
+        calls=[]
+        def compare(route):
+            calls.append(route.request.url)
+            if len(calls)==3:
+                route.fulfill(status=400,json={'detail':'Fuente no disponible'})
+            else:
+                route.fulfill(json={'status':'remote_matches_catalog' if len(calls)==1 else 'remote_comparison_inconclusive',
+                    'remote_revision':'f'*40,'remote_bytes':7,'remote_sha256':'b'*64 if len(calls)==1 else None,
+                    'note':'Comparación del catálogo; no comprueba el disco local.'})
+        page.route('**/api/studio/updates/remote-file-check?*',compare)
+        local_reads=[]
+        page.route('**/api/studio/updates/local-check?*',lambda route:local_reads.append(route.request.url))
+        page.goto(staged_backlot_server+'/studio#models')
+        page.locator('#updates-load').click()
+        page.locator('#updates-result summary').click()
+        page.get_by_role('button',name='Ver archivos y comprobar uno',exact=True).click()
+        button=page.get_by_role('button',name='Comparar archivo con revisión remota actual',exact=True)
+        button.click()
+        page.get_by_text('El archivo remoto coincide con el catálogo',exact=True).wait_for()
+        assert 'f'*40 in page.locator('[data-remote-file-check]').inner_text()
+        button.click()
+        page.get_by_text('Metadatos insuficientes para confirmar coincidencia',exact=True).wait_for()
+        assert page.locator('[data-remote-file-check]').count()==1
+        assert 'El archivo remoto coincide' not in page.locator('[data-remote-file-check]').inner_text()
+        button.click()
+        page.locator('#notice').get_by_text('Fuente no disponible',exact=True).wait_for()
+        assert button.is_enabled()
+        assert page.locator('[data-remote-file-check]').count()==0
+        assert all('identifier=Org%2FVideo&index=0' in url for url in calls)
+        assert not local_reads and not errors
+        browser.close()
+
+
 def test_studio_creation_control_and_review(staged_backlot_server):
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get("OPENMONTAGE_TEST_CHROMIUM"))

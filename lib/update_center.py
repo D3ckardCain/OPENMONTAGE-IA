@@ -171,6 +171,50 @@ def files(identifier,offset=0,limit=10):
             'note':'Rutas previstas por el catálogo; todavía no se ha leído ningún peso del disco. La comprobación local de SHA-256 se solicita por archivo y puede tardar.'}
 
 
+def check_remote_file(identifier,index,revision=None):
+    """Compare one catalog entry with metadata from a single remote snapshot.
+
+    Git blob IDs are not content SHA-256 digests. Only LFS SHA-256 metadata
+    can certify equality with the catalog; equal sizes alone cannot.
+    """
+    if type(index) is not int or index<0:raise ValueError('Índice inválido')
+    records=_files(identifier)
+    if index>=len(records):raise ValueError('Archivo fuera del catálogo')
+    if revision is not None and (not isinstance(revision,str) or not _SHA.fullmatch(revision)):
+        raise ValueError('Indica un commit remoto de 40 caracteres hexadecimales')
+    entry=records[index]
+    url='https://huggingface.co/api/models/'+quote(identifier,safe='/')
+    if revision is not None:url+='/revision/'+revision
+    payload=_json(url+'?blobs=true')
+    if not isinstance(payload,dict) or not isinstance(payload.get('sha'),str) or not _SHA.fullmatch(payload['sha']):
+        raise ValueError('Respuesta de revisión inválida')
+    if revision is not None and payload['sha']!=revision:
+        raise ValueError('La fuente no devolvió la revisión solicitada')
+    siblings=payload.get('siblings')
+    if not isinstance(siblings,list) or any(not isinstance(row,dict) or not isinstance(row.get('rfilename'),str) for row in siblings):
+        raise ValueError('Respuesta de archivos inválida')
+    matches=[row for row in siblings if row['rfilename']==entry['filename']]
+    if len(matches)>1:raise ValueError('La fuente devolvió archivos duplicados')
+    result={**entry,'id':identifier,'index':index,'remote_revision':payload['sha'],
+            'checked_at':studio.now(),'source_url':url+'?blobs=true','downloads_started':0,
+            'note':'Comparación remota contra el catálogo; no comprueba el disco local ni demuestra mejora, compatibilidad o licencia. No descarga ni sustituye archivos.'}
+    if not matches:return {**result,'status':'missing_at_remote_revision'}
+    remote=matches[0];lfs=remote.get('lfs')
+    digest=lfs.get('sha256') if isinstance(lfs,dict) else None
+    digest=digest if isinstance(digest,str) and re.fullmatch(r'[0-9a-f]{64}',digest) else None
+    size=remote.get('size')
+    size=size if type(size) is int and size>=0 else None
+    expected=entry['catalog_sha256'];catalog_size=entry['catalog_bytes']
+    valid_hash=isinstance(expected,str) and re.fullmatch(r'[0-9a-f]{64}',expected)
+    comparable_size=size is not None and type(catalog_size) is int and catalog_size>=0
+    if (comparable_size and size!=catalog_size) or (digest and valid_hash and digest!=expected):
+        status='remote_differs_from_catalog'
+    elif digest and valid_hash:
+        status='remote_matches_catalog'
+    else:status='remote_comparison_inconclusive'
+    return {**result,'status':status,'remote_sha256':digest,'remote_bytes':size}
+
+
 def check_local(identifier,index):
     if type(index) is not int or index<0:raise ValueError('Índice inválido')
     records=_files(identifier)
