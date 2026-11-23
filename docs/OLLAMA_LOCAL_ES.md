@@ -11,3 +11,9 @@ El GGUF existente Qwen3-8B-Q4_K_M (5027783488 bytes) tiene SHA256 `d98cdcbd03e17
 El helper no importa ni ejecuta modelos. La importación independiente sigue el [Modelfile oficial](https://docs.ollama.com/import), con `FROM` apuntando al GGUF local y `ollama create`. No se usa `pull`, cuantización, chat ni generate. La copia operativa queda en un almacén separado del original. [Configuración oficial sin nube](https://docs.ollama.com/faq).
 
 Pruebas sintéticas verifican conservación de servicio existente, entorno del hijo, rutas/puerto y error de arranque; no abren modelos. La validación nativa consulta versión, tags, show y ps. Un registro de modelo no acredita inferencia, uso de herramientas, ajuste RAM/VRAM ni calidad. No se ejecuta producción, benchmark ni publicación de contenido.
+
+## Resultado nativo
+
+Importación oficial terminada correctamente como `openmontage-qwen3-8b:q4_k_m-local`. Tags/show identifican Qwen3 8.2B Q4_K_M, contexto operativo `num_ctx 4096` y capacidades declaradas `tools`, `thinking`, `completion`. El digest del manifiesto de Ollama es `62baa8d58c698816ef8571a2856edfed6e48372d0af5bbe85d5bb7ae328dbdeb`; es distinto de la huella del GGUF porque identifica otro objeto.
+
+Studio devuelve `ollama_ready: true` e `inference_verified: false`. Tras comprobar cola vacía e inactiva, se respaldó settings y se añadió únicamente el modelo al campo antes vacío usando la API existente. Las demás opciones se compararon y conservaron; applications.json sigue idéntico. `/api/ps` devuelve `models: []`: ningún modelo cargado. La nube desactivada se comprobó en el log del servicio. No se ejecutaron chat, generate, tool calling ni evaluaciones de rendimiento. No se afirma comprobación visual nueva del panel.

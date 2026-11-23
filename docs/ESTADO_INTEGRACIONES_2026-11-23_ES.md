@@ -20,3 +20,9 @@ Detalles y huellas en `COORDENADAS_DEPORTIVAS_ES.md`, `BIBLIOTECAS_AISLADAS_ES.m
 La PR #1 usa otra rama (`feat/zero-cost-local-policy`). Sus documentos se localizaron en el commit `3a4fb6658020ea9d5be556d6c859fae1bbc2abdc`; no estaban perdidos ni pertenecen automáticamente a la rama actual. El [manifiesto adicional histórico](https://github.com/D3ckardCain/OPENMONTAGE-IA/blob/3a4fb6658020ea9d5be556d6c859fae1bbc2abdc/docs/model_download_manifest_additional.json) contiene 189 archivos y 26 grupos de modelos. Su declaración es metadatos remotos, no certificación de descargas locales ni de licencias comerciales de cada componente. El [diseño histórico de agentes](https://github.com/D3ckardCain/OPENMONTAGE-IA/blob/3a4fb6658020ea9d5be556d6c859fae1bbc2abdc/docs/AUTOMATIZACION_AGENTES.md) se conserva como referencia, sin reemplazar el contrato actual.
 
 No se fusionan PRs, no se publican vídeos ni se activan proveedores comerciales. Las fases de inferencia, calidad, rendimiento RAM/VRAM y producción con datos reales siguen sin acreditarse y quedan fuera de esta validación sin contenido. Configuraciones privadas, entornos, ejecutables y pesos permanecen fuera de los commits.
+
+## Pruebas de la continuación
+
+Suite Windows: **3314 passed, 13 skipped, 3 xfailed y 58 subtests passed**, 507.72 segundos. Se usó el entorno QA separado con las dependencias de Studio visibles, Node/FFmpeg en el PATH del proceso y npm offline. Los scripts QA manuales de medios quedaron excluidos mediante opt-in; no se ejecutó contenido real. La fixture documental de FFmpeg distingue PATH, ruta guardada y archivo ausente.
+
+El commit `01a2a72619ad0e42faeb8c2fe7b0148e2ffad33f` pasó CI remoto `45289587500` y contratos `45289587498` / `45289569242`. Los 15 bindings de aplicaciones de la API respondieron configurados y con ejecutable localizado; eso no acredita apertura ni automatización de cada aplicación en esta ejecución. No se repitieron las aperturas previamente aprobadas.
