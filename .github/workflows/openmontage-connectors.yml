@@ -16,6 +16,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Windows source preparation without network
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./tests/windows/test_prepare_windows_studio.ps1
+          powershell.exe -NoProfile -File ./tests/windows/test_prepare_windows_studio.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Windows PowerShell 5.1 tests failed" }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
