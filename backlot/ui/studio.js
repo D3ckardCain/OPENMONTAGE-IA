@@ -92,6 +92,16 @@ async function showCachedUpdateDocuments(identifier,detail,offset=0){
     if(result.next_offset!==null){const next=node('button','Más documentos guardados');next.onclick=()=>showCachedUpdateDocuments(identifier,detail,result.next_offset);panel.append(next);}
   }catch(error){panel.replaceChildren(node('p',error.message));}
 }
+function watchCandidateDownload(job,box){
+  const labels={queued:'En cola',checking:'Comprobando plan y destino',downloading:'Descargando candidato',verifying:'Verificando SHA-256',candidate_ready:'Candidato descargado y verificado; modelo actual sin cambios',failed:'Descarga fallida',cancelled:'Descarga cancelada; parcial conservado',partial_discarded:'Parcial descartado'};
+  box.replaceChildren(node('p',labels[job.status]||job.status),node('p',(job.bytes_present||0)+' / '+(job.expected_bytes??'—')+' bytes'),node('p',job.message||job.note));
+  const pending=['queued','checking','downloading','verifying'].includes(job.status);
+  if(pending){const cancel=node('button','Cancelar descarga');cancel.onclick=async()=>{try{await api('updates/downloads/'+job.job_id+'/cancel',{});}catch(error){notice(error.message);}};box.append(cancel);
+    setTimeout(async()=>{if(!box.isConnected)return;try{watchCandidateDownload(await api('updates/downloads/'+job.job_id),box);}catch(error){box.replaceChildren(node('p',error.message));}},1000);
+  }else if(['failed','cancelled'].includes(job.status)){
+    const discard=node('button','Descartar solo el parcial');discard.onclick=async()=>{discard.disabled=true;try{watchCandidateDownload(await api('updates/downloads/'+job.job_id+'/discard-partial',{}),box);}catch(error){box.append(node('p',error.message));discard.disabled=false;}};box.append(discard);
+  }
+}
 function remoteFileCheckButton(identifier,file,line){
   const button=node('button','Comparar archivo con revisión remota actual');button.type='button';
   button.onclick=async()=>{
@@ -132,7 +142,10 @@ function remoteFileCheckButton(identifier,file,line){
             spaceDetail.replaceChildren(node('p',labels[space.status]||space.status),node('p',space.note));
             if(space.free_space_verified)spaceDetail.append(node('p','Libre: '+space.free_bytes+' bytes · mínimo del candidato: '+space.required_bytes+' bytes · Medido: '+space.checked_at),node('p','Carpeta medida: '+space.measured_path));
           }catch(error){spaceDetail.replaceChildren(node('p',error.message));}finally{spaceButton.disabled=false;}};
-          planDetail.append(spaceButton,spaceDetail,verify,verification);
+          const download=node('button','Descargar/reanudar candidato separado');download.type='button';const downloadBox=node('div','');
+          download.onclick=async()=>{download.disabled=true;try{const job=await api('updates/downloads',{identifier,index:file.index,revision:result.remote_revision,expected_sha256:plan.candidate.sha256});watchCandidateDownload(job,downloadBox);}catch(error){downloadBox.replaceChildren(node('p',error.message));}finally{download.disabled=false;}};
+          const jobs=node('button','Ver descargas de este candidato');jobs.type='button';jobs.onclick=async()=>{try{const list=await api('updates/downloads?'+new URLSearchParams({identifier,index:String(file.index),revision:result.remote_revision}));downloadBox.replaceChildren(node('p',list.note));for(const job of list.rows){const item=node('div','');downloadBox.append(item);watchCandidateDownload(job,item);}}catch(error){downloadBox.replaceChildren(node('p',error.message));}};
+          planDetail.append(spaceButton,spaceDetail,verify,verification,download,jobs,downloadBox);
         }
       }catch(error){planDetail.replaceChildren(node('p',error.message));}finally{planButton.disabled=false;}};
       panel.append(node('p',result.note),planButton,planDetail);line.append(panel);

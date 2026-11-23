@@ -467,6 +467,27 @@ def create_studio_router():
     def update_candidate_space(identifier:str,index:int,revision:str):
         from lib.update_center import check_candidate_space
         return invoke(check_candidate_space,identifier,index,revision)
+    @router.post('/api/studio/updates/downloads')
+    async def update_download_start(request:Request):
+        from lib import update_downloads
+        data=await body(request)
+        if set(data)!={'identifier','index','revision','expected_sha256'}:raise HTTPException(400,'Indica modelo, archivo, commit y SHA-256 del plan')
+        return await asyncio.to_thread(lambda:invoke(lambda:update_downloads.start(**data)))
+    @router.get('/api/studio/updates/downloads')
+    def update_download_list(identifier:str,index:int,revision:str):
+        from lib.update_downloads import list_jobs
+        return invoke(list_jobs,identifier,index,revision)
+    @router.get('/api/studio/updates/downloads/{job_id}')
+    def update_download_status(job_id:str):
+        from lib.update_downloads import status
+        return invoke(status,job_id)
+    @router.post('/api/studio/updates/downloads/{job_id}/{action}')
+    async def update_download_action(job_id:str,action:str,request:Request):
+        from lib import update_downloads
+        if await body(request):raise HTTPException(400,'La acción no admite parámetros')
+        if action not in ('cancel','discard-partial'):raise HTTPException(400,'Acción desconocida')
+        fn=update_downloads.cancel if action=='cancel' else update_downloads.discard_partial
+        return await asyncio.to_thread(lambda:invoke(fn,job_id))
     @router.get('/api/studio/updates/document')
     def update_document(identifier:str,revision:str,filename:str,offline:bool=False):
         from lib.update_center import read_remote_document

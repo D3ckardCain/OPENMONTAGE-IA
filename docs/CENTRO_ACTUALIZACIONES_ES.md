@@ -6,7 +6,7 @@ Abre **Modelos y discos → Centro de actualizaciones**. El catálogo agrupa los
 
 Pulsa **Consultar fuente oficial** en un modelo. Se consulta una fuente por vez y se compara el commit remoto actual con los commits fijados en los enlaces del catálogo. Se indica cuántos archivos catalogados ya no figuran con el mismo nombre en la revisión remota. Un commit distinto significa que cambió el repositorio; no demuestra que cada peso haya cambiado ni que exista una mejora. Para yt-dlp y Deno se consulta el último release publicado de GitHub. La versión local aún no está registrada, por lo que se muestra «desconocida». Las demás aplicaciones quedan para revisión manual de su fuente oficial.
 
-Antes de actualizar, verifica qué fichero está realmente instalado, su hash, arquitectura y dependencias, términos de uso y compatibilidad con el workflow. Conserva la versión que funciona mientras pruebas otra copia. Esta sección no ejecuta instaladores, no descarga pesos y no modifica la configuración. La consulta requiere Internet; los fallos de red o límites de la fuente se muestran como errores de esa consulta.
+Antes de actualizar, verifica qué fichero está realmente instalado, su hash, arquitectura y dependencias, términos de uso y compatibilidad con el workflow. Conserva la versión que funciona mientras pruebas otra copia. Consultar fuentes no ejecuta instaladores, no descarga pesos y no modifica la configuración. La descarga de candidatos es una acción separada y explícita, descrita más abajo. La consulta requiere Internet; los fallos de red o límites de la fuente se muestran como errores de esa consulta.
 
 Si la fuente omite la lista de archivos, devuelve entradas inválidas o repite rutas, la consulta se rechaza como error. Una respuesta incompleta no acredita que todos los archivos sigan disponibles; una lista vacía válida indica que las rutas catalogadas no figuran en esa revisión.
 
@@ -213,3 +213,60 @@ sintaxis JavaScript y diff correctos. Se simulan las mediciones, incluyendo el
 umbral exacto, insuficiencia, destino ausente y fallo de acceso. La prueba visual
 incluye la medición del candidato en el commit elegido; pendiente de nueva CI.
 La CI completa del incremento anterior (`56ad8ba`) quedó aprobada.
+
+
+### Descargar o reanudar un candidato separado
+
+En un plan con SHA-256, pulsa **Descargar/reanudar candidato separado**. Es una
+acción explícita: preparar o comparar el plan no inicia descargas. Se vuelve a
+comprobar el commit y el hash elegido, el destino y el espacio para una copia
+completa. Solo se admite un trabajo a la vez y candidatos de hasta 100 GB.
+El peso instalado y la configuración no se sustituyen.
+
+El panel muestra estado y bytes; **Cancelar descarga** conserva el parcial.
+Si hubo una interrupción, vuelve a pulsar descargar para reanudar la misma
+revisión: se comprueba el parcial y se exige que el servidor responda al rango
+exacto solicitado. Si el servidor ignora el rango, se conserva el parcial y se
+informa del error, sin concatenar la respuesta completa. Un parcial corrupto
+requiere **Descartar solo el parcial** antes de empezar de nuevo; esa acción
+solo borra el `.part` de un trabajo fallido o cancelado, nunca el modelo
+original ni un candidato ya terminado.
+
+El candidato se escribe primero con extensión `.part`. Antes de finalizar se
+comprueban el tamaño y SHA-256 completos, incluida una lectura local final.
+Si ya hay un archivo en la ruta final, solo se acepta si coincide; nunca se
+sobrescribe. En discos con enlaces duros la finalización no duplica el peso;
+en otros sistemas, como exFAT, se necesita espacio para copiar el candidato
+completo además del parcial. Si no cabe, el parcial queda guardado para
+reintentar. Un error o cancelación durante esa copia elimina únicamente la
+copia final incompleta creada por el propio trabajo.
+
+**Ver descargas de este candidato** recupera controles tras recargar el panel.
+Los estados y últimos veinte trabajos se conservan durante la sesión del
+servidor; tras reiniciarlo, los parciales siguen en disco, pero se inicia un
+nuevo trabajo para reanudarlos. La cancelación puede esperar al timeout de una
+lectura de red (30 segundos) o al final de la comprobación local en curso.
+
+La descarga requiere Internet. El transporte usa HTTPS sin credenciales,
+no introduce claves, tarjetas ni servicios de inferencia. Sigue redirecciones
+solo a `huggingface.co`, `cdn-lfs.huggingface.co`, `cdn-lfs-us-1.hf.co`,
+`cdn-lfs-eu-1.hf.co` y `cas-bridge.xethub.hf.co`; otros destinos producen un
+error explícito. Los modelos privados o que requieran autorización pueden
+necesitar el flujo de descarga oficial externo; este módulo no sortea ese
+acceso. La descarga y el hash no aprueban licencia comercial, compatibilidad
+ni calidad y no instalan dependencias ni activan el modelo.
+
+API: `POST /api/studio/updates/downloads`, con `identifier`, `index`, `revision`
+y `expected_sha256` del plan. Consulta el trabajo con `GET .../downloads/{id}`;
+`POST .../{id}/cancel` y `POST .../{id}/discard-partial` reciben `{}`. La lista
+por modelo, índice y revisión está en `GET .../downloads`. Los agentes disponen
+de `update_download_candidate`, `update_download_status` y
+`update_download_cancel`; iniciar requiere una petición explícita de descarga.
+
+Validación: 167 pruebas locales de descargas, centro, estudio e instrucciones
+aprobadas; sintaxis JavaScript y diff correctos. Las descargas se simulan con
+archivos pequeños: no se descargaron pesos del usuario. Se probaron reanudación,
+interrupciones, cancelación, rangos ignorados, contenido incorrecto, conservación
+del original, finalización sin enlaces duros y descarte explícito. La nueva
+regresión visual usa un transporte simulado. Conectividad real a los servidores
+de modelos, rendimiento de descarga y GPU siguen sin validación aquí.

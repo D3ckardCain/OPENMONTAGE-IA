@@ -38,7 +38,7 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
             plan_calls.append(route.request.url)
             route.fulfill(json={'status':'candidate_plan_prepared','note':'Plan sin cambios en disco.',
                 'original_destination':'D:/models/model.safetensors',
-                'candidate':{'destination':'D:/models/.openmontage-updates/candidate.safetensors'},
+                'candidate':{'destination':'D:/models/.openmontage-updates/candidate.safetensors','sha256':'c'*64},
                 'additional_storage_bytes_at_least':9,'pending_checks':['Validar compatibilidad real.']})
         page.route('**/api/studio/updates/plan?*',plan)
         candidate_checks=[]
@@ -54,6 +54,12 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
                 'free_bytes':8,'required_bytes':9,'checked_at':'2026-11-22T20:00:00+00:00',
                 'measured_path':'D:/models','note':'Medición puntual; no reserva espacio.'})
         page.route('**/api/studio/updates/candidate-space?*',check_space)
+        downloads=[]
+        def download(route):
+            downloads.append(route.request.post_data_json)
+            route.fulfill(json={'job_id':'fixture','status':'candidate_ready','bytes_present':9,'expected_bytes':9,
+                'note':'Candidato separado; no cambia el modelo actual.'})
+        page.route('**/api/studio/updates/downloads',download)
         document_calls=[]
         def document(route):
             document_calls.append(route.request.url)
@@ -92,6 +98,9 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         page.get_by_role('button',name='Comprobar SHA-256 del candidato',exact=True).click()
         page.get_by_text('El candidato coincide con la revisión remota',exact=True).wait_for()
         assert len(candidate_checks)==1 and 'revision='+'f'*40 in candidate_checks[0]
+        page.get_by_role('button',name='Descargar/reanudar candidato separado',exact=True).click()
+        page.get_by_text('Candidato descargado y verificado; modelo actual sin cambios',exact=True).wait_for()
+        assert downloads==[{'identifier':'Org/Video','index':0,'revision':'f'*40,'expected_sha256':'c'*64}]
         document_button=page.get_by_role('button',name='Leer README.md en el panel',exact=True)
         document_button.click()
         page.get_by_text('Documento no disponible',exact=True).wait_for()
