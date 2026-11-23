@@ -18,7 +18,7 @@ CATALOG={
  'solvespace':{'label':'SolveSpace','purpose':'Diseñar geometría y mecanismos','executables':['solvespace.exe','solvespace_single_core_x64.exe'],'extensions':['.slvs'],'mode':'desktop'},
  'blender':{'label':'Blender','automation_tools':['blender_world'],'purpose':'Crear escenas y animación 3D','executables':['blender.exe','blender'],'extensions':['.blend'],'mode':'desktop'},
  'freecad':{'label':'FreeCAD','purpose':'Preparar modelos CAD','executables':['FreeCAD.exe','FreeCAD'],'extensions':['.FCStd'],'mode':'desktop'},
- 'qgis':{'label':'QGIS','purpose':'Preparar mapas y escenas geográficas','executables':['qgis-bin.exe','qgis'],'extensions':['.qgs','.qgz'],'mode':'desktop'},
+ 'qgis':{'label':'QGIS','purpose':'Preparar mapas y escenas geográficas','executables':['qgis-bin.exe','qgis-ltr-bin.exe','qgis'],'extensions':['.qgs','.qgz'],'mode':'desktop'},
 }
 CHILDREN={}
 LOCK=threading.Lock()
@@ -64,6 +64,10 @@ def launch(identifier,project_id,relative_file=None):
     if not path.is_absolute() or not path.is_file():raise ValueError('Configura primero la aplicación instalada')
     if path.name.casefold() not in {n.casefold() for n in CATALOG[identifier]['executables']}:raise ValueError('Ejecutable no admitido')
     arguments=[str(path)]
+    process_options={}
+    if identifier=='qgis' and path.suffix.lower()=='.exe':
+        from lib.qgis_runtime import launch_options
+        arguments,process_options=launch_options(path,studio.CONFIG_DIR/'qgis')
     if relative_file:
         source=(project/relative_file).resolve();source.relative_to(project)
         if not source.is_file() or source.suffix.lower() not in {x.lower() for x in CATALOG[identifier]['extensions']}:raise ValueError('Archivo de proyecto no compatible')
@@ -73,7 +77,7 @@ def launch(identifier,project_id,relative_file=None):
         if existing and existing.poll() is None:raise ValueError('Esta aplicación ya tiene un proceso abierto desde el Estudio')
         logdir=project/'application_logs';logdir.mkdir(exist_ok=True)
         with (logdir/(identifier+'.log')).open('ab') as log:
-            child=subprocess.Popen(arguments,cwd=str(project),stdin=subprocess.DEVNULL,stdout=log,stderr=log,shell=False)
+            child=subprocess.Popen(arguments,cwd=str(project),stdin=subprocess.DEVNULL,stdout=log,stderr=log,shell=False,**process_options)
         CHILDREN[identifier]=child
     record={'application':identifier,'pid':child.pid,'started_at':studio.now(),'file':relative_file,'status':'launched_not_verified'}
     studio.save_json(logdir/(identifier+'-last.json'),record)
