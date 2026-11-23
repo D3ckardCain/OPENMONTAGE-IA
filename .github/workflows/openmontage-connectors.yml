@@ -8,6 +8,26 @@ on:
 permissions:
   contents: read
 jobs:
+  studio-installation:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Studio in its own environment
+        run: python scripts/setup_local_studio.py
+      - name: Start isolated Studio without production or models
+        run: python tests/windows/smoke_studio_installation.py
+      - name: Read-only Windows setup entry point
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: PREPARAR_ESTUDIO.cmd --check
   contracts:
     strategy:
       fail-fast: false

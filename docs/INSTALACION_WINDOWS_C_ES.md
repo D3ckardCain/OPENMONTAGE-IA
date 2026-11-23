@@ -60,3 +60,8 @@ haya instalacion activa antes de quitarlo manualmente. No se elimina solo ni
 se borra automaticamente un entorno con errores. El recibo no sustituye una
 prueba real de arranque o inferencia, y los requisitos usan rangos de versiones:
 dos instalaciones en fechas distintas pueden resolver paquetes diferentes.
+
+La CI incluye una instalacion real en `.venv` con Python 3.11 en Windows y Linux,
+seguida del arranque del servidor en loopback y consultas a salud, HTML,
+JavaScript y bootstrap. Usa equipos temporales sin modelos; no demuestra el
+funcionamiento de motores IA ni sustituye el arranque en el equipo del usuario.
