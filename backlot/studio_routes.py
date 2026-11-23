@@ -431,6 +431,18 @@ def create_studio_router():
 
     @router.get('/api/studio/resources')
     def resources():return studio.resource_catalog()
+    @router.get('/api/studio/updates')
+    def update_targets(offset:int=0,limit:int=10):
+        from lib.update_center import targets
+        return invoke(targets,offset,limit)
+    @router.get('/api/studio/updates/check')
+    def update_check(kind:str,identifier:str):
+        from lib.update_center import check
+        return invoke(check,kind,identifier)
+    @router.get('/api/studio/updates/discover')
+    def update_discover(kind:str,query:str):
+        from lib.update_center import discover
+        return invoke(discover,kind,query)
     @router.get('/api/studio/integration-coverage')
     def integration_coverage():
         from lib.integration_coverage import coverage

@@ -65,6 +65,9 @@ TOOLS=[
  descriptor('resource_status','Consulta servidores, GPU y carpetas de recursos; no descarga pesos.'),
  descriptor('model_download_plan','Prepara una lista revisable de un modelo usando al menos dos inventarios. Excluye rutas registradas y candidatos en otras ubicaciones. No descarga, no instala y no demuestra ausencia actual.',{'group_id':{'type':'string'}},['group_id']),
  descriptor('model_catalog','Consulta catálogo e inventarios; group_id devuelve archivos, carpetas y URLs sin descargarlos.',{'group_id':{'type':'string'}}),
+ descriptor('update_targets','Lista por páginas fuentes de modelos y aplicaciones existentes para revisar actualizaciones sin descargar.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
+ descriptor('update_check','Consulta una fuente oficial del catálogo. Diferencia revisión remota de instalación local; no descarga ni actualiza.',{'kind':{'enum':['model','application']},'identifier':{'type':'string'}},['kind','identifier']),
+ descriptor('update_discover','Busca hasta diez nuevos modelos o aplicaciones en Hugging Face o GitHub. Son candidatos sin evaluación de licencia, coste ni compatibilidad; no instala.',{'kind':{'enum':['model','application']},'query':{'type':'string','minLength':3,'maxLength':60}},['kind','query']),
  descriptor('project_files','Lista archivos existentes del proyecto, sin leer recursos externos.'),
  descriptor('read_project_file','Lee un archivo de texto del proyecto.',{'path':{'type':'string'}},['path']),
  descriptor('write_project_file','Crea textos, subtítulos o código de composición en assets/ o workspaces/.',{'path':{'type':'string'},'content':{'type':'string','maxLength':300000}},['path','content']),
@@ -255,6 +258,15 @@ class LocalAgent:
         if name=='model_download_plan':
             from lib.download_plan import plan
             return plan(args['group_id'])
+        if name=='update_targets':
+            from lib.update_center import targets
+            return targets(**args)
+        if name=='update_check':
+            from lib.update_center import check
+            return check(args['kind'],args['identifier'])
+        if name=='update_discover':
+            from lib.update_center import discover
+            return discover(args['kind'],args['query'])
         if name=='model_catalog':
             data=studio.resource_catalog()
             if args.get('group_id'):

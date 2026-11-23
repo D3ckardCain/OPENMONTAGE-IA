@@ -1,0 +1,144 @@
+"""Bounded, read-only update checks for catalogued model sources and applications."""
+import json
+import re
+import urllib.error
+import urllib.request
+from pathlib import Path
+from urllib.parse import quote, urlsplit, urlencode
+
+from lib import production_studio as studio
+from lib import external_applications
+
+
+APP_RELEASES={'yt-dlp':'yt-dlp/yt-dlp','deno':'denoland/deno'}
+_SHA=re.compile(r'^[0-9a-f]{40}$')
+_PART=re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,95}$')
+
+
+def _model_source(url):
+    parsed=urlsplit(url or '')
+    if parsed.scheme!='https' or parsed.hostname!='huggingface.co' or parsed.username or parsed.password:return None
+    parts=parsed.path.strip('/').split('/')
+    if len(parts)<5 or parts[2]!='resolve' or not all(_PART.fullmatch(x) for x in parts[:4]):return None
+    return parts[0]+'/'+parts[1],parts[2],parts[3],'/'.join(parts[4:])
+
+
+def targets(offset=0,limit=10):
+    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=20:
+        raise ValueError('Página inválida')
+    sources={};untracked=0
+    for path in sorted((studio.REPO_ROOT/'docs/models').glob('*.json')):
+        manifest=studio.read_json(path,{})
+        for item in manifest.get('files',[]):
+            parsed=_model_source(item.get('url'))
+            if not parsed:untracked+=1;continue
+            repo,_,revision,filename=parsed
+            row=sources.setdefault(repo,{'kind':'model','id':repo,'source_url':'https://huggingface.co/'+repo,
+                                          'catalog_revisions':set(),'files':set()})
+            row['catalog_revisions'].add(revision);row['files'].add(filename)
+    rows=[{**row,'catalog_revisions':sorted(row['catalog_revisions']),
+           'catalog_file_count':len(row['files'])} for row in sources.values()]
+    configured={app['id']:app for app in external_applications.catalog()}
+    for identifier,item in external_applications.CATALOG.items():
+        repo=APP_RELEASES.get(identifier)
+        rows.append({'kind':'application','id':identifier,'label':item['label'],
+                     'source_url':'https://github.com/'+repo+'/releases' if repo else None,
+                     'configured':configured[identifier]['configured'],
+                     'file_found':configured[identifier]['file_found'],
+                     'live_check_supported':bool(repo)})
+    rows.sort(key=lambda row:(row['kind'],row['id'].casefold()))
+    return {'total':len(rows),'models':len(sources),'applications':len(external_applications.CATALOG),
+            'untracked_catalog_files':untracked,'offset':offset,'rows':rows[offset:offset+limit],
+            'next_offset':offset+limit if offset+limit<len(rows) else None,
+            'note':'El catálogo no demuestra instalación. Los archivos nuevos del origen pueden requerir adaptadores o licencias distintas. Consulta una fuente por vez; no descarga ni sustituye archivos.'}
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,*args,**kwargs):return None
+
+
+def _json(url):
+    request=urllib.request.Request(url,headers={'Accept':'application/json','User-Agent':'OpenMontage-update-check/1'})
+    opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),_NoRedirect())
+    try:
+        with opener.open(request,timeout=8) as response:
+            data=response.read(1_000_001)
+            if len(data)>1_000_000:raise ValueError('Respuesta remota demasiado grande')
+        return json.loads(data)
+    except (urllib.error.URLError,TimeoutError,OSError,UnicodeError,json.JSONDecodeError) as exc:
+        raise ValueError('No se pudo consultar la fuente oficial: '+str(exc)[:180]) from exc
+
+
+def check(kind,identifier):
+    if kind not in ('model','application') or not isinstance(identifier,str) or len(identifier)>200:
+        raise ValueError('Fuente inválida')
+    if kind=='application':
+        if identifier not in external_applications.CATALOG:raise ValueError('Aplicación desconocida')
+        repo=APP_RELEASES.get(identifier)
+        if not repo:return {'kind':kind,'id':identifier,'status':'manual_review',
+                            'note':'No hay fuente de releases configurada. Revisa el sitio oficial y registra la versión local antes de comparar.'}
+        result=_json('https://api.github.com/repos/'+repo+'/releases/latest')
+        if not isinstance(result,dict) or not isinstance(result.get('tag_name'),str):raise ValueError('Respuesta de versión inválida')
+        return {'kind':kind,'id':identifier,'status':'release_found','tag':result['tag_name'],
+                'published_at':result.get('published_at'),'source_url':'https://github.com/'+repo+'/releases',
+                'local_version':'unknown','note':'Versión local no registrada; no se declara actualización disponible ni se ejecutan instaladores.'}
+    if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}/[A-Za-z0-9][A-Za-z0-9_.-]{0,95}',identifier):
+        raise ValueError('Modelo inválido')
+    all_targets=targets(0,20)
+    if identifier not in {row['id'] for row in all_targets['rows'] if row['kind']=='model'}:
+        # Find in bounded catalog pages without trusting arbitrary IDs as network destinations.
+        found=None
+        for offset in range(20,all_targets['total'],20):
+            found=next((row for row in targets(offset,20)['rows'] if row['kind']=='model' and row['id']==identifier),None)
+            if found:break
+        if not found:raise ValueError('Modelo fuera del catálogo')
+    else:found=next(row for row in all_targets['rows'] if row['id']==identifier and row['kind']=='model')
+    result=_json('https://huggingface.co/api/models/'+quote(identifier,safe='/'))
+    latest=result.get('sha') if isinstance(result,dict) else None
+    if not isinstance(latest,str) or not _SHA.fullmatch(latest):raise ValueError('Respuesta de revisión inválida')
+    siblings={row.get('rfilename') for row in result.get('siblings',[]) if isinstance(row,dict)}
+    catalog_files=set()
+    for path in (studio.REPO_ROOT/'docs/models').glob('*.json'):
+        for item in studio.read_json(path,{}).get('files',[]):
+            source=_model_source(item.get('url'))
+            if source and source[0]==identifier:catalog_files.add(source[3])
+    missing=sorted(catalog_files-siblings) if isinstance(result.get('siblings'),list) else []
+    return {'kind':kind,'id':identifier,'status':'source_revision_changed' if latest not in found['catalog_revisions'] else 'catalog_revision_current',
+            'latest_revision':latest,'catalog_revisions':found['catalog_revisions'],
+            'catalog_file_count':len(catalog_files),'files_missing_at_latest':missing[:50],
+            'missing_file_count':len(missing),'source_url':'https://huggingface.co/'+identifier,
+            'checked_at':studio.now(),'note':'Cambio del repositorio remoto respecto a enlaces del catálogo, no prueba una mejora, instalación local, compatibilidad ni permisos de uso. No actualiza pesos.'}
+
+
+def discover(kind,query):
+    """Surface a short official search result; an agent must review candidates."""
+    if kind not in ('model','application') or not isinstance(query,str) or not re.fullmatch(r'[\w .+-]{3,60}',query,re.UNICODE):
+        raise ValueError('Indica de 3 a 60 caracteres de búsqueda sin operadores')
+    if kind=='model':
+        url='https://huggingface.co/api/models?'+urlencode({'search':query,'limit':10,'sort':'lastModified','direction':-1})
+        payload=_json(url)
+        if not isinstance(payload,list):raise ValueError('Respuesta de búsqueda inválida')
+        known={row['id'] for offset in range(0,targets()['total'],20)
+               for row in targets(offset,20)['rows'] if row['kind']=='model'}
+        rows=[]
+        for item in payload[:10]:
+            if not isinstance(item,dict):continue
+            identifier=item.get('id')
+            if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}/[A-Za-z0-9][A-Za-z0-9_.-]{0,95}',identifier):continue
+            rows.append({'id':identifier,'url':'https://huggingface.co/'+identifier,
+                         'last_modified':item.get('lastModified'),'pipeline_tag':item.get('pipeline_tag'),
+                         'already_catalogued':identifier in known})
+    else:
+        url='https://api.github.com/search/repositories?'+urlencode({'q':query+' in:name,description','per_page':10,'sort':'updated'})
+        payload=_json(url)
+        if not isinstance(payload,dict) or not isinstance(payload.get('items'),list):raise ValueError('Respuesta de búsqueda inválida')
+        rows=[]
+        for item in payload['items'][:10]:
+            if not isinstance(item,dict):continue
+            identifier=item.get('full_name')
+            if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',identifier):continue
+            rows.append({'id':identifier,'url':'https://github.com/'+identifier,
+                         'description':str(item.get('description') or '')[:250],
+                         'updated_at':item.get('updated_at'),'already_integrated':identifier in APP_RELEASES.values()})
+    return {'kind':kind,'query':query,'rows':rows,'checked_at':studio.now(),'downloads_started':0,
+            'note':'Resultados de búsqueda, no recomendaciones. El agente debe comprobar autoría, licencia, coste, compatibilidad con Windows/ComfyUI, hardware y utilidad real antes de proponer incorporar nada.'}
