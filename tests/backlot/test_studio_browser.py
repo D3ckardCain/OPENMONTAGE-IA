@@ -572,6 +572,11 @@ def test_application_version_checks_require_explicit_action(staged_backlot_serve
                 'local_version':'2.9.0','latest_version':'v2.10.0' if args['online'] else None,
                 'note':'Consulta explícita; no instala ni actualiza.'})
         page.route('**/api/studio/updates/application-version',version)
+        page.route('**/api/studio/updates/application-version-history?*',lambda route:route.fulfill(json={
+            'note':'Resultados históricos; no certifican la versión actual.',
+            'rows':[{'checked_at':'2026-11-22T20:00:00+00:00','local_version':'2.9.0',
+                     'latest_version':'v2.10.0','local_executable':'D:/tools/deno.exe',
+                     'executable_state':'configuration_changed'}]}))
         page.goto(staged_backlot_server+'/studio#models')
         page.locator('#updates-load').click()
         page.locator('#updates-result summary').click()
@@ -582,5 +587,10 @@ def test_application_version_checks_require_explicit_action(staged_backlot_serve
         page.get_by_role('button',name='Comparar versión instalada',exact=True).click()
         page.get_by_text('Hay una versión estable posterior',exact=True).wait_for()
         assert calls[-1]=={'identifier':'deno','online':True}
+        before=len(calls)
+        page.get_by_role('button',name='Ver historial de versiones',exact=True).click()
+        page.get_by_text('La ruta configurada cambió',exact=True).wait_for()
+        assert '2026-11-22T20:00:00+00:00' in page.locator('[data-application-version-history]').inner_text()
+        assert len(calls)==before
         assert not errors
         browser.close()

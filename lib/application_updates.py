@@ -1,5 +1,6 @@
 """Explicit version probes for configured tools; never invoke self-updaters."""
 import os
+import json
 import re
 import subprocess
 from datetime import datetime
@@ -23,7 +24,7 @@ def _version(identifier,value,release=False):
     return tuple(int(part) for part in value.split('.'))
 
 
-def compare(identifier,online=True):
+def _compare(identifier,online=True):
     if identifier not in _COMMANDS:raise ValueError('Comprobación disponible solo para yt-dlp y Deno')
     if type(online) is not bool:raise ValueError('Modo de consulta inválido')
     item=applications.CATALOG[identifier]
@@ -51,6 +52,7 @@ def compare(identifier,online=True):
     if (before.st_size,before.st_mtime_ns,before.st_ino)!=(after.st_size,after.st_mtime_ns,after.st_ino):
         return {**result,'status':'executable_changed_during_probe'}
     if process.returncode!=0 or len(process.stdout)>16_384:return {**result,'status':'version_probe_failed'}
+    result.update(local_executable=str(path),executable_fingerprint=_fingerprint(after))
     output=process.stdout.decode('utf-8',errors='replace').strip()
     match=re.fullmatch(r'\d{4}\.\d{2}\.\d{2}',output) if identifier=='yt-dlp' else re.match(r'deno (\S+)(?:\s|$)',output)
     local=match.group(0) if identifier=='yt-dlp' and match else match.group(1) if match else None
@@ -68,3 +70,78 @@ def compare(identifier,online=True):
     if remote_parts is None:return {**result,'status':'comparison_inconclusive'}
     state='update_available' if remote_parts>local_parts else 'versions_match' if remote_parts==local_parts else 'local_newer_than_release'
     return {**result,'status':state,'update_available':remote_parts>local_parts}
+
+
+_HISTORY_LIMIT=128_000
+_STATUSES={'local_unavailable','version_probe_failed','executable_changed_during_probe',
+           'local_version_unrecognized','local_version_checked','remote_unavailable',
+           'comparison_inconclusive','update_available','versions_match','local_newer_than_release'}
+
+
+def _fingerprint(info):
+    return {'size':info.st_size,'mtime_ns':info.st_mtime_ns,'inode':info.st_ino,'device':info.st_dev}
+
+
+def _history_path(identifier):
+    if not isinstance(identifier,str) or identifier not in _COMMANDS:raise ValueError('Aplicación no admitida')
+    return studio.CONFIG_DIR/'application_versions'/(identifier+'.json')
+
+
+def _read_history(identifier):
+    path=_history_path(identifier)
+    try:
+        if not path.exists():return []
+        if path.is_symlink() or path.stat().st_size>_HISTORY_LIMIT:raise ValueError()
+        with path.open('rb') as stream:raw=stream.read(_HISTORY_LIMIT+1)
+        if len(raw)>_HISTORY_LIMIT:raise ValueError()
+        data=json.loads(raw)
+        if not isinstance(data,dict) or data.get('id')!=identifier or not isinstance(data.get('records'),list) or len(data['records'])>20:raise ValueError()
+        for record in data['records']:
+            if not isinstance(record,dict) or record.get('status') not in _STATUSES:raise ValueError()
+            when=record.get('checked_at')
+            if not isinstance(when,str) or len(when)>80 or datetime.fromisoformat(when).tzinfo is None:raise ValueError()
+            for key in ('local_version','latest_version'):
+                value=record.get(key)
+                if value is not None and (not isinstance(value,str) or len(value)>120):raise ValueError()
+            executable=record.get('local_executable');fingerprint=record.get('executable_fingerprint')
+            if executable is not None:
+                if not isinstance(executable,str) or len(executable)>4096:raise ValueError()
+                candidate=Path(executable)
+                if not candidate.is_absolute() or candidate.name.casefold() not in {name.casefold() for name in applications.CATALOG[identifier]['executables']}:raise ValueError()
+            if fingerprint is not None:
+                if not isinstance(fingerprint,dict) or set(fingerprint)!={'size','mtime_ns','inode','device'} or any(type(value) is not int for value in fingerprint.values()):raise ValueError()
+        return data['records']
+    except (OSError,ValueError,TypeError,KeyError,UnicodeError) as exc:
+        raise ValueError('No se puede utilizar el historial local de versiones') from exc
+
+
+def compare(identifier,online=True):
+    result=_compare(identifier,online)
+    record={key:result.get(key) for key in ('checked_at','status','local_version','latest_version','local_executable','executable_fingerprint')}
+    try:
+        with studio.LOCK:
+            records=(_read_history(identifier)+[record])[-20:]
+            data={'id':identifier,'records':records}
+            if len(json.dumps(data,ensure_ascii=False,indent=2).encode('utf-8'))>_HISTORY_LIMIT:raise ValueError('Límite de historial')
+            studio.save_json(_history_path(identifier),data)
+        return {**result,'history_saved':True}
+    except (OSError,ValueError):
+        return {**result,'history_saved':False,'history_warning':'La comprobación terminó, pero no se pudo guardar el historial; el resultado actual se conserva.'}
+
+
+def history(identifier):
+    configured=studio.settings().get(applications.CATALOG[identifier]['setting'],'') if identifier in _COMMANDS else ''
+    with studio.LOCK:records=_read_history(identifier)
+    rows=[]
+    for record in reversed(records):
+        executable=record.get('local_executable');expected=record.get('executable_fingerprint')
+        state='not_recorded'
+        if executable and expected:
+            if configured!=executable:state='configuration_changed'
+            else:
+                try:state='metadata_match' if _fingerprint(Path(executable).stat())==expected else 'metadata_changed'
+                except OSError:state='unavailable'
+        rows.append({**{key:record.get(key) for key in ('checked_at','status','local_version','latest_version','local_executable')},
+                     'historical':True,'executable_state':state,'current_version_verified':False})
+    return {'id':identifier,'rows':rows,'network_checked':False,'process_started':False,
+            'note':'Resultados históricos de hasta veinte consultas por aplicación. Coincidir en metadatos no equivale a verificar contenido o versión actual; vuelve a comprobar explícitamente el ejecutable si hace falta.'}

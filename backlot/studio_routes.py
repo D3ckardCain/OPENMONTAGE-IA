@@ -461,6 +461,10 @@ def create_studio_router():
         data=await body(request)
         if set(data)-{'identifier','online'} or 'identifier' not in data:raise HTTPException(400,'Indica aplicación y consulta remota opcional')
         return await asyncio.to_thread(lambda:invoke(compare,data['identifier'],data.get('online',True)))
+    @router.get('/api/studio/updates/application-version-history')
+    def update_application_version_history(identifier:str):
+        from lib.application_updates import history
+        return invoke(history,identifier)
     @router.get('/api/studio/updates/impact')
     def update_impact(identifier:str,index:int):
         from lib.update_impact import inspect

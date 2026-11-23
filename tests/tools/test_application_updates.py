@@ -96,3 +96,54 @@ def test_failed_launch_does_not_claim_a_started_process(setup,monkeypatch):
     result=versions.compare('deno')
     assert result['status']=='version_probe_failed' and result['process_started'] is False
     assert result['process_attempted'] is True
+
+
+def test_version_history_is_offline_and_detects_changed_executable(setup,monkeypatch):
+    calls,executable=setup('deno','deno 2.10.0','v2.11.0')
+    result=versions.compare('deno')
+    assert result['history_saved'] is True
+    monkeypatch.setattr(versions.subprocess,'run',lambda *args,**kwargs:pytest.fail('History must not execute'))
+    monkeypatch.setattr(versions.updates,'check',lambda *args:pytest.fail('History must not reach network'))
+    report=versions.history('deno')
+    assert report['rows'][0]['executable_state']=='metadata_match'
+    assert report['rows'][0]['current_version_verified'] is False
+    assert report['rows'][0]['local_version']=='2.10.0'
+    executable.write_bytes(b'changed executable')
+    assert versions.history('deno')['rows'][0]['executable_state']=='metadata_changed'
+    assert len(calls)==1
+
+
+def test_history_api_and_agent_detect_configuration_change(setup,monkeypatch):
+    from lib.production_agent import LocalAgent
+    setup('deno','deno 2.10.0','v2.11.0');versions.compare('deno',False)
+    studio.save_json(studio.CONFIG_DIR/'settings.json',{'deno_path':'other'})
+    monkeypatch.setattr(versions.subprocess,'run',lambda *args,**kwargs:pytest.fail('No process allowed'))
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    response=client.get('/api/studio/updates/application-version-history',params={'identifier':'deno'})
+    assert response.status_code==200 and response.json()['rows'][0]['executable_state']=='configuration_changed'
+    worker=LocalAgent.__new__(LocalAgent)
+    assert worker.dispatch('update_application_version_history',{'identifier':'deno'})['process_started'] is False
+
+
+def test_history_storage_is_bounded(setup):
+    setup('deno','deno 2.10.0','v2.11.0')
+    for _ in range(22):versions.compare('deno',False)
+    assert len(versions.history('deno')['rows'])==20
+
+
+def test_history_failure_preserves_fresh_version(setup,monkeypatch):
+    setup('deno','deno 2.10.0','v2.11.0')
+    def deny(*args):raise OSError('disk full')
+    monkeypatch.setattr(studio,'save_json',deny)
+    result=versions.compare('deno')
+    assert result['status']=='update_available' and result['local_version']=='2.10.0'
+    assert result['history_saved'] is False and result['history_warning']
+
+
+def test_corrupt_history_is_not_used_or_overwritten(setup):
+    setup('deno','deno 2.10.0','v2.11.0')
+    path=versions._history_path('deno');path.parent.mkdir();path.write_text('broken')
+    with pytest.raises(ValueError,match='historial'):versions.history('deno')
+    result=versions.compare('deno')
+    assert result['local_version']=='2.10.0' and result['history_saved'] is False
+    assert path.read_text()=='broken'

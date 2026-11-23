@@ -366,7 +366,7 @@ API: `POST /api/studio/updates/application-version`, con `identifier` y
 `online` opcional (por defecto `true`). El agente dispone de
 `update_application_version`; `online=false` funciona sin la consulta remota.
 No instala, descarga actualizaciones, activa modelos ni modifica configuración.
-No se guarda todavía un historial de estas versiones.
+Cada comprobación intenta guardar un registro histórico local; su consulta se describe a continuación.
 
 Validación: 192 pruebas locales de versiones, actualización, descargas,
 estudio e instrucciones aprobadas; sintaxis JavaScript y diff correctos.
@@ -376,3 +376,37 @@ el modo elegido. No se ejecutaron los binarios del usuario.
 
 Referencias: [opciones de yt-dlp](https://github.com/yt-dlp/yt-dlp#general-options)
 y [consulta de versión de Deno](https://docs.deno.com/runtime/getting_started/installation/).
+
+
+### Historial offline de versiones comprobadas
+
+El botón **Ver historial de versiones** conserva y muestra las últimas veinte
+comprobaciones por aplicación. Cada registro incluye fecha, versión local,
+release consultado cuando lo hubo y ruta del ejecutable. Se guarda localmente
+de forma atómica, con máximo de 128 KB por aplicación; no se envía a GitHub.
+
+Consultar el historial no ejecuta yt-dlp o Deno ni consulta servicios externos.
+Compara la ruta configurada y, cuando hay huella guardada, tamaño, fecha de
+modificación e identidad del archivo. Informa de ruta cambiada, metadatos
+cambiados, archivo no disponible o metadatos coincidentes. Esta huella no es
+un hash de contenido y no certifica autenticidad ni la versión actual; todos
+los resultados de la lista quedan identificados como históricos.
+
+Si falla el guardado, la consulta nueva conserva su resultado y muestra una
+advertencia. Un historial ilegible o inválido no se considera vacío ni se
+sobrescribe automáticamente; una nueva consulta puede seguir funcionando sin
+perder su resultado actual. La lista no depende del disco de aplicaciones
+pendiente: si el ejecutable está desconectado, muestra su estado no disponible.
+
+API: `GET /api/studio/updates/application-version-history?identifier=deno`
+(o `yt-dlp`). El agente usa `update_application_version_history`. Las consultas
+locales con `online=false` también quedan registradas. No se instalan ni
+actualizan programas al guardar o leer esta evidencia.
+
+Seguimiento: [Issue #4](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/4).
+Validación: 197 pruebas locales de versiones, actualización, descargas, estudio
+e instrucciones aprobadas; sintaxis JavaScript y diff correctos. Incluye acceso
+sin procesos ni red, cambios de ejecutable y ruta, límite de veinte registros,
+fallo de guardado y preservación de un historial dañado. La regresión visual
+consulta el historial sin repetir la comprobación de versión. No se ejecutaron
+binarios reales del usuario; CI del incremento pendiente de completar.
