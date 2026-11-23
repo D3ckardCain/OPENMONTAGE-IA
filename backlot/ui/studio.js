@@ -76,6 +76,13 @@ function remoteFileCheckButton(identifier,file,line){
       panel.append(node('p',labels[result.status]||result.status),node('p','Revisión consultada: '+result.remote_revision));
       if(result.remote_bytes!==null&&result.remote_bytes!==undefined)panel.append(node('p','Tamaño remoto: '+result.remote_bytes+' bytes'));
       if(result.remote_sha256)panel.append(node('p','SHA-256 remoto: '+result.remote_sha256));
+      if(result.license_review){
+        const review=result.license_review;
+        panel.append(node('p','Licencia declarada: '+(review.declared.join(', ')||'sin metadatos suficientes')+' · Uso comercial y condiciones de coste pendientes de revisión.'));
+        for(const url of [review.model_card_url,...review.license_file_urls]){const link=node('a','Consultar evidencia en la revisión');link.href=url;link.target='_blank';link.rel='noopener noreferrer';panel.append(link,node('br',''));}
+      }
+      if(result.compatibility_review)panel.append(node('p','Compatibilidad: '+result.compatibility_review.reason));
+      if(result.access_review)panel.append(node('p','Acceso sujeto a autorización: '+String(result.access_review.gated)+' · Privado: '+String(result.access_review.private)));
       panel.append(node('p',result.note));line.append(panel);
     }catch(error){notice(error.message);}finally{button.disabled=false;}
   };
