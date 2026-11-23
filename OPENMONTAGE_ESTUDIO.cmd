@@ -9,6 +9,7 @@ if exist ".venv\Scripts\python.exe" (
 if errorlevel 1 (
   echo.
   echo No se pudo abrir el estudio. Revisa Python y las dependencias del proyecto.
+  echo Para preparar un entorno separado: PREPARAR_ESTUDIO.cmd
   echo Manual: docs\ESTUDIO_PRODUCCION_ES.md
   pause
 )
