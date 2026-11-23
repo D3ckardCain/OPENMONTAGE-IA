@@ -8,6 +8,8 @@ Pulsa **Consultar fuente oficial** en un modelo. Se consulta una fuente por vez 
 
 Antes de actualizar, verifica qué fichero está realmente instalado, su hash, arquitectura y dependencias, términos de uso y compatibilidad con el workflow. Conserva la versión que funciona mientras pruebas otra copia. Esta sección no ejecuta instaladores, no descarga pesos y no modifica la configuración. La consulta requiere Internet; los fallos de red o límites de la fuente se muestran como errores de esa consulta.
 
+Si la fuente omite la lista de archivos, devuelve entradas inválidas o repite rutas, la consulta se rechaza como error. Una respuesta incompleta no acredita que todos los archivos sigan disponibles; una lista vacía válida indica que las rutas catalogadas no figuran en esa revisión.
+
 En un modelo pulsa **Ver archivos y comprobar uno** para revisar sus rutas del catálogo por páginas. **Comprobar SHA-256 local** lee exclusivamente el archivo elegido, en bloques de 4 MiB, y compara bytes y hash contra el manifiesto fijado. Puede tardar con pesos grandes. Si la ruta no pertenece al sistema actual, indica que no está disponible en este equipo. «Coincide con el catálogo» no significa que ese peso sea la última versión remota; la comparación remota y la comprobación local son operaciones separadas.
 
 Si el archivo cambia durante la lectura, la comprobación indica `changed_during_check`: espera a que termine la descarga antes de repetirla. La lectura se limita al tamaño inicial más un byte para detectar crecimiento. Los fallos de acceso se muestran como `unreadable`; los archivos vacíos también pueden comprobarse contra su hash y tamaño catalogados.
@@ -34,3 +36,27 @@ Escribe un término y elige **Pesos y modelos** o **Aplicaciones**. La búsqueda
 Queda pendiente un proceso de instalación reversible. Este módulo prepara la investigación y la decisión, sin declarar que un equipo completo esté actualizado.
 
 Referencia técnica: [metadatos de archivos de Hugging Face](https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api#huggingface_hub.HfApi.model_info).
+
+### Revisión de licencia y compatibilidad por archivo
+
+La comparación remota muestra también la licencia declarada en `cardData`,
+los enlaces a la ficha y a los archivos LICENSE/COPYING presentes en esa misma
+revisión, y las declaraciones de acceso restringido o privado. Los enlaces
+usan el commit consultado, incluso cuando se solicitó comparar con la revisión
+actual. La ausencia o el formato incompleto de la licencia quedan señalados.
+Estos metadatos no certifican permisos comerciales ni condiciones de coste:
+el agente debe leer los términos, incluidas las condiciones de modelos base.
+
+El resultado distingue contenido idéntico del catálogo y contenido que requiere
+revisión. En ambos casos Windows, adaptador y hardware siguen sin validación
+hasta que existan pruebas reales. `update_allowed` permanece en `false`;
+una licencia declarada o un hash coincidente no autorizan sustituciones.
+La consulta requiere Internet; no descarga pesos, instala programas ni lee
+archivos locales. La verificación SHA-256 local sigue siendo una operación aparte.
+
+Validación de este incremento: 89 pruebas locales del centro de actualizaciones
+ y del estudio aprobadas; sintaxis JavaScript y `git diff --check` correctos.
+La regresión de navegador se amplió para comprobar licencia, enlace fijado y
+compatibilidad; su ejecución local quedó bloqueada al iniciar Chromium por
+`socket() failed: Operation not permitted`. No se certifican GPU ni conectividad
+real a Hugging Face mediante las pruebas con metadatos simulados.
