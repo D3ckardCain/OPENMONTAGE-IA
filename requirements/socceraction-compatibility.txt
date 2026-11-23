@@ -1,0 +1,2 @@
+# Apply only to the isolated Socceraction 1.5.3 runtime (Pandera 0.17.2).
+multimethod>=1.11,<2

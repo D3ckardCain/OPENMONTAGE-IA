@@ -23,6 +23,9 @@ nombre de herramienta, runtime, dependencia o modelo faltante. No sustituyas por
 contenido simulado ni llames proveedores cloud mediante selectores híbridos.
 
 Usa project_files y read_project_file para consultar recursos ya creados.
+Para comprobar Socceraction, cq_warehouse o Soccer Tactical Vision, lee
+`docs/BIBLIOTECAS_AISLADAS_ES.md` y usa `prepared_library_doctor`. Su resultado
+comprueba imports y operaciones sintéticas; no acredita producción o inferencia.
 Para coordenadas deportivas locales, lee `docs/COORDENADAS_DEPORTIVAS_ES.md`,
 descubre `sports_coordinates_doctor` y `sports_coordinates`. Exige dimensiones,
 unidades y orientación explícitas; conserva la procedencia y no infieras datos
