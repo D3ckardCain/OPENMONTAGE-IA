@@ -1,6 +1,7 @@
 """Allowlisted dependency diagnostics and synthetic checks, never media production."""
 import importlib.metadata as metadata
 import json
+from pathlib import Path
 import sys
 
 
@@ -53,11 +54,45 @@ def check(name):
         assert np.allclose(apply_homography(np.linalg.inv(matrix), transformed), points)
         packages = ['soccervision', 'opencv-python', 'supervision', 'numpy']
         checks = ['CPU homography module import', 'synthetic homography and inverse']
+    elif name == 'musetalk':
+        source = Path(__file__).resolve().parents[1] / '.runtime/musetalk/sources/0a89dec45a01'
+        if not source.is_dir():
+            raise ValueError('LIBRARY_SOURCE_MISSING: prepara las fuentes verificadas de MuseTalk')
+        sys.path.insert(0, str(source))
+        import torch
+        import musetalk.models.unet
+        import musetalk.models.vae
+        import mmcv.ops
+        from mmpose.apis import init_model
+        # Do not import preprocessing: upstream constructs models on import.
+        from musetalk.utils.utils import get_file_type
+        assert get_file_type('synthetic.wav') == 'unsupported'
+        assert get_file_type('synthetic.mp4') == 'video'
+        packages = ['torch', 'torchvision', 'diffusers', 'transformers', 'mmcv', 'mmengine', 'mmdet', 'mmpose', 'numpy']
+        checks = ['CPU model class imports without construction or weights', 'MMLab API/native operators import',
+                  'synthetic filename classification, no file opened']
+    elif name == 'tvcalib':
+        source = Path(__file__).resolve().parents[1] / '.runtime/tvcalib/sources/1222c5230af2'
+        if not source.is_dir():
+            raise ValueError('LIBRARY_SOURCE_MISSING: prepara las fuentes verificadas de TVCalib')
+        sys.path.insert(0, str(source))
+        import torch
+        import tvcalib.cam_modules
+        import tvcalib.module
+        from tvcalib.utils.data_distr import FeatureScalerZScore
+        scale = FeatureScalerZScore(10., 2.)
+        points = torch.tensor([-1., 0., 1.])
+        assert torch.allclose(scale.denormalize(points), torch.tensor([8., 10., 12.]))
+        assert torch.allclose(scale.normalize(scale.denormalize(points)), points)
+        packages = ['torch', 'torchvision', 'kornia', 'pytorch-lightning', 'numpy', 'scipy']
+        checks = ['CPU camera/calibration class imports without construction', 'synthetic feature scaling and inverse']
     else:
         raise ValueError('LIBRARY_UNKNOWN: runtime no admitido')
     return {'runtime': name, 'versions': {name: metadata.version(name) for name in packages},
+            'python': sys.version.split()[0],
             'synthetic_checks': checks, 'network_accessed': False, 'real_input_read': False,
-            'geometry_generated': False, 'figures_generated': False, 'model_inference_performed': False}
+            'geometry_generated': False, 'figures_generated': False, 'model_inference_performed': False,
+            'weights_loaded': False, 'cuda_validated': False}
 
 
 if __name__ == '__main__':

@@ -1,0 +1,13 @@
+# Constraints for verified MuseTalk sources in their isolated Python 3.11 runtime.
+# Install CPU PyTorch first from the official PyTorch CPU index.
+torch==2.0.1+cpu
+torchvision==0.15.2+cpu
+torchaudio==2.0.2+cpu
+numpy==1.23.5
+matplotlib==3.8.4
+contourpy==1.2.1
+shapely==2.0.7
+mmcv==2.0.1
+mmengine==0.10.7
+mmdet==3.1.0
+mmpose==1.1.0

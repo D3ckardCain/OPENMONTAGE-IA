@@ -11,7 +11,7 @@ from tools.base_tool import BaseTool, ToolResult, ToolTier, ToolRuntime, ToolSta
 ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_ROOT = ROOT / '.runtime'
 WORKER = ROOT / 'lib/prepared_library_worker.py'
-NAMES = ['socceraction', 'cq_warehouse', 'soccervision']
+NAMES = ['socceraction', 'cq_warehouse', 'soccervision', 'musetalk', 'tvcalib']
 
 
 class PreparedLibraryDoctor(BaseTool):
@@ -34,7 +34,9 @@ class PreparedLibraryDoctor(BaseTool):
                 raise ValueError('LIBRARY_RUNTIME_MISSING: falta el entorno aislado de ' + name)
             worker_hash = hashlib.sha256(WORKER.read_bytes()).hexdigest()
             with tempfile.TemporaryDirectory(prefix='openmontage-library-') as cache:
-                env = dict(os.environ, MPLBACKEND='Agg', MPLCONFIGDIR=cache)
+                env = dict(os.environ, MPLBACKEND='Agg', MPLCONFIGDIR=cache,
+                           HF_HOME=str(Path(cache) / 'hf'), HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
+                           TORCH_HOME=str(Path(cache) / 'torch'), TF_CPP_MIN_LOG_LEVEL='3')
                 try:
                     process = subprocess.run([str(python), '-I', '-B', str(WORKER), name], env=env,
                                              capture_output=True, timeout=60, shell=False)

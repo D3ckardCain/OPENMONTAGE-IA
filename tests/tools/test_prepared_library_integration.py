@@ -59,6 +59,14 @@ class PreparedLibraryTests(unittest.TestCase):
         self.assertIsNotNone(registry.get('prepared_library_doctor'))
         self.assertEqual(doctor.PreparedLibraryDoctor().runtime.value, 'local')
 
+    def test_inference_or_user_content_fields_rejected_before_process(self):
+        with patch.object(doctor.subprocess, 'run') as run:
+            for fields in ({'weights_path': 'model.pth'}, {'input_path': 'real.mp4'}, {'run_inference': True}):
+                result = doctor.PreparedLibraryDoctor().execute({'library': 'musetalk', **fields})
+                self.assertFalse(result.success)
+                self.assertIn('LIBRARY_INPUT_INVALID', result.error)
+            run.assert_not_called()
+
     def test_real_prepared_libraries_offline(self):
         for name in doctor.NAMES:
             runtime = doctor.RUNTIME_ROOT / name / 'venv'
@@ -71,4 +79,6 @@ class PreparedLibraryTests(unittest.TestCase):
                 self.assertFalse(result.data['real_input_read'])
                 self.assertFalse(result.data['geometry_generated'])
                 self.assertFalse(result.data['model_inference_performed'])
+                self.assertFalse(result.data['weights_loaded'])
+                self.assertFalse(result.data['cuda_validated'])
                 self.assertTrue(result.data['synthetic_checks'])
