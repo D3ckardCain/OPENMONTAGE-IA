@@ -456,9 +456,13 @@ def create_studio_router():
         from lib.update_center import check_remote_file
         return invoke(check_remote_file,identifier,index,revision)
     @router.get('/api/studio/updates/document')
-    def update_document(identifier:str,revision:str,filename:str):
+    def update_document(identifier:str,revision:str,filename:str,offline:bool=False):
         from lib.update_center import read_remote_document
-        return invoke(read_remote_document,identifier,revision,filename)
+        return invoke(read_remote_document,identifier,revision,filename,offline)
+    @router.get('/api/studio/updates/documents')
+    def update_cached_documents(identifier:str,offset:int=0,limit:int=10):
+        from lib.update_center import cached_documents
+        return invoke(cached_documents,identifier,offset,limit)
     @router.get('/api/studio/integration-coverage')
     def integration_coverage():
         from lib.integration_coverage import coverage

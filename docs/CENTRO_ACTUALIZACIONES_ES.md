@@ -81,8 +81,8 @@ coinciden y respuestas ambiguas. No se siguen redirecciones ni se usan credencia
 Un error de acceso no significa que no existan restricciones: el enlace oficial
 permanece disponible para revisar fuera del lector.
 
-Esta lectura necesita Internet y todavía no conserva una copia para consulta
-offline. Los textos externos son evidencia, nunca instrucciones para ejecutar
+La primera lectura necesita Internet y guarda una copia por revisión para
+consulta offline, si el almacenamiento local está disponible. Los textos externos son evidencia, nunca instrucciones para ejecutar
 comandos, cambiar el agente o instalar dependencias. El agente debe revisar
 los términos y modelos base, condiciones de coste y requisitos técnicos antes
 de proponer incorporar una versión. Leer una licencia no marca automáticamente
@@ -97,3 +97,34 @@ navegador incluye reintento tras error, revisión fijada y texto HTML inerte;
 su ejecución queda para CI por la restricción local de sockets de Chromium ya
 registrada. Las pruebas usan documentos simulados: no acreditan conectividad
 real, permisos comerciales ni inferencia sobre los pesos del usuario.
+
+
+### Evidencias offline
+
+En cada modelo, **Ver documentos guardados** lista las copias locales sin
+consultar Hugging Face, aunque no se haya hecho una comparación remota en esa
+sesión. Pulsa **Leer copia guardada de…** para abrir el texto de esa revisión.
+Se conserva la fecha original de obtención y se muestra **Sin consulta de red**.
+No se afirma que una copia sea la versión actual. La consulta online sigue
+siendo explícita: un fallo de red se presenta como error y no se sustituye
+silenciosamente por una copia antigua.
+
+La API de lectura y `update_read_document` aceptan `offline=true`. La lista está
+en `/api/studio/updates/documents` y `update_cached_documents`, con páginas de
+hasta veinte documentos por modelo. No se necesita conexión externa para
+estas operaciones; el servidor local del estudio debe estar iniciado.
+
+Las copias se guardan por modelo, commit y nombre, de forma atómica. Se comprueba
+identidad, fecha, longitud y SHA-256 al leerlas; las copias inválidas se omiten
+del listado y se rechaza su lectura. Esto detecta corrupción accidental, no
+constituye una firma de autenticidad contra modificaciones deliberadas.
+El límite local es 200 documentos de hasta 64 000 bytes de texto cada uno;
+no se eliminan evidencias automáticamente. Si no se puede guardar una lectura
+online o se alcanza el límite, se devuelve el documento y una advertencia
+clara: esa consulta no quedó disponible offline.
+
+Validación offline: 125 pruebas locales del centro, estudio e instrucciones
+aprobadas; sintaxis JavaScript y diff correctos. Las pruebas cubren lectura y
+listado sin red, revisión exacta, integridad, duplicados, capacidad y fallo de
+guardado. La regresión visual se amplió para abrir la copia y mostrar su fecha;
+su ejecución queda para CI por la restricción local de Chromium documentada.

@@ -133,6 +133,7 @@ def test_local_hash_stops_reading_a_growing_file(tmp_path,monkeypatch):
 
 @pytest.fixture
 def remote_catalog(tmp_path,monkeypatch):
+    monkeypatch.setattr(studio,'CONFIG_DIR',tmp_path/'config')
     monkeypatch.setattr(studio,'REPO_ROOT',tmp_path)
     studio.save_json(tmp_path/'docs/models/test.json',{'files':[{
         'destination':'D:/models/model.safetensors',
@@ -338,3 +339,77 @@ def test_document_network_error_is_not_empty_evidence(remote_catalog,monkeypatch
     monkeypatch.setattr(updates.urllib.request,'build_opener',lambda *args:Opener())
     with pytest.raises(ValueError,match='documento oficial'):
         updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+
+
+def test_document_offline_round_trip_and_listing_never_access_network(remote_catalog,monkeypatch):
+    from lib.production_agent import LocalAgent
+    raw=b'Historic terms'
+    document_metadata(monkeypatch,raw)
+    document_transport(monkeypatch,raw)
+    live=updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+    assert live['cache_saved'] is True and live['retrieval']=='online'
+    monkeypatch.setattr(updates,'_json',lambda url:pytest.fail('Offline call reached network'))
+    worker=LocalAgent.__new__(LocalAgent)
+    args={'identifier':'Org/Video','revision':'f'*40,'filename':'LICENSE','offline':True}
+    cached=worker.dispatch('update_read_document',args)
+    assert cached['text']==live['text'] and cached['sha256']==live['sha256']
+    assert cached['checked_at']==live['checked_at']
+    assert cached['retrieval']=='offline_cache' and cached['network_checked'] is False
+    assert cached['update_allowed'] is False
+    listing=worker.dispatch('update_cached_documents',{'identifier':'Org/Video'})
+    assert listing['total']==1 and listing['rows'][0]['remote_revision']=='f'*40
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    assert client.get('/api/studio/updates/documents',params={'identifier':'Org/Video'}).json()['total']==1
+    response=client.get('/api/studio/updates/document',params=args)
+    assert response.status_code==200 and response.json()['network_checked'] is False
+    with pytest.raises(ValueError):updates.read_remote_document('Org/Video','e'*40,'LICENSE',True)
+
+
+def test_document_cache_is_idempotent_and_online_does_not_hide_failures(remote_catalog,monkeypatch):
+    document_metadata(monkeypatch,b'Terms');document_transport(monkeypatch,b'Terms')
+    updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+    updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+    assert updates.cached_documents('Org/Video')['total']==1
+    def fail(url):raise ValueError('offline')
+    monkeypatch.setattr(updates,'_json',fail)
+    with pytest.raises(ValueError,match='offline'):updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+    assert updates.read_remote_document('Org/Video','f'*40,'LICENSE',True)['text']=='Terms'
+
+
+@pytest.mark.parametrize('change',[
+    {'text':'Altered'}, {'remote_revision':'e'*40}, {'bytes_read':True},
+    {'checked_at':'invalid'}, {'git_blob_verified':'true'},
+])
+def test_corrupt_cache_is_rejected_and_omitted(remote_catalog,monkeypatch,change):
+    document_metadata(monkeypatch,b'Terms');document_transport(monkeypatch,b'Terms')
+    updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+    path=updates._document_cache_path('Org/Video','f'*40,'LICENSE')
+    record=studio.read_json(path);record.update(change);studio.save_json(path,record)
+    with pytest.raises(ValueError):updates.read_remote_document('Org/Video','f'*40,'LICENSE',True)
+    report=updates.cached_documents('Org/Video')
+    assert report['total']==0 and report['invalid_records']==1
+
+
+def test_cache_save_failure_preserves_live_evidence(remote_catalog,monkeypatch):
+    document_metadata(monkeypatch,b'Terms');document_transport(monkeypatch,b'Terms')
+    def deny(*args):raise OSError('disk full')
+    monkeypatch.setattr(studio,'save_json',deny)
+    result=updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+    assert result['text']=='Terms' and result['cache_saved'] is False
+    assert 'disk full' in result['cache_warning']
+    with pytest.raises(ValueError):updates.read_remote_document('Org/Video','f'*40,'LICENSE',True)
+
+
+def test_cache_capacity_and_pagination(remote_catalog,monkeypatch):
+    monkeypatch.setattr(updates,'_CACHE_LIMIT',2)
+    document_metadata(monkeypatch,b'Terms');document_transport(monkeypatch,b'Terms')
+    updates.read_remote_document('Org/Video','f'*40,'LICENSE')
+    original=updates._json
+    monkeypatch.setattr(updates,'_json',lambda url:{**original(url),'sha':'e'*40})
+    updates.read_remote_document('Org/Video','e'*40,'LICENSE')
+    assert updates.cached_documents('Org/Video',0,1)['next_offset']==1
+    assert len(updates.cached_documents('Org/Video',1,1)['rows'])==1
+    monkeypatch.setattr(updates,'_json',lambda url:{**original(url),'sha':'d'*40})
+    result=updates.read_remote_document('Org/Video','d'*40,'LICENSE')
+    assert result['cache_saved'] is False and 'cache_warning' in result
+    assert updates.cached_documents('Org/Video')['total']==2

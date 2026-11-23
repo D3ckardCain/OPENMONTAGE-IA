@@ -41,8 +41,12 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
             else:
                 route.fulfill(json={'remote_revision':'f'*40,'sha256':'c'*64,
                     'text':'Terms <script>window.remoteExecuted=true</script>',
+                    'checked_at':'2026-11-22T20:00:00+00:00','retrieval':'offline_cache' if 'offline=true' in route.request.url else 'online',
                     'note':'Texto externo; no acredita permisos ni compatibilidad.'})
         page.route('**/api/studio/updates/document?*',document)
+        page.route('**/api/studio/updates/documents?*',lambda route:route.fulfill(json={
+            'rows':[{'filename':'README.md','remote_revision':'f'*40,'checked_at':'2026-11-22T20:00:00+00:00'}],
+            'next_offset':None,'invalid_records':0,'note':'Evidencias locales históricas.'}))
         local_reads=[]
         page.route('**/api/studio/updates/local-check?*',lambda route:local_reads.append(route.request.url))
         page.goto(staged_backlot_server+'/studio#models')
@@ -65,6 +69,12 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         assert '<script>window.remoteExecuted=true</script>' in page.locator('[data-remote-file-check] pre').inner_text()
         assert page.evaluate('window.remoteExecuted') is None
         assert all('revision='+'f'*40 in url and 'filename=README.md' in url for url in document_calls)
+        page.get_by_role('button',name='Ver documentos guardados',exact=True).click()
+        page.get_by_role('button',name='Leer copia guardada de README.md',exact=True).click()
+        page.locator('[data-cached-update-documents] pre').wait_for()
+        assert 'offline=true' in document_calls[-1]
+        assert 'Sin consulta de red' in page.locator('[data-cached-update-documents]').inner_text()
+        assert '2026-11-22T20:00:00+00:00' in page.locator('[data-cached-update-documents]').inner_text()
         button.click()
         page.get_by_text('Metadatos insuficientes para confirmar coincidencia',exact=True).wait_for()
         assert page.locator('[data-remote-file-check]').count()==1
