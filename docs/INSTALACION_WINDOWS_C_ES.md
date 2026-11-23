@@ -65,3 +65,16 @@ La CI incluye una instalacion real en `.venv` con Python 3.11 en Windows y Linux
 seguida del arranque del servidor en loopback y consultas a salud, HTML,
 JavaScript y bootstrap. Usa equipos temporales sin modelos; no demuestra el
 funcionamiento de motores IA ni sustituye el arranque en el equipo del usuario.
+
+## Consultar actualizaciones del propio estudio
+
+`py -3.11 scripts/check_studio_source.py` consulta offline el recibo de origen.
+Con `--online` compara explicitamente ese commit con la rama de desarrollo en
+GitHub, sin credenciales. Distingue coincidencia, rama adelantada, atrasada,
+divergente y consulta no disponible. Un recibo ausente o invalido no se utiliza
+para adivinar la procedencia de la copia.
+
+La herramienta no verifica cambios locales ni modifica archivos. Una coincidencia
+del commit del recibo no acredita que el codigo actual permanezca intacto.
+No actualiza una copia en uso: la sustitucion del codigo y migracion de datos
+siguen pendientes de un procedimiento separado con respaldo y pruebas.
