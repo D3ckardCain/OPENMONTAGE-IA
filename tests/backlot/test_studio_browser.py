@@ -60,6 +60,16 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
             route.fulfill(json={'job_id':'fixture','status':'candidate_ready','bytes_present':9,'expected_bytes':9,
                 'note':'Candidato separado; no cambia el modelo actual.'})
         page.route('**/api/studio/updates/downloads',download)
+        resumes=[]
+        page.route('**/api/studio/updates/downloads?*',lambda route:route.fulfill(json={
+            'rows':[{'job_id':'a'*32,'status':'interrupted','historical':True,'bytes_present':4,
+                     'expected_bytes':9,'note':'Historial recuperado; reanudación explícita.'}],
+            'note':'Historial local de descargas.','history_warning':None}))
+        def resume_download(route):
+            resumes.append(route.request.post_data_json)
+            route.fulfill(json={'job_id':'resumed','status':'candidate_ready','bytes_present':9,'expected_bytes':9,
+                'note':'Candidato comprobado otra vez.'})
+        page.route('**/api/studio/updates/downloads/'+'a'*32+'/resume',resume_download)
         document_calls=[]
         def document(route):
             document_calls.append(route.request.url)
@@ -101,6 +111,12 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         page.get_by_role('button',name='Descargar/reanudar candidato separado',exact=True).click()
         page.get_by_text('Candidato descargado y verificado; modelo actual sin cambios',exact=True).wait_for()
         assert downloads==[{'identifier':'Org/Video','index':0,'revision':'f'*40,'expected_sha256':'c'*64}]
+        page.get_by_role('button',name='Ver descargas de este candidato',exact=True).click()
+        page.get_by_text('Descarga interrumpida al reiniciar; reanudación pendiente',exact=True).wait_for()
+        assert not resumes
+        page.get_by_role('button',name='Reanudar trabajo guardado',exact=True).click()
+        page.get_by_text('Candidato descargado y verificado; modelo actual sin cambios',exact=True).wait_for()
+        assert resumes==[{}]
         document_button=page.get_by_role('button',name='Leer README.md en el panel',exact=True)
         document_button.click()
         page.get_by_text('Documento no disponible',exact=True).wait_for()

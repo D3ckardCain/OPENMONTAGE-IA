@@ -13,6 +13,10 @@ from lib import update_center as updates
 
 @pytest.fixture
 def setup(tmp_path,monkeypatch):
+    monkeypatch.setattr(downloads.studio,'CONFIG_DIR',tmp_path/'config')
+    monkeypatch.setattr(downloads,'_LOADED_FOR',None)
+    monkeypatch.setattr(downloads,'_HISTORY_WARNING',None)
+    monkeypatch.setattr(downloads,'_LAST_SAVED',0.0)
     original=tmp_path/'original.safetensors';original.write_bytes(b'original')
     target=tmp_path/'staging/model.safetensors'
     raw=b'candidate';digest=hashlib.sha256(raw).hexdigest()
@@ -175,3 +179,88 @@ def test_interrupted_transfer_can_resume_later(setup,monkeypatch):
 def test_redirect_handler_rejects_outside_destination():
     request=downloads.urllib.request.Request('https://huggingface.co/Org/Video/file')
     with pytest.raises(ValueError):downloads._Redirect().redirect_request(request,None,302,'',{},'http://127.0.0.1/file')
+
+
+def saved_job(setup,state='downloading'):
+    original,target,raw,plan,job=setup
+    jid='a'*32
+    job['report'].update(job_id=jid,status=state,candidate_destination=str(target),bytes_present=4,
+                         updated_at='2026-11-22T20:00:00+00:00')
+    return jid,job
+
+
+def write_history(job):
+    downloads.studio.save_json(downloads.studio.CONFIG_DIR/'update_download_jobs.json',
+                              {'version':1,'jobs':[{'args':job['args'],'report':job['report']}]})
+
+
+def test_restart_recovers_interrupted_job_without_starting_network(setup,monkeypatch):
+    jid,job=saved_job(setup);write_history(job)
+    monkeypatch.setattr(downloads,'_open',lambda *args:pytest.fail('History must not start network'))
+    report=downloads.status(jid)
+    assert report['status']=='interrupted' and report['historical'] is True
+    assert report['bytes_present']==4 and report['updated_at']=='2026-11-22T20:00:00+00:00'
+    assert downloads._ACTIVE is None and report['update_allowed'] is False
+    assert downloads.list_jobs('Org/Video',0,'f'*40)['rows'][0]['job_id']==jid
+
+
+def test_restart_does_not_certify_previous_candidate_ready(setup):
+    jid,job=saved_job(setup,'candidate_ready');write_history(job)
+    assert downloads.status(jid)['status']=='historical_candidate_ready'
+
+
+def test_recovered_job_resumes_only_explicitly(setup,monkeypatch):
+    original,target,raw,plan,job=setup
+    jid,job=saved_job(setup);write_history(job)
+    target.parent.mkdir();target.with_name(target.name+'.part').write_bytes(raw[:4])
+    calls=transport(monkeypatch,raw[4:],status=206,range_value='bytes 4-8/9')
+    class Thread:
+        def __init__(self,target,args,daemon):self.target=target;self.args=args
+        def start(self):self.target(*self.args)
+    monkeypatch.setattr(downloads,'Thread',Thread)
+    assert downloads.status(jid)['status']=='interrupted' and not calls
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    result=client.post('/api/studio/updates/downloads/'+jid+'/resume',json={})
+    assert result.status_code==200,result.text
+    assert result.json()['status']=='candidate_ready' and result.json()['job_id']!=jid
+    assert target.read_bytes()==raw and original.read_bytes()==b'original'
+
+
+def test_history_route_change_blocks_resume_and_discard(setup):
+    original,target,raw,plan,job=setup
+    jid,job=saved_job(setup);write_history(job)
+    target.parent.mkdir();partial=target.with_name(target.name+'.part');partial.write_bytes(b'cand')
+    downloads.status(jid)
+    plan['candidate']['destination']=str(target.parent/'other.safetensors')
+    with pytest.raises(ValueError,match='ruta'):downloads.resume(jid)
+    with pytest.raises(ValueError,match='ruta'):downloads.discard_partial(jid)
+    assert partial.read_bytes()==b'cand'
+
+
+def test_invalid_or_oversized_history_is_reported(setup):
+    path=downloads.studio.CONFIG_DIR/'update_download_jobs.json';path.parent.mkdir()
+    path.write_bytes(b'x'*(downloads._HISTORY_LIMIT+1))
+    report=downloads.list_jobs('Org/Video',0,'f'*40)
+    assert report['rows']==[] and report['history_warning']
+
+
+def test_history_save_failure_keeps_current_state(setup,monkeypatch):
+    jid,job=saved_job(setup)
+    downloads._JOBS[jid]=job
+    def deny(*args):raise OSError('disk full')
+    monkeypatch.setattr(downloads.studio,'save_json',deny)
+    downloads._change(job,status='failed',message='network down')
+    assert job['report']['status']=='failed'
+    assert downloads._HISTORY_WARNING
+
+
+def test_progress_history_writes_are_throttled(setup,monkeypatch):
+    jid,job=saved_job(setup);downloads._JOBS[jid]=job
+    writes=[]
+    monkeypatch.setattr(downloads.studio,'save_json',lambda *args:writes.append(args))
+    monkeypatch.setattr(downloads.time,'monotonic',lambda:10.0)
+    downloads._change(job,status='downloading')
+    downloads._change(job,bytes_present=5)
+    downloads._change(job,bytes_present=6)
+    downloads._change(job,status='failed')
+    assert len(writes)==2

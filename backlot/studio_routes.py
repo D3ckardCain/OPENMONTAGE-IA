@@ -485,8 +485,8 @@ def create_studio_router():
     async def update_download_action(job_id:str,action:str,request:Request):
         from lib import update_downloads
         if await body(request):raise HTTPException(400,'La acción no admite parámetros')
-        if action not in ('cancel','discard-partial'):raise HTTPException(400,'Acción desconocida')
-        fn=update_downloads.cancel if action=='cancel' else update_downloads.discard_partial
+        if action not in ('cancel','discard-partial','resume'):raise HTTPException(400,'Acción desconocida')
+        fn={'cancel':update_downloads.cancel,'discard-partial':update_downloads.discard_partial,'resume':update_downloads.resume}[action]
         return await asyncio.to_thread(lambda:invoke(fn,job_id))
     @router.get('/api/studio/updates/document')
     def update_document(identifier:str,revision:str,filename:str,offline:bool=False):

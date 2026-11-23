@@ -242,9 +242,9 @@ reintentar. Un error o cancelación durante esa copia elimina únicamente la
 copia final incompleta creada por el propio trabajo.
 
 **Ver descargas de este candidato** recupera controles tras recargar el panel.
-Los estados y últimos veinte trabajos se conservan durante la sesión del
-servidor; tras reiniciarlo, los parciales siguen en disco, pero se inicia un
-nuevo trabajo para reanudarlos. La cancelación puede esperar al timeout de una
+El historial local conserva los últimos veinte trabajos tras reiniciar el
+servidor; los parciales siguen en disco y la reanudación inicia un nuevo
+trabajo explícito, como se detalla más abajo. La cancelación puede esperar al timeout de una
 lectura de red (30 segundos) o al final de la comprobación local en curso.
 
 La descarga requiere Internet. El transporte usa HTTPS sin credenciales,
@@ -270,3 +270,38 @@ interrupciones, cancelación, rangos ignorados, contenido incorrecto, conservaci
 del original, finalización sin enlaces duros y descarte explícito. La nueva
 regresión visual usa un transporte simulado. Conectividad real a los servidores
 de modelos, rendimiento de descarga y GPU siguen sin validación aquí.
+
+
+### Recuperación después de reiniciar el estudio
+
+El estado se guarda de forma atómica en el historial local, con un máximo de
+veinte trabajos y 128 KB de datos. Los cambios de estado se guardan inmediatamente;
+el progreso se registra como máximo una vez por segundo. Una advertencia visible
+indica si no se pudo guardar o recuperar el historial. No se borran parciales
+cuando sale un registro antiguo del historial.
+
+Al volver a abrir **Ver descargas de este candidato**, un trabajo que quedó en
+cola, comprobando, descargando o verificando aparece como **interrumpido**.
+Una descarga que terminó antes del reinicio aparece como dato histórico pendiente
+de nueva comprobación: los bytes registrados no certifican el estado actual del
+disco. Ningún trabajo se reanuda automáticamente ni se abre una conexión de red
+solo por cargar el historial.
+
+Pulsa **Reanudar trabajo guardado** para comprobar otra vez modelo, commit,
+SHA-256 y ruta y crear un nuevo trabajo. Si cambió la ruta del catálogo, se exige
+preparar un plan nuevo; tampoco se permite descartar un parcial en una ruta
+que no coincida con la guardada. Se comprueba el parcial real antes de reanudar;
+si el candidato final ya existe, se verifica su hash en lugar de sustituirlo.
+
+La API añade `POST .../downloads/{id}/resume` con `{}` y el agente
+`update_download_resume(job_id)`, siempre mediante una petición explícita.
+Consultar el historial funciona offline; reanudar o descartar sigue necesitando
+metadatos remotos para comprobar el plan. Los registros inválidos se omiten con
+advertencia y nunca se usan como rutas libres ni como autorización de instalación.
+
+Validación: 174 pruebas locales de descargas, centro, estudio e instrucciones
+aprobadas; sintaxis JavaScript y diff correctos. Incluye recuperación sin red,
+estados históricos, reanudación explícita, cambio de ruta, límite y fallo de
+guardado y escritura de progreso limitada. La regresión visual comprueba que
+el trabajo recuperado espera al botón. Se usan archivos y transferencias simulados;
+no se descargaron modelos reales. La CI del incremento anterior quedó aprobada.

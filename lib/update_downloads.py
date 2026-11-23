@@ -1,5 +1,7 @@
 """Explicit, single-job candidate downloads. Installed weights are never replaced."""
 import hashlib
+import json
+import time
 import os
 import re
 import shutil
@@ -18,6 +20,10 @@ _LOCK=threading.RLock()
 _JOBS={}
 _ACTIVE=None
 _BLOCK=4*1024*1024
+_LOADED_FOR=None
+_HISTORY_WARNING=None
+_LAST_SAVED=0.0
+_HISTORY_LIMIT=128_000
 
 
 def _allowed_url(url):
@@ -43,8 +49,68 @@ def _open(url,offset):
     return opener.open(urllib.request.Request(url,headers=headers),timeout=30)
 
 
+def _ensure_history():
+    """Load bounded job evidence, never start transfers from saved state."""
+    global _LOADED_FOR,_HISTORY_WARNING
+    path=studio.CONFIG_DIR/'update_download_jobs.json'
+    if _LOADED_FOR==path:return
+    if _ACTIVE:return
+    _LOADED_FOR=path;_JOBS.clear();_HISTORY_WARNING=None
+    try:
+        if not path.exists():return
+        if path.is_symlink() or path.stat().st_size>_HISTORY_LIMIT:raise ValueError('Historial demasiado grande o enlazado')
+        with path.open('rb') as stream:raw=stream.read(_HISTORY_LIMIT+1)
+        if len(raw)>_HISTORY_LIMIT:raise ValueError('Historial demasiado grande')
+        data=json.loads(raw)
+        if not isinstance(data,dict) or data.get('version')!=1 or not isinstance(data.get('jobs'),list) or len(data['jobs'])>20:
+            raise ValueError('Formato de historial inválido')
+        for item in data['jobs']:
+            try:
+                args=item['args'];old=item['report']
+                if not isinstance(args,dict) or not isinstance(old,dict):raise ValueError()
+                identifier=args['identifier'];revision=args['revision'];index=args['index'];digest=args['expected_sha256'];jid=old['job_id']
+                if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}/[A-Za-z0-9][A-Za-z0-9_.-]{0,95}',identifier):raise ValueError()
+                if not isinstance(revision,str) or not updates._SHA.fullmatch(revision) or type(index) is not int or not 0<=index<100_000:raise ValueError()
+                if not isinstance(digest,str) or not re.fullmatch('[0-9a-f]{64}',digest) or not isinstance(jid,str) or not re.fullmatch('[0-9a-f]{32}',jid) or jid in _JOBS:raise ValueError()
+                state=old.get('status')
+                if state in ('queued','checking','downloading','verifying','interrupted'):state='interrupted'
+                elif state in ('candidate_ready','historical_candidate_ready'):state='historical_candidate_ready'
+                elif state not in ('failed','cancelled','partial_discarded'):raise ValueError()
+                report={'job_id':jid,'id':identifier,'index':index,'remote_revision':revision,'status':state,
+                        'historical':True,'update_allowed':False,'configuration_changed':False,'bytes_present':0,
+                        'note':'Historial recuperado; los bytes y el estado del disco requieren nueva comprobación. No se reanuda automáticamente.'}
+                for key in ('bytes_present','expected_bytes','resumed_from'):
+                    value=old.get(key)
+                    if type(value) is int and 0<=value<=100_000_000_000:report[key]=value
+                for key in ('candidate_destination','updated_at','message'):
+                    value=old.get(key)
+                    if isinstance(value,str) and len(value)<=4096:report[key]=value
+                _JOBS[jid]={'args':dict(identifier=identifier,index=index,revision=revision,expected_sha256=digest),
+                            'report':report,'cancel':threading.Event()}
+            except (ValueError,TypeError,KeyError):_HISTORY_WARNING='Se omitieron registros de descarga inválidos.'
+    except (OSError,ValueError,UnicodeError,TypeError,KeyError):
+        _HISTORY_WARNING='No se pudo cargar el historial de descargas; los archivos del disco no se han modificado.'
+
+
+def _save_history(force=False):
+    global _LAST_SAVED,_HISTORY_WARNING
+    now=time.monotonic()
+    if not force and now-_LAST_SAVED<1:return
+    _LAST_SAVED=now
+    try:
+        path=studio.CONFIG_DIR/'update_download_jobs.json'
+        if path.is_symlink():raise ValueError('Destino de historial enlazado')
+        data={'version':1,'jobs':[{'args':job['args'],'report':job['report']} for job in _JOBS.values()]}
+        if len(json.dumps(data,ensure_ascii=False,indent=2).encode('utf-8'))>_HISTORY_LIMIT:raise ValueError('Historial demasiado grande')
+        studio.save_json(path,data)
+    except (OSError,ValueError):
+        _HISTORY_WARNING='No se pudo guardar el historial; los parciales pueden reanudarse desde el plan.'
+
+
 def _change(job,**values):
-    with _LOCK:job['report'].update(values,updated_at=studio.now())
+    with _LOCK:
+        job['report'].update(values,updated_at=studio.now())
+        if job['report']['job_id'] in _JOBS:_save_history(force='status' in values)
 
 
 def _check_cancel(job):
@@ -175,6 +241,7 @@ def start(identifier,index,revision,expected_sha256):
     if type(index) is not int or index<0 or index>=len(updates._files(identifier)):raise ValueError('Archivo inválido')
     if not isinstance(expected_sha256,str) or not re.fullmatch('[0-9a-f]{64}',expected_sha256):raise ValueError('SHA-256 inválido')
     with _LOCK:
+        _ensure_history()
         if _ACTIVE:raise ValueError('Ya hay una descarga de candidato en curso')
         while len(_JOBS)>=20:_JOBS.pop(next(iter(_JOBS)))
         job_id=uuid.uuid4().hex
@@ -184,35 +251,39 @@ def start(identifier,index,revision,expected_sha256):
         job={'args':dict(identifier=identifier,index=index,revision=revision,expected_sha256=expected_sha256),
              'report':report,'cancel':threading.Event()}
         _JOBS[job_id]=job;_ACTIVE=job_id
+        _save_history(force=True)
         try:Thread(target=_run,args=(job,),daemon=True).start()
         except Exception:
-            _ACTIVE=None;_JOBS.pop(job_id);raise
-        return dict(report)
+            _ACTIVE=None;_change(job,status='failed',message='No se pudo iniciar el trabajo de descarga.');raise
+        return {**report,**({'history_warning':_HISTORY_WARNING} if _HISTORY_WARNING else {})}
 
 
 def status(job_id):
     with _LOCK:
+        _ensure_history()
         if job_id not in _JOBS:raise ValueError('Descarga no disponible en esta sesión')
-        return dict(_JOBS[job_id]['report'])
+        return {**_JOBS[job_id]['report'],**({'history_warning':_HISTORY_WARNING} if _HISTORY_WARNING else {})}
 
 
 def cancel(job_id):
     with _LOCK:
+        _ensure_history()
         if job_id not in _JOBS:raise ValueError('Descarga no disponible en esta sesión')
         _JOBS[job_id]['cancel'].set()
-        return dict(_JOBS[job_id]['report'])
+        return {**_JOBS[job_id]['report'],**({'history_warning':_HISTORY_WARNING} if _HISTORY_WARNING else {})}
 
 
 def discard_partial(job_id):
     with _LOCK:
+        _ensure_history()
         if _ACTIVE:raise ValueError('Espera a que termine la descarga antes de descartar el parcial')
         if job_id not in _JOBS:raise ValueError('Descarga no disponible en esta sesión')
         job=_JOBS[job_id]
-        if job['report']['status'] not in ('failed','cancelled'):raise ValueError('Solo se descartan parciales de descargas fallidas o canceladas')
+        if job['report']['status'] not in ('failed','cancelled','interrupted'):raise ValueError('Solo se descartan parciales de descargas fallidas o canceladas')
         args=job['args']
         plan=updates.prepare_file_update(args['identifier'],args['index'],args['revision'])
         candidate=plan.get('candidate')
-        if not candidate or candidate['sha256']!=args['expected_sha256']:raise ValueError('El candidato ya no corresponde al plan')
+        if not candidate or candidate['sha256']!=args['expected_sha256'] or candidate['destination']!=job['report'].get('candidate_destination'):raise ValueError('El candidato ya no corresponde al plan y ruta guardados')
         path=Path(candidate['destination'])
         if not path.is_absolute():raise ValueError('Ruta no disponible en este equipo')
         part=path.with_name(path.name+'.part');_safe_parent(part)
@@ -223,6 +294,24 @@ def discard_partial(job_id):
 
 def list_jobs(identifier,index,revision):
     with _LOCK:
+        _ensure_history()
         return {'rows':[dict(job['report']) for job in reversed(list(_JOBS.values()))
                         if (job['args']['identifier'],job['args']['index'],job['args']['revision'])==(identifier,index,revision)],
-                'note':'Trabajos de esta sesión; los parciales del disco permanecen tras reiniciar el estudio.'}
+                'history_warning':_HISTORY_WARNING,
+                'note':'Últimos veinte trabajos; el historial recuperado no certifica el estado actual del disco.'}
+
+
+def resume(job_id):
+    with _LOCK:
+        _ensure_history()
+        if _ACTIVE:raise ValueError('Ya hay una descarga de candidato en curso')
+        if job_id not in _JOBS:raise ValueError('Descarga no disponible en el historial')
+        job=_JOBS[job_id]
+        if job['report']['status'] not in ('failed','cancelled','interrupted','historical_candidate_ready'):
+            raise ValueError('El trabajo no admite reanudación')
+        args=dict(job['args']);previous=job['report'].get('candidate_destination')
+        plan=updates.prepare_file_update(args['identifier'],args['index'],args['revision'])
+        candidate=plan.get('candidate')
+        if not candidate or candidate['sha256']!=args['expected_sha256'] or (previous and candidate['destination']!=previous):
+            raise ValueError('El plan o la ruta cambiaron; prepara un plan nuevo antes de descargar')
+        return start(**args)
