@@ -103,6 +103,28 @@ def test_active_installation_is_not_overwritten(source):
     assert lock.read_text() == 'active'
 
 
+def test_receipt_is_historical_and_changed_requirements_are_detected(source, monkeypatch):
+    fake_venv(monkeypatch)
+    monkeypatch.setattr(setup.subprocess, 'run', lambda *a, **kw: None)
+    setup.setup(source)
+    assert setup.inspect(source)['dependency_state'] == 'ready_recorded_not_reverified'
+    (source / 'requirements.txt').write_text('different==1.0')
+    assert setup.inspect(source)['dependency_state'] == 'requirements_changed'
+    setup.environment_python(source).unlink()
+    assert setup.inspect(source)['dependency_state'] == 'environment_missing'
+
+
+@pytest.mark.parametrize('data', ['[]', '{broken', 'x' * 64001])
+def test_invalid_receipt_cannot_authorize_existing_environment(source, data):
+    (source / '.venv').mkdir()
+    receipt = source / '.backlot/setup/environment.json'
+    receipt.parent.mkdir(parents=True)
+    receipt.write_text(data)
+    assert setup.inspect(source)['dependency_state'] == 'receipt_unreadable'
+    with pytest.raises(ValueError):
+        setup.setup(source)
+
+
 def test_real_isolated_environment_without_network(tmp_path):
     """Verify venv layout on each OS without ensurepip or downloading anything."""
     target = tmp_path / '.venv'

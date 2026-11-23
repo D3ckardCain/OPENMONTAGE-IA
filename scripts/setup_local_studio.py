@@ -19,7 +19,7 @@ def environment_python(root: Path) -> Path:
 def inspect(root: Path) -> dict:
     """Read-only report, without importing application code or probing models."""
     requirements = root / 'requirements.txt'
-    return {
+    report = {
         'root': str(root),
         'bootstrap_python': sys.version.split()[0],
         'supported_python': sys.version_info[:2] == (3, 11),
@@ -29,6 +29,26 @@ def inspect(root: Path) -> dict:
         'requirements_sha256': hashlib.sha256(requirements.read_bytes()).hexdigest()
         if requirements.is_file() else None,
     }
+    state = root / '.backlot/setup/environment.json'
+    report['dependency_state'] = 'not_recorded'
+    try:
+        if state.stat().st_size > 64_000:
+            raise ValueError('Recibo demasiado grande')
+        previous = json.loads(state.read_text(encoding='utf-8'))
+        if not isinstance(previous, dict) or previous.get('owner') != 'openmontage-studio-setup' or previous.get('root') != str(root):
+            raise ValueError('Recibo de otra copia')
+        status = previous.get('status')
+        if status not in {'preparing', 'installing', 'ready', 'failed'}:
+            raise ValueError('Estado de recibo invalido')
+        report['dependency_state'] = (
+            'environment_missing' if not report['environment_present'] else
+            'requirements_changed' if previous.get('requirements_sha256') != report['requirements_sha256'] else
+            'ready_recorded_not_reverified' if status == 'ready' else status)
+    except FileNotFoundError:
+        pass
+    except (OSError, ValueError, UnicodeError):
+        report['dependency_state'] = 'receipt_unreadable'
+    return report
 
 
 def setup(root: Path, wheelhouse: Path | None = None) -> dict:
@@ -46,7 +66,11 @@ def setup(root: Path, wheelhouse: Path | None = None) -> dict:
         raise ValueError('.venv no es una carpeta local administrable.')
     if target.exists():
         try:
+            if state_path.stat().st_size > 64_000:
+                raise ValueError('Recibo demasiado grande')
             previous = json.loads(state_path.read_text(encoding='utf-8'))
+            if not isinstance(previous, dict):
+                raise ValueError('Recibo invalido')
         except (OSError, ValueError):
             raise ValueError('Ya existe .venv sin recibo de este instalador; se conserva.') from None
         if previous.get('root') != str(root) or previous.get('owner') != 'openmontage-studio-setup':

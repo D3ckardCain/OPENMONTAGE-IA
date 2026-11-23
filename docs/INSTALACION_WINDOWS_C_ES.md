@@ -39,6 +39,9 @@ no habilitan por si solos el uso de esos servicios. El arranque sigue siendo
 `PREPARAR_ESTUDIO.cmd --check` solo informa del interprete, codigo, entorno y
 huella de requisitos; no instala ni modifica archivos. Encontrar `.venv` no
 significa que sus paquetes esten completos.
+El diagnostico distingue requisitos cambiados desde la ultima instalacion,
+entorno ausente, recibo ilegible y preparacion fallida. Un estado historico listo
+se identifica como tal: consultar el recibo no vuelve a verificar los paquetes.
 
 Para instalar sin conexion, `--wheelhouse "RUTA_DE_PAQUETES"` requiere una carpeta
 con todos los wheels compatibles con Python 3.11 y la plataforma, incluidas las
