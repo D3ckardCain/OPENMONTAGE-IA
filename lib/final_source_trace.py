@@ -1,4 +1,5 @@
 """Read a verified render's exact scene input chain when local receipts exist."""
+import re
 from pathlib import Path
 
 from lib import production_studio as studio
@@ -9,6 +10,16 @@ STAGES=(('artifacts/scene_edit_preview.json','scene_preview'),
         ('artifacts/scene_audio_preview.json','scene_audio_preview'),
         ('artifacts/scene_subtitles.json','scene_subtitles'),
         ('artifacts/scene_burned_subtitles.json','scene_burned_subtitles'))
+
+
+def _valid_input(item):
+    if not isinstance(item,dict):return False
+    path,digest=item.get('path'),item.get('sha256')
+    if not isinstance(path,str) or not path or len(path)>500 or '\\' in path:return False
+    relative=Path(path)
+    return (not relative.is_absolute() and '..' not in relative.parts and
+            relative.parts[0] in ('assets','source_images','thumbnails') and
+            isinstance(digest,str) and bool(re.fullmatch('[0-9a-f]{64}',digest)))
 
 
 def inspect(project_id):
@@ -47,16 +58,21 @@ def inspect(project_id):
                     problem='Falta un recibo intermedio de este montaje.';break
                 if kind=='scene_preview':
                     choices=record.get('choices')
-                    if not isinstance(choices,list) or len(choices)>100:
+                    if not isinstance(choices,list) or not 1<=len(choices)<=100:
                         problem='Selección de escenas ausente o demasiado grande.';break
                     inputs.extend({'role':'scene_take','scene_id':choice.get('scene_id'),
                                    'path':choice.get('path'),'sha256':choice.get('sha256')}
                                   for choice in choices if isinstance(choice,dict))
-                    if len(inputs)!=len(choices):problem='Selección de escenas inválida.';break
+                    if (len(inputs)!=len(choices) or any(not isinstance(row['scene_id'],str) or
+                            not row['scene_id'] or not _valid_input(row) for row in inputs)):
+                        problem='Selección de escenas inválida.';break
                 elif kind=='scene_audio_preview':
                     parent=receipts['scene_preview']
                     if record.get('video_attempt')!=parent.get('attempt') or record.get('video')!=parent.get('output'):
                         problem='El audio no corresponde al montaje de escenas.';break
+                    if not _valid_input(record.get('narration')) or (record.get('music') is not None and
+                            not _valid_input(record.get('music'))):
+                        problem='Pistas de audio ausentes o inválidas.';break
                     for role in ('narration','music'):
                         track=record.get(role)
                         if track:inputs.append({'role':role,'path':track.get('path'),'sha256':track.get('sha256')})
@@ -65,6 +81,7 @@ def inspect(project_id):
                     if record.get('source_attempt')!=parent.get('attempt') or record.get('source')!=parent.get('output'):
                         problem='Los subtítulos no corresponden al audio.';break
                     inputs.append({'role':'subtitles','path':record.get('srt_path'),'sha256':record.get('srt_sha256')})
+                    if not _valid_input(inputs[-1]):problem='SRT ausente o inválido.';break
                 else:
                     parent=receipts['scene_subtitles']
                     if (record.get('source_attempt')!=parent.get('attempt') or
@@ -72,6 +89,7 @@ def inspect(project_id):
                             record.get('srt_sha256')!=parent.get('srt_sha256')):
                         problem='El video subtitulado no corresponde al SRT aprobado.';break
                 chain.append(kind)
+        if problem:inputs=[]
         for item in inputs:
             row=registered.get(item['path'])
             item['registered']=bool(row and row['sha256']==item['sha256'])
