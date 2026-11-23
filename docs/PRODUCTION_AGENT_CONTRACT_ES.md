@@ -23,6 +23,10 @@ nombre de herramienta, runtime, dependencia o modelo faltante. No sustituyas por
 contenido simulado ni llames proveedores cloud mediante selectores híbridos.
 
 Usa project_files y read_project_file para consultar recursos ya creados.
+Para claves de boca locales, lee `docs/RHUBARB_STUDIO_ES.md`, descubre
+`rhubarb_doctor` y `rhubarb_lip_sync` y conserva la procedencia del informe.
+El diagnóstico consulta instalación y recursos. El análisis requiere audio
+autorizado dentro del proyecto y devuelve claves para un rig posterior.
 Para RSS/Atom y HTML locales, lee `docs/LECTURA_DOCUMENTAL_STUDIO_ES.md` con
 read_instruction y usa read_project_file con document_format `feed` o `html`.
 Conserva provenance y los identificadores de entrada junto con los datos usados.
