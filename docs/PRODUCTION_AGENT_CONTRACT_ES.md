@@ -23,6 +23,10 @@ nombre de herramienta, runtime, dependencia o modelo faltante. No sustituyas por
 contenido simulado ni llames proveedores cloud mediante selectores híbridos.
 
 Usa project_files y read_project_file para consultar recursos ya creados.
+Para coordenadas deportivas locales, lee `docs/COORDENADAS_DEPORTIVAS_ES.md`,
+descubre `sports_coordinates_doctor` y `sports_coordinates`. Exige dimensiones,
+unidades y orientación explícitas; conserva la procedencia y no infieras datos
+de partidos ni generes figuras por convertir coordenadas.
 Para claves de boca locales, lee `docs/RHUBARB_STUDIO_ES.md`, descubre
 `rhubarb_doctor` y `rhubarb_lip_sync` y conserva la procedencia del informe.
 El diagnóstico consulta instalación y recursos. El análisis requiere audio
