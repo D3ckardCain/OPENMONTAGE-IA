@@ -12,7 +12,7 @@ Revisión del catálogo de 26 recursos en [la biblioteca](https://biblioteca.sys
 | 4 | Guiones: título, apertura, bloques, voz, indicaciones visuales y revisión factual | Plantilla editable de cinco bloques por proyecto, con voz, visuales, referencia y duración objetivo. El estudio revisa también el guion del pipeline por secciones. La aprobación factual y la escucha de voz siguen siendo revisión humana | Parcial |
 | 5 | Títulos y miniaturas | Entre dos y cinco variantes, selección editorial y carga opcional de PNG/JPEG 16:9 para revisión visual a ancho de móvil. La generación local automática y aprobación de la imagen siguen pendientes | Parcial |
 | 6 | Flujo de tareas y retroalimentación | Estado por etapa, trazabilidad del artefacto, medición de tiempos y revisión de calidad con datos reales del canal | Parcial |
-| 7 | Stock externo | Evaluar licencia, procedencia y restricciones de uso de cada activo antes de admitirlo como fuente de una pieza | Pendiente |
+| 7 | Stock externo | Registro local por proyecto de archivo, hash, origen, autor, licencia declarada y condiciones de uso. El stock exige enlaces de origen y licencia; la comprobación externa y licencias específicas siguen pendientes | Parcial |
 
 Las cifras indicativas de RPM, visualizaciones, CTR o retención de los recursos no son garantías ni límites universales; se deberán mostrar como hipótesis configurables y con periodo y fuente. La originalidad de guion, imágenes, música y narración se comprueba en cada proyecto. La biblioteca menciona servicios como ElevenLabs, CapCut, Canva, Claude, vidIQ y NexLev: no se integran en la ruta principal mientras no se demuestre operación gratuita y compatible con el objetivo de costo cero. Usamos los conceptos del flujo y redactamos nuestros propios formularios y prompts; no copiamos materiales protegidos.
 
@@ -65,6 +65,8 @@ El agente dispone de `saved_channel_performance` con el ID de importación visib
 La revisión técnica del render incluye la versión de las variantes editoriales si se guardaron. Cambiar título, texto, concepto o selección después de verificarlo hace que el render y su entrega ya no aparezcan vigentes. Una copia alterada bloquea la cola y el inicio hasta que se revise; los proyectos previos sin variantes conservan su verificación anterior.
 
 La imagen real de una variante seleccionada puede cargarse en PNG o JPEG estático, con proporción 16:9, mínimo 640 × 360, máximo 16 megapíxeles y 8 MB. El estudio la presenta a 320 píxeles y conserva su SHA-256 y versión editorial; `project_thumbnail` expone los metadatos al agente. Cambiar la selección o los bytes de la imagen invalida la asociación; reemplazarla después del render hace que éste deje de figurar como vigente. La carga no confirma derechos, exactitud ni requisitos de una plataforma concreta.
+
+«Procedencia de medios» registra hasta veinte archivos locales de `assets/`, `source_images/` o `thumbnails/` de hasta 100 MB cada uno. Para stock requiere enlace HTTPS de origen y licencia, además de autor, condiciones declaradas de uso comercial, modificación y notas. El archivo se compara por SHA-256 y `project_asset_sources` permite al agente leer el registro. Si se altera el medio o desaparece el registro tras verificar un render, la cola y la producción se bloquean y la entrega deja de ser vigente. Este registro solo conserva declaraciones locales: no valida el texto legal de la licencia ni incorpora automáticamente todos los activos existentes; los clips grandes requieren un flujo escalable aparte.
 
 ### Enlaces revisados
 

@@ -242,6 +242,14 @@ def create_studio_router():
         with agent.ACTIVE_LOCK:
             if pid in agent.ACTIVE:raise HTTPException(409,'Detén los agentes antes de cambiar la miniatura')
             return invoke(stage,pid,data)
+    @router.get('/api/studio/asset-sources/{pid}')
+    def asset_sources_read(pid:str):
+        from lib.project_asset_sources import read
+        return invoke(read,pid)
+    @router.post('/api/studio/asset-sources/{pid}')
+    async def asset_sources_save(pid:str,request:Request):
+        from lib.project_asset_sources import save
+        return invoke(save,pid,await body(request,6000))
     @router.get('/api/studio/channel-research/{pid}')
     def channel_research_page(pid:str,offset:int=Query(0,ge=0),limit:int=Query(20,ge=1,le=50)):
         from lib.project_channel_evidence import page

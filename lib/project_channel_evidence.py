@@ -39,6 +39,11 @@ def require_valid(path,request):
     if (isinstance(previous,dict) and previous.get('thumbnail_revision')
             and thumbnail['status']=='missing'):
         raise ValueError('Miniatura del render ausente')
+    from lib.project_asset_sources import read as read_asset_sources
+    assets=read_asset_sources(path.name)
+    if (isinstance(previous,dict) and previous.get('asset_sources_revision')
+            and assets['status']=='empty'):
+        raise ValueError('Registro de procedencia del render ausente')
 
 
 def project_problem(path):
@@ -51,7 +56,9 @@ def project_problem(path):
             and not (path/'artifacts/packaging_options.json').is_symlink()
             and not (path/'artifacts/thumbnail_review.json').exists()
             and not (path/'artifacts/thumbnail_review.json').is_symlink()
-            and not (isinstance(previous,dict) and previous.get('packaging_revision'))):return None
+            and not (path/'artifacts/asset_sources.json').exists()
+            and not (path/'artifacts/asset_sources.json').is_symlink()
+            and not (isinstance(previous,dict) and (previous.get('packaging_revision') or previous.get('thumbnail_revision') or previous.get('asset_sources_revision')))):return None
     try:
         require_valid(path,request)
         if request.get('research_idea'):

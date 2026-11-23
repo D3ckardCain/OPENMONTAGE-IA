@@ -33,7 +33,9 @@ def research_index(project):
         packaging_revision=packaging['revision']
         from lib.project_thumbnail import current as thumbnail_current
         thumbnail=thumbnail_current(project.name)
-        if not request.get('research_idea') and not request.get('performance_import_id') and not packaging_revision and thumbnail['status']=='missing':return None
+        from lib.project_asset_sources import read as read_asset_sources
+        assets=read_asset_sources(project.name)
+        if not request.get('research_idea') and not request.get('performance_import_id') and not packaging_revision and thumbnail['status']=='missing' and assets['status']=='empty':return None
         from lib.project_channel_performance import verified as verified_performance
         performance=verified_performance(project,request)
         result=({'performance_import_id':request['performance_import_id'],
@@ -41,6 +43,7 @@ def research_index(project):
                 if performance else {})
         if packaging_revision:result['packaging_revision']=packaging_revision
         if thumbnail['status']=='review':result['thumbnail_revision']=thumbnail['revision']
+        if assets['status']=='draft':result['asset_sources_revision']=assets['revision']
         if not request.get('research_idea'):return result
         from lib.project_channel_evidence import verified
         from lib.project_video_observations import verified_rows
