@@ -443,6 +443,14 @@ def create_studio_router():
     def update_discover(kind:str,query:str):
         from lib.update_center import discover
         return invoke(discover,kind,query)
+    @router.get('/api/studio/updates/files')
+    def update_files(identifier:str,offset:int=0,limit:int=10):
+        from lib.update_center import files
+        return invoke(files,identifier,offset,limit)
+    @router.get('/api/studio/updates/local-check')
+    def update_local_check(identifier:str,index:int):
+        from lib.update_center import check_local
+        return invoke(check_local,identifier,index)
     @router.get('/api/studio/integration-coverage')
     def integration_coverage():
         from lib.integration_coverage import coverage

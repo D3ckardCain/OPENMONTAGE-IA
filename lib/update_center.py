@@ -1,4 +1,5 @@
 """Bounded, read-only update checks for catalogued model sources and applications."""
+import hashlib
 import json
 import re
 import urllib.error
@@ -142,3 +143,57 @@ def discover(kind,query):
                          'updated_at':item.get('updated_at'),'already_integrated':identifier in APP_RELEASES.values()})
     return {'kind':kind,'query':query,'rows':rows,'checked_at':studio.now(),'downloads_started':0,
             'note':'Resultados de búsqueda, no recomendaciones. El agente debe comprobar autoría, licencia, coste, compatibilidad con Windows/ComfyUI, hardware y utilidad real antes de proponer incorporar nada.'}
+
+
+def _files(identifier):
+    if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}/[A-Za-z0-9][A-Za-z0-9_.-]{0,95}',identifier):
+        raise ValueError('Modelo inválido')
+    records=[];seen=set()
+    for path in sorted((studio.REPO_ROOT/'docs/models').glob('*.json')):
+        for item in studio.read_json(path,{}).get('files',[]):
+            source=_model_source(item.get('url'))
+            if not source or source[0]!=identifier:continue
+            dest=item.get('destination')
+            if not isinstance(dest,str) or dest in seen:continue
+            seen.add(dest)
+            records.append({'filename':source[3],'destination':dest,'catalog_revision':source[2],
+                            'catalog_sha256':item.get('sha256'),'catalog_bytes':item.get('size_bytes')})
+    if not records:raise ValueError('Modelo fuera del catálogo')
+    return records
+
+
+def files(identifier,offset=0,limit=10):
+    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=20:raise ValueError('Página inválida')
+    records=_files(identifier)
+    return {'id':identifier,'total':len(records),'offset':offset,
+            'rows':[{'index':index,**records[index]} for index in range(offset,min(offset+limit,len(records)))],
+            'next_offset':offset+limit if offset+limit<len(records) else None,
+            'note':'Rutas previstas por el catálogo; todavía no se ha leído ningún peso del disco. La comprobación local de SHA-256 se solicita por archivo y puede tardar.'}
+
+
+def check_local(identifier,index):
+    if type(index) is not int or index<0:raise ValueError('Índice inválido')
+    records=_files(identifier)
+    if index>=len(records):raise ValueError('Archivo fuera del catálogo')
+    entry=records[index];path=Path(entry['destination'])
+    result={**entry,'index':index,'checked_at':studio.now(),'bytes_read':0}
+    if not path.is_absolute():return {**result,'status':'unavailable_on_this_host'}
+    if path.is_symlink() or not path.is_file():return {**result,'status':'missing_or_link'}
+    before=path.stat()
+    if not 0<before.st_size<=100_000_000_000:return {**result,'status':'size_out_of_bounds'}
+    digest=hashlib.sha256();count=0
+    try:
+        with path.open('rb') as stream:
+            for chunk in iter(lambda:stream.read(4*1024*1024),b''):
+                digest.update(chunk);count+=len(chunk)
+        after=path.stat()
+    except OSError:return {**result,'status':'unreadable','bytes_read':count}
+    result.update(bytes_read=count,local_sha256=digest.hexdigest(),local_bytes=after.st_size)
+    if (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns):
+        return {**result,'status':'changed_during_check'}
+    expected=entry['catalog_sha256'];size=entry['catalog_bytes']
+    if not isinstance(expected,str) or not re.fullmatch('[0-9a-f]{64}',expected):
+        return {**result,'status':'catalog_hash_missing'}
+    result['status']='matches_catalog' if digest.hexdigest()==expected and (size is None or size==count) else 'differs_from_catalog'
+    result['note']='Coincidencia con el archivo fijado en el catálogo, no con el último commit remoto ni una prueba de inferencia.'
+    return result

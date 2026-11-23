@@ -68,6 +68,8 @@ TOOLS=[
  descriptor('update_targets','Lista por páginas fuentes de modelos y aplicaciones existentes para revisar actualizaciones sin descargar.',{'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}}),
  descriptor('update_check','Consulta una fuente oficial del catálogo. Diferencia revisión remota de instalación local; no descarga ni actualiza.',{'kind':{'enum':['model','application']},'identifier':{'type':'string'}},['kind','identifier']),
  descriptor('update_discover','Busca hasta diez nuevos modelos o aplicaciones en Hugging Face o GitHub. Son candidatos sin evaluación de licencia, coste ni compatibilidad; no instala.',{'kind':{'enum':['model','application']},'query':{'type':'string','minLength':3,'maxLength':60}},['kind','query']),
+ descriptor('update_model_files','Lista archivos esperados de un modelo por páginas. No lee los pesos locales.',{'identifier':{'type':'string'},'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':20}},['identifier']),
+ descriptor('update_local_file_check','Calcula SHA-256 de un archivo catalogado en el disco local. Puede tardar con pesos grandes; no descarga ni sustituye.',{'identifier':{'type':'string'},'index':{'type':'integer','minimum':0}},['identifier','index']),
  descriptor('project_files','Lista archivos existentes del proyecto, sin leer recursos externos.'),
  descriptor('read_project_file','Lee un archivo de texto del proyecto.',{'path':{'type':'string'}},['path']),
  descriptor('write_project_file','Crea textos, subtítulos o código de composición en assets/ o workspaces/.',{'path':{'type':'string'},'content':{'type':'string','maxLength':300000}},['path','content']),
@@ -267,6 +269,12 @@ class LocalAgent:
         if name=='update_discover':
             from lib.update_center import discover
             return discover(args['kind'],args['query'])
+        if name=='update_model_files':
+            from lib.update_center import files
+            return files(args['identifier'],args.get('offset',0),args.get('limit',10))
+        if name=='update_local_file_check':
+            from lib.update_center import check_local
+            return check_local(args['identifier'],args['index'])
         if name=='model_catalog':
             data=studio.resource_catalog()
             if args.get('group_id'):

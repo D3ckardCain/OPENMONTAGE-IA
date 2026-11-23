@@ -8,8 +8,10 @@ Pulsa **Consultar fuente oficial** en un modelo. Se consulta una fuente por vez 
 
 Antes de actualizar, verifica qué fichero está realmente instalado, su hash, arquitectura y dependencias, términos de uso y compatibilidad con el workflow. Conserva la versión que funciona mientras pruebas otra copia. Esta sección no ejecuta instaladores, no descarga pesos y no modifica la configuración. La consulta requiere Internet; los fallos de red o límites de la fuente se muestran como errores de esa consulta.
 
+En un modelo pulsa **Ver archivos y comprobar uno** para revisar sus rutas del catálogo por páginas. **Comprobar SHA-256 local** lee exclusivamente el archivo elegido, en bloques de 4 MiB, y compara bytes y hash contra el manifiesto fijado. Puede tardar con pesos grandes. Si la ruta no pertenece al sistema actual, indica que no está disponible en este equipo. «Coincide con el catálogo» no significa que ese peso sea la última versión remota; la comparación remota y la comprobación local son operaciones separadas.
+
 ## Investigar nuevos pesos y aplicaciones
 
 Escribe un término y elige **Pesos y modelos** o **Aplicaciones**. La búsqueda devuelve hasta diez candidatos de Hugging Face o GitHub, con enlace de origen. El agente dispone de `update_targets`, `update_check` y `update_discover` para investigar y comparar por partes. Estos resultados no son recomendaciones: antes de agregar un candidato, el agente debe examinar licencia, coste real, requisitos de hardware, compatibilidad local, calidad y utilidad para los videos previstos. La búsqueda no añade automáticamente entradas al catálogo.
 
-Queda pendiente registrar versiones locales verificadas y un proceso de instalación reversible que compare hashes de archivos completos. Hasta entonces, este módulo prepara la investigación y la decisión, sin declarar que un equipo concreto esté actualizado.
+Queda pendiente un proceso de instalación reversible y la comparación de cada archivo concreto contra metadatos de una revisión remota nueva. Hasta entonces, este módulo prepara la investigación y la decisión, sin declarar que un equipo completo esté actualizado.

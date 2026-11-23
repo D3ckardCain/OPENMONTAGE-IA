@@ -1,8 +1,10 @@
 import pytest
+import hashlib
 from fastapi.testclient import TestClient
 
 from backlot.server import create_app
 from lib import update_center as updates
+from lib import production_studio as studio
 
 
 def test_update_targets_page_catalog_models_and_apps():
@@ -66,3 +68,20 @@ def test_update_api_read_only(monkeypatch):
     assert response.status_code==200 and response.json()['status']=='release_found'
     monkeypatch.setattr(updates,'_json',lambda url:[])
     assert client.get('/api/studio/updates/discover?kind=model&query=video').json()['rows']==[]
+
+
+def test_explicit_local_file_hash_matches_only_catalogued_bytes(tmp_path,monkeypatch):
+    monkeypatch.setattr(studio,'REPO_ROOT',tmp_path)
+    target=tmp_path/'weights/model.safetensors';target.parent.mkdir();target.write_bytes(b'weights')
+    expected=hashlib.sha256(b'weights').hexdigest()
+    studio.save_json(tmp_path/'docs/models/test.json',{'files':[{'destination':str(target),
+        'url':'https://huggingface.co/Org/Video/resolve/'+'a'*40+'/model.safetensors',
+        'size_bytes':7,'sha256':expected}]})
+    listing=updates.files('Org/Video')
+    assert listing['total']==1 and listing['rows'][0]['index']==0
+    assert updates.check_local('Org/Video',0)['status']=='matches_catalog'
+    target.write_bytes(b'changed')
+    assert updates.check_local('Org/Video',0)['status']=='differs_from_catalog'
+    target.unlink()
+    assert updates.check_local('Org/Video',0)['status']=='missing_or_link'
+    with pytest.raises(ValueError):updates.check_local('Org/Video',1)
