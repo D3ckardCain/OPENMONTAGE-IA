@@ -230,11 +230,29 @@ def test_export_worker_uses_snapshot_and_checks_result(project, monkeypatch):
     assert kwargs['timeout'] == 600
     assert pid not in edit.EXPORTING
     command(pid, 'save')
+    assert render.status(pid)['current']
+    clip = edit.state(pid)['edit_decisions']['cuts'][0]['id']
+    command(pid, 'clip', id=clip, muted=True)
     assert not render.status(pid)['current']
     command(pid, 'subtitle_style', size=32, position='bottom', mode='burn')
     render.start(pid, edit.state(pid)['revision'])
     assert render.status(pid)['subtitle_mode'] == 'burn'
     assert 'ass=captions.ass' in calls[-1][0][calls[-1][0].index('-filter_complex')+1]
+
+
+def test_save_reopen_preserves_render_content_identity(project):
+    pid,key,_ = project
+    clip = add(pid,key)
+    before = edit.state(pid)
+    command(pid,'save')
+    saved = edit.state(pid)
+    assert saved['revision'] == before['revision'] + 1
+    assert saved['edit_sha256'] == before['edit_sha256']
+    assert studio.read_json(studio.project_path(pid)/edit.ARTIFACT) == saved
+    command(pid,'trim',id=clip,in_seconds=1,out_seconds=8)
+    assert edit.state(pid)['edit_sha256'] != saved['edit_sha256']
+    command(pid,'undo')
+    assert edit.state(pid)['edit_sha256'] == saved['edit_sha256']
 
 
 def test_export_failures_busy_and_restart_are_explicit(project, monkeypatch):

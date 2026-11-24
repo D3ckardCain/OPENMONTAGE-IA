@@ -67,7 +67,9 @@ def status(pid):
     if value['status'] == 'running' and pid not in editor.EXPORTING:
         return {**value, 'status': 'interrupted', 'error': 'Servidor reiniciado; vuelve a solicitar el render'}
     value = deepcopy(value)
-    value['current'] = value.get('revision') == editor.state(pid)['revision']
+    current = editor.state(pid)
+    value['current'] = (value['edit_sha256'] == current['edit_sha256'] if value.get('edit_sha256')
+                        else value.get('revision') == current['revision'])
     return value
 
 
@@ -78,6 +80,7 @@ def start(pid, revision, preview=False, origin='user'):
         edl = deepcopy(value['edit_decisions'])
         args, filters, width, height = plan(pid, edl, preview)
         job = {'status': 'running', 'attempt': uuid.uuid4().hex, 'revision': revision, 'origin': origin,
+               'edit_sha256': value['edit_sha256'],
                'preview': preview, 'started_at': studio.now(), 'width': width, 'height': height}
         studio.save_json(studio.project_path(pid) / 'artifacts/manual_render.json', job)
         editor.EXPORTING.add(pid)

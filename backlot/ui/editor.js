@@ -27,7 +27,7 @@ async function command(operation, params={}) {
   invalidate(); draw(); message('Guardado · revisión ' + state.revision);
 }
 function invalidate() {
-  if (preview && preview.revision !== state.revision) {
+  if (preview && !(preview.edit_sha256 && state.edit_sha256 ? preview.edit_sha256 === state.edit_sha256 : preview.revision === state.revision)) {
     q('edit-player').pause(); q('edit-player').removeAttribute('src'); q('edit-player').load();
     preview = null; q('edit-download').hidden = true;
     q('edit-monitor-title').textContent = 'Montaje modificado · prepara una nueva vista previa';
@@ -163,7 +163,7 @@ async function checkRender() {
   const captured = project, result = await api(base() + '/render'); if (captured !== project) return;
   q('edit-render-status').textContent = result.status === 'running' ? 'FFmpeg está preparando el montaje; no se puede editar durante el render.' : result.status === 'failed' || result.status === 'interrupted' ? result.error : result.status === 'completed' ? (result.current ? 'Montaje de revisión ' + result.revision + (result.preview ? ' · vista previa a media resolución' : ' · exportación final local') + ' · subtítulos seleccionables, sin estilo quemado' : 'Resultado anterior: prepara la revisión actual.') : 'Sin montaje renderizado.';
   q('edit-preview').disabled = q('edit-export').disabled = result.status === 'running';
-  if (result.status === 'completed' && result.current && result.revision === state.revision) {
+  if (result.status === 'completed' && result.current && (result.edit_sha256 && state.edit_sha256 ? result.edit_sha256 === state.edit_sha256 : result.revision === state.revision)) {
     if (preview?.attempt !== result.attempt) {
       preview = result; sourceKey = null; q('edit-player').src=result.url; q('edit-player').playbackRate=1;
       q('edit-player').onloadedmetadata = null; q('edit-monitor-title').textContent='Montaje real · revisión '+result.revision;

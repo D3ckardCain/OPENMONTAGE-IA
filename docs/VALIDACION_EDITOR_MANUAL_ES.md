@@ -2,6 +2,8 @@
 
 Fecha: 2026-11-24. Base remota comparada antes de editar: `d9c3573307c34002ac49368e4140826133ff4e00`, rama `feat/local-agent-research-foundation`. El workspace procede de ZIP y no contiene `.git`; publicación mediante árboles/commits GitHub conservando árbol base y verificación de HEAD, sin force push. PR #2 continúa en borrador.
 
+**Actualización posterior:** [validación con medios reales](VALIDACION_EDITOR_MEDIOS_REALES_ES.md) comprueba el motor/API aislada con un vídeo existente de la biblioteca, ocho renders FFmpeg y revisión de fotogramas/audio PCM/subtítulos. Incluye corrección y prueba real del fallo de invalidación de preview al guardar. Los límites de mocks indicados abajo corresponden a la primera entrega y sus tests sintéticos; no describen esa prueba real posterior. El panel local continúa sin validar: API404, proceso antiguo y reinicio rechazado por revisión automática.
+
 ## Implementación y alcance probado
 
 | Fase | Código disponible | Evidencia y límite |

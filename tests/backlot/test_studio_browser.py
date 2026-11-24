@@ -6,6 +6,44 @@ from playwright.sync_api import sync_playwright, expect
 from tests.backlot.test_ui_bug_bash import staged_backlot_server
 
 
+def test_save_keeps_preview_but_edit_invalidates_it(staged_backlot_server):
+    """Transport/DOM regression only; real FFmpeg evidence is a separate opt-in run."""
+    state = {'revision':0,'edit_sha256':'a'*64,'undo':[],'redo':[],'events':[],
+             'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg','cuts':[], 'audio_tracks':[],
+                'cues':[],'sources':{},'output':{'ratio':'16:9','fps':24,'fit':'pad'},
+                'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
+    job = {'status':'completed','attempt':'fixture','revision':0,'edit_sha256':'a'*64,
+           'current':True,'preview':True,'url':'/fixture-editor-preview.mp4','subtitle_mode':'none'}
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':'save-fixture','title':'JSON fixture'}]))
+        page.route('**/api/studio/editor/save-fixture',lambda route:route.fulfill(json=state))
+        page.route('**/api/studio/editor/save-fixture/render',lambda route:route.fulfill(json=job))
+        page.route('**/fixture-editor-preview.mp4',lambda route:route.fulfill(status=204))
+        def command(route):
+            data=route.request.post_data_json
+            assert data['revision']==state['revision']
+            state['revision']+=1
+            if data['operation']=='output':
+                state['edit_sha256']='b'*64
+                state['edit_decisions']['output']['ratio']=data['ratio']
+            route.fulfill(json=state)
+        page.route('**/api/studio/editor/save-fixture/command',command)
+        page.goto(staged_backlot_server+'/studio?edit=save-fixture#video')
+        expect(page.locator('#edit-player')).to_have_attribute('src','/fixture-editor-preview.mp4')
+        page.locator('#edit-save').click()
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 1 · guardado local')
+        expect(page.locator('#edit-player')).to_have_attribute('src','/fixture-editor-preview.mp4')
+        page.locator('#edit-reopen').click()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        expect(page.locator('#edit-player')).to_have_attribute('src','/fixture-editor-preview.mp4')
+        page.locator('#edit-preset').select_option('9:16');page.locator('#edit-output').click()
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 2 · guardado local')
+        expect(page.locator('#edit-player')).not_to_have_attribute('src','/fixture-editor-preview.mp4')
+        browser.close()
+
+
 @pytest.mark.parametrize('width,height', [(1280,720),(1920,1080),(2560,1440),(3440,1440),(640,720)])
 def test_manual_editor_layout_and_shared_revision_controls(staged_backlot_server, width, height, tmp_path):
     """Browser/transport evidence, with labeled synthetic JSON; no media or AI."""

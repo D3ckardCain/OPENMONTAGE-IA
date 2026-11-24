@@ -108,7 +108,14 @@ def state(pid):
         value = studio.read_json(project / ARTIFACT)
     if value is None:
         raise ValueError('Este proyecto usa el flujo de producción. Crea un proyecto de edición manual; no se sustituye su montaje.')
+    value['edit_sha256'] = edit_digest(value['edit_decisions'])
     return value
+
+
+def edit_digest(edl):
+    """Content identity independent of save/log-only command revisions."""
+    payload = json.dumps(edl, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False)
+    return hashlib.sha256(payload.encode('utf-8')).hexdigest()
 
 
 @contextmanager
@@ -128,6 +135,7 @@ def _commit(pid, value, edl, origin, operation):
 
 
 def _write(pid, value, origin, operation):
+    value['edit_sha256'] = edit_digest(value['edit_decisions'])
     value['revision'] += 1
     value['events'] = (value['events'] + [{'revision': value['revision'], 'origin': origin,
                       'operation': operation, 'at': studio.now()}])[-500:]
