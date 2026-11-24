@@ -15,11 +15,13 @@ from lib.pipeline_loader import load_pipeline_readonly
 from tools.analysis import warehouse_dimensions
 from tools.analysis import soccervision_homography
 from tools.analysis import musetalk_batch_plan
+from tools.analysis import tvcalib_parameters
 from tools.tool_registry import ToolRegistry
 
 CASES = [(warehouse_dimensions, 'WarehouseDimensions', {'project_id':'fixture','size':'#8-32','across_flats_mm':10,'sides':6}, '/api/studio/libraries/cq_warehouse/dimensions')]
 CASES += [(soccervision_homography,'SoccervisionHomography',{'project_id':'fixture','matrix':[[2,0,10],[0,3,20],[0,0,1]],'points':[[0,0],[3,4]],'source_units':'pixels','target_units':'metres'},'/api/studio/libraries/soccervision/homography')]
 CASES += [(musetalk_batch_plan,'MusetalkBatchPlan',{'project_id':'fixture','audio_chunk_count':5,'latent_frame_count':2,'batch_size':2,'delay_frame':1},'/api/studio/libraries/musetalk/batch-plan')]
+CASES += [(tvcalib_parameters,'TvcalibParameters',{'project_id':'fixture','loc':10,'scale':2,'values':[8,10,12],'mode':'normalize','feature_name':'synthetic_feature','feature_unit':'declared'},'/api/studio/libraries/tvcalib/parameters')]
 
 
 @pytest.mark.parametrize('module,clsname,inputs,route', CASES)
@@ -70,8 +72,14 @@ def test_native_component_operation(module,clsname,inputs,route,tmp_path,monkeyp
     tool=getattr(module,clsname)()
     if not tool.python().is_file():pytest.skip('optional prepared isolated runtime')
     monkeypatch.setattr(studio,'project_path',lambda pid:tmp_path)
-    r=tool.execute(inputs)
-    assert r.success,r.error
+    registry=ToolRegistry();registry.register_module(module)
+    agent=LocalAgent.__new__(LocalAgent);agent.pid='fixture';agent.path=tmp_path;agent.registry=registry
+    agent.request={'pipeline':'animation'};agent.manifest=load_pipeline_readonly('animation')
+    agent.reads={'skills/'+agent.manifest['stages'][0]['skill']+'.md'};agent.event=Mock()
+    actual=agent.dispatch('execute_tool',{'name':tool.name,'inputs':inputs})
+    assert actual['success'],actual['error']
+    from types import SimpleNamespace
+    r=SimpleNamespace(success=actual['success'],data=actual['data'],error=actual['error'])
     assert not r.data['geometry_generated']
     assert not r.data['model_inference_performed']
     assert not r.data['provenance']['network_accessed']
@@ -92,3 +100,11 @@ def test_native_component_operation(module,clsname,inputs,route,tmp_path,monkeyp
         assert r.data['batches'][-1]['latent_shape']==[1,4,2,2]
         assert not r.data['weights_loaded'] and not r.data['avatar_generated']
         assert not tool.execute({**inputs,'latent_frame_count':0}).success
+    elif tool.library=='tvcalib':
+        assert r.data['values']==[-1,0,1]
+        inverse=tool.execute({**inputs,'values':r.data['values'],'mode':'denormalize'})
+        assert inverse.success,inverse.error
+        assert inverse.data['values']==[8,10,12]
+        assert r.data['roundtrip_max_error_in_input_units']<1e-12
+        assert not r.data['camera_calibration_performed']
+        assert not tool.execute({**inputs,'scale':0}).success

@@ -63,7 +63,13 @@ class NativeSpadl(unittest.TestCase):
 
     def test_real_schema_and_provenance(self):
         original=copy.deepcopy(INPUT)
-        r=module.SocceractionSpadl().execute(INPUT)
+        registry=ToolRegistry();registry.register_module(module)
+        agent=LocalAgent.__new__(LocalAgent);agent.pid='fixture';agent.path=self.root;agent.registry=registry
+        agent.request={'pipeline':'animation'};agent.manifest=load_pipeline_readonly('animation')
+        agent.reads={'skills/'+agent.manifest['stages'][0]['skill']+'.md'};agent.event=Mock()
+        actual=agent.dispatch('execute_tool',{'name':'socceraction_spadl_validate','inputs':INPUT})
+        from types import SimpleNamespace
+        r=SimpleNamespace(success=actual['success'],data=actual['data'],error=actual['error'])
         self.assertTrue(r.success,r.error);self.assertTrue(r.data['valid'])
         self.assertEqual(INPUT,original)
         self.assertEqual(r.data['versions']['socceraction'],'1.5.3')

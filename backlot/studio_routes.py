@@ -777,6 +777,13 @@ def create_studio_router():
         if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
         return result.data
 
+    @router.post('/api/studio/libraries/tvcalib/parameters')
+    async def tvcalib_parameters(request:Request):
+        from tools.analysis.tvcalib_parameters import TvcalibParameters
+        result=await asyncio.to_thread(TvcalibParameters().execute,await body(request,limit=100000))
+        if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
+        return result.data
+
     @router.get('/api/studio/tools')
     async def tools(name:str=Query('',max_length=100),capability:str=Query('',max_length=100)):
         def discover():

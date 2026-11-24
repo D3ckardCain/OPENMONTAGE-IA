@@ -1,4 +1,4 @@
-"""Allowlisted dependency diagnostics and synthetic checks, never media production."""
+"""Allowlisted offline diagnostics and numeric operations, never media production."""
 import importlib.metadata as metadata
 import json
 import math
@@ -150,6 +150,8 @@ def operate(name, data):
             native_issue_count = len(failures)
             issues = [{'row': str(r.get('index')), 'field': str(r.get('column')),
                        'reason': str(r.get('check'))[:160]} for r in failures.to_dict('records')[:20]]
+            if not issues:
+                issues = [{'row': None, 'field': 'schema', 'reason': 'native_validation_failed'}]
     return {'valid': not issues, 'issues': issues[:20], 'issues_truncated': max(native_issue_count, len(issues)) > 20,
             'action_count': len(rows), 'coordinate_system': data['coordinate_system'],
             'versions': {key: metadata.version(key) for key in ('socceraction', 'pandera', 'multimethod', 'pandas', 'numpy')},
@@ -161,6 +163,33 @@ def operate(name, data):
 
 
 def operate_component(name, data):
+    if name == 'tvcalib':
+        loc, scale, values, mode = (data.get(k) for k in ('loc', 'scale', 'values', 'mode'))
+        if type(loc) not in (int, float) or not math.isfinite(loc) or abs(loc) > 1e9 or type(scale) not in (int, float) or not math.isfinite(scale) or not 1e-9 <= scale <= 1e9:
+            raise ValueError('TVCALIB_SCALE_INVALID: loc finito<=1e9 y escala positiva1e-9–1e9')
+        if mode not in ('normalize', 'denormalize') or not isinstance(values, list) or not 1 <= len(values) <= 1000 or any(type(v) not in (int, float) or not math.isfinite(v) or abs(v) > 1e9 for v in values):
+            raise ValueError('TVCALIB_INPUT_INVALID: modo y valores finitos explícitos')
+        source = Path(__file__).resolve().parents[1] / '.runtime/tvcalib/sources/1222c5230af2'
+        if not source.is_dir():
+            raise ValueError('LIBRARY_SOURCE_MISSING: fuentes TVCalib preparadas ausentes')
+        sys.path.insert(0, str(source))
+        import torch
+        from tvcalib.utils.data_distr import FeatureScalerZScore
+        with torch.no_grad():
+            scaler = FeatureScalerZScore(float(loc), float(scale))
+            tensor = torch.tensor(values, dtype=torch.float64, device='cpu')
+            transformed = scaler.normalize(tensor) if mode == 'normalize' else scaler.denormalize(tensor)
+            restored = scaler.denormalize(transformed) if mode == 'normalize' else scaler.normalize(transformed)
+            if not torch.isfinite(transformed).all() or not torch.isfinite(restored).all():
+                raise ValueError('TVCALIB_OUTPUT_INVALID: resultado no finito')
+            error = float(torch.max(torch.abs(restored - tensor)).item())
+        return {'values': transformed.tolist(), 'mode': mode, 'feature_name': data['feature_name'],
+                'declared_feature_unit': data['feature_unit'],
+                'output_unit': 'dimensionless_z_score' if mode == 'normalize' else data['feature_unit'],
+                'roundtrip_max_error_in_input_units': error, 'dtype': 'float64',
+                'versions': {p: metadata.version(p) for p in ('torch', 'numpy')}, 'component_source': 'tvcalib.utils.data_distr.FeatureScalerZScore',
+                'camera_calibration_performed': False, 'geometry_generated': False, 'figures_generated': False,
+                'weights_loaded': False, 'model_inference_performed': False}
     if name == 'musetalk':
         chunks, frames, batch, delay = (data.get(k) for k in ('audio_chunk_count', 'latent_frame_count', 'batch_size', 'delay_frame'))
         if any(type(v) is not int for v in (chunks, frames, batch, delay)) or not 1 <= chunks <= 32 or not 1 <= frames <= 32 or not 1 <= batch <= 16 or not 0 <= delay <= 1000:

@@ -31,3 +31,9 @@ Herramienta `soccervision_homography`; `POST /api/studio/libraries/soccervision/
 Herramienta `musetalk_batch_plan`; `POST /api/studio/libraries/musetalk/batch-plan`. Entrada: proyecto, audio_chunk_count/latent_frame_count (1–32), batch_size (1–16) y delay_frame (0–1000). Usa el datagen oficial de la fuente preparada para agrupar tensores CPU sintéticos pequeños. Devuelve índices de chunks/latentes, shapes y lote final parcial; prueba la correspondencia modular con desplazamiento. No recibe medios, rutas o checkpoints, ni ejecuta Whisper/VAE/UNet. Las formas placeholder no certifican embeddings/latentes reales ni sincronía de labios.
 
 Se evita preprocessing, que construye modelos al importarse. El componente de batching es funcional y comprobable sin inferencia; la síntesis completa de avatares, compatibilidad de pesos y calidad siguen fuera de esta fase sin contenido real. La instalación CPU y las condiciones de componentes de #24 se conservan; no se añade CUDA ni se descargan modelos.
+
+## TVCalib: parámetros normalizados
+
+Herramienta `tvcalib_parameters`; `POST /api/studio/libraries/tvcalib/parameters`. Entrada: proyecto, loc/scale, values (1–1000), mode normalize/denormalize, feature_name y feature_unit explícitos. Usa FeatureScalerZScore de la fuente preparada, tensores CPU float64 y retorno numérico para medir consistencia. Valores/loc de magnitud<=1e9 y escala positiva1e-9–1e9; no se infieren distribuciones o unidades.
+
+Normalize devuelve z-scores adimensionales; denormalize recupera la unidad declarada. Ejemplo loc10/scale2 convierte[8,10,12]↔[-1,0,1]. No construye una cámara, ajusta parámetros a imágenes, estima distorsión, ejecuta optimización o calibra vídeo. La calibración completa y calidad están pendientes fuera de esta operación numérica sin contenido real; no se declaran validadas por ejecutar el escalador.
