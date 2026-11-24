@@ -30,7 +30,7 @@ export function initializeEditorLayout() {
       library=minLibrary+(library-minLibrary)*factor;inspector=minInspector+(inspector-minInspector)*factor;
     }
     const height=grid.clientHeight, minTop=Math.min(200,height*.4), minTracks=Math.min(160,height*.3);
-    effective={library:Math.round(library),inspector:Math.round(inspector),tracks:Math.round(clamp(prefs.tracks??height*.35,minTracks,Math.max(minTracks,height-10-minTop)))};
+    effective={library:Math.round(library),inspector:Math.round(inspector),tracks:Math.round(clamp(prefs.tracks??height*.42,minTracks,Math.max(minTracks,height-10-minTop)))};
     limits={library:[160,Math.max(160,Math.floor(sideBudget-inspector))],inspector:[180,Math.max(180,Math.floor(sideBudget-library))],tracks:[Math.round(minTracks),Math.floor(Math.max(minTracks,height-10-minTop))]};
     for(const [key,id] of Object.entries(keys)){
       root.style.setProperty('--'+key,effective[key]+'px');

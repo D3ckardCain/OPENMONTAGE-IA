@@ -18,8 +18,9 @@ para conservar espacio útil; no sobrescribe la preferencia hasta que se ajusta
 manualmente. La distribución se comparte entre Vídeo, Audio y Subtítulos y no
 modifica el proyecto, su revisión, los medios ni la vista previa existente.
 
-La primera apertura sin preferencias reserva aproximadamente el 35% del espacio
-útil para pistas y herramientas; los tamaños anteriores se respetan. La regla
+La primera apertura sin preferencias reserva aproximadamente el 42% del espacio
+útil para pistas y herramientas (multimedia alrededor del 57%, pistas alrededor
+del 35% y barra inferior en el resto); los tamaños anteriores se respetan. La regla
 de segundos, vídeo, audio y subtítulos comparten escala y desplazamiento horizontal.
 Los bloques de subtítulos abren su edición debajo de las pistas y seleccionan
 el cue. Seleccionar un clip habilita las acciones directas de división,
