@@ -27,19 +27,7 @@ def probe(*, multistep=False):
         agent.ACTIVE[pid] = (threading.current_thread(), threading.Event())
     created = False
     try:
-        config = studio.settings()
-        base, model = studio.local_url(config['ollama_url']), config['model']
-        if not model or model.endswith(':cloud'):
-            raise ValueError('AGENT_PROBE_MODEL: selecciona un modelo local preparado')
-        tags = studio.local_request(base, '/api/tags').get('models', [])
-        tag = next((row for row in tags if row.get('name') == model), None)
-        if tag is None or tag.get('remote_host') or tag.get('remote_model'):
-            raise ValueError('AGENT_PROBE_MODEL: se requiere un modelo local instalado')
-        if studio.local_request(base, '/api/ps').get('models'):
-            raise ValueError('AGENT_PROBE_BUSY: hay modelos cargados; no se alteran')
-        show = studio.local_request(base, '/api/show', {'model': model})
-        if show.get('remote_host') or show.get('remote_model') or 'tools' not in show.get('capabilities', []):
-            raise ValueError('AGENT_PROBE_MODEL: no se acredita herramienta local')
+        base, model, tag, show = prepared_model()
         registry = ToolRegistry()
         registry.register_module(freecad_units)
         if freecad_units.FreecadUnits().get_status().value != 'available':
@@ -150,3 +138,20 @@ def _chain(instance, base, model, tag, show):
             'model_unloaded_verified': studio.local_request(base, '/api/ps').get('models') == [],
             'geometry_created': False, 'creative_content_generated': False, 'cost_usd': 0,
             'created_at_utc': datetime.now(timezone.utc).isoformat(), 'probe_sha256': SOURCE_SHA256}
+
+
+def prepared_model():
+    config = studio.settings()
+    base, model = studio.local_url(config['ollama_url']), config['model']
+    if not model or model.endswith(':cloud'):
+        raise ValueError('AGENT_PROBE_MODEL: selecciona un modelo local preparado')
+    tags = studio.local_request(base, '/api/tags').get('models', [])
+    tag = next((row for row in tags if row.get('name') == model), None)
+    if tag is None or tag.get('remote_host') or tag.get('remote_model'):
+        raise ValueError('AGENT_PROBE_MODEL: se requiere un modelo local instalado')
+    if studio.local_request(base, '/api/ps').get('models'):
+        raise ValueError('AGENT_PROBE_BUSY: hay modelos cargados; no se alteran')
+    show = studio.local_request(base, '/api/show', {'model': model})
+    if show.get('remote_host') or show.get('remote_model') or 'tools' not in show.get('capabilities', []):
+        raise ValueError('AGENT_PROBE_MODEL: no se acredita herramienta local')
+    return base, model, tag, show

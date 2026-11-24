@@ -76,7 +76,10 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):return None
 
 
-def local_request(base, path, data=None, timeout=4):
+def local_request(base, path, data=None, timeout=4, *, cancel=None, progress=None):
+    if cancel is not None:
+        from lib.cancellable_http import request
+        return request(base,path,data,timeout=timeout,cancel=cancel,progress=progress)
     base=local_url(base)
     body=None if data is None else json.dumps(data).encode()
     request=urllib.request.Request(base+path,data=body,headers={'Content-Type':'application/json'})

@@ -72,6 +72,19 @@ def test_cancel_before_model_makes_no_request(instance):
     instance.dispatch.assert_not_called()
 
 
+def test_initial_context_is_not_mutated_or_duplicated_on_resume(instance):
+    from copy import deepcopy
+    initial=deepcopy(INITIAL)
+    instance.chat.return_value=message(call(1))
+    instance.dispatch.return_value={'success':True}
+    Conversation(instance,initial,tools=[]).turn()
+    assert initial==INITIAL
+    instance.chat.return_value={'role':'assistant','content':'OK'}
+    resumed=Conversation(instance,initial,tools=[])
+    with pytest.raises(Pause):resumed.turn()
+    assert len([m for m in resumed.state['messages'] if m.get('role')=='tool'])==1
+
+
 @pytest.mark.parametrize('error', [ValueError('invalid units'), OSError('isolated worker timeout')])
 def test_errors_are_delivered_to_next_model_without_success_claim(instance, error):
     instance.chat.return_value = message(call(1))
@@ -148,6 +161,26 @@ def test_model_failure_keeps_receipts_and_no_dispatch(instance):
     with pytest.raises(OSError): c.turn()
     instance.dispatch.assert_not_called()
     assert studio.read_json(c.path)['messages'] == INITIAL
+
+
+def test_cancelled_inference_keeps_receipts_and_discards_partial_response(instance):
+    instance.chat.return_value=message(call(1))
+    instance.dispatch.return_value={'success':True,'data':{'value':25.4}}
+    c=Conversation(instance,INITIAL.copy(),tools=[])
+    c.turn()
+    before=[m for m in c.state['messages'] if m.get('role')=='tool']
+    instance.last_transport={'transport_closed':True,'server_inference_stopped':'not_verified'}
+    instance.chat.side_effect=Pause('stopped','synthetic cancel during read')
+    with pytest.raises(Pause):c.turn()
+    saved=studio.read_json(c.path)
+    assert saved['model_attempts'][-1]['status']=='cancelled'
+    assert saved['model_attempts'][-1]['transport']['transport_closed']
+    instance.chat.side_effect=None
+    instance.chat.return_value={'role':'assistant','content':'OK'}
+    resumed=Conversation(instance,INITIAL.copy(),tools=[])
+    with pytest.raises(Pause):resumed.turn()
+    assert [m for m in resumed.state['messages'] if m.get('role')=='tool']==before
+    instance.dispatch.assert_called_once()
 
 
 @pytest.mark.parametrize('calls', [None, [None], [{'function': None}], [call(1)]*17])

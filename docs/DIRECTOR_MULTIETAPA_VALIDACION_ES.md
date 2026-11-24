@@ -27,7 +27,10 @@ conserva esa intención incierta. Los errores de herramientas se transmiten al m
 como errores; no se convierten en éxito ni disparan una alternativa automática.
 
 La cancelación conserva el trabajo completado y se comprueba antes del modelo y entre
-acciones. No interrumpe una petición local o proceso ya en curso. Una pausa de checkpoint
+acciones. La continuación #42 añade cierre del transporte Ollama durante la petición;
+véase [cancelación de inferencia local](CANCELACION_INFERENCIA_LOCAL_ES.md), que separa
+cierre del cliente y evidencia del servidor. No cancela procesos externos o renders.
+Una pausa de checkpoint
 se registra como recibo y descarta las llamadas restantes del lote, con respuestas
 explícitas de no ejecución. La aprobación humana sigue pasando por el control existente;
 ninguna sesión guardada autoriza saltarse una etapa.
@@ -72,6 +75,7 @@ se omite si falta FreeCAD preparado; no lo instala. Regresión local: 71 aprobad
 
 Esta evidencia valida transporte y recuperación acotados. No acredita dirección creativa,
 planificación libre de muchas etapas por el modelo real, revisión editorial real, contexto
-32768, rendimiento sostenido ni calidad de audio/vídeo. La cancelación en medio de una
-inferencia real no se ha ensayado. Costo $0; sin mapas, geometría, animación ni contenido
+32768, rendimiento sostenido ni calidad de audio/vídeo. La continuación #42 documenta
+la prueba posterior de cancelación durante inferencia textual real y sus límites.
+Costo $0; sin mapas, geometría, animación ni contenido
 real. Originales, configuraciones, `.venv` y Python de ComfyUI conservados.

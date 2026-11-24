@@ -142,18 +142,27 @@ class LocalAgent:
                     'instruction':'Corrige esta etapa según el motivo editorial antes de escribir un checkpoint nuevo; conserva la revisión anterior en el historial.'}
         return None
 
-    def chat(self,messages,tools=None,*,context_tokens=32768,max_output_tokens=8192,thinking=None):
+    def chat(self,messages,tools=None,*,context_tokens=32768,max_output_tokens=8192,thinking=None,stream=False,progress=None):
         if type(context_tokens) is not int or not 1024<=context_tokens<=32768:raise ValueError('Contexto local inválido')
         if type(max_output_tokens) is not int or not 16<=max_output_tokens<=8192:raise ValueError('Límite de salida local inválido')
         if thinking is not None and type(thinking) is not bool:raise ValueError('Modo de pensamiento inválido')
+        if type(stream) is not bool or (stream and tools):raise ValueError('Streaming solo para diagnóstico textual sin herramientas')
         if self.cancel.is_set():raise Pause('stopped','Detenido entre acciones; los artefactos ya creados se conservan.')
         if self._chat:return self._chat(messages,tools)
         if not self.config['model']:raise Pause('blocked','Selecciona primero un modelo local de Ollama.')
-        data={'model':self.config['model'],'messages':messages,'stream':False,'keep_alive':0,
+        data={'model':self.config['model'],'messages':messages,'stream':stream,'keep_alive':0,
               'options':{'num_ctx':context_tokens,'num_predict':max_output_tokens}}
         if thinking is not None:data['think']=thinking
         if tools is not None:data['tools']=tools
-        response=studio.local_request(self.config['ollama_url'],'/api/chat',data,timeout=180)
+        self.last_transport={}
+        def observe(value):
+            self.last_transport=value
+            if progress:progress(value)
+        from lib.cancellable_http import CancelledRequest
+        try:
+            response=studio.local_request(self.config['ollama_url'],'/api/chat',data,timeout=180,cancel=self.cancel,progress=observe)
+        except CancelledRequest as exc:raise Pause('stopped',str(exc)) from exc
+        if self.cancel.is_set():raise Pause('stopped','Respuesta descartada tras solicitar cancelación')
         message=response.get('message')
         if not isinstance(message,dict):raise ValueError('Ollama no devolvió un mensaje válido')
         return message
@@ -553,6 +562,7 @@ class LocalAgent:
 def start(pid):
     project=studio.project_path(pid)
     request=studio.read_json(project/'production_request.json')
+    if request.get('diagnostic_fixture'):raise ValueError('Las fixtures diagnósticas no son producciones; utiliza su ruta de diagnóstico')
     from lib.project_channel_evidence import require_valid
     require_valid(project,request)
     from lib.project_video_observations import verified_rows
@@ -580,7 +590,7 @@ def stop(pid):
     with ACTIVE_LOCK:
         if pid not in ACTIVE:return {'requested':False}
         ACTIVE[pid][1].set()
-    return {'requested':True,'note':'Se detendrá entre acciones; una petición o render en curso puede continuar hasta su timeout.'}
+    return {'requested':True,'note':'Se solicita cerrar el transporte Ollama activo y detener nuevas acciones. El cese del servidor requiere evidencia aparte; renders ya enviados no se cancelan aquí.'}
 
 
 def approve(pid):

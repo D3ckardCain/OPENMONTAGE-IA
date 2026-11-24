@@ -102,6 +102,20 @@ def create_studio_router():
         from lib.local_agent_probe import probe
         try:return await asyncio.to_thread(probe,multistep=True)
         except (ValueError,OSError,agent.Pause) as exc:raise HTTPException(400,str(exc))
+    @router.post('/api/studio/agent/probe-cancellation')
+    async def inference_probe_start(request:Request):
+        if await body(request):raise HTTPException(400,'La prueba fija no admite parámetros')
+        from lib.local_inference_probe import start
+        return invoke(start)
+    @router.get('/api/studio/agent/probe-cancellation/{pid}')
+    async def inference_probe_status(pid:str):
+        from lib.local_inference_probe import inspect
+        return invoke(inspect,pid)
+    @router.post('/api/studio/agent/probe-cancellation/{pid}/resume')
+    async def inference_probe_resume(pid:str,request:Request):
+        if await body(request):raise HTTPException(400,'La prueba fija no admite parámetros')
+        from lib.local_inference_probe import start
+        return invoke(start,pid)
     @router.post('/api/studio/settings')
     async def settings(request:Request):
         data=await body(request)

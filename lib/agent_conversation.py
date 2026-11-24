@@ -5,6 +5,7 @@ without a receipt is deliberately NOT retried: external effects may have occurre
 """
 import hashlib
 import json
+from copy import deepcopy
 from lib import production_studio as studio
 
 
@@ -24,12 +25,15 @@ class Conversation:
             raise Pause('blocked', 'AGENT_SESSION_REQUEST_CHANGED: solicitud cambió; conserva y revisa la sesión antes de reanudar.')
         if old.get('in_flight') is not None:
             raise Pause('blocked', 'AGENT_SESSION_UNCERTAIN: llamada sin recibo; verifica sus efectos antes de reanudar. No se repite automáticamente.')
-        self.state = old or {'version': 2, 'request_sha256': digest, 'messages': initial,
+        self.state = old or {'version': 2, 'request_sha256': digest, 'messages': deepcopy(initial),
                              'pending': [], 'next_call': 0, 'in_flight': None, 'reads': []}
+        for attempt in self.state.get('model_attempts', []):
+            if attempt.get('status') == 'running':
+                attempt.update(status='interrupted_unknown', finished_at=studio.now())
         for path in self.state['reads']:
             instance.instruction(path)
         # Fresh state/clarifications arrive only after any saved tool batch is complete.
-        self.refresh = initial if old else None
+        self.refresh = deepcopy(initial) if old else None
         self.save()
 
     def save(self):
@@ -49,7 +53,20 @@ class Conversation:
                 self.refresh = None
             if sum(len(json.dumps(m)) for m in s['messages']) > 450000:
                 raise Pause('blocked', 'Límite de contexto; sesión conservada.')
-            message = a.chat(s['messages'], self.tools, **self.chat_options)
+            attempt = {'status': 'running', 'started_at': studio.now()}
+            s.setdefault('model_attempts', []).append(attempt)
+            s['model_attempts'] = s['model_attempts'][-100:]
+            self.save()
+            try:
+                message = a.chat(s['messages'], self.tools, **self.chat_options)
+                if a.cancel.is_set():
+                    raise Pause('stopped', 'Respuesta descartada tras solicitar cancelación')
+            except BaseException as exc:
+                attempt.update(status='cancelled' if isinstance(exc, Pause) and exc.status=='stopped' else 'error',
+                               finished_at=studio.now(), transport=getattr(a,'last_transport',{}))
+                self.save()
+                raise
+            attempt.update(status='completed', finished_at=studio.now(), transport=getattr(a,'last_transport',{}))
             calls = message.get('tool_calls', [])
             if not isinstance(calls, list) or len(calls) > 16 or any(
                     not isinstance(c, dict) or not isinstance(c.get('function'), dict) for c in calls):
