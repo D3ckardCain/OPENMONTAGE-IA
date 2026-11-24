@@ -61,6 +61,23 @@ escalas corta/larga, selección sin cambiar de monitor, cursor por teclado,
 división revisionada y deshacer. Son evidencia de navegador en CI, no de la
 pestaña Windows ni de reproducción real. Se conservan los medios existentes.
 
+Validación local independiente en Studio activo: proyecto QA `edit-173e7bc16d1e`,
+60s de material existente, fuentes enlazadas sin cambiar sus bytes. Operaciones
+calculadas por el módulo real de tiempo JS y enviadas por HTTP/user o herramienta
+nativa del agente; deshacer cruzado y guardar/reabrir conservan el mismo EDL.
+Render real de60s960×540 con H.264/AAC/mov_text y decodificación completa aprobada.
+Una muestra en20.5s corresponde a fuente30.5s (MAE RGB≈1/255); no es una revisión
+visual exhaustiva ni una observación del navegador. RMS de una ventana de audio
+se registra por separado de escucha y sincronía completa, que siguen pendientes.
+Informe: `EVIDENCIA_TIMELINE_LIVE_20261124.json`. El proyecto corto original y
+las configuraciones conservaron sus hashes; no se reinició el servidor.
+
+El validador es opt-in: `python -B -m scripts.validate_studio_timeline_live`
+con `--source-project` y `--node` crea un proyecto QA nuevo. `--inspect-project`
+revisa un render QA existente sin repetir comandos ni renderizar. Se corrigió
+el argumento del validador `-t .5` a `-t 0.5` y se reanudó la inspección del mismo
+archivo; el fallo de esa comprobación no se atribuye al editor.
+
 Pendientes del encargo: selección múltiple/operaciones atómicas, entrada de audio
 con posición vinculada, duplicación, marcadores, borrado sin cierre de hueco,
 transformaciones/títulos/transiciones, capas reales, waveforms por pista,

@@ -304,6 +304,7 @@ def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_se
         zoom=float(page.locator('#edit-zoom').input_value());drag_edge(-zoom*.25)
         expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+3))
         page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+4))
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
         handle=page.locator('.editor-video .editor-clip').first.locator('.editor-trim-out');handle.focus();page.keyboard.press('ArrowLeft')
         expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+5))
         page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+6))
