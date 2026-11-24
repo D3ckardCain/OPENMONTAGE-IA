@@ -7,17 +7,17 @@
     <button id="edit-save">Guardar</button><button id="edit-undo" title="Deshacer (Ctrl+Z)">&#8630; Deshacer</button>
     <button id="edit-redo" title="Rehacer (Ctrl+May&#250;s+Z)">&#8631; Rehacer</button>
     <span id="edit-revision">Sin proyecto</span>
-    <details><summary>Distribuci&#243;n</summary><label>Biblioteca <input id="edit-library-size" type="range" min="180" max="440" value="240"></label><label>Inspector <input id="edit-inspector-size" type="range" min="220" max="440" value="280"></label><label>Altura de pistas <input id="edit-track-size" type="range" min="140" max="520" value="240"></label><label><input id="edit-hide-library" type="checkbox">Ocultar biblioteca</label><label><input id="edit-hide-inspector" type="checkbox">Ocultar inspector</label></details>
+    <details id="edit-layout-options"><summary>Distribuci&#243;n</summary><div class="editor-layout-options"><label>Biblioteca <input id="edit-library-size" type="range" min="180" max="440" value="240"></label><label>Inspector <input id="edit-inspector-size" type="range" min="220" max="440" value="280"></label><label>Altura de pistas <input id="edit-track-size" type="range" min="140" max="520" value="240"></label><label><input id="edit-hide-library" type="checkbox">Ocultar biblioteca</label><label><input id="edit-hide-inspector" type="checkbox">Ocultar inspector</label></div></details>
   </div>
   <p id="edit-message" role="status" aria-live="polite">Importa medios propios para empezar. No se ejecutan modelos ni se descarga contenido.</p>
-  <div class="editor-grid">
-    <section class="editor-library" aria-label="Biblioteca del montaje">
+  <div class="editor-grid" id="editor-grid"><div class="editor-upper" id="editor-upper">
+    <section id="editor-library" class="editor-library" aria-label="Biblioteca del montaje">
       <h2>Biblioteca</h2><label class="editor-import">Importar v&#237;deo o audio<input id="edit-import" type="file" accept="video/*,audio/*" multiple></label>
       <p>Tambi&#233;n puedes soltar archivos aqu&#237;. Se conserva el original.</p>
       <div id="edit-sources"></div>
       <details><summary>Medio existente en el proyecto</summary><label>Ruta relativa en assets/<input id="edit-relative" placeholder="assets/video/toma.mp4"></label><button id="edit-register">Registrar medio</button></details>
     </section>
-    <section class="editor-monitor" aria-label="Vista previa">
+    <div id="edit-split-library" class="editor-splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Redimensionar biblioteca y visor" aria-controls="editor-library editor-monitor"></div><section id="editor-monitor" class="editor-monitor" aria-label="Vista previa">
       <h2 id="edit-monitor-title">Monitor &#183; sin medio</h2>
       <div class="editor-screen"><video id="edit-player" controls preload="metadata" playsinline></video><div id="edit-caption" class="editor-caption" aria-hidden="true"></div></div>
       <div class="editor-transport"><button id="edit-play">Reproducir / Pausar</button><output id="edit-time">00:00:00.000</output><span id="edit-duration">0.000 s de montaje</span></div>
@@ -26,7 +26,7 @@
       <canvas id="edit-waveform" width="960" height="140" hidden aria-label="Forma de onda decodificada del audio seleccionado"></canvas>
       <p id="edit-waveform-status" hidden></p>
     </section>
-    <section class="editor-inspector" aria-label="Inspector">
+    <div id="edit-split-inspector" class="editor-splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Redimensionar inspector y visor" aria-controls="editor-inspector editor-monitor"></div><section id="editor-inspector" class="editor-inspector" aria-label="Inspector">
       <h2>Inspector</h2><p id="edit-selection">Selecciona un clip en las pistas.</p>
       <form id="edit-clip-form" hidden>
         <label>Entrada (segundos de fuente)<input name="in_seconds" type="number" min="0" step="0.001" required></label>
@@ -45,7 +45,7 @@
       <details><summary>Agente &#183; proyecto compartido</summary><p>El agente usa <code>studio_project_edit</code> con la misma revisi&#243;n. Aqu&#237; no se inicia inferencia. La edici&#243;n manual se bloquea mientras el agente posee el proyecto.</p><div id="edit-events"></div></details>
       <details><summary>Funciones pendientes</summary><p>Transiciones, t&#237;tulos, reencuadre focal, solo/bloqueo de pistas, mezcla A/B y medidores en vivo: a&#250;n no disponibles en este editor. Los motores de generaci&#243;n conservan sus accesos en Producci&#243;n; no se ejecutan aqu&#237;.</p></details>
     </section>
-    <section class="editor-timeline" aria-label="L&#237;nea de tiempo">
+    </div><div id="edit-split-timeline" class="editor-splitter" role="separator" tabindex="0" aria-orientation="horizontal" aria-label="Redimensionar visor y timeline" aria-controls="editor-upper editor-timeline"></div><section id="editor-timeline" class="editor-timeline" aria-label="L&#237;nea de tiempo">
       <div class="editor-toolbar"><h2>Pistas</h2><label>Zoom temporal <input id="edit-zoom" type="range" min="10" max="160" value="40"></label><span>Selecciona, arrastra para reordenar o usa Anterior/Siguiente.</span></div>
       <div id="edit-tracks"></div>
       <section id="edit-subtitle-panel" hidden><h3>Subt&#237;tulos &#183; original</h3><p>Edita texto y tiempos SRT. Se comprueban duraci&#243;n, solapamientos y orden. No se traduce autom&#225;ticamente.</p><label>Importar SRT<input id="edit-srt-import" type="file" accept=".srt"></label><label>SRT editable<textarea id="edit-srt" rows="8" spellcheck="false"></textarea></label><button id="edit-srt-save">Aplicar subt&#237;tulos</button><a id="edit-srt-download">Exportar SRT</a> &#183; <a id="edit-ass-download">Exportar ASS</a><div id="edit-cps"></div><label>Desplazar todos los subt&#237;tulos (segundos)<input id="edit-cue-offset" type="number" step="0.001" value="0"></label><button id="edit-cue-offset-apply">Aplicar desplazamiento</button><label>N&#250;mero de subt&#237;tulo<input id="edit-cue-index" type="number" min="1" value="1"></label><label>Dividir en segundo de montaje<input id="edit-cue-at" type="number" step="0.001" min="0"></label><label>Dividir texto tras car&#225;cter<input id="edit-cue-text-index" type="number" min="1" value="1"></label><button id="edit-cue-split">Dividir subt&#237;tulo</button><button id="edit-cue-merge">Unir con siguiente</button><label>Incorporaci&#243;n en MP4<select id="edit-subtitle-mode"><option value="soft">Pista seleccionable &#183; sin estilo garantizado</option><option value="burn">Texto visible quemado &#183; no editable en MP4</option></select></label><label>Tama&#241;o (referencia 1080p)<input id="edit-subtitle-size" type="number" min="12" max="96" value="32"></label><label>Posici&#243;n<select id="edit-subtitle-position"><option value="bottom">Inferior &#183; margen seguro</option><option value="center">Centro</option><option value="top">Superior &#183; margen seguro</option></select></label><button id="edit-subtitle-style">Aplicar estilo e incorporaci&#243;n</button><p>ASS de salida reutiliza el motor existente. Importaci&#243;n ASS, karaoke por palabra y traducciones: a&#250;n no disponibles aqu&#237;. Cambiar el estilo exige preparar otra vista previa.</p></section>

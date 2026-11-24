@@ -7,6 +7,7 @@ const sectionLabels={video:'Vídeo',audio:'Audio',subtitles:'Subtítulos',librar
 function showSection(name){
  if(!(name in sectionLabels))name=(pid||['reference','title','brief','channel_id','performance_import_id'].some(key=>new URLSearchParams(location.search).has(key)))?'production':'video';
  const editing=['video','audio','subtitles','library','edit-projects'].includes(name);
+ document.body.classList.toggle('editor-active',editing);
  document.querySelector('#manual-editor').hidden=!editing;
  document.querySelector('#legacy-studio').hidden=editing;
  window.dispatchEvent(new CustomEvent('studio-workspace',{detail:name}));

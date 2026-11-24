@@ -124,6 +124,78 @@ def test_manual_editor_layout_and_shared_revision_controls(staged_backlot_server
         browser.close()
 
 
+@pytest.mark.parametrize('width,height', [(1920,1080),(3440,1440)])
+def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_server, width, height):
+    """Real EDL snapshot, intercepted transport. Layout evidence only, not playback."""
+    import json
+    from pathlib import Path
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    pid=fixture['project_id'];state=fixture['state'];job=fixture['render']
+    output=Path('tests/qa/output/studio-editor');output.mkdir(parents=True,exist_ok=True)
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':width,'height':height});errors=[];writes=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.on('request',lambda request:writes.append(request.url) if request.method=='POST' else None)
+        page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':pid,'title':fixture['title']}]))
+        page.route('**/api/studio/editor/'+pid,lambda route:route.fulfill(json=state))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda route:route.fulfill(json=job))
+        page.route('**/media/**',lambda route:route.fulfill(status=204))
+        page.route('**/api/studio/editor/'+pid+'/source/**',lambda route:route.fulfill(status=204))
+        page.goto(staged_backlot_server+'/studio?edit='+pid+'#video')
+        expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
+        # Stress the intrinsic 1920x1080 media size without claiming decoded frames.
+        page.locator('#edit-player').evaluate('(v)=>{v.width=1920;v.height=1080}')
+        def bounds():
+            return page.evaluate('''()=>({viewport:{width:innerWidth,height:innerHeight},
+                document:{width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight},
+                panels:Object.fromEntries(['editor-library','editor-monitor','editor-inspector','editor-timeline'].map(id=>{
+                  const r=document.getElementById(id).getBoundingClientRect();return [id,{x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom}]}))})''')
+        def contained():
+            b=bounds();assert b['document']['height']<=height+1;assert b['document']['width']<=width+1
+            for panel in b['panels'].values():
+                assert panel['y']>=0 and panel['bottom']<=height+1
+            assert b['panels']['editor-timeline']['height']>=159
+            return b
+        before=contained();src=page.locator('#edit-player').get_attribute('src')
+        page.screenshot(path=str(output/f'existing-layout-{width}x{height}-default.png'),full_page=True)
+        for identifier,dx,dy in [('library',60,0),('inspector',-50,0),('timeline',0,-40)]:
+            box=page.locator('#edit-split-'+identifier).bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
+            page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+dx,y+dy,steps=5);page.mouse.up()
+        page.locator('#edit-split-timeline').focus();page.keyboard.press('ArrowUp')
+        resized=contained()
+        assert resized['panels']['editor-library']['width']>=before['panels']['editor-library']['width']+55
+        assert resized['panels']['editor-inspector']['width']>=before['panels']['editor-inspector']['width']+45
+        assert resized['panels']['editor-timeline']['height']>=before['panels']['editor-timeline']['height']+50
+        assert resized['panels']['editor-monitor']['height']<before['panels']['editor-monitor']['height']
+        page.reload();expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
+        restored=contained()
+        for identifier in resized['panels']:
+            for dimension in ['width','height']:
+                assert abs(restored['panels'][identifier][dimension]-resized['panels'][identifier][dimension])<=1
+        page.locator('#edit-layout-options summary').click()
+        page.locator('#edit-hide-library').check();page.locator('#edit-hide-inspector').check()
+        page.locator('#edit-hide-library').uncheck();page.locator('#edit-hide-inspector').uncheck()
+        page.keyboard.press('Escape')
+        assert abs(contained()['panels']['editor-library']['width']-resized['panels']['editor-library']['width'])<=1
+        for section in ['audio','subtitles','video']:
+            page.locator('[data-section="'+section+'"]').click();contained()
+            assert page.locator('#edit-project').input_value()==pid
+        # Enormous saved preferences must be clamped to a usable current viewport.
+        page.evaluate("localStorage.setItem('edit-track-size','9999');localStorage.setItem('edit-library-size','9999')")
+        page.reload();expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
+        clamped=contained();assert clamped['panels']['editor-monitor']['height']>=199
+        page.locator('#edit-split-timeline').focus();page.keyboard.press('Home');contained()
+        page.locator('#edit-split-timeline').focus();page.keyboard.press('End');contained()
+        assert page.locator('#edit-player').get_attribute('src')==src
+        assert not writes and not errors
+        page.screenshot(path=str(output/f'existing-layout-{width}x{height}-clamped.png'),full_page=True)
+        (output/f'existing-layout-{width}x{height}.json').write_text(json.dumps({
+            'scope':fixture['scope'],'project_id':pid,'revision':state['revision'],'edit_sha256':state['edit_sha256'],
+            'before':before,'resized':resized,'restored':restored,'clamped':clamped,'writes':writes,'page_errors':errors},indent=2),encoding='utf-8')
+        browser.close()
+
+
 def test_update_file_remote_comparison_without_local_reads(staged_backlot_server):
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))

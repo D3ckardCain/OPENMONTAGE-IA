@@ -1,4 +1,5 @@
 // Shared server revision is authoritative. No browser-only project fork.
+import { initializeEditorLayout } from './editor-layout.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
@@ -221,9 +222,5 @@ q('edit-zoom').oninput=()=>{if(state)drawTracks();};
 function showWorkspace(){q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
 document.addEventListener('keydown',event=>{if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
-for(const [id,css] of [['edit-library-size','--library'],['edit-inspector-size','--inspector'],['edit-track-size','--tracks']]){
-  try{const saved=localStorage.getItem(id);if(saved)q(id).value=saved;}catch{/* restricted storage */}
-  const update=()=>{q('manual-editor').style.setProperty(css,q(id).value+'px');try{localStorage.setItem(id,q(id).value);}catch{/* restricted storage */}};q(id).oninput=update;update();
-}
-for(const [id,cls] of [['edit-hide-library','library-hidden'],['edit-hide-inspector','inspector-hidden']]){try{q(id).checked=localStorage.getItem(id)==='true';}catch{/* restricted storage */}const update=()=>{q('manual-editor').classList.toggle(cls,q(id).checked);try{localStorage.setItem(id,String(q(id).checked));}catch{/* restricted storage */}};q(id).onchange=update;update();}
+initializeEditorLayout();
 showWorkspace();task(async()=>{try{await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});
