@@ -142,12 +142,16 @@ class LocalAgent:
                     'instruction':'Corrige esta etapa según el motivo editorial antes de escribir un checkpoint nuevo; conserva la revisión anterior en el historial.'}
         return None
 
-    def chat(self,messages,tools=None):
+    def chat(self,messages,tools=None,*,context_tokens=32768,max_output_tokens=8192,thinking=None):
+        if type(context_tokens) is not int or not 1024<=context_tokens<=32768:raise ValueError('Contexto local inválido')
+        if type(max_output_tokens) is not int or not 16<=max_output_tokens<=8192:raise ValueError('Límite de salida local inválido')
+        if thinking is not None and type(thinking) is not bool:raise ValueError('Modo de pensamiento inválido')
         if self.cancel.is_set():raise Pause('stopped','Detenido entre acciones; los artefactos ya creados se conservan.')
         if self._chat:return self._chat(messages,tools)
         if not self.config['model']:raise Pause('blocked','Selecciona primero un modelo local de Ollama.')
         data={'model':self.config['model'],'messages':messages,'stream':False,'keep_alive':0,
-              'options':{'num_ctx':32768,'num_predict':8192}}
+              'options':{'num_ctx':context_tokens,'num_predict':max_output_tokens}}
+        if thinking is not None:data['think']=thinking
         if tools is not None:data['tools']=tools
         response=studio.local_request(self.config['ollama_url'],'/api/chat',data,timeout=180)
         message=response.get('message')

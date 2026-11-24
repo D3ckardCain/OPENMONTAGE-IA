@@ -88,6 +88,12 @@ def create_studio_router():
         return invoke(inspect,pid)
     @router.get('/api/studio/runtime')
     async def runtime():return await asyncio.to_thread(studio.runtime_status)
+    @router.post('/api/studio/agent/probe-tools')
+    async def agent_protocol_probe(request:Request):
+        if await body(request):raise HTTPException(400,'La prueba fija no admite parámetros')
+        from lib.local_agent_probe import probe
+        try:return await asyncio.to_thread(probe)
+        except (ValueError,OSError) as exc:raise HTTPException(400,str(exc))
     @router.post('/api/studio/settings')
     async def settings(request:Request):
         data=await body(request)
