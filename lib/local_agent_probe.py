@@ -46,7 +46,9 @@ def probe():
             raise ValueError('AGENT_PROBE_TOOL: falta el FreeCAD preparado')
         path.mkdir()
         created = True
-        studio.save_json(path / 'production_request.json', {'pipeline': 'animation'})
+        studio.save_json(path / 'production_request.json', {
+            'project_id': pid, 'title': 'Diagnóstico sintético de herramientas',
+            'pipeline': 'animation', 'diagnostic_fixture': True})
         instance = agent.LocalAgent(pid, registry=registry)
         skill = instance.manifest['stages'][0]['skill']
         instance.instruction('skills/' + skill + '.md')

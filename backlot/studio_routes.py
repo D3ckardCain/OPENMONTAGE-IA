@@ -44,7 +44,9 @@ def create_studio_router():
     def bootstrap():
         projects=[]
         for f in studio.PROJECTS_DIR.glob('*/production_request.json'):
-            r=studio.read_json(f);projects.append({'project_id':r['project_id'],'title':r['title']})
+            r=studio.read_json(f)
+            if r.get('diagnostic_fixture'):continue
+            projects.append({'project_id':r['project_id'],'title':r['title']})
         return {'settings':studio.settings(),'pipelines':studio.pipelines(),'projects':projects}
     @router.get('/api/studio/queue')
     def production_queue_state():

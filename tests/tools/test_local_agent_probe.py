@@ -102,6 +102,20 @@ class AgentProbeTests(unittest.TestCase):
             self.assertEqual(r.status_code, 200, r.text)
             self.assertTrue(r.json()['passed'])
 
+    def test_studio_bootstrap_remains_available_and_hides_live_probe_fixture(self):
+        app = FastAPI()
+        app.include_router(create_studio_router())
+        message = self.message
+        with TestClient(app) as client:
+            def while_model_waits(*args, **kwargs):
+                self.assertTrue((self.root / self.pid / 'production_request.json').is_file())
+                response = client.get('/api/studio/bootstrap')
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertNotIn(self.pid, [p['project_id'] for p in response.json()['projects']])
+                return message
+            agent.LocalAgent.chat.side_effect = while_model_waits
+            self.assertTrue(probe_module.probe()['passed'])
+
 
 class AgentTransportOptionsTests(unittest.TestCase):
     def instance(self):
