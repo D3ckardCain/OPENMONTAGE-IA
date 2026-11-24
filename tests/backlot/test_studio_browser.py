@@ -464,6 +464,42 @@ def test_advanced_timeline_uses_capabilities_and_atomic_model(staged_backlot_ser
         browser.close()
 
 
+def test_render_cancel_button_sends_attempt_and_allows_new_attempt(staged_backlot_server):
+    """UI transport contract only; real child exit is tested independently."""
+    import json
+    from copy import deepcopy
+    from pathlib import Path
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    pid=fixture['project_id'];job={'status':'running','attempt':'owned-attempt'};calls=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1920,'height':1080});errors=[]
+        page.on('pageerror',lambda e:errors.append(str(e)))
+        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Cancel metadata fixture'}]))
+        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=fixture['state']))
+        def render_status(route):
+            if route.request.method=='POST':
+                calls.append(route.request.post_data_json);job.update(status='running',attempt='second-attempt')
+            route.fulfill(json=deepcopy(job))
+        page.route('**/api/studio/editor/'+pid+'/render',render_status)
+        def cancel(route):
+            calls.append(route.request.post_data_json);assert calls[-1]=={'attempt':'owned-attempt'}
+            route.fulfill(json={**job,'status':'cancelling'});job.update(status='cancelled',process_stopped=True)
+        page.route('**/api/studio/editor/'+pid+'/render/cancel',cancel)
+        page.goto(staged_backlot_server+'/studio?edit='+pid+'#video')
+        expect(page.locator('#edit-render-cancel')).to_be_visible()
+        expect(page.locator('#edit-export')).to_be_disabled()
+        page.locator('#edit-render-cancel').click()
+        expect(page.locator('#edit-render-status')).to_contain_text('Render cancelado')
+        expect(page.locator('#edit-render-cancel')).to_be_hidden()
+        expect(page.locator('#edit-export')).to_be_enabled()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-preview').click();expect(page.locator('#edit-render-cancel')).to_be_visible()
+        assert calls==[{'attempt':'owned-attempt'},{'revision':fixture['state']['revision'],'preview':True}]
+        assert not errors
+        browser.close()
+
+
 def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
     """Actual model and browser controls; intercepted transport, not local AV QA."""
     from copy import deepcopy

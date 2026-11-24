@@ -23,7 +23,7 @@ def create_editor_router(body):
     @router.get('/capabilities')
     def capabilities():
         from lib.studio_timeline_ops import CAPABILITIES
-        return {'version': '3.0', 'commands': CAPABILITIES, 'shared_revision': True}
+        return {'version': '3.0', 'commands': CAPABILITIES, 'render_cancel': True, 'shared_revision': True}
 
     @router.get('/projects')
     def projects():
@@ -127,6 +127,16 @@ def create_editor_router(body):
         from lib.scene_burned_subtitles import _ass
         return PlainTextResponse(_ass(value['cues'], width, height, value['subtitle_style']),
                                  headers={'Content-Disposition': 'attachment; filename="subtitles.ass"'})
+
+    @router.post('/{pid}/render/cancel')
+    async def cancel_render(pid: str, request: Request):
+        data = await body(request)
+        return invoke(render.cancel, pid, data.get('attempt'))
+
+    @router.post('/{pid}/agent-render/cancel')
+    async def cancel_agent_render(pid: str, request: Request):
+        data = await body(request)
+        return invoke(render.cancel, pid, data.get('attempt'), 'agent')
 
     @router.post('/{pid}/render')
     async def start_render(pid: str, request: Request):

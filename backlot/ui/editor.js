@@ -8,9 +8,10 @@ let project = new URLSearchParams(location.search).get('edit'), state = null, se
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
+let cancelSupported=false,renderAttempt=null;
 const capabilities=new Set(),selectedIds=new Set();
 async function loadCapabilities(){
-  try{const response=await fetch('/api/studio/editor/capabilities');if(response.ok){const data=await response.json();for(const name of data.commands||[])capabilities.add(name);}}
+  try{const response=await fetch('/api/studio/editor/capabilities');if(response.ok){const data=await response.json();cancelSupported=data.render_cancel===true;for(const name of data.commands||[])capabilities.add(name);}}
   catch{/* older/offline backend keeps advanced actions hidden */}
   q('edit-advanced-tools').hidden=!capabilities.has('batch');q('edit-flags-panel').hidden=!capabilities.has('flags');q('edit-markers-panel').hidden=!capabilities.has('markers');
 }
@@ -380,9 +381,13 @@ function draw() {
 async function checkRender() {
   if (!project || !state) return;
   const captured = project, result = await api(base() + '/render'); if (captured !== project) return;
+  renderAttempt=result.attempt;const active=['running','cancelling'].includes(result.status);
+  q('edit-render-cancel').hidden=!cancelSupported||!active;q('edit-render-cancel').disabled=result.status==='cancelling';
   const subtitles = result.subtitle_mode === 'burn' ? 'texto visible quemado' : result.subtitle_mode === 'mov_text' ? 'subtítulos seleccionables, sin estilo quemado' : 'sin subtítulos incorporados';
   q('edit-render-status').textContent = result.status === 'running' ? 'FFmpeg está preparando el montaje; no se puede editar durante el render.' : result.status === 'failed' || result.status === 'interrupted' ? result.error : result.status === 'completed' ? (result.current ? 'Montaje de revisión ' + result.revision + (result.preview ? ' · vista previa a media resolución' : ' · exportación final local') + ' · ' + subtitles : 'Resultado anterior: prepara la revisión actual.') : 'Sin montaje renderizado.';
-  q('edit-preview').disabled = q('edit-export').disabled = result.status === 'running';
+  if(result.status==='cancelling')q('edit-render-status').textContent='Cancelando FFmpeg; el proyecto seguirá ocupado hasta confirmar la salida del proceso.';
+  if(result.status==='cancelled')q('edit-render-status').textContent='Render cancelado; el parcial no se publica. Puedes volver a preparar el montaje sin repetir ediciones.';
+  q('edit-preview').disabled = q('edit-export').disabled = active;
   if(result.status!=='completed'||!result.current)q('edit-download').hidden=true;
   if (result.status === 'completed' && result.current && previewMatches(result,state)) {
     if (preview?.attempt !== result.attempt) {
@@ -394,7 +399,7 @@ async function checkRender() {
     q('edit-download').hidden=false; q('edit-download').href=result.url;
   }
   clearTimeout(renderTimer);
-  if (result.status === 'running') renderTimer=setTimeout(() => task(checkRender),1500);
+  if (active) renderTimer=setTimeout(() => task(checkRender),1500);
 }
 async function render(previewOnly) {
   requireProject(); await api(base()+'/render',{revision:state.revision,preview:previewOnly}); await checkRender();
@@ -444,6 +449,7 @@ q('edit-marker-save').onclick=()=>task(()=>command('marker_update',{id:q('edit-m
 q('edit-marker-remove').onclick=()=>task(()=>command('marker_remove',{id:q('edit-marker-select').value}));
 q('edit-output').onclick=()=>task(()=>command('output',{ratio:q('edit-preset').value,fps:Number(q('edit-fps').value)}));
 q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()=>task(()=>render(false));
+q('edit-render-cancel').onclick=()=>task(async()=>{requireProject();await api(base()+'/render/cancel',{attempt:renderAttempt});await checkRender();});
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});
 q('edit-show-montage').onclick=()=>task(async()=>{requireProject();await checkRender();if(!preview)message('El montaje actual aún no tiene vista previa guardada. Usa Preparar vista previa del montaje.');});
 q('edit-player').ontimeupdate=()=>{const p=q('edit-player');if(preview)cursor=p.currentTime||0;else if(selection&&state){try{const item=selected();if(sourceKey===item.clip.source_id)cursor=clipStart(edl(),item.clip,item.track)+Math.max(0,(p.currentTime-item.clip.in_seconds)/item.clip.speed);}catch{/* removed */}}q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};

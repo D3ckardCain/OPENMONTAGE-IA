@@ -30,18 +30,18 @@ def request(path, data=None, timeout=120):
 
 class StudioProjectEdit(BaseTool):
     name = 'studio_project_edit'
-    version = '2.0.0'
+    version = '3.0.0'
     capability = 'video_post'
     provider = 'local'
     description = 'Read and edit the shared Studio manual project; no inference. Revision required for writes.'
     install_instructions = 'Inicia la instancia actualizada de Studio local (BACKLOT_PORT o 4750); no requiere modelos ni paquetes nuevos.'
-    capabilities = ['read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'capabilities']
+    capabilities = ['read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities']
     side_effects = ['Writes the selected manual project through the running local Studio server']
     not_good_for = ['Starting inference', 'Editing production pipeline artifacts', 'Editing while Studio is stopped']
     input_schema = {'type': 'object', 'required': ['project_id', 'action'], 'properties': {
-        'project_id': {'type': 'string'}, 'action': {'enum': ['read', 'command', 'register', 'render', 'render_status', 'capabilities']},
+        'project_id': {'type': 'string'}, 'action': {'enum': ['read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities']},
         'command': {'type': 'object'}, 'relative_path': {'type': 'string'}, 'revision': {'type': 'integer'},
-        'preview': {'type': 'boolean'}}}
+        'preview': {'type': 'boolean'}, 'attempt': {'type': 'string'}}}
 
     def get_status(self):
         try:
@@ -65,6 +65,8 @@ class StudioProjectEdit(BaseTool):
                 value = request(path + '/agent-register', {'relative_path': inputs['relative_path'], 'revision': inputs['revision']})
             elif action == 'render_status':
                 value = request(path + '/render')
+            elif action == 'render_cancel':
+                value = request(path + '/agent-render/cancel', {'attempt': inputs['attempt']})
             elif action == 'render':
                 value = request(path + '/agent-render', {'revision':inputs['revision'], 'preview':inputs.get('preview', False)})
             else:

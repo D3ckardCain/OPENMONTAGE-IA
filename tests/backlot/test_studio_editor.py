@@ -211,11 +211,11 @@ def test_export_worker_uses_snapshot_and_checks_result(project, monkeypatch):
     add(pid, key)
     command(pid, 'subtitles', srt=SRT)
     calls = []
-    def run(args, **kwargs):
+    def run(args, work, control, **kwargs):
         calls.append((args, kwargs))
         Path(args[-1]).write_bytes(b'mocked encoder output, not AV')
         return SimpleNamespace(returncode=0, stderr=b'')
-    monkeypatch.setattr(render.subprocess, 'run', run)
+    monkeypatch.setattr(render, 'execute', run)
     monkeypatch.setattr(render, 'require_media', lambda name: name)
     # Execute worker inline to make races and persistence deterministic.
     class Inline:
@@ -267,7 +267,7 @@ def test_export_failures_busy_and_restart_are_explicit(project, monkeypatch):
     value = edit.state(pid)
     args, filters, width, height = render.plan(pid, value['edit_decisions'])
     monkeypatch.setattr(render, 'require_media', lambda name:name)
-    monkeypatch.setattr(render.subprocess, 'run', lambda *a, **k: SimpleNamespace(returncode=1, stderr=b'bounded failure'))
+    monkeypatch.setattr(render, 'execute', lambda *a, **k: SimpleNamespace(returncode=1, stderr=b'bounded failure'))
     job = {'status':'running','attempt':'test-failure','revision':value['revision'],'width':width,'height':height}
     edit.EXPORTING.add(pid)
     render._worker(pid, value['edit_decisions'], job, args, filters)

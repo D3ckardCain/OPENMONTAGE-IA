@@ -1,7 +1,6 @@
 """Bounded FFmpeg rendering of the shared manual EDL (no AI or downloads)."""
 from copy import deepcopy
 import json
-import subprocess
 import threading
 import uuid
 
@@ -11,6 +10,7 @@ from tools.video.video_trimmer import VideoTrimmer
 from lib.scene_burned_subtitles import _ass
 from lib.studio_editor_effects import transform_filter
 from tools.audio.audio_mixer import AudioMixer
+from lib.studio_render_process import CONTROLS, Control, Cancelled, execute
 
 
 def plan(pid, edl, preview=False):
@@ -79,7 +79,7 @@ def plan(pid, edl, preview=False):
 def status(pid):
     with studio.LOCK:
         value = studio.read_json(studio.project_path(pid) / 'artifacts/manual_render.json', {'status': 'idle'})
-    if value['status'] == 'running' and pid not in editor.EXPORTING:
+    if value['status'] in ('running', 'cancelling') and pid not in editor.EXPORTING:
         return {**value, 'status': 'interrupted', 'error': 'Servidor reiniciado; vuelve a solicitar el render'}
     value = deepcopy(value)
     current = editor.state(pid)
@@ -114,25 +114,49 @@ def start(pid, revision, preview=False, origin='user'):
                'preview': preview, 'started_at': studio.now(), 'width': width, 'height': height}
         studio.save_json(studio.project_path(pid) / 'artifacts/manual_render.json', job)
         editor.EXPORTING.add(pid)
+        CONTROLS[pid] = Control(job['attempt'])
         try:
             threading.Thread(target=_worker, args=(pid, edl, job, args, filters), daemon=True).start()
         except RuntimeError as exc:
             editor.EXPORTING.discard(pid)
+            CONTROLS.pop(pid, None)
             job.update(status='failed', error=str(exc), completed_at=studio.now())
             studio.save_json(studio.project_path(pid) / 'artifacts/manual_render.json', job)
             raise ValueError('No se pudo iniciar el render local') from exc
         return job
 
 
+def cancel(pid, attempt, origin='user'):
+    """Request cancellation, retaining the resource lock until child exit."""
+    if origin not in ('user', 'agent'):
+        raise ValueError('Origen desconocido')
+    with studio.LOCK:
+        value = studio.read_json(studio.project_path(pid) / 'artifacts/manual_render.json', {})
+        if not isinstance(attempt, str) or attempt != value.get('attempt'):
+            raise editor.Conflict('El intento cambió; consulta su estado antes de cancelar')
+        if value.get('status') == 'cancelled':
+            return value
+        control = CONTROLS.get(pid)
+        if value.get('status') not in ('running', 'cancelling') or not control or control.attempt != attempt:
+            raise editor.Conflict('Este render no está activo en este servidor')
+        value.update(status='cancelling', cancel_requested_at=studio.now(), cancel_origin=origin)
+        studio.save_json(studio.project_path(pid) / 'artifacts/manual_render.json', value)
+        control.event.set()
+        return value
+
+
 def _worker(pid, edl, job, args, filters):
     project = studio.project_path(pid)
     work = project / 'assets' / 'editor-renders' / job['attempt']
     output = work / 'montage.mp4'
+    control = CONTROLS.get(pid) or Control(job['attempt'])
     try:
+        control.check()
         work.resolve().relative_to(project.resolve())
         work.mkdir(parents=True, exist_ok=False)
         used = {clip['source_id'] for clip in edl['cuts'] + edl['audio_tracks'] if clip.get('kind') != 'gap'}
         for key in used:
+            control.check()
             info = edl['sources'][key]
             if editor.digest(editor.source(pid, key)) != info['sha256']:
                 raise ValueError('Cambió la identidad de un medio; importa su nueva versión')
@@ -160,13 +184,15 @@ def _worker(pid, edl, job, args, filters):
                         '-metadata:s:s:0', 'language=spa']
         command += ['-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k',
                     '-t', str(editor.duration(edl)), '-movflags', '+faststart', str(output)]
-        result = subprocess.run(command, cwd=work, capture_output=True, timeout=600, check=False)
+        result = execute(command, work, control, timeout=600)
+        control.check()
         if result.returncode or not output.is_file() or not output.stat().st_size:
             raise ValueError('FFmpeg: ' + result.stderr.decode('utf-8', 'replace')[-1500:])
         checked = editor.probe(output)
         if checked['kind'] != 'video' or not checked['audio'] or abs(checked['duration'] - editor.duration(edl)) > .15:
             raise ValueError('El resultado no conserva duración, vídeo y audio esperados')
         for key in used:
+            control.check()
             if editor.digest(editor.source(pid, key)) != edl['sources'][key]['sha256']:
                 raise ValueError('Cambió una fuente durante el render; el resultado no se acredita')
         relative = output.relative_to(project).as_posix()
@@ -175,11 +201,27 @@ def _worker(pid, edl, job, args, filters):
                    duration=checked['duration'], subtitle_mode=('burn' if burn else 'mov_text') if edl['cues'] else 'none',
                    source_sha256={key: edl['sources'][key]['sha256'] for key in used})
         (work / 'edit_decisions.json').write_text(json.dumps(edl, ensure_ascii=False, indent=2), encoding='utf-8')
+    except Cancelled as exc:
+        job.update(status='cancelled', completed_at=studio.now(), error=str(exc))
     except Exception as exc:
         job.update(status='failed', completed_at=studio.now(), error=str(exc))
     finally:
         with studio.LOCK:
             try:
+                if control.event.is_set() and (control.process is None or control.stopped):
+                    persisted = studio.read_json(project / 'artifacts/manual_render.json', {})
+                    job.update(status='cancelled', completed_at=studio.now(),
+                               error='Render cancelado; archivo parcial conservado sin publicar',
+                               process_stopped=control.stopped, encoder_started=control.process is not None,
+                               cancel_origin=persisted.get('cancel_origin'),
+                               cancel_requested_at=persisted.get('cancel_requested_at'))
+                    for key in ('path', 'url', 'sha256', 'bytes', 'duration'):
+                        job.pop(key, None)
+                if control.process is not None and control.process.poll() is None:
+                    job.update(status='failed', process_stopped=False,
+                               error='No se confirmó el cierre del encoder tras terminate/kill acotados; proyecto bloqueado para evitar dos escritores. Requiere inspección del proceso propio.')
                 studio.save_json(project / 'artifacts/manual_render.json', job)
             finally:
-                editor.EXPORTING.discard(pid)
+                if control.process is None or control.process.poll() is not None:
+                    editor.EXPORTING.discard(pid)
+                    CONTROLS.pop(pid, None)
