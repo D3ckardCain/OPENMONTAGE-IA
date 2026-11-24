@@ -9,8 +9,12 @@ import uuid
 from lib import production_studio as studio
 from lib import production_agent as agent
 
+SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+
 
 def probe():
+    if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != SOURCE_SHA256:
+        raise ValueError('AGENT_PROBE_CHANGED: reinicia Studio tras cambiar el diagnóstico')
     from lib import production_queue as queue, reference_analysis
     from tools.analysis import freecad_units
     from tools.tool_registry import ToolRegistry
@@ -59,11 +63,13 @@ def probe():
                                 [tool], context_tokens=4096, max_output_tokens=128,
                                 thinking=False if 'thinking' in show.get('capabilities', []) else None)
         calls = message.get('tool_calls', [])
-        if len(calls) != 1 or not isinstance(calls[0], dict):
+        if not isinstance(calls, list) or len(calls) != 1 or not isinstance(calls[0], dict):
             raise ValueError('AGENT_PROBE_PROTOCOL: se requiere una sola llamada')
         function = calls[0].get('function', {})
-        if function.get('name') != 'execute_tool' or function.get('arguments') != expected:
+        if not isinstance(function, dict) or function.get('name') != 'execute_tool' or function.get('arguments') != expected:
             raise ValueError('AGENT_PROBE_PROTOCOL: nombre o argumentos no coinciden; no se ejecutó nada')
+        if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != SOURCE_SHA256:
+            raise ValueError('AGENT_PROBE_CHANGED: código cambió antes del despacho')
         result = instance.dispatch('execute_tool', function['arguments'])
         if not result['success'] or result['data'].get('values') != [25.4]:
             raise ValueError('AGENT_PROBE_TOOL: la conversión nativa no se confirmó')
@@ -77,7 +83,7 @@ def probe():
                 'geometry_created': False, 'creative_content_generated': False,
                 'synthetic_text_inference_performed': True, 'cost_usd': 0,
                 'created_at_utc': datetime.now(timezone.utc).isoformat(),
-                'probe_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+                'probe_sha256': SOURCE_SHA256}
     finally:
         try:
             if created:

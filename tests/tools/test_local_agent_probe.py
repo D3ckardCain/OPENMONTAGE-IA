@@ -57,7 +57,7 @@ class AgentProbeTests(unittest.TestCase):
         self.assertEqual(list(self.root.iterdir()), [])
 
     def test_unexpected_call_or_arguments_never_dispatch(self):
-        for message in ({'tool_calls': []}, {'tool_calls': [{'function': {'name': 'launch_app', 'arguments': self.args}}]},
+        for message in ({'tool_calls': None}, {'tool_calls': [{'function': None}]}, {'tool_calls': []}, {'tool_calls': [{'function': {'name': 'launch_app', 'arguments': self.args}}]},
                         {'tool_calls': [{'function': {'name': 'execute_tool', 'arguments': {**self.args, 'name': 'blender_world'}}}]}):
             agent.LocalAgent.chat.return_value = message
             with self.assertRaisesRegex(ValueError, 'AGENT_PROBE_PROTOCOL'):
