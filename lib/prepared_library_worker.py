@@ -2,6 +2,7 @@
 import importlib.metadata as metadata
 import json
 import math
+import re
 from pathlib import Path
 import sys
 
@@ -99,7 +100,7 @@ def check(name):
 def operate(name, data):
     """Functional operations use the same isolated runtimes and offline guard."""
     if name != 'socceraction':
-        raise ValueError('LIBRARY_OPERATION_UNSUPPORTED')
+        return operate_component(name, data)
     import pandas as pd
     from socceraction.spadl.schema import SPADLSchema
     from socceraction.spadl import config
@@ -157,6 +158,26 @@ def operate(name, data):
             'coordinates_transformed': False, 'provider_events_converted': False,
             'models_trained': False, 'geometry_generated': False, 'figures_generated': False,
             'weights_loaded': False, 'model_inference_performed': False}
+
+
+def operate_component(name, data):
+    if name != 'cq_warehouse':
+        raise ValueError('LIBRARY_OPERATION_UNSUPPORTED')
+    size, width, sides = data.get('size'), data.get('across_flats_mm'), data.get('sides')
+    pattern = r'(?:#(?:0000|000|00|0|1|2|3|4|5|6|8|10|12)|[0-9]{1,2}(?:/[1-9][0-9]?)?)-[1-9][0-9]{0,2}'
+    if not isinstance(size, str) or not re.fullmatch(pattern, size):
+        raise ValueError('WAREHOUSE_SIZE_INVALID: usa tamaño imperial numerado o fracción y TPI explícito')
+    if type(width) not in (int, float) or not math.isfinite(width) or not 0 < width <= 10000 or type(sides) is not int or not 3 <= sides <= 24:
+        raise ValueError('WAREHOUSE_DIMENSIONS_INVALID: ancho positivo <=10000mm, polígono de3–24lados')
+    from cq_warehouse.fastener import decode_imperial_size, polygon_diagonal
+    diameter, pitch = decode_imperial_size(size)
+    if diameter <= 0 or pitch <= 0:
+        raise ValueError('WAREHOUSE_SIZE_INVALID: diámetro y paso deben ser positivos')
+    return {'size_declared': size, 'major_diameter_mm': diameter, 'pitch_mm': pitch,
+            'across_flats_mm': width, 'polygon_sides': sides, 'polygon_diagonal_mm': polygon_diagonal(width, sides),
+            'versions': {p: metadata.version(p) for p in ('cq_warehouse', 'cadquery', 'cadquery-ocp')},
+            'units': 'mm', 'geometry_generated': False, 'figures_generated': False,
+            'manufacturing_fit_verified': False, 'weights_loaded': False, 'model_inference_performed': False}
 
 
 if __name__ == '__main__':

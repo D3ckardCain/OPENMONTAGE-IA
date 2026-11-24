@@ -756,6 +756,13 @@ def create_studio_router():
         if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
         return result.data
 
+    @router.post('/api/studio/libraries/cq_warehouse/dimensions')
+    async def warehouse_dimensions(request:Request):
+        from tools.analysis.warehouse_dimensions import WarehouseDimensions
+        result=await asyncio.to_thread(WarehouseDimensions().execute,await body(request))
+        if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
+        return result.data
+
     @router.get('/api/studio/tools')
     async def tools(name:str=Query('',max_length=100),capability:str=Query('',max_length=100)):
         def discover():

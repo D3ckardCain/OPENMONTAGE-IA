@@ -15,3 +15,9 @@ Se comprueban tipos sin coerciones que trunquen IDs, valores finitos, identifica
 El marco nativo es 105x68 metros, origen inferior izquierdo y local hacia la derecha, según [SPADL oficial](https://socceraction.readthedocs.io/en/latest/api/spadl_regular.html). La declaración es obligatoria; no se convierte ni orienta automáticamente, no se reparan acciones, no se transforman eventos de proveedores ni se entrena/ejecuta VAEP/xT. Un archivo válido no acredita exactitud de un partido ni licencia de sus datos.
 
 Ejemplo de acción sintética: `{"game_id":0,"original_event_id":null,"action_id":0,"period_id":1,"time_seconds":0.0,"team_id":2,"player_id":0,"start_x":10.0,"start_y":20.0,"end_x":30.0,"end_y":40.0,"bodypart_id":0,"type_id":0,"result_id":1}`.
+
+## cq_warehouse: dimensiones sin sólidos
+
+Herramienta `warehouse_dimensions`; `POST /api/studio/libraries/cq_warehouse/dimensions`. Entrada: proyecto, `size` imperial numerado/fracción y TPI (p.ej. `#8-32` o `1/4-20`), `across_flats_mm` positivo hasta10000 y `sides` entero3–24. Usa las funciones oficiales decode_imperial_size y polygon_diagonal del [código preparado](https://github.com/gumyr/cq_warehouse/blob/a57bb7a24762d367d66369f280a24c38a64e73dd/src/cq_warehouse/fastener.py).
+
+La sintaxis está limitada a números/fracciones positivas y tamaños numerados admitidos; no acepta expresiones o rutas. Devuelve diámetro y paso en mm y diagonal del polígono regular declarado. Para #8-32 se verificó4.1656mm/0.79375mm. No construye roscas, piezas, documentos o geometría y no acredita correspondencia con un estándar, ajuste físico o tolerancias de fabricación.
