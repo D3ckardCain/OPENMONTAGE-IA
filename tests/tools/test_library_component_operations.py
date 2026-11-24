@@ -13,9 +13,11 @@ from lib import production_studio as studio, isolated_library_operation as trans
 from lib.production_agent import LocalAgent
 from lib.pipeline_loader import load_pipeline_readonly
 from tools.analysis import warehouse_dimensions
+from tools.analysis import soccervision_homography
 from tools.tool_registry import ToolRegistry
 
 CASES = [(warehouse_dimensions, 'WarehouseDimensions', {'project_id':'fixture','size':'#8-32','across_flats_mm':10,'sides':6}, '/api/studio/libraries/cq_warehouse/dimensions')]
+CASES += [(soccervision_homography,'SoccervisionHomography',{'project_id':'fixture','matrix':[[2,0,10],[0,3,20],[0,0,1]],'points':[[0,0],[3,4]],'source_units':'pixels','target_units':'metres'},'/api/studio/libraries/soccervision/homography')]
 
 
 @pytest.mark.parametrize('module,clsname,inputs,route', CASES)
@@ -77,3 +79,8 @@ def test_native_component_operation(module,clsname,inputs,route,tmp_path,monkeyp
         assert r.data['pitch_mm']==pytest.approx(0.79375)
         assert r.data['polygon_diagonal_mm']==pytest.approx(11.547005383792515)
         assert not tool.execute({**inputs,'size':"__import__('os')-32"}).success
+    elif tool.library=='soccervision':
+        assert r.data['points']==[[10,20],[16,32]]
+        assert r.data['roundtrip_max_error_in_source_units']<1e-10
+        assert not tool.execute({**inputs,'matrix':[[0,0,0],[0,0,0],[0,0,0]]}).success
+        assert not tool.execute({**inputs,'matrix':[[1,0,0],[0,1,0],[1,0,1]],'points':[[-1,0]]}).success

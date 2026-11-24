@@ -161,6 +161,39 @@ def operate(name, data):
 
 
 def operate_component(name, data):
+    if name == 'soccervision':
+        import numpy as np
+        from soccervision.calib.homography import apply_homography
+        h = np.asarray(data['matrix'], dtype=np.float64)
+        points = np.asarray(data['points'], dtype=np.float64)
+        if h.shape != (3, 3) or points.ndim != 2 or points.shape[1] != 2 or not 1 <= len(points) <= 1000:
+            raise ValueError('HOMOGRAPHY_INPUT_INVALID: matriz3x3 y1–1000puntosXY')
+        if not np.isfinite(h).all() or not np.isfinite(points).all() or np.max(np.abs(h)) == 0 or np.max(np.abs(points)) > 1e12:
+            raise ValueError('HOMOGRAPHY_INPUT_INVALID: valores no finitos o magnitud inválida')
+        h = h / np.max(np.abs(h))
+        condition = float(np.linalg.cond(h))
+        if not math.isfinite(condition) or condition > 1e10:
+            raise ValueError('HOMOGRAPHY_SINGULAR: matriz singular o mal condicionada')
+        inverse = np.linalg.inv(h)
+        def project(matrix, coordinates):
+            denominators = (np.column_stack((coordinates, np.ones(len(coordinates)))) @ matrix.T)[:, 2]
+            if np.any(np.abs(denominators) <= 1e-12):
+                raise ValueError('HOMOGRAPHY_HORIZON: punto sobre el horizonte proyectivo')
+            result = apply_homography(matrix, coordinates)
+            if not np.isfinite(result).all():
+                raise ValueError('HOMOGRAPHY_OUTPUT_INVALID: resultado no finito')
+            return result
+        transformed = project(h, points)
+        restored = project(inverse, transformed)
+        error = float(np.max(np.abs(restored - points)))
+        if error > 1e-6 * (1 + float(np.max(np.abs(points)))):
+            raise ValueError('HOMOGRAPHY_UNSTABLE: retorno numérico no fiable')
+        return {'points': transformed.tolist(), 'source_units': data['source_units'], 'target_units': data['target_units'],
+                'condition_number': condition, 'roundtrip_max_error_in_source_units': error,
+                'versions': {p: metadata.version(p) for p in ('soccervision', 'opencv-python', 'numpy')},
+                'matrix_estimated_from_images': False, 'calibration_verified': False,
+                'geometry_generated': False, 'figures_generated': False, 'weights_loaded': False,
+                'model_inference_performed': False}
     if name != 'cq_warehouse':
         raise ValueError('LIBRARY_OPERATION_UNSUPPORTED')
     size, width, sides = data.get('size'), data.get('across_flats_mm'), data.get('sides')
