@@ -40,3 +40,8 @@ export function trimByDelta(edl,clip,track,edge,delta){
   else end=Math.max(start+step,Math.min(edl.sources[clip.source_id].duration,end+amount*clip.speed));
   return {id:clip.id,track,in_seconds:start,out_seconds:end};
 }
+export function moveCue(edl,cue,start){
+  const length=cue.end_seconds-cue.start_seconds;
+  const at=Math.max(0,Math.min(videoDuration(edl)-length,start));
+  return {start_seconds:Math.round(at*1000)/1000,end_seconds:Math.round((at+length)*1000)/1000,text:cue.text};
+}

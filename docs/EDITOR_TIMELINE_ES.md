@@ -85,3 +85,20 @@ solo/bloqueo, medidores/mezcla, presets editables y cancelación de exportación
 No se añaden botones para esas capacidades antes de implementarlas. La escucha,
 sincronía y observación de la ventana local se registran separadamente de API,
 FFprobe y CI. No requiere inferencias, nuevas dependencias ni reiniciar Studio.
+
+## Tercera entrega: subtítulo seleccionado
+
+Pulsar un bloque abre su formulario de texto/inicio/fin en el inspector y sitúa
+el cursor. **Aplicar subtítulo seleccionado** usa `cue_update`, valida tiempos,
+solapes y duración con el motor existente y actualiza SRT/CPS. Arrastrar el bloque
+mueve sus tiempos conservando texto y duración; respeta el imán y limita el
+intervalo a la salida de vídeo. No se ejecuta ASR ni traducción por estas acciones.
+Todo se guarda en el mismo EDL y admite deshacer/rehacer manual o por agente.
+El estilo quemado requiere preparar de nuevo la vista previa después de editar;
+la anterior deja de representar el montaje y no se simula actualizándola con CSS.
+
+Validación real de datos: edición directa desde agente, SRT exportado con los
+nuevos tiempos/texto, deshacer manual, movimiento calculado por JS y deshacer
+desde agente. El hash previo y el render vigente se recuperan sin volver a
+renderizar. Informe `EVIDENCIA_CUES_LIVE_20261124.json`. No acredita observación
+de la pestaña local ni escucha. Las pruebas de navegador siguen separadas.

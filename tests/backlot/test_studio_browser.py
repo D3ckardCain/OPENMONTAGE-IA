@@ -274,6 +274,12 @@ def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_se
                 assert data['track']=='video';assert data['in_seconds']==40
                 assert data['out_seconds']==pytest.approx(trim_ends.pop(0))
                 state['edit_decisions']['cuts'][0]['out_seconds']=data['out_seconds'];state['edit_sha256']='c'*64;state['undo']=[original['edit_decisions']]
+            elif data['operation']=='clip':
+                assert data['track']=='audio';assert data['start_seconds']==pytest.approx(.5)
+                state['edit_decisions']['audio_tracks'][0]['start_seconds']=data['start_seconds'];state['edit_sha256']='d'*64;state['undo']=[original['edit_decisions']]
+            elif data['operation']=='cue_update':
+                assert data['index']==0;assert data['text']=='Edited offline cue';assert data['start_seconds']==.5;assert data['end_seconds']==1.5
+                state['edit_decisions']['cues'][0].update(start_seconds=.5,end_seconds=1.5,text=data['text']);state['edit_sha256']='e'*64;state['undo']=[original['edit_decisions']]
             else:
                 assert data['operation']=='undo';state.clear();state.update(deepcopy(original))
             state['revision']=revision;route.fulfill(json=state)
@@ -309,6 +315,22 @@ def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_se
         expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+5))
         page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+6))
         assert len(calls)==6 and not trim_ends
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        zoom=float(page.locator('#edit-zoom').input_value())
+        page.locator('.editor-audio .editor-clip').first.drag_to(page.locator('.editor-audio'),source_position={'x':20,'y':20},target_position={'x':20+zoom*.5,'y':35})
+        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+7))
+        expect(page.locator('#edit-timeline-note')).to_be_visible()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+8))
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('.editor-cues .editor-clip').first.click()
+        form=page.locator('#edit-cue-form')
+        form.locator('[name=start_seconds]').fill('0.5');form.locator('[name=end_seconds]').fill('1.5');form.locator('[name=text]').fill('Edited offline cue')
+        form.locator('button[type=submit]').click()
+        expect(page.locator('#edit-srt')).to_have_value('1\n00:00:00,500 --> 00:00:01,500\nEdited offline cue\n')
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+10))
+        assert len(calls)==10
         browser.close()
 
 

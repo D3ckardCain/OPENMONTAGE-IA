@@ -1,6 +1,6 @@
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
-import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta } from './editor-time.js';
+import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue } from './editor-time.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
@@ -200,14 +200,24 @@ function drawTracks() {
   }
   box.append(element('h3','Subtítulos · tiempos del montaje'));
   const cues=element('div','');cues.className='editor-lane editor-cues';cues.style.width=width+'px';
+  cues.ondragover=event=>{if(event.dataTransfer.types.includes('application/x-openmontage-cue'))event.preventDefault();};
+  cues.ondrop=event=>{
+    if(!event.dataTransfer.types.includes('application/x-openmontage-cue'))return;event.preventDefault();
+    task(()=>{const from=JSON.parse(event.dataTransfer.getData('application/x-openmontage-cue')),cue=edl().cues[from.index];if(!cue)throw Error('Subtítulo de origen no encontrado.');
+      const zoom=Number(q('edit-zoom').value),raw=(event.clientX-cues.getBoundingClientRect().left)/zoom-from.grabSeconds;
+      const time=snapTime(raw,editPoints(edl(),cursor),zoom,q('edit-snapping').checked);q('edit-cue-index').value=from.index+1;
+      return command('cue_update',{index:from.index,...moveCue(edl(),cue,time)});
+    });
+  };
   for(const [index,cue] of edl().cues.entries()){
     const button=element('button',cue.text);button.type='button';button.className='editor-clip';
     button.style.left=(cue.start_seconds*zoom)+'px';button.style.width=Math.max(10,(cue.end_seconds-cue.start_seconds)*zoom)+'px';
     button.title=`Subtítulo ${index+1} · ${cue.start_seconds}–${cue.end_seconds} s · editar debajo de pistas`;
     button.setAttribute('aria-label',`Editar subtítulo ${index+1}: ${cue.text}`);
+    button.draggable=true;button.ondragstart=event=>event.dataTransfer.setData('application/x-openmontage-cue',JSON.stringify({index,grabSeconds:(event.clientX-button.getBoundingClientRect().left)/Number(q('edit-zoom').value)}));
     button.onclick=()=>{
       document.querySelector('.editor-menu [data-section="subtitles"]').click();q('edit-cue-index').value=index+1;
-      const input=q('edit-srt'),at=input.value.indexOf(cue.text);input.focus();if(at>=0)input.setSelectionRange(at,at+cue.text.length);
+      drawCueInspector();q('edit-cue-form').elements.text.focus();
       seekTimeline(cue.start_seconds);
     };cues.append(button);
   }
@@ -233,6 +243,11 @@ function formatSrt(cues) {
   const stamp = s => new Date(Math.round(s * 1000)).toISOString().slice(11,23).replace('.', ',');
   return cues.map((c,i) => `${i+1}\n${stamp(c.start_seconds)} --> ${stamp(c.end_seconds)}\n${c.text}\n`).join('\n');
 }
+function drawCueInspector(){
+  if(!state)return;const form=q('edit-cue-form'),cue=edl().cues[Number(q('edit-cue-index').value)-1];
+  form.hidden=!cue;if(!cue)return;
+  for(const key of ['start_seconds','end_seconds','text'])form.elements[key].value=cue[key];
+}
 function draw() {
   q('edit-revision').textContent = 'Revisión ' + state.revision + ' · guardado local';
   q('edit-undo').disabled = !state.undo.length; q('edit-redo').disabled = !state.redo.length;
@@ -255,6 +270,7 @@ function draw() {
   q('edit-subtitle-size').value = edl().subtitle_style.size;
   q('edit-subtitle-position').value = edl().subtitle_style.position;
   q('edit-cps').replaceChildren(...edl().cues.map((c,i) => element('p', `#${i+1}: ${(c.text.replace(/\s/g,'').length/(c.end_seconds-c.start_seconds)).toFixed(1)} caracteres/s`)));
+  drawCueInspector();
   q('edit-events').replaceChildren(...state.events.slice(-12).reverse().map(e => element('p',`r${e.revision} · ${e.origin} · ${e.operation} · ${e.at}`)));
 }
 async function checkRender() {
@@ -314,6 +330,8 @@ q('edit-player').ontimeupdate=()=>{const p=q('edit-player');if(preview)cursor=p.
 q('edit-player').onerror=()=>message('El navegador no pudo reproducir este archivo. Puedes preparar la vista previa MP4 con FFmpeg; no se modifica el original.');
 q('edit-srt-import').onchange=event=>task(async()=>{requireProject();const f=event.target.files[0];if(!f)return;if(f.size>500000)throw Error('SRT superior a 500 KB');const response=await fetch(base()+'/subtitles/import?filename='+encodeURIComponent(f.name)+'&revision='+state.revision,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f});const value=await response.json();if(!response.ok)throw Error(value.detail);state=value;invalidate();draw();message('SRT importado y validado; se conservan sus bytes originales. Aplica los cambios posteriores del campo SRT por separado.');});
 q('edit-srt-save').onclick=()=>task(()=>command('subtitles',{srt:q('edit-srt').value}));
+q('edit-cue-index').oninput=drawCueInspector;
+q('edit-cue-form').onsubmit=event=>{event.preventDefault();const f=event.target;task(()=>command('cue_update',{index:Number(q('edit-cue-index').value)-1,start_seconds:Number(f.elements.start_seconds.value),end_seconds:Number(f.elements.end_seconds.value),text:f.elements.text.value}));};
 q('edit-cue-offset-apply').onclick=()=>task(()=>command('cue_offset',{seconds:Number(q('edit-cue-offset').value)}));
 q('edit-cue-split').onclick=()=>task(()=>command('cue_split',{index:Number(q('edit-cue-index').value)-1,at:Number(q('edit-cue-at').value),text_index:Number(q('edit-cue-text-index').value)}));
 q('edit-cue-merge').onclick=()=>task(()=>command('cue_merge',{index:Number(q('edit-cue-index').value)-1}));

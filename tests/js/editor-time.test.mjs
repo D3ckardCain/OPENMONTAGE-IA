@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { timelineEnd,videoDuration,fitZoom,tickStep,splitAtCursor,snapTime,editPoints,trimByDelta } from '../../backlot/ui/editor-time.js';
+import { timelineEnd,videoDuration,fitZoom,tickStep,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue } from '../../backlot/ui/editor-time.js';
 const first={id:'first',in_seconds:40,out_seconds:42,speed:1};
 const second={id:'second',in_seconds:10.5,out_seconds:12,speed:1};
 const edl={output:{fps:24},cuts:[first,second],audio_tracks:[],cues:[]};
@@ -49,4 +49,9 @@ test('snap uses a pixel threshold and can be explicitly disabled',()=>{
   assert.equal(snapTime(1.8,[1,2,3],100,true),1.8);
   assert.equal(snapTime(1.96,[1,2,3],100,false),1.96);
   assert.ok(editPoints({...edl,audio_tracks:[],cues:[{start_seconds:.75,end_seconds:1.75}]},1).includes(.75));
+});
+test('moving a cue preserves text and length, clamps to actual video output',()=>{
+  const cue={start_seconds:.75,end_seconds:1.75,text:'Line one\nLine two'};
+  assert.deepEqual(moveCue(edl,cue,-10),{start_seconds:0,end_seconds:1,text:cue.text});
+  assert.deepEqual(moveCue(edl,cue,100),{start_seconds:2.5,end_seconds:3.5,text:cue.text});
 });

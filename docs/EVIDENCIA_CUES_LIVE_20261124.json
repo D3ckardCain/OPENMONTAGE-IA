@@ -1,0 +1,24 @@
+{
+  "scope": "Live Studio HTTP and native agent, using actual JS cue arithmetic; NOT browser interaction or new AV render",
+  "project_id": "edit-173e7bc16d1e",
+  "events": [
+    {
+      "operation": "cue_update",
+      "revision": 16,
+      "origin": "agent",
+      "srt_verified": true
+    },
+    {
+      "operation": "cue_move",
+      "revision": 18,
+      "origin": "user",
+      "start_seconds": 10
+    }
+  ],
+  "undo_restored_edl_sha256": "3e9b0085171a6f1254ddc8a46170ef16a7c718d389cfdd009274beac84dbf44a",
+  "final_revision": 19,
+  "existing_render_current": true,
+  "new_render": false,
+  "browser_observation": false,
+  "listening": false
+}
