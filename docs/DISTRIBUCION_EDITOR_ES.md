@@ -48,17 +48,38 @@ Se comprueban 1920×1080 y 3440×1440, arrastre, teclado, reapertura, ocultació
 cambio de espacio y límites de preferencias extremas, sin comandos de edición.
 La validación audiovisual previa sigue en `VALIDACION_EDITOR_HTTP_ACTIVO_ES.md`.
 
-El servidor local no se reinició. En esta sesión el PID 73536 continuaba
+Registro previo del bloqueo: el servidor local no se reinició. El PID 73536 continuaba
 escuchando en 4750, pero una consulta del editor agotó 15 s sin respuesta;
 esto no demuestra que el servidor haya cerrado. La observación de esa ventana
 requiere las herramientas de escritorio autorizadas, no disponibles en esta sesión.
 
-Diagnóstico posterior: el hilo principal está bloqueado dentro de la escritura
+Diagnóstico durante el bloqueo: el hilo principal estaba bloqueado dentro de la escritura
 síncrona de un log (`logging.StreamHandler.emit`, CALL a `stream.write`, línea1113).
 El registro informa un `ConnectionResetError [WinError 10054]` en
 `_ProactorBasePipeTransport._call_connection_lost`. Esto explica que incluso
 `/api/health` no responda; no demuestra por sí solo por qué se bloqueó el destino
 del log. Se pidió comprobar selección en la consola y pulsar Esc si existe,
 sin reiniciar. No se inyectó código, suspendió el proceso ni modificó su memoria.
-La recuperación y la apariencia/interacción de la ventana real siguen pendientes
-hasta verificarlas; CI no las sustituye. Evidencia: `EVIDENCIA_BLOQUEO_HTTP_20261124.json`.
+En ese momento la recuperación y la apariencia/interacción real seguían pendientes.
+Evidencia histórica: `EVIDENCIA_BLOQUEO_HTTP_20261124.json`.
+
+### Recuperación observada el 24-11-2026, 19:06 UTC
+
+El usuario informó haber pulsado Esc en PowerShell. La comprobación posterior
+del agente confirma, sin reinicio y con el mismo PID 73536, respuestas 200 de
+salud, lista/proyecto del editor, estado del render, HTML y recursos CSS/JS en
+15–31 ms. Los bytes CSS/JS coinciden con el workspace actualizado. El proyecto
+conserva revisión27 y el render26 continúa vigente por igualdad del hash del EDL.
+
+Vídeo, audio y MP4 guardado responden a rangos de 1024 bytes con206; el fragmento
+del MP4 coincide con el archivo existente. SRT y ASS devuelven el cue manual.
+El HTML servido tiene la jerarquía nueva y no contiene IDs duplicados. No se
+hicieron POSTs, cambios al proyecto ni nuevos renders. Configuraciones intactas.
+Informe de HTTP real: `EVIDENCIA_RECUPERACION_EDITOR_20261124.json`.
+
+La recuperación tras Esc es una observación temporal, **no una confirmación
+causal de selección/QuickEdit**. No se reprodujo controladamente el bloqueo.
+La ventana Windows, su reproducción y sus interacciones todavía requieren
+observación: no hay `node_repl`/`@oai/sky` disponible en esta sesión. Se solicitó
+comprobación física de la pestaña; no se atribuyen resultados no recibidos.
+La recuperación HTTP no sustituye esa aceptación ni las capturas CI anteriores.

@@ -1,0 +1,241 @@
+{
+  "at_utc": "2026-11-24T19:06:13.427167+00:00",
+  "scope": "Live existing Studio HTTP read-only; not CI or browser interaction",
+  "pid": 73536,
+  "restart": false,
+  "probes": [
+    {
+      "path": "/api/health",
+      "status": 200,
+      "seconds": 0.016,
+      "bytes": 27,
+      "content_type": "application/json",
+      "sha256": "8b958745827ed57f1c6ec0779f7c725533c144c47cb3c49e2a1440c16ba88039",
+      "value": {
+        "ok": true,
+        "app": "backlot"
+      }
+    },
+    {
+      "path": "/studio?edit=edit-827337e03f38#video",
+      "status": 200,
+      "seconds": 0.016,
+      "bytes": 37704,
+      "content_type": "text/html; charset=utf-8",
+      "sha256": "0d20233916b6abf81b2c8943fbfa7ddce3c341aae83ff9f00e7b5683c947c7e0"
+    },
+    {
+      "path": "/ui/editor.css",
+      "status": 200,
+      "seconds": 0.016,
+      "bytes": 7730,
+      "content_type": "text/css; charset=utf-8",
+      "sha256": "97197db8e985d5abd14d2a59616c5e2d9e945b09f15057e0197c9ce491324c98",
+      "matches_workspace": true
+    },
+    {
+      "path": "/ui/editor.js",
+      "status": 200,
+      "seconds": 0.016,
+      "bytes": 22994,
+      "content_type": "application/javascript",
+      "sha256": "44175775d4c2af4e29e4419605e8f1d7c4c2ae6b8c9b252e7e388a6013f5cc5d",
+      "matches_workspace": true
+    },
+    {
+      "path": "/ui/editor-layout.js",
+      "status": 200,
+      "seconds": 0.031,
+      "bytes": 5716,
+      "content_type": "application/javascript",
+      "sha256": "161f395dc293586b0de2292ad203522cdbd26d76190f88cfe670af997318544e",
+      "matches_workspace": true
+    },
+    {
+      "path": "/api/studio/editor/projects",
+      "status": 200,
+      "seconds": 0.015,
+      "bytes": 91,
+      "content_type": "application/json",
+      "sha256": "311f0ee5dd33f6b02d5464cb972f8261c603bcf603ac2b7633f8d36c73f9e1b4",
+      "projects": [
+        "edit-827337e03f38"
+      ]
+    },
+    {
+      "path": "/api/studio/editor/edit-827337e03f38",
+      "status": 200,
+      "seconds": 0.015,
+      "bytes": 34607,
+      "content_type": "application/json",
+      "sha256": "f8260898743edca43d26c9317fc288bb770b6b5c7a1bf4c2aec507eb0386d621",
+      "value": {
+        "revision": 27,
+        "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad"
+      },
+      "counts": {
+        "cuts": 2,
+        "audio_tracks": 1,
+        "cues": 1
+      }
+    },
+    {
+      "path": "/api/studio/editor/edit-827337e03f38/render",
+      "status": 200,
+      "seconds": 0.016,
+      "bytes": 862,
+      "content_type": "application/json",
+      "sha256": "7eba0a0ddc4f518044c4ab4ab8b49b29f2a975c4679de79163e04c28c5902357",
+      "value": {
+        "status": "completed",
+        "current": true,
+        "revision": 26,
+        "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad",
+        "url": "/media/edit-827337e03f38/assets/editor-renders/ed823b46a1c54cbbae4bc0aa21faed3a/montage.mp4",
+        "sha256": "72af68d538d06a7ccccc89a3ce554d64a3defa7a53779a80a70a324c0cdda734"
+      }
+    }
+  ],
+  "media_and_subtitles": [
+    {
+      "path": "/api/studio/editor/edit-827337e03f38/source/9c2a6d0fded14410aaaf4731d5fc7609",
+      "status": 206,
+      "seconds": 0.016,
+      "bytes": 1024,
+      "content_type": "video/mp4",
+      "content_range": "bytes 0-1023/40145569",
+      "source_kind": "video",
+      "prefix_sha256": "f4cf5953dd8f49f7316ce34c18cb6074bee643cd905290cd335d24b0b5caacd5",
+      "range_valid": true
+    },
+    {
+      "path": "/api/studio/editor/edit-827337e03f38/source/ffe89d475f134d5ea44f92697db4f42f",
+      "status": 206,
+      "seconds": 0.015,
+      "bytes": 1024,
+      "content_type": "audio/wav",
+      "content_range": "bytes 0-1023/768078",
+      "source_kind": "audio",
+      "prefix_sha256": "e00697490478115bd84ab000df36a63fb6a07243d47429ce1c161c5721b837fe",
+      "range_valid": true
+    },
+    {
+      "path": "/media/edit-827337e03f38/assets/editor-renders/ed823b46a1c54cbbae4bc0aa21faed3a/montage.mp4",
+      "status": 206,
+      "seconds": 0.016,
+      "bytes": 1024,
+      "content_type": "video/mp4",
+      "content_range": "bytes 0-1023/6210256",
+      "matches_existing_render_prefix": true,
+      "prefix_sha256": "fcb4b6a5cfead5e1bc82e94aa102af4c1d947d6121cae4b2c575d0834d334b71"
+    },
+    {
+      "path": "/api/studio/editor/edit-827337e03f38/subtitles",
+      "status": 200,
+      "seconds": 0.031,
+      "bytes": 63,
+      "content_type": "application/x-subrip",
+      "content_range": null,
+      "contains_manual_cue": true,
+      "sha256": "aa11cccfdbbb34fb88b839b6d333cfc805e1fdf4ae731f59fc38b14dc747d6c7"
+    },
+    {
+      "path": "/api/studio/editor/edit-827337e03f38/subtitles.ass",
+      "status": 200,
+      "seconds": 0.0,
+      "bytes": 599,
+      "content_type": "text/plain; charset=utf-8",
+      "content_range": null,
+      "contains_manual_cue": true,
+      "sha256": "7c35dfa75bddd230a5f2c0aeeda8ce0749b2afae4aa0db954c37b6d975d14dd0"
+    }
+  ],
+  "served_html_structure": {
+    "editor-upper": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid"
+      ],
+      "tag": "div"
+    },
+    "editor-timeline": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid"
+      ],
+      "tag": "section"
+    },
+    "edit-tracks": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid",
+        "editor-timeline"
+      ],
+      "tag": "div"
+    },
+    "editor-tools": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid",
+        "editor-timeline"
+      ],
+      "tag": "div"
+    },
+    "edit-clip-form": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid",
+        "editor-timeline",
+        "editor-tools",
+        "edit-clip-tools"
+      ],
+      "tag": "form"
+    },
+    "edit-subtitle-panel": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid",
+        "editor-timeline",
+        "editor-tools"
+      ],
+      "tag": "section"
+    },
+    "edit-toolsbar": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid",
+        "editor-timeline",
+        "editor-tools"
+      ],
+      "tag": "div"
+    },
+    "edit-export": {
+      "ancestors": [
+        "manual-editor"
+      ],
+      "tag": "button"
+    },
+    "edit-show-montage": {
+      "ancestors": [
+        "manual-editor",
+        "editor-grid",
+        "editor-upper",
+        "editor-monitor"
+      ],
+      "tag": "button"
+    },
+    "duplicate_ids": []
+  },
+  "config_sha256": {
+    ".backlot/studio/settings.json": "497ddcd071b06f9ad4109e3123cdb36ebc6bb5a1f33ab53e556fe931b09ad952",
+    ".backlot/studio/applications.json": "33073a45e5d34775aae08cef0557bce23b59ddeaf0699be26b70909dce4ccf7b"
+  },
+  "project_file_sha256": "b055eb5478eb1e41c87276023e085ab2ac8af5b8cadd0bbc1933050033bd1250",
+  "conclusion": {
+    "http_recovered": true,
+    "console_selection_cause": "Hypothesis; recovery reported after Esc, no controlled reproduction",
+    "windows_browser_observation": "Not performed by agent; physical browser check requested, no response yet",
+    "writes_or_new_render": false
+  },
+  "user_observation": "User reports pressing Esc in PowerShell followed by health200; causal role of console selection remains a hypothesis"
+}

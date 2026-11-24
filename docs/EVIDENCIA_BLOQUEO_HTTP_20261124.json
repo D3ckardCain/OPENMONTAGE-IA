@@ -164,5 +164,13 @@
   ],
   "physical_check_requested": "Inspect PowerShell for selection and press Esc if selected; keep process running",
   "configuration_changes": false,
-  "restart": false
+  "restart": false,
+  "followup_recovery": {
+    "at_utc": "2026-11-24T19:06:13.427167+00:00",
+    "pid_unchanged": 73536,
+    "http_recovered": true,
+    "restart": false,
+    "evidence": "EVIDENCIA_RECUPERACION_EDITOR_20261124.json",
+    "scope": "Prior not_demonstrated list records the blocked snapshot; HTTP recovery is now observed, browser acceptance and selection causality remain unverified"
+  }
 }
