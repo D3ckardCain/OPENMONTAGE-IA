@@ -2,7 +2,8 @@
 from copy import deepcopy
 import uuid
 
-CAPABILITIES = ['batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete']
+CAPABILITIES = ['batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
+                'transform', 'titles', 'output_custom', 'audio_mix']
 
 
 def assert_editable(edl, data):
@@ -63,6 +64,9 @@ def _ripple_time(time, removed):
 
 def apply_timeline(edl, data):
     from lib import studio_editor as edit
+    from lib.studio_editor_effects import apply_effect
+    if apply_effect(edl, data):
+        return True
     op = data.get('operation')
     if op == 'duplicate':
         items, selected = _selection(edl, data)

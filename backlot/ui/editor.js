@@ -2,10 +2,12 @@
 import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
 import { makePeaks,paintPeaks,signalLevel } from './editor-waveform.js';
+import { initializeEffectsUI } from './editor-effects-ui.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
+let effectsUI=null;
 const capabilities=new Set(),selectedIds=new Set();
 async function loadCapabilities(){
   try{const response=await fetch('/api/studio/editor/capabilities');if(response.ok){const data=await response.json();for(const name of data.commands||[])capabilities.add(name);}}
@@ -115,7 +117,7 @@ async function reopen(id=project) {
   q('edit-download').hidden=true;
   q('edit-monitor-title').textContent = 'Montaje reabierto · selecciona una fuente o prepara la vista previa';
   const url = new URL(location.href); url.searchParams.set('edit', project); history.replaceState(null, '', url);
-  q('edit-project').value = project; loadView();draw(); await checkRender();
+  q('edit-project').value = project;effectsUI?.reset(); loadView();draw(); await checkRender();
   message('Proyecto reabierto desde disco · revisión ' + state.revision);
 }
 async function importFiles(files) {
@@ -157,6 +159,7 @@ function selectClip(clip, track, event=null) {
   if(workspace==='audio'&&clip.kind!=='gap'&&edl().sources[clip.source_id].audio)waveform(clip.source_id);
 }
 function drawInspector() {
+  effectsUI?.drawSelection();
   const form = q('edit-clip-form'); let item;
   for(const id of ['edit-split','edit-split-cursor','edit-remove','edit-left','edit-right','edit-view-source'])q(id).disabled=true;
   for(const id of ['edit-duplicate','edit-delete-gap','edit-delete-ripple'])q(id).disabled=true;
@@ -297,6 +300,12 @@ function drawTracks() {
   }
   if(!edl().cues.length)cues.append(element('p','Sin subtítulos; importa o edita SRT debajo de las pistas.'));
   const head=element('div','');head.className='editor-playhead';head.setAttribute('aria-hidden','true');cues.append(head);box.append(cues);
+  if(edl().titles?.length){
+    box.append(element('h3','Títulos · texto visible'));const lane=element('div','');lane.className='editor-lane editor-cues editor-titles';lane.style.width=width+'px';
+    for(const title of edl().titles){const button=element('button',title.text);button.type='button';button.className='editor-clip';button.style.left=(title.start_seconds*zoom)+'px';button.style.width=Math.max(10,(title.end_seconds-title.start_seconds)*zoom)+'px';button.onclick=()=>{effectsUI?.selectTitle(title.id);seekTimeline(title.start_seconds);};lane.append(button);}box.append(lane);
+  }
+  const rows=3+Math.max(0,edl().audio_tracks.length-1)+(edl().titles?.length?1:0);
+  if(q('manual-editor').dataset.timelineRows!==String(rows)){q('manual-editor').dataset.timelineRows=rows;window.dispatchEvent(new Event('studio-tracks-layout'));}
   const note=q('edit-timeline-note'),tail=end-videoDuration(edl());note.hidden=tail<.02;
   note.textContent=tail>=.02?'Colas fuera del vídeo: '+tail.toFixed(3)+' s. La salida actual termina con el vídeo; ajusta esas pistas antes de exportar.':'';
   box.onscroll=drawRuler;drawRuler();updatePlayhead();
@@ -365,6 +374,7 @@ function draw() {
   const selectedMarker=q('edit-marker-select').value;
   q('edit-marker-select').replaceChildren(new Option('Selecciona marcador',''),...(edl().markers||[]).map(m=>new Option(m.seconds.toFixed(3)+' s · '+m.label,m.id)));
   q('edit-marker-select').value=selectedMarker;drawMarkerInspector();
+  effectsUI?.draw();
   q('edit-events').replaceChildren(...state.events.slice(-12).reverse().map(e => element('p',`r${e.revision} · ${e.origin} · ${e.operation} · ${e.at}`)));
 }
 async function checkRender() {
@@ -457,5 +467,6 @@ new ResizeObserver(()=>{const width=q('edit-tracks').clientWidth;if(width===meas
 function showWorkspace(){waveformSelection++;q('edit-waveform-retry').hidden=true;q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&state){if(selection){try{const item=selected();if(item.clip.kind!=='gap'&&edl().sources[item.clip.source_id].audio)waveform(item.clip.source_id);}catch{/* removed */}}else if(sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);}if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture){event.preventDefault();edgeGesture.cancel();return;}if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='d'&&capabilities.has('duplicate')&&selection){event.preventDefault();q('edit-duplicate').click();return;}if(event.key==='Delete'&&capabilities.has('batch')&&selection){event.preventDefault();q(event.shiftKey?'edit-delete-ripple':'edit-delete-gap').click();return;}if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){if(event.key.toLowerCase()==='m'&&capabilities.has('markers')){event.preventDefault();q('edit-marker-add').click();return;}const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
+effectsUI=initializeEffectsUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
 initializeEditorLayout();
 showWorkspace();task(async()=>{try{await loadCapabilities();await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});

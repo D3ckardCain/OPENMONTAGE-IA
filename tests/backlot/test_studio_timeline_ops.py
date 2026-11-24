@@ -134,5 +134,5 @@ def test_audio_trim_position_is_atomic_and_solo_reaches_audio_graph(project, mon
 def test_capabilities_are_explicit_for_frontend_and_agent(project):
     with TestClient(create_app(), base_url='http://127.0.0.1:4750') as client:
         data = client.get('/api/studio/editor/capabilities').json()
-    assert data['version'] == '2.0'
+    assert data['version'] == '3.0'
     assert {'batch', 'duplicate', 'markers', 'delete_keep_gap', 'ripple_delete'} <= set(data['commands'])

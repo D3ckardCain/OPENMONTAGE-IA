@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import subprocess
 import time
@@ -21,7 +22,10 @@ def main():
     parser.add_argument('--source-project', required=True)
     parser.add_argument('--workspace', type=Path, required=True)
     parser.add_argument('--recheck', action='store_true')
+    parser.add_argument('--effects', action='store_true')
     args = parser.parse_args()
+    if args.effects and not args.recheck:
+        parser.error('--effects requires --recheck to reuse the prepared QA workspace')
     repo = Path(__file__).resolve().parents[1]
     original = (repo / 'projects' / args.source_project).resolve(strict=True)
     original.relative_to(repo / 'projects')
@@ -82,11 +86,54 @@ def main():
                  'render_sha256': job['render_sha256'], 'full_decode': True,
                  'streams': [s['codec_type'] for s in metadata['streams']],
                  'path': path.relative_to(repo).as_posix()}
+        entry['video'] = [{k: s.get(k) for k in ('width', 'height', 'avg_frame_rate')}
+                          for s in metadata['streams'] if s['codec_type'] == 'video']
         report['renders'].append(entry)
         destination.write_text(json.dumps(report, indent=2), encoding='utf-8')
         return path, entry
 
+    def effects_cases():
+        edl = edit.state(pid)['edit_decisions']
+        video_key = next(k for k, v in edl['sources'].items() if v['kind'] == 'video')
+        audio_key = next(k for k, v in edl['sources'].items() if v['kind'] == 'audio')
+        operations = [{'operation': 'title_remove', 'id': t['id']} for t in edl.get('titles', [])]
+        operations += [{'operation': 'marker_remove', 'id': m['id']} for m in edl.get('markers', [])]
+        operations += [{'operation': 'remove', 'track': 'audio', 'id': c['id']} for c in edl['audio_tracks']]
+        operations += [{'operation': 'remove', 'id': c['id']} for c in edl['cuts']]
+        operations += [{'operation': 'add', 'source_id': video_key}]
+        value = command('batch', operations=operations)
+        clip = value['edit_decisions']['cuts'][0]
+        command('trim', id=clip['id'], in_seconds=0, out_seconds=2)
+        command('output_custom', width=640, height=360, fps=24, platform='youtube', preset_name='QA editable')
+        command('audio_mix', normalize=False, gain=1)
+        command('transform', id=clip['id'], fit='crop', zoom=1.25, focus_x=1, focus_y=0, flip_h=True)
+        command('title_add', text='QA #92 manual', start_seconds=0, end_seconds=1.75, size=80, position='center')
+        path, entry = output('crop-flip-title-custom-output')
+        assert entry['video'][0]['width'] == 640 and entry['video'][0]['height'] == 360
+        frame = path.parent / 'title-frame.png'
+        subprocess.run([ffmpeg, '-v', 'error', '-n', '-ss', '1', '-i', str(path), '-frames:v', '1', str(frame)],
+                       capture_output=True, check=True, timeout=10)
+        entry['frame'] = frame.relative_to(repo).as_posix()
+        value = command('add', source_id=audio_key)
+        audio = value['edit_decisions']['audio_tracks'][0]
+        command('trim', track='audio', id=audio['id'], in_seconds=0, out_seconds=2)
+        command('flags', track='audio', id=audio['id'], solo=True)
+        command('audio_mix', normalize=True, target_lufs=-18, gain=1)
+        path, entry = output('explicit-normalization-reuses-audio-mixer')
+        measured = subprocess.run([ffmpeg, '-v', 'info', '-i', str(path), '-vn', '-af',
+                                   'loudnorm=I=-18:print_format=json', '-f', 'null', '-'],
+                                  capture_output=True, check=True, timeout=20)
+        match = re.search(r'\{\s*"input_i".*?\}', measured.stderr.decode('utf-8', 'replace'), re.S)
+        assert match, 'No loudness measurement returned'
+        entry['loudnorm_measurement'] = json.loads(match.group())
+        assert abs(float(entry['loudnorm_measurement']['input_i'])+18) < 1.5
+        return True
+
     try:
+        if args.effects:
+            effects_cases()
+            report['status'] = 'passed'
+            return 0
         if args.recheck:
             value = edit.state(pid)
             keys = {kind: next(k for k, v in value['edit_decisions']['sources'].items() if v['kind'] == kind) for kind in ('video', 'audio')}
@@ -149,6 +196,8 @@ def main():
         report.update(source_project_unchanged=hashlib.sha256(source_artifact.read_bytes()).hexdigest() == before,
                       browser_observation=False, listening=False)
         destination.write_text(json.dumps(report, indent=2), encoding='utf-8')
+        if args.effects:
+            print(json.dumps(report), flush=True)
     print(json.dumps(report), flush=True)
 
 

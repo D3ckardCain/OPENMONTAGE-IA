@@ -9,15 +9,21 @@ from lib import production_studio as studio, studio_editor as editor
 from lib.media_executables import require_media
 from tools.video.video_trimmer import VideoTrimmer
 from lib.scene_burned_subtitles import _ass
+from lib.studio_editor_effects import transform_filter
+from tools.audio.audio_mixer import AudioMixer
 
 
 def plan(pid, edl, preview=False):
     """One graph for both preview and export, preserving audio and letterboxing."""
     if not edl['cuts']:
         raise ValueError('Añade al menos un clip de vídeo')
-    width, height = editor.PRESETS[edl['output']['ratio']]
+    width, height = (edl['output']['width'], edl['output']['height']) if edl['output'].get('ratio') == 'custom' else editor.PRESETS[edl['output']['ratio']]
     if preview:
-        width, height = {'16:9': (960, 540), '9:16': (540, 960), '1:1': (540, 540), '4:5': (432, 540)}[edl['output']['ratio']]
+        if edl['output']['ratio'] != 'custom':
+            width, height = {'16:9': (960, 540), '9:16': (540, 960), '1:1': (540, 540), '4:5': (432, 540)}[edl['output']['ratio']]
+        else:
+            scale = min(1, 960/max(width, height))
+            width, height = max(2, round(width*scale/2)*2), max(2, round(height*scale/2)*2)
     fps = edl['output']['fps']
     args = []
     filters = []
@@ -38,8 +44,7 @@ def plan(pid, edl, preview=False):
         if is_video:
             seconds = editor.frames(clip, fps) / fps
             filters.append(f'[{i}:v:0]trim=start={start}:end={end},setpts=(PTS-STARTPTS)/{speed},'
-                           f'scale={width}:{height}:force_original_aspect_ratio=decrease,'
-                           f'pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps},'
+                           + transform_filter(width, height, clip.get('transform')) + f',setsar=1,fps={fps},'
                            f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds},format=yuv420p[v{i}]')
         gain = 0 if clip['muted'] or (solo and not clip.get('solo')) else clip['gain']
         if info['audio']:
@@ -61,8 +66,13 @@ def plan(pid, edl, preview=False):
             labels.append(f'[v{i}][a{i}]')
     filters.append(''.join(labels) + f"concat=n={len(edl['cuts'])}:v=1:a=1[montage][baseaudio]")
     audio = '[baseaudio]' + ''.join(f'[a{i}]' for i in range(len(edl['cuts']), len(tracks)))
-    filters.append(audio + f'amix=inputs={len(edl["audio_tracks"])+1}:duration=first:normalize=0,'
-                   f'alimiter=limit=0.95:level=0:latency=1,atrim=duration={editor.duration(edl)}[mix]')
+    mix = edl.get('audio_mix', {})
+    filters.append(audio + f'amix=inputs={len(edl["audio_tracks"])+1}:duration=first:normalize=0,volume={mix.get("gain", 1)}[premix]')
+    label = 'premix'
+    if mix.get('normalize'):
+        filters.append(AudioMixer._loudnorm_filter({'loudnorm_target': mix['target_lufs']}, label, 'normalized'))
+        label = 'normalized'
+    filters.append(f'[{label}]alimiter=limit=0.95:level=0:latency=1,atrim=duration={editor.duration(edl)}[mix]')
     return args, filters, width, height
 
 
@@ -127,13 +137,19 @@ def _worker(pid, edl, job, args, filters):
             if editor.digest(editor.source(pid, key)) != info['sha256']:
                 raise ValueError('Cambió la identidad de un medio; importa su nueva versión')
         video_label = '[montage]'
+        for index, title in enumerate(edl.get('titles', [])):
+            name = f'title-{index}.ass'
+            (work / name).write_text(_ass([title], job['width'], job['height'], title), encoding='utf-8')
+            next_label = f'[title{index}]'
+            filters.append(f'{video_label}ass={name}{next_label}')
+            video_label = next_label
         burn = edl.get('subtitle_style', {}).get('mode') == 'burn'
         if edl['cues']:
             captions = work / 'captions.srt'
             captions.write_text(editor.srt(edl), encoding='utf-8')
             if burn:
                 (work / 'captions.ass').write_text(_ass(edl['cues'], job['width'], job['height'], edl['subtitle_style']), encoding='utf-8')
-                filters.append('[montage]ass=captions.ass[captioned]')
+                filters.append(video_label+'ass=captions.ass[captioned]')
                 video_label = '[captioned]'
             else:
                 args += ['-i', str(captions)]

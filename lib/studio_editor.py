@@ -23,7 +23,7 @@ EXTENSIONS = {'.mp4', '.mov', '.mkv', '.webm', '.m4v', '.wav', '.mp3', '.flac', 
 INPUT_OPTIONS = ['-protocol_whitelist', 'file,pipe', '-format_whitelist', 'mov,matroska,webm,wav,mp3,flac,ogg']
 PRESETS = {'16:9': (1920, 1080), '9:16': (1080, 1920), '1:1': (1080, 1080), '4:5': (1080, 1350)}
 EXPORTING: set[str] = set()
-RENDER_CONTRACT = 'timeline-v2'
+RENDER_CONTRACT = 'timeline-v3'
 
 
 class Conflict(ValueError):
@@ -124,6 +124,16 @@ def render_digest(edl, contract=RENDER_CONTRACT):
     """AV identity excludes markers, edit locks and unused-source provenance."""
     content = {key: deepcopy(edl[key]) for key in ('cuts', 'audio_tracks', 'cues', 'output', 'subtitle_style')}
     content['render_contract'] = contract
+    output = edl['output']
+    width, height = (output['width'], output['height']) if output.get('ratio') == 'custom' else PRESETS[output['ratio']]
+    content['output'] = {'width': width, 'height': height, 'fps': output['fps'], 'fit': output['fit']}
+    if edl.get('titles'):
+        content['titles'] = deepcopy(edl['titles'])
+    mix = edl.get('audio_mix', {})
+    if mix.get('normalize') or mix.get('gain', 1) != 1:
+        content['audio_mix'] = {'gain': mix.get('gain', 1), 'normalize': mix.get('normalize', False)}
+        if mix.get('normalize'):
+            content['audio_mix']['target_lufs'] = mix['target_lufs']
     for clip in content['cuts'] + content['audio_tracks']:
         clip.pop('locked', None)
         if not clip.get('solo'):
@@ -361,6 +371,8 @@ def _validate_edit(edl):
         raise ValueError('Cada clip de vídeo debe durar al menos un fotograma de salida')
     if edl['cues'] and max(c['end_seconds'] for c in edl['cues']) > duration(edl) + .02:
         raise ValueError('El montaje dejaría subtítulos fuera de duración; ajusta sus tiempos primero')
+    if any(t['end_seconds'] > duration(edl)+.001 for t in edl.get('titles', [])):
+        raise ValueError('Ajusta los títulos que quedarían fuera de duración')
 
 
 def srt(edl):

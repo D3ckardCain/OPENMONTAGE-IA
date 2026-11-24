@@ -23,7 +23,7 @@ def create_editor_router(body):
     @router.get('/capabilities')
     def capabilities():
         from lib.studio_timeline_ops import CAPABILITIES
-        return {'version': '2.0', 'commands': CAPABILITIES, 'shared_revision': True}
+        return {'version': '3.0', 'commands': CAPABILITIES, 'shared_revision': True}
 
     @router.get('/projects')
     def projects():
@@ -122,7 +122,8 @@ def create_editor_router(body):
     @router.get('/{pid}/subtitles.ass', response_class=PlainTextResponse)
     def ass_subtitles(pid: str):
         value = invoke(editor.state, pid)['edit_decisions']
-        width, height = editor.PRESETS[value['output']['ratio']]
+        output = value['output']
+        width, height = (output['width'], output['height']) if output['ratio'] == 'custom' else editor.PRESETS[output['ratio']]
         from lib.scene_burned_subtitles import _ass
         return PlainTextResponse(_ass(value['cues'], width, height, value['subtitle_style']),
                                  headers={'Content-Disposition': 'attachment; filename="subtitles.ass"'})

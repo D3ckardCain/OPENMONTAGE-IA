@@ -464,6 +464,62 @@ def test_advanced_timeline_uses_capabilities_and_atomic_model(staged_backlot_ser
         browser.close()
 
 
+def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
+    """Actual model and browser controls; intercepted transport, not local AV QA."""
+    from copy import deepcopy
+    import json
+    from pathlib import Path
+    from lib import studio_editor as editor
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    state=deepcopy(fixture['state']);pid=fixture['project_id'];calls=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1920,'height':1080});errors=[]
+        page.on('pageerror',lambda e:errors.append(str(e)))
+        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Effects metadata fixture'}]))
+        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=state))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda r:r.fulfill(json={'status':'idle'}))
+        page.route('**/api/studio/editor/'+pid+'/source/**',lambda r:r.fulfill(status=204))
+        def command(route):
+            data=route.request.post_data_json;calls.append(data);assert data['revision']==state['revision']
+            if data['operation']=='undo':state['edit_decisions']=state['undo'].pop()
+            else:
+                value=deepcopy(state['edit_decisions']);editor._apply_edit(value,data);editor._validate_edit(value)
+                state['undo'].append(state['edit_decisions']);state['edit_decisions']=value
+            state['revision']+=1;state['edit_sha256']=editor.edit_digest(state['edit_decisions']);state['render_sha256']=editor.render_digest(state['edit_decisions'])
+            route.fulfill(json=state)
+        page.route('**/api/studio/editor/'+pid+'/command',command)
+        page.goto(staged_backlot_server+'/studio?edit='+pid+'#video')
+        clips=page.locator('.editor-video .editor-clip');expect(clips).to_have_count(2);clips.nth(0).click()
+        page.locator('#edit-transform-panel summary').click()
+        form=page.locator('#edit-transform-form');form.locator('[name=fit]').select_option('crop')
+        form.locator('[name=zoom]').fill('1.5');form.locator('[name=flip_h]').check();form.locator('[type=submit]').click()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert state['edit_decisions']['cuts'][0]['transform']['zoom']==1.5
+        page.locator('#edit-title-panel summary').click()
+        title=page.locator('#edit-title-form');title.locator('[name=text]').fill('Manual fixture title')
+        title.locator('[name=start_seconds]').fill('0');title.locator('[name=end_seconds]').fill('1')
+        title.locator('[type=submit]').click();expect(page.locator('.editor-titles button')).to_have_count(1)
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-output-custom-panel summary').click()
+        output=page.locator('#edit-output-custom-form');output.locator('[name=width]').fill('640');output.locator('[name=height]').fill('360')
+        output.locator('[name=platform]').select_option('youtube');output.locator('[type=submit]').click()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert state['edit_decisions']['output']['width']==640
+        page.locator('#edit-mix-panel summary').click()
+        mix=page.locator('#edit-mix-form');mix.locator('[name=normalize]').check();mix.locator('[name=target_lufs]').fill('-18');mix.locator('[type=submit]').click()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert state['edit_decisions']['audio_mix']['target_lufs']==-18
+        page.locator('#edit-reopen').click();expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert output.locator('[name=width]').input_value()=='640'
+        assert title.locator('[name=text]').input_value()=='Manual fixture title'
+        page.locator('#edit-undo').click();expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert 'audio_mix' not in state['edit_decisions']
+        assert [c['operation'] for c in calls]==['transform','title_add','output_custom','audio_mix','undo']
+        assert not errors
+        browser.close()
+
+
 def test_update_file_remote_comparison_without_local_reads(staged_backlot_server):
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))

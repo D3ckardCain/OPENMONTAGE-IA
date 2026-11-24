@@ -23,7 +23,7 @@ export function initializeEditorLayout() {
     const minLibrary=showLibrary?(grid.clientWidth>=1000?260:160):0, minInspector=showInspector?180:0;
     const gutters=(Number(showLibrary)+Number(showInspector))*10;
     const sideBudget=Math.max(minLibrary+minInspector,grid.clientWidth-240-gutters);
-    const height=grid.clientHeight, minTop=Math.min(240,height*.4), minTracks=Math.min(360,height*.48);
+    const height=grid.clientHeight, minTop=Math.min(240,height*.4), minTracks=Math.min(220+Number(root.dataset.timelineRows||3)*60,height*.55,Math.max(60,height-10-minTop));
     if(migrate){
       if(prefs.library<260||prefs.library>grid.clientWidth*.4)prefs.library=defaults.library;
       if(prefs.tracks!==null&&(prefs.tracks<minTracks||prefs.tracks>height*.65)){
@@ -90,5 +90,6 @@ export function initializeEditorLayout() {
   q('edit-layout-options').addEventListener('keydown',event=>{if(event.key==='Escape'){q('edit-layout-options').open=false;q('edit-layout-options').querySelector('summary').focus();}});
   new ResizeObserver(schedule).observe(grid);
   window.addEventListener('resize',schedule);window.addEventListener('studio-workspace',schedule);
+  window.addEventListener('studio-tracks-layout',schedule);
   apply();
 }
