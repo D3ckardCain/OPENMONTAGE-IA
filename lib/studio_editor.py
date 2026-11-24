@@ -23,6 +23,7 @@ EXTENSIONS = {'.mp4', '.mov', '.mkv', '.webm', '.m4v', '.wav', '.mp3', '.flac', 
 INPUT_OPTIONS = ['-protocol_whitelist', 'file,pipe', '-format_whitelist', 'mov,matroska,webm,wav,mp3,flac,ogg']
 PRESETS = {'16:9': (1920, 1080), '9:16': (1080, 1920), '1:1': (1080, 1080), '4:5': (1080, 1350)}
 EXPORTING: set[str] = set()
+RENDER_CONTRACT = 'timeline-v2'
 
 
 class Conflict(ValueError):
@@ -109,6 +110,7 @@ def state(pid):
     if value is None:
         raise ValueError('Este proyecto usa el flujo de producción. Crea un proyecto de edición manual; no se sustituye su montaje.')
     value['edit_sha256'] = edit_digest(value['edit_decisions'])
+    value['render_sha256'] = render_digest(value['edit_decisions'])
     return value
 
 
@@ -116,6 +118,20 @@ def edit_digest(edl):
     """Content identity independent of save/log-only command revisions."""
     payload = json.dumps(edl, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False)
     return hashlib.sha256(payload.encode('utf-8')).hexdigest()
+
+
+def render_digest(edl, contract=RENDER_CONTRACT):
+    """AV identity excludes markers, edit locks and unused-source provenance."""
+    content = {key: deepcopy(edl[key]) for key in ('cuts', 'audio_tracks', 'cues', 'output', 'subtitle_style')}
+    content['render_contract'] = contract
+    for clip in content['cuts'] + content['audio_tracks']:
+        clip.pop('locked', None)
+        if not clip.get('solo'):
+            clip.pop('solo', None)
+    used = {c['source_id'] for c in content['cuts'] + content['audio_tracks'] if c.get('kind') != 'gap'}
+    content['sources'] = {key: {name: edl['sources'][key].get(name) for name in ('path', 'sha256', 'kind', 'audio')}
+                          for key in sorted(used)}
+    return edit_digest(content)
 
 
 @contextmanager
@@ -136,6 +152,7 @@ def _commit(pid, value, edl, origin, operation):
 
 def _write(pid, value, origin, operation):
     value['edit_sha256'] = edit_digest(value['edit_decisions'])
+    value['render_sha256'] = render_digest(value['edit_decisions'])
     value['revision'] += 1
     value['events'] = (value['events'] + [{'revision': value['revision'], 'origin': origin,
                       'operation': operation, 'at': studio.now()}])[-500:]
@@ -222,103 +239,128 @@ def command(pid, data, origin='user'):
             value[target].append(value['edit_decisions'])
             value['edit_decisions'] = value[source].pop()
             return _write(pid, value, origin, op)
+        if op == 'save':
+            return _write(pid, value, origin, op)
         edl = deepcopy(value['edit_decisions'])
-        try:
-            if op == 'add':
-                source = edl['sources'][data['source_id']]
-                item = {'id': uuid.uuid4().hex, 'source': source['path'], 'source_id': data['source_id'],
-                        'in_seconds': 0, 'out_seconds': source['duration'], 'speed': 1, 'muted': False,
-                        'gain': 1, 'fade_in': 0, 'fade_out': 0, 'start_seconds': 0}
-                edl['cuts' if source['kind'] == 'video' else 'audio_tracks'].append(item)
-            elif op in ('trim', 'split', 'remove', 'move', 'clip'):
-                if data.get('track', 'video') not in ('video', 'audio'):
-                    raise ValueError('Pista desconocida')
-                items = edl['audio_tracks'] if data.get('track') == 'audio' else edl['cuts']
-                item = _item(items, data['id'])
-                index = items.index(item)
-                if op == 'remove':
-                    items.remove(item)
-                elif op == 'move':
-                    position = data['index']
-                    if type(position) is not int or not 0 <= position < len(items):
-                        raise ValueError('Posición fuera de la pista')
-                    items.insert(position, items.pop(index))
-                elif op == 'split':
-                    at = number(data['at'], item['in_seconds'] + .001, item['out_seconds'] - .001)
-                    second = {**item, 'id': uuid.uuid4().hex, 'in_seconds': at}
-                    if data.get('track') == 'audio':
-                        second['start_seconds'] += (at - item['in_seconds']) / item['speed']
-                    item['out_seconds'] = at
-                    items.insert(index + 1, second)
-                elif op == 'trim':
-                    start = number(data['in_seconds'])
-                    end = number(data['out_seconds'], start + .001, edl['sources'][item['source_id']]['duration'])
-                    item.update(in_seconds=start, out_seconds=end)
-                else:
-                    for key in ('speed', 'gain', 'fade_in', 'fade_out', 'start_seconds'):
-                        if key in data:
-                            item[key] = number(data[key], .25 if key == 'speed' else 0,
-                                               4 if key in ('speed', 'gain') else 7200)
-                    if 'muted' in data:
-                        if type(data['muted']) is not bool:
-                            raise ValueError('Silencio requiere un booleano')
-                        item['muted'] = data['muted']
-            elif op == 'output':
-                if data['ratio'] not in PRESETS:
-                    raise ValueError('Formato no admitido')
-                fps = data.get('fps', 24)
-                if fps not in (24, 25, 30, 60):
-                    raise ValueError('FPS no admitidos')
-                edl['output'] = {'ratio': data['ratio'], 'fps': fps, 'fit': 'pad'}
-            elif op == 'subtitles':
-                edl['cues'] = parse_srt(data['srt'], duration(edl)) if data['srt'].strip() else []
-            elif op in ('cue_update', 'cue_split', 'cue_merge', 'cue_offset'):
-                cues = edl['cues']
-                if op == 'cue_offset':
-                    offset = number(data['seconds'], -7200, 7200)
-                    for cue in cues:
-                        cue['start_seconds'] += offset
-                        cue['end_seconds'] += offset
-                else:
-                    index = data['index']
-                    if type(index) is not int or not 0 <= index < len(cues):
-                        raise ValueError('Subtítulo no encontrado')
-                    cue = cues[index]
-                    if op == 'cue_update':
-                        cue.update(start_seconds=number(data['start_seconds']), end_seconds=number(data['end_seconds']), text=data['text'])
-                    elif op == 'cue_split':
-                        at = number(data['at'], cue['start_seconds'] + .001, cue['end_seconds'] - .001)
-                        text_index = data['text_index']
-                        if type(text_index) is not int or not 0 < text_index < len(cue['text']):
-                            raise ValueError('Indica dónde dividir el texto')
-                        second = {**cue, 'start_seconds': at, 'text': cue['text'][text_index:].strip()}
-                        cue.update(end_seconds=at, text=cue['text'][:text_index].strip())
-                        cues.insert(index + 1, second)
-                    else:
-                        if index + 1 >= len(cues):
-                            raise ValueError('No hay subtítulo siguiente')
-                        following = cues.pop(index + 1)
-                        cue.update(end_seconds=following['end_seconds'], text=cue['text'] + '\n' + following['text'])
-                edl['cues'] = parse_srt(srt(edl), duration(edl)) if cues else []
-            elif op == 'subtitle_style':
-                size = number(data['size'], 12, 96)
-                if data['position'] not in ('bottom', 'center', 'top') or data.get('mode', 'soft') not in ('soft', 'burn'):
-                    raise ValueError('Posición no admitida')
-                edl['subtitle_style'] = {'size': size, 'position': data['position'], 'mode': data.get('mode', 'soft')}
-            elif op == 'save':
-                # Every mutation is already an atomic save. This records an explicit checkpoint.
-                return _write(pid, value, origin, op)
-            else:
-                raise ValueError('Operación aún no disponible')
-        except (KeyError, StopIteration) as exc:
-            raise ValueError('Fuente, clip o parámetro no encontrado') from exc
-        if len(edl['cuts']) + len(edl['audio_tracks']) > 200 or duration(edl) > 7200:
-            raise ValueError('Límite local: 200 clips y dos horas')
-        if any((c['out_seconds'] - c['in_seconds']) / c['speed'] < 1 / edl['output']['fps'] - 1e-9 for c in edl['cuts']):
-            raise ValueError('Cada clip de vídeo debe durar al menos un fotograma de salida')
-        if edl['cues'] and max(c['end_seconds'] for c in edl['cues']) > duration(edl) + .02:
-            raise ValueError('El montaje dejaría subtítulos fuera de duración; ajusta sus tiempos primero')
+        _apply_edit(edl, data)
+        _validate_edit(edl)
         return _commit(pid, value, edl, origin, op)
+
+
+def _apply_edit(edl, data):
+    from lib.studio_timeline_ops import apply_timeline, assert_editable
+    op = data.get('operation')
+    if op == 'batch':
+        operations = data.get('operations')
+        if not isinstance(operations, list) or not 1 <= len(operations) <= 200:
+            raise ValueError('Batch requiere de 1 a 200 operaciones')
+        for item in operations:
+            if not isinstance(item, dict) or item.get('operation') in ('batch', 'save', 'undo', 'redo'):
+                raise ValueError('No se admiten comandos de historial ni batch anidados')
+            _apply_edit(edl, item)
+        return
+    try:
+        assert_editable(edl, data)
+        if apply_timeline(edl, data):
+            return
+    except (KeyError, StopIteration, TypeError) as exc:
+        raise ValueError('Clip o parámetro de operación no encontrado') from exc
+    try:
+        if op == 'add':
+            source = edl['sources'][data['source_id']]
+            item = {'id': uuid.uuid4().hex, 'source': source['path'], 'source_id': data['source_id'],
+                    'in_seconds': 0, 'out_seconds': source['duration'], 'speed': 1, 'muted': False,
+                    'gain': 1, 'fade_in': 0, 'fade_out': 0, 'start_seconds': 0}
+            edl['cuts' if source['kind'] == 'video' else 'audio_tracks'].append(item)
+        elif op in ('trim', 'split', 'remove', 'move', 'clip'):
+            if data.get('track', 'video') not in ('video', 'audio'):
+                raise ValueError('Pista desconocida')
+            items = edl['audio_tracks'] if data.get('track') == 'audio' else edl['cuts']
+            item = _item(items, data['id'])
+            index = items.index(item)
+            if op == 'remove':
+                items.remove(item)
+            elif op == 'move':
+                position = data['index']
+                if type(position) is not int or not 0 <= position < len(items):
+                    raise ValueError('Posición fuera de la pista')
+                items.insert(position, items.pop(index))
+            elif op == 'split':
+                at = number(data['at'], item['in_seconds'] + .001, item['out_seconds'] - .001)
+                second = {**item, 'id': uuid.uuid4().hex, 'in_seconds': at}
+                if data.get('track') == 'audio':
+                    second['start_seconds'] += (at - item['in_seconds']) / item['speed']
+                item['out_seconds'] = at
+                items.insert(index + 1, second)
+            elif op == 'trim':
+                start = number(data['in_seconds'])
+                end = number(data['out_seconds'], start + .001, item['gap_duration'] if item.get('kind') == 'gap' else edl['sources'][item['source_id']]['duration'])
+                item.update(in_seconds=start, out_seconds=end)
+            else:
+                for key in ('speed', 'gain', 'fade_in', 'fade_out', 'start_seconds'):
+                    if key in data:
+                        item[key] = number(data[key], .25 if key == 'speed' else 0,
+                                           4 if key in ('speed', 'gain') else 7200)
+                for flag in ('muted', 'solo', 'locked'):
+                    if flag in data:
+                        if type(data[flag]) is not bool:
+                            raise ValueError('Mute/solo/bloqueo requieren booleanos')
+                        item[flag] = data[flag]
+        elif op == 'output':
+            if data['ratio'] not in PRESETS:
+                raise ValueError('Formato no admitido')
+            fps = data.get('fps', 24)
+            if fps not in (24, 25, 30, 60):
+                raise ValueError('FPS no admitidos')
+            edl['output'] = {'ratio': data['ratio'], 'fps': fps, 'fit': 'pad'}
+        elif op == 'subtitles':
+            edl['cues'] = parse_srt(data['srt'], duration(edl)) if data['srt'].strip() else []
+        elif op in ('cue_update', 'cue_split', 'cue_merge', 'cue_offset'):
+            cues = edl['cues']
+            if op == 'cue_offset':
+                offset = number(data['seconds'], -7200, 7200)
+                for cue in cues:
+                    cue['start_seconds'] += offset
+                    cue['end_seconds'] += offset
+            else:
+                index = data['index']
+                if type(index) is not int or not 0 <= index < len(cues):
+                    raise ValueError('Subtítulo no encontrado')
+                cue = cues[index]
+                if op == 'cue_update':
+                    cue.update(start_seconds=number(data['start_seconds']), end_seconds=number(data['end_seconds']), text=data['text'])
+                elif op == 'cue_split':
+                    at = number(data['at'], cue['start_seconds'] + .001, cue['end_seconds'] - .001)
+                    text_index = data['text_index']
+                    if type(text_index) is not int or not 0 < text_index < len(cue['text']):
+                        raise ValueError('Indica dónde dividir el texto')
+                    second = {**cue, 'start_seconds': at, 'text': cue['text'][text_index:].strip()}
+                    cue.update(end_seconds=at, text=cue['text'][:text_index].strip())
+                    cues.insert(index + 1, second)
+                else:
+                    if index + 1 >= len(cues):
+                        raise ValueError('No hay subtítulo siguiente')
+                    following = cues.pop(index + 1)
+                    cue.update(end_seconds=following['end_seconds'], text=cue['text'] + '\n' + following['text'])
+            edl['cues'] = parse_srt(srt(edl), duration(edl)) if cues else []
+        elif op == 'subtitle_style':
+            size = number(data['size'], 12, 96)
+            if data['position'] not in ('bottom', 'center', 'top') or data.get('mode', 'soft') not in ('soft', 'burn'):
+                raise ValueError('Posición no admitida')
+            edl['subtitle_style'] = {'size': size, 'position': data['position'], 'mode': data.get('mode', 'soft')}
+        else:
+            raise ValueError('Operación aún no disponible')
+    except (KeyError, StopIteration) as exc:
+        raise ValueError('Fuente, clip o parámetro no encontrado') from exc
+
+
+def _validate_edit(edl):
+    if len(edl['cuts']) + len(edl['audio_tracks']) > 200 or duration(edl) > 7200:
+        raise ValueError('Límite local: 200 clips y dos horas')
+    if any((c['out_seconds'] - c['in_seconds']) / c['speed'] < 1 / edl['output']['fps'] - 1e-9 for c in edl['cuts']):
+        raise ValueError('Cada clip de vídeo debe durar al menos un fotograma de salida')
+    if edl['cues'] and max(c['end_seconds'] for c in edl['cues']) > duration(edl) + .02:
+        raise ValueError('El montaje dejaría subtítulos fuera de duración; ajusta sus tiempos primero')
 
 
 def srt(edl):

@@ -4,7 +4,7 @@ export function clipDuration(clip, edl, video=true) {
   return video?Math.round(raw*edl.output.fps)/edl.output.fps:raw;
 }
 export function videoDuration(edl){return edl.cuts.reduce((sum,c)=>sum+clipDuration(c,edl),0);}
-export function timelineEnd(edl){return Math.max(videoDuration(edl),0,...edl.audio_tracks.map(c=>c.start_seconds+clipDuration(c,edl,false)),...edl.cues.map(c=>c.end_seconds));}
+export function timelineEnd(edl){return Math.max(videoDuration(edl),0,...edl.audio_tracks.map(c=>c.start_seconds+clipDuration(c,edl,false)),...edl.cues.map(c=>c.end_seconds),...(edl.markers||[]).map(m=>m.seconds));}
 export function fitZoom(edl,width){return Math.max(.001,Math.min(10000,(Math.max(64,width)-50)/Math.max(1/edl.output.fps,timelineEnd(edl))));}
 export function tickStep(zoom,fps){
   const target=80/zoom, power=10**Math.floor(Math.log10(target));
@@ -38,11 +38,22 @@ export function trimByDelta(edl,clip,track,edge,delta){
   const amount=track==='video'?Math.round(delta*edl.output.fps)/edl.output.fps:delta;
   let start=clip.in_seconds,end=clip.out_seconds;
   if(edge==='in')start=Math.max(0,Math.min(end-step,start+amount*clip.speed));
-  else end=Math.max(start+step,Math.min(edl.sources[clip.source_id].duration,end+amount*clip.speed));
+  else end=Math.max(start+step,Math.min(clip.kind==='gap'?clip.gap_duration:edl.sources[clip.source_id].duration,end+amount*clip.speed));
   return {id:clip.id,track,in_seconds:start,out_seconds:end};
 }
 export function moveCue(edl,cue,start){
   const length=cue.end_seconds-cue.start_seconds;
   const at=Math.max(0,Math.min(videoDuration(edl)-length,start));
   return {start_seconds:Math.round(at*1000)/1000,end_seconds:Math.round((at+length)*1000)/1000,text:cue.text};
+}
+export function previewMatches(preview,state){
+  if(preview.render_sha256&&state.render_sha256)return preview.render_sha256===state.render_sha256;
+  if(preview.edit_sha256&&state.edit_sha256)return preview.edit_sha256===state.edit_sha256;
+  return preview.revision===state.revision;
+}
+export function audioTrimByDelta(edl,clip,delta){
+  const start=Math.max(0,Math.min(clip.out_seconds-.001,clip.in_seconds+delta*clip.speed));
+  const bounded=Math.max(clip.in_seconds-clip.start_seconds*clip.speed,start);
+  return {id:clip.id,track:'audio',in_seconds:bounded,out_seconds:clip.out_seconds,
+    start_seconds:clip.start_seconds+(bounded-clip.in_seconds)/clip.speed};
 }

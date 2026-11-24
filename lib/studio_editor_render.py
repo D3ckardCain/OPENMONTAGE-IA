@@ -23,10 +23,15 @@ def plan(pid, edl, preview=False):
     filters = []
     labels = []
     tracks = edl['cuts'] + edl['audio_tracks']
+    solo = any(c.get('solo') for c in tracks)
     for i, clip in enumerate(tracks):
-        info = edl['sources'][clip['source_id']]
-        path = editor.source(pid, clip['source_id'])
-        args += [*editor.INPUT_OPTIONS, '-i', str(path)]
+        gap = clip.get('kind') == 'gap'
+        info = {'audio': False} if gap else edl['sources'][clip['source_id']]
+        if gap:
+            args += ['-f', 'lavfi', '-i', f"color=c=black:s={width}x{height}:r={fps}:d={clip['gap_duration']}"]
+        else:
+            path = editor.source(pid, clip['source_id'])
+            args += [*editor.INPUT_OPTIONS, '-i', str(path)]
         start, end, speed = clip['in_seconds'], clip['out_seconds'], clip['speed']
         seconds = (end - start) / speed
         is_video = i < len(edl['cuts'])
@@ -36,7 +41,7 @@ def plan(pid, edl, preview=False):
                            f'scale={width}:{height}:force_original_aspect_ratio=decrease,'
                            f'pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps},'
                            f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds},format=yuv420p[v{i}]')
-        gain = 0 if clip['muted'] else clip['gain']
+        gain = 0 if clip['muted'] or (solo and not clip.get('solo')) else clip['gain']
         if info['audio']:
             af = (f'[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'
                   + VideoTrimmer._build_atempo_chain(speed) + f',aresample=48000,'
@@ -57,7 +62,7 @@ def plan(pid, edl, preview=False):
     filters.append(''.join(labels) + f"concat=n={len(edl['cuts'])}:v=1:a=1[montage][baseaudio]")
     audio = '[baseaudio]' + ''.join(f'[a{i}]' for i in range(len(edl['cuts']), len(tracks)))
     filters.append(audio + f'amix=inputs={len(edl["audio_tracks"])+1}:duration=first:normalize=0,'
-                   f'alimiter=limit=0.95:latency=1,atrim=duration={editor.duration(edl)}[mix]')
+                   f'alimiter=limit=0.95:level=0:latency=1,atrim=duration={editor.duration(edl)}[mix]')
     return args, filters, width, height
 
 
@@ -68,7 +73,20 @@ def status(pid):
         return {**value, 'status': 'interrupted', 'error': 'Servidor reiniciado; vuelve a solicitar el render'}
     value = deepcopy(value)
     current = editor.state(pid)
-    value['current'] = (value['edit_sha256'] == current['edit_sha256'] if value.get('edit_sha256')
+    if not value.get('render_sha256') and value.get('path'):
+        try:
+            project = studio.project_path(pid)
+            snapshot = (project / value['path']).parent / 'edit_decisions.json'
+            snapshot.resolve().relative_to(project.resolve())
+            saved = studio.read_json(snapshot)
+            if saved:
+                value['render_sha256'] = editor.render_digest(saved, value.get('render_contract', 'legacy'))
+                if not value.get('render_contract'):
+                    value['render_identity_note'] = 'Render anterior al contrato actual; prepara una copia nueva, el original se conserva'
+        except (ValueError, OSError, KeyError, TypeError):
+            value['render_identity_note'] = 'No se pudo comparar el snapshot; se exige hash EDL exacto'
+    value['current'] = (value['render_sha256'] == current['render_sha256'] if value.get('render_sha256') else
+                        value['edit_sha256'] == current['edit_sha256'] if value.get('edit_sha256')
                         else value.get('revision') == current['revision'])
     return value
 
@@ -81,6 +99,8 @@ def start(pid, revision, preview=False, origin='user'):
         args, filters, width, height = plan(pid, edl, preview)
         job = {'status': 'running', 'attempt': uuid.uuid4().hex, 'revision': revision, 'origin': origin,
                'edit_sha256': value['edit_sha256'],
+               'render_sha256': value['render_sha256'],
+               'render_contract': editor.RENDER_CONTRACT,
                'preview': preview, 'started_at': studio.now(), 'width': width, 'height': height}
         studio.save_json(studio.project_path(pid) / 'artifacts/manual_render.json', job)
         editor.EXPORTING.add(pid)
@@ -101,7 +121,7 @@ def _worker(pid, edl, job, args, filters):
     try:
         work.resolve().relative_to(project.resolve())
         work.mkdir(parents=True, exist_ok=False)
-        used = {clip['source_id'] for clip in edl['cuts'] + edl['audio_tracks']}
+        used = {clip['source_id'] for clip in edl['cuts'] + edl['audio_tracks'] if clip.get('kind') != 'gap'}
         for key in used:
             info = edl['sources'][key]
             if editor.digest(editor.source(pid, key)) != info['sha256']:

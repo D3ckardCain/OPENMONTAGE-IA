@@ -108,3 +108,6 @@ body.editor-active>.editor-shell{flex:1;display:grid;grid-template-rows:auto aut
 
 #edit-meter{width:120px;height:16px;accent-color:#3fb950}
 #edit-meter-level{font-size:11px;max-width:340px}
+
+.editor-ruler .editor-marker{position:absolute;top:1px;transform:translateX(-50%);padding:0 3px;min-height:18px;height:18px;font-size:11px;z-index:4;color:#f2cc60;border-color:#9e6a03}
+#edit-advanced-tools{border-top:1px solid #30363d;padding-top:3px;font-size:11px}

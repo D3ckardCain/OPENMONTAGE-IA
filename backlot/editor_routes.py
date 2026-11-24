@@ -20,6 +20,11 @@ def create_editor_router(body):
         except (ValueError, KeyError, TypeError, OSError) as exc:
             raise HTTPException(400, str(exc)) from exc
 
+    @router.get('/capabilities')
+    def capabilities():
+        from lib.studio_timeline_ops import CAPABILITIES
+        return {'version': '2.0', 'commands': CAPABILITIES, 'shared_revision': True}
+
     @router.get('/projects')
     def projects():
         return [{'project_id': p.parent.name, 'title': studio.read_json(p).get('title', p.parent.name)}

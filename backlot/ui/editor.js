@@ -1,11 +1,17 @@
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
-import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue } from './editor-time.js';
+import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
 import { makePeaks,paintPeaks,signalLevel } from './editor-waveform.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
+const capabilities=new Set(),selectedIds=new Set();
+async function loadCapabilities(){
+  try{const response=await fetch('/api/studio/editor/capabilities');if(response.ok){const data=await response.json();for(const name of data.commands||[])capabilities.add(name);}}
+  catch{/* older/offline backend keeps advanced actions hidden */}
+  q('edit-advanced-tools').hidden=!capabilities.has('batch');q('edit-flags-panel').hidden=!capabilities.has('flags');q('edit-markers-panel').hidden=!capabilities.has('markers');
+}
 const waveformCache=new Map();let waveformQueue=Promise.resolve(),waveformSelection=0;
 let meterContext=null,meterSource=null,meterAnalyser=null,meterEnabled=false,meterFrame=0,meterSamples=null,lastMeter='Sin medición';
 function meterLoop(){
@@ -66,7 +72,7 @@ function seekTimeline(time){
 }
 const message = text => { q('edit-message').textContent = text; };
 const element = (tag, text) => { const n = document.createElement(tag); n.textContent = text; return n; };
-const seconds = c => {const raw=(c.out_seconds-c.in_seconds)/c.speed;return edl().sources[c.source_id].kind==='video'?Math.round(raw*edl().output.fps)/edl().output.fps:raw;};
+const seconds = c => clipDuration(c,edl(),c.kind==='gap'||edl().sources[c.source_id].kind==='video');
 const edl = () => state.edit_decisions;
 const base = () => '/api/studio/editor/' + encodeURIComponent(project);
 async function api(path, data) {
@@ -89,7 +95,7 @@ async function command(operation, params={}) {
   invalidate(); draw(); message('Guardado · revisión ' + state.revision);
 }
 function invalidate() {
-  if (preview && !(preview.edit_sha256 && state.edit_sha256 ? preview.edit_sha256 === state.edit_sha256 : preview.revision === state.revision)) {
+  if (preview && !previewMatches(preview,state)) {
     q('edit-player').pause(); q('edit-player').removeAttribute('src'); q('edit-player').load();
     preview = null; q('edit-download').hidden = true;
     q('edit-monitor-title').textContent = 'Montaje modificado · prepara una nueva vista previa';
@@ -104,8 +110,9 @@ async function projects() {
 async function reopen(id=project) {
   if (!id) throw Error('Selecciona un proyecto');
   const value = await api('/api/studio/editor/' + encodeURIComponent(id));
-  project = id; state = value; selection = null; sourceKey = null; preview = null;lastMeter='Sin medici\u00f3n para este proyecto';q('edit-meter').hidden=true;q('edit-meter-level').textContent=lastMeter;
+  project = id; state = value; selection = null;selectedIds.clear(); sourceKey = null; preview = null;lastMeter='Sin medici\u00f3n para este proyecto';q('edit-meter').hidden=true;q('edit-meter-level').textContent=lastMeter;
   q('edit-player').pause(); q('edit-player').removeAttribute('src'); q('edit-player').load();
+  q('edit-download').hidden=true;
   q('edit-monitor-title').textContent = 'Montaje reabierto · selecciona una fuente o prepara la vista previa';
   const url = new URL(location.href); url.searchParams.set('edit', project); history.replaceState(null, '', url);
   q('edit-project').value = project; loadView();draw(); await checkRender();
@@ -140,38 +147,52 @@ function selected() {
   if (!clip) throw Error('El clip ya no existe');
   return {list, clip, ...selection};
 }
-function selectClip(clip, track) {
-  selection = {id:clip.id, track}; q('edit-clip-tools').open=true; drawInspector(); drawTracks();
-  if(workspace==='audio'&&edl().sources[clip.source_id].audio)waveform(clip.source_id);
+function selectClip(clip, track, event=null) {
+  const extend=capabilities.has('batch')&&selection?.track===track&&event;
+  if(extend&&event.shiftKey){const items=track==='audio'?edl().audio_tracks:edl().cuts;const a=items.findIndex(c=>c.id===selection.id),b=items.indexOf(clip);for(const c of items.slice(Math.min(a,b),Math.max(a,b)+1))selectedIds.add(c.id);}
+  else if(extend&&(event.ctrlKey||event.metaKey)){if(selectedIds.has(clip.id))selectedIds.delete(clip.id);else selectedIds.add(clip.id);}
+  else{selectedIds.clear();selectedIds.add(clip.id);}
+  selection=selectedIds.size?{id:selectedIds.has(clip.id)?clip.id:[...selectedIds].at(-1),track}:null;
+  q('edit-clip-tools').open=true; drawInspector(); drawTracks();
+  if(workspace==='audio'&&clip.kind!=='gap'&&edl().sources[clip.source_id].audio)waveform(clip.source_id);
 }
 function drawInspector() {
   const form = q('edit-clip-form'); let item;
   for(const id of ['edit-split','edit-split-cursor','edit-remove','edit-left','edit-right','edit-view-source'])q(id).disabled=true;
+  for(const id of ['edit-duplicate','edit-delete-gap','edit-delete-ripple'])q(id).disabled=true;
+  q('edit-selection-count').textContent=selectedIds.size?selectedIds.size+' clips · '+selection?.track:'Sin selección';
   try { item = selected(); } catch { form.hidden = true; q('edit-selection').textContent = 'Selecciona un clip en las pistas.'; return; }
-  q('edit-split').disabled=q('edit-remove').disabled=false;
-  q('edit-split-cursor').disabled=q('edit-view-source').disabled=false;
+  const locked=Boolean(item.clip.locked),items=item.track==='audio'?edl().audio_tracks:edl().cuts,anyLocked=items.some(c=>selectedIds.has(c.id)&&c.locked);
+  q('edit-split').disabled=q('edit-remove').disabled=locked;
+  q('edit-split-cursor').disabled=locked;q('edit-view-source').disabled=item.clip.kind==='gap';
+  q('edit-duplicate').disabled=q('edit-delete-gap').disabled=anyLocked||!selectedIds.size;q('edit-delete-ripple').disabled=anyLocked||item.track!=='video';
   form.hidden = false; const c = item.clip;
-  q('edit-selection').textContent = edl().sources[c.source_id].original_name + ' · ' + item.track;
+  q('edit-selection').textContent = (c.kind==='gap'?'Vacío negro/silencio':edl().sources[c.source_id].original_name) + ' · ' + item.track;
   for (const key of ['in_seconds','out_seconds','speed','gain','fade_in','fade_out','start_seconds']) form.elements[key].value = c[key];
   form.elements.muted.checked = c.muted;
+  form.elements.solo.checked=Boolean(c.solo);form.elements.locked.checked=locked;
+  form.querySelector('button:not([type=button])').disabled=locked;q('edit-clip-settings').disabled=locked;
   form.elements.split.value = ((c.in_seconds + c.out_seconds) / 2).toFixed(3);
   q('edit-audio-start').hidden = item.track !== 'audio';
-  q('edit-left').disabled = item.list.indexOf(c) === 0;
-  q('edit-right').disabled = item.list.indexOf(c) === item.list.length - 1;
+  q('edit-left').disabled = locked||item.list.indexOf(c) === 0;
+  q('edit-right').disabled = locked||item.list.indexOf(c) === item.list.length - 1;
   q('edit-remove').textContent=item.track==='video'?'Quitar y cerrar hueco':'Quitar audio';
 }
 function addTrimHandles(button,clip,track){
   button.dataset.clipId=clip.id;
-  for(const edge of track==='video'?['in','out']:['out']){
+  if(clip.locked)return;
+  for(const edge of track==='video'||capabilities.has('audio_trim_position')?['in','out']:['out']){
+    const paramsFor=delta=>track==='audio'&&edge==='in'?audioTrimByDelta(edl(),clip,delta):trimByDelta(edl(),clip,track,edge,delta);
+    const save=params=>command(track==='audio'&&edge==='in'?'audio_trim_position':'trim',params);
     const handle=element('span','');handle.className='editor-trim-handle editor-trim-'+edge;handle.tabIndex=0;
     handle.draggable=false;handle.setAttribute('role','slider');handle.setAttribute('aria-label',`${track} ${clip.id}: recortar ${edge==='in'?'entrada':'salida'}`);
-    handle.setAttribute('aria-valuemin','0');handle.setAttribute('aria-valuemax',String(edl().sources[clip.source_id].duration));handle.setAttribute('aria-valuenow',String(clip[edge+'_seconds']));
-    handle.title=track==='video'?'Recorte con cierre de hueco · flechas: un fotograma · Mayús: un segundo':'Recortar salida de audio · conserva su posición';
+    handle.setAttribute('aria-valuemin','0');handle.setAttribute('aria-valuemax',String(clip.kind==='gap'?clip.gap_duration:edl().sources[clip.source_id].duration));handle.setAttribute('aria-valuenow',String(clip[edge+'_seconds']));
+    handle.title=track==='video'?'Recorte con cierre de hueco · flechas: un fotograma · Mayús: un segundo':edge==='in'?'Recortar entrada de audio y mover su inicio atómicamente':'Recortar salida de audio · conserva su posición';
     handle.onclick=event=>{event.preventDefault();event.stopPropagation();};
     const cancel=()=>{edgeGesture=null;document.documentElement.classList.remove('editor-edge-drag');drawTracks();};
     handle.onpointerdown=event=>{
       if(event.button!==0||pending)return;event.preventDefault();event.stopPropagation();
-      selection={id:clip.id,track};q('edit-clip-tools').open=true;drawInspector();
+      selection={id:clip.id,track};selectedIds.clear();selectedIds.add(clip.id);q('edit-clip-tools').open=true;drawInspector();
       for(const node of q('edit-tracks').querySelectorAll('[data-clip-id]'))node.setAttribute('aria-pressed',String(node.dataset.clipId===clip.id));
       edgeGesture={x:event.clientX,params:null,cancel};handle.setPointerCapture(event.pointerId);document.documentElement.classList.add('editor-edge-drag');
     };
@@ -179,19 +200,20 @@ function addTrimHandles(button,clip,track){
       if(!edgeGesture||!handle.hasPointerCapture(event.pointerId))return;
       const zoom=Number(q('edit-zoom').value),initial=clipStart(edl(),clip,track)+(edge==='out'?seconds(clip):0);
       const raw=initial+(event.clientX-edgeGesture.x)/zoom,time=snapTime(raw,editPoints(edl(),cursor,raw),zoom,q('edit-snapping').checked);
-      const params=trimByDelta(edl(),clip,track,edge,time-initial);edgeGesture.params=params;
+      const params=paramsFor(time-initial);edgeGesture.params=params;
       button.style.width=Math.max(10,(params.out_seconds-params.in_seconds)/clip.speed*zoom)+'px';
+      if(track==='audio'&&edge==='in')button.style.left=(params.start_seconds*zoom)+'px';
       message('Recorte '+params.in_seconds.toFixed(3)+'–'+params.out_seconds.toFixed(3)+' s de fuente · suelta para guardar · Esc cancela');
     };
     handle.onpointerup=event=>{
       if(!edgeGesture)return;event.stopPropagation();const params=edgeGesture.params;edgeGesture=null;document.documentElement.classList.remove('editor-edge-drag');
-      if(params&&(params.in_seconds!==clip.in_seconds||params.out_seconds!==clip.out_seconds))task(async()=>{try{await command('trim',params);}finally{drawTracks();}});else drawTracks();
+      if(params&&(params.in_seconds!==clip.in_seconds||params.out_seconds!==clip.out_seconds))task(async()=>{try{await save(params);}finally{drawTracks();}});else drawTracks();
     };
     handle.onpointercancel=cancel;
     handle.onkeydown=event=>{
       if(!['ArrowLeft','ArrowRight'].includes(event.key))return;event.preventDefault();event.stopPropagation();
       const delta=(event.key==='ArrowRight'?1:-1)*(event.shiftKey?1:1/edl().output.fps);
-      task(()=>command('trim',trimByDelta(edl(),clip,track,edge,delta)));
+      task(()=>save(paramsFor(delta)));
     };button.append(handle);
   }
 }
@@ -223,15 +245,16 @@ function drawTracks() {
     lane.ondrop=event=>{event.preventDefault();const from=JSON.parse(event.dataTransfer.getData('application/x-openmontage-clip'));if(from.track!==track){message('No se puede cambiar el tipo de pista arrastrando');return;}if(track==='audio')dropAudio(event,from);else task(()=>command('move',{...from,index:clips.length-1}));};
     let start = 0;
     for (let index = 0; index < clips.length; index++) {
-      const clip = clips[index], button = element('button', edl().sources[clip.source_id].original_name + '\n' + seconds(clip).toFixed(3) + ' s' + (clip.muted ? ' · silencio' : ''));
+      const clip = clips[index], button = element('button', (clip.kind==='gap'?'Vacío negro/silencio':edl().sources[clip.source_id].original_name) + '\n' + seconds(clip).toFixed(3) + ' s' + (clip.muted ? ' · silencio' : '')+(clip.locked?' · bloqueado':''));
       button.type = 'button'; button.className = 'editor-clip'; button.draggable = true;
       button.style.width = Math.max(10, seconds(clip) * Number(q('edit-zoom').value)) + 'px';
       if(track==='audio'){button.style.left=(clip.start_seconds*Number(q('edit-zoom').value))+'px';button.style.top=(index*64+8)+'px';}
       button.title = 'Inicio: ' + (track === 'audio' ? clip.start_seconds : start).toFixed(3) + ' s · seleccionar para editar';
-      if(track==='video'){const thumb=document.createElement('video');thumb.muted=true;thumb.preload='metadata';thumb.src=sourceUrl(clip.source_id)+'#t='+clip.in_seconds;thumb.setAttribute('aria-hidden','true');button.prepend(thumb);}
-      button.setAttribute('aria-pressed', String(selection?.id === clip.id));
+      if(track==='video'&&clip.kind!=='gap'){const thumb=document.createElement('video');thumb.muted=true;thumb.preload='metadata';thumb.src=sourceUrl(clip.source_id)+'#t='+clip.in_seconds;thumb.setAttribute('aria-hidden','true');button.prepend(thumb);}
+      button.setAttribute('aria-pressed', String(selectedIds.has(clip.id)));
       if(track==='audio')addTrackWaveform(button,clip,index);
-      button.onclick = () => selectClip(clip, track);
+      button.onclick = event => selectClip(clip, track,event);
+      if(clip.locked)button.draggable=false;
       button.ondragstart = event => {if(event.target.closest('.editor-trim-handle')){event.preventDefault();return;}event.dataTransfer.setData('application/x-openmontage-clip', JSON.stringify({id:clip.id, track,grabSeconds:(event.clientX-button.getBoundingClientRect().left)/Number(q('edit-zoom').value)}));};
       button.ondragover = event => event.preventDefault();
       button.ondrop = event => { event.preventDefault();event.stopPropagation();const from=JSON.parse(event.dataTransfer.getData('application/x-openmontage-clip'));if(track==='audio'&&from.track==='audio'){dropAudio(event,from);return;} task(async () => {
@@ -280,6 +303,11 @@ function drawRuler(){
   const start=Math.floor(box.scrollLeft/zoom/tick)*tick,end=Math.min(timelineEnd(edl()),(box.scrollLeft+box.clientWidth)/zoom);
   for(let t=start,n=0;t<=end+1e-7&&n<200;n++,t+=tick){const label=element('span',Number(t.toFixed(3))+' s');label.style.left=(t*zoom)+'px';ruler.append(label);}
   const head=element('div','');head.className='editor-playhead';head.style.left=(cursor*zoom)+'px';ruler.append(head);
+  for(const marker of edl().markers||[]){
+    const x=marker.seconds*zoom;if(x<box.scrollLeft-10||x>box.scrollLeft+box.clientWidth+10)continue;
+    const button=element('button','▼');button.type='button';button.className='editor-marker';button.style.left=x+'px';button.title=marker.label+' · '+marker.seconds.toFixed(3)+' s';button.setAttribute('aria-label','Ir al marcador '+(marker.label||marker.seconds));
+    button.onpointerdown=event=>event.stopPropagation();button.onclick=event=>{event.stopPropagation();seekTimeline(marker.seconds);q('edit-marker-select').value=marker.id;drawMarkerInspector();};ruler.append(button);
+  }
 }
 function updatePlayhead(){
   if(!state)return;cursor=Math.min(cursor,timelineEnd(edl()));
@@ -295,6 +323,17 @@ function drawCueInspector(){
   form.hidden=!cue;if(!cue)return;
   for(const key of ['start_seconds','end_seconds','text'])form.elements[key].value=cue[key];
 }
+function drawMarkerInspector(){
+  const marker=(edl().markers||[]).find(m=>m.id===q('edit-marker-select').value);
+  q('edit-marker-time').value=marker?.seconds??cursor;q('edit-marker-label').value=marker?.label||'';
+  for(const id of ['edit-marker-save','edit-marker-remove','edit-marker-go'])q(id).disabled=!marker;
+}
+function pruneSelection(){
+  if(!selection){selectedIds.clear();return;}
+  const items=selection.track==='audio'?edl().audio_tracks:edl().cuts;
+  for(const id of selectedIds)if(!items.some(c=>c.id===id))selectedIds.delete(id);
+  if(!items.some(c=>c.id===selection.id))selection=selectedIds.size?{...selection,id:[...selectedIds][0]}:null;
+}
 function draw() {
   q('edit-revision').textContent = 'Revisión ' + state.revision + ' · guardado local';
   q('edit-undo').disabled = !state.undo.length; q('edit-redo').disabled = !state.redo.length;
@@ -308,7 +347,7 @@ function draw() {
     item.append(play, add);
     const provenance = element('details',''); provenance.append(element('summary','Procedencia'),element('small',info.path+' · SHA256 '+info.sha256+' · '+info.imported_at)); item.append(provenance); list.append(item);
   }
-  drawTracks(); drawInspector();
+  pruneSelection();drawTracks(); drawInspector();
   q('edit-duration').textContent = edl().cuts.reduce((total,c) => total+seconds(c),0).toFixed(3) + ' s de montaje';
   q('edit-preset').value = edl().output.ratio; q('edit-fps').value = edl().output.fps;
   q('edit-srt').value = formatSrt(edl().cues); q('edit-srt-download').href = base() + '/subtitles';
@@ -318,6 +357,9 @@ function draw() {
   q('edit-subtitle-position').value = edl().subtitle_style.position;
   q('edit-cps').replaceChildren(...edl().cues.map((c,i) => element('p', `#${i+1}: ${(c.text.replace(/\s/g,'').length/(c.end_seconds-c.start_seconds)).toFixed(1)} caracteres/s`)));
   drawCueInspector();
+  const selectedMarker=q('edit-marker-select').value;
+  q('edit-marker-select').replaceChildren(new Option('Selecciona marcador',''),...(edl().markers||[]).map(m=>new Option(m.seconds.toFixed(3)+' s · '+m.label,m.id)));
+  q('edit-marker-select').value=selectedMarker;drawMarkerInspector();
   q('edit-events').replaceChildren(...state.events.slice(-12).reverse().map(e => element('p',`r${e.revision} · ${e.origin} · ${e.operation} · ${e.at}`)));
 }
 async function checkRender() {
@@ -326,7 +368,8 @@ async function checkRender() {
   const subtitles = result.subtitle_mode === 'burn' ? 'texto visible quemado' : result.subtitle_mode === 'mov_text' ? 'subtítulos seleccionables, sin estilo quemado' : 'sin subtítulos incorporados';
   q('edit-render-status').textContent = result.status === 'running' ? 'FFmpeg está preparando el montaje; no se puede editar durante el render.' : result.status === 'failed' || result.status === 'interrupted' ? result.error : result.status === 'completed' ? (result.current ? 'Montaje de revisión ' + result.revision + (result.preview ? ' · vista previa a media resolución' : ' · exportación final local') + ' · ' + subtitles : 'Resultado anterior: prepara la revisión actual.') : 'Sin montaje renderizado.';
   q('edit-preview').disabled = q('edit-export').disabled = result.status === 'running';
-  if (result.status === 'completed' && result.current && (result.edit_sha256 && state.edit_sha256 ? result.edit_sha256 === state.edit_sha256 : result.revision === state.revision)) {
+  if(result.status!=='completed'||!result.current)q('edit-download').hidden=true;
+  if (result.status === 'completed' && result.current && previewMatches(result,state)) {
     if (preview?.attempt !== result.attempt) {
       preview = result; sourceKey = null; q('edit-player').src=result.url; q('edit-player').playbackRate=1;
       const seek=cursor,pid=project;
@@ -367,6 +410,23 @@ q('edit-split').onclick=()=>task(()=>{const item=selected();return command('spli
 q('edit-remove').onclick=()=>task(()=>{const item=selected();return command('remove',{id:item.id,track:item.track});});
 for(const [id,delta] of [['edit-left',-1],['edit-right',1]])q(id).onclick=()=>task(()=>{const item=selected();return command('move',{id:item.id,track:item.track,index:item.list.indexOf(item.clip)+delta});});
 q('edit-clip-settings').onclick=()=>task(()=>{const item=selected(),f=q('edit-clip-form'),params={id:item.id,track:item.track,muted:f.elements.muted.checked};for(const k of ['speed','gain','fade_in','fade_out','start_seconds'])params[k]=Number(f.elements[k].value);return command('clip',params);});
+q('edit-flags-apply').onclick=()=>task(()=>{const item=selected(),f=q('edit-clip-form');return command('flags',{id:item.id,track:item.track,muted:f.elements.muted.checked,solo:f.elements.solo.checked,locked:f.elements.locked.checked});});
+q('edit-duplicate').onclick=()=>task(async()=>{
+  const item=selected(),before=new Set((item.track==='audio'?edl().audio_tracks:edl().cuts).map(c=>c.id));
+  await command('duplicate',{track:item.track,ids:[...selectedIds]});
+  selectedIds.clear();for(const clip of item.track==='audio'?edl().audio_tracks:edl().cuts)if(!before.has(clip.id))selectedIds.add(clip.id);
+  selection={track:item.track,id:[...selectedIds][0]};drawTracks();drawInspector();
+});
+for(const [id,operation] of [['edit-delete-gap','delete_keep_gap'],['edit-delete-ripple','ripple_delete']])q(id).onclick=()=>task(()=>{const item=selected();return command(operation,{track:item.track,ids:[...selectedIds]});});
+q('edit-marker-add').onclick=()=>task(async()=>{
+  requireProject();const before=new Set((edl().markers||[]).map(m=>m.id));
+  await command('marker_add',{seconds:cursor,label:'Marcador '+(before.size+1)});
+  q('edit-marker-select').value=edl().markers.find(m=>!before.has(m.id)).id;drawMarkerInspector();
+});
+q('edit-marker-select').onchange=drawMarkerInspector;
+q('edit-marker-go').onclick=()=>seekTimeline(Number(q('edit-marker-time').value));
+q('edit-marker-save').onclick=()=>task(()=>command('marker_update',{id:q('edit-marker-select').value,seconds:Number(q('edit-marker-time').value),label:q('edit-marker-label').value}));
+q('edit-marker-remove').onclick=()=>task(()=>command('marker_remove',{id:q('edit-marker-select').value}));
 q('edit-output').onclick=()=>task(()=>command('output',{ratio:q('edit-preset').value,fps:Number(q('edit-fps').value)}));
 q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()=>task(()=>render(false));
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});
@@ -388,8 +448,8 @@ q('edit-view-source').onclick=()=>task(()=>{const item=selected();showSource(ite
 q('edit-split-cursor').onclick=()=>task(()=>{const item=selected();return command('split',splitAtCursor(edl(),item.clip,item.track,cursor));});
 new ResizeObserver(()=>{if(state&&zoomMode==='fit')drawTracks();}).observe(q('edit-tracks'));
 
-function showWorkspace(){waveformSelection++;q('edit-waveform-retry').hidden=true;q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&state){if(selection){try{const item=selected();if(edl().sources[item.clip.source_id].audio)waveform(item.clip.source_id);}catch{/* removed */}}else if(sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);}if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
+function showWorkspace(){waveformSelection++;q('edit-waveform-retry').hidden=true;q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&state){if(selection){try{const item=selected();if(item.clip.kind!=='gap'&&edl().sources[item.clip.source_id].audio)waveform(item.clip.source_id);}catch{/* removed */}}else if(sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);}if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture){event.preventDefault();edgeGesture.cancel();return;}if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture){event.preventDefault();edgeGesture.cancel();return;}if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='d'&&capabilities.has('duplicate')&&selection){event.preventDefault();q('edit-duplicate').click();return;}if(event.key==='Delete'&&capabilities.has('batch')&&selection){event.preventDefault();q(event.shiftKey?'edit-delete-ripple':'edit-delete-gap').click();return;}if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){if(event.key.toLowerCase()==='m'&&capabilities.has('markers')){event.preventDefault();q('edit-marker-add').click();return;}const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
 initializeEditorLayout();
-showWorkspace();task(async()=>{try{await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});
+showWorkspace();task(async()=>{try{await loadCapabilities();await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});

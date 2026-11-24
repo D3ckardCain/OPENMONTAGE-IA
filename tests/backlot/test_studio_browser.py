@@ -406,6 +406,64 @@ def test_waveform_and_meter_use_decoded_data_with_explicit_mock_scope(staged_bac
         browser.close()
 
 
+@pytest.mark.parametrize('supported',[False,True])
+def test_advanced_timeline_uses_capabilities_and_atomic_model(staged_backlot_server,supported):
+    """Intercepted transport, actual pure backend edits; no AV payload or playback."""
+    from copy import deepcopy
+    import json
+    from pathlib import Path
+    from lib import studio_editor as editor
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    state=deepcopy(fixture['state']);pid=fixture['project_id'];original=deepcopy(state['edit_decisions']);calls=[]
+    state['render_sha256']=editor.render_digest(original)
+    job={**fixture['render'],'render_sha256':state['render_sha256']}
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1920,'height':1080});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+        if not supported:page.route('**/api/studio/editor/capabilities',lambda r:r.fulfill(status=404,json={'detail':'Older running server'}))
+        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Atomic metadata fixture; no AV'}]))
+        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=state))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda r:r.fulfill(json=job))
+        page.route('**/api/studio/editor/'+pid+'/source/**',lambda r:r.fulfill(status=204))
+        page.route('**/media/**',lambda r:r.fulfill(status=204))
+        def command(route):
+            data=route.request.post_data_json;calls.append(data);assert data['revision']==state['revision']
+            if data['operation']=='undo':state['edit_decisions']=state['undo'].pop()
+            else:
+                edl=deepcopy(state['edit_decisions']);editor._apply_edit(edl,data);editor._validate_edit(edl)
+                state['undo'].append(state['edit_decisions']);state['edit_decisions']=edl
+            state['revision']+=1;state['edit_sha256']=editor.edit_digest(state['edit_decisions']);state['render_sha256']=editor.render_digest(state['edit_decisions'])
+            route.fulfill(json=state)
+        page.route('**/api/studio/editor/'+pid+'/command',command)
+        page.goto(staged_backlot_server+'/studio?edit='+pid+'#video')
+        expect(page.locator('#edit-player')).to_have_attribute('src',job['url'])
+        clips=page.locator('.editor-video .editor-clip');clips.nth(0).click();clips.nth(1).click(modifiers=['Control'])
+        if not supported:
+            assert page.locator('#edit-advanced-tools').is_hidden()
+            assert page.locator('#edit-flags-panel').is_hidden()
+            assert page.locator('.editor-video [aria-pressed=true]').count()==1
+            assert not calls and not errors;browser.close();return
+        assert page.locator('.editor-video [aria-pressed=true]').count()==2
+        page.locator('#edit-duplicate').click();expect(clips).to_have_count(4)
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-undo').click();expect(clips).to_have_count(2)
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        clips.nth(0).click();page.locator('#edit-delete-gap').click()
+        expect(clips.nth(0)).to_contain_text('Vacío negro/silencio')
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-undo').click();expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-show-montage').click();expect(page.locator('#edit-player')).to_have_attribute('src',job['url'])
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        page.locator('#edit-marker-add').click();expect(page.locator('.editor-marker')).to_have_count(1)
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        expect(page.locator('#edit-player')).to_have_attribute('src',job['url'])
+        clips.nth(0).click();page.locator('#edit-clip-form [name=locked]').check();page.locator('#edit-flags-apply').click()
+        expect(clips.nth(0).locator('.editor-trim-handle')).to_have_count(0)
+        expect(page.locator('#edit-player')).to_have_attribute('src',job['url'])
+        assert not errors
+        browser.close()
+
+
 def test_update_file_remote_comparison_without_local_reads(staged_backlot_server):
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))

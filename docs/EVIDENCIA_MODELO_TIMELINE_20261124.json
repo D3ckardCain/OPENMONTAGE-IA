@@ -1,0 +1,87 @@
+{
+  "scope": "New model loaded in separate Python process and isolated root; NOT active Studio API/UI",
+  "workspace": "projects/_qa-timeline-model-20261124-a",
+  "source_project": "edit-827337e03f38",
+  "server_restart": false,
+  "live_backend_activated": false,
+  "renders": [
+    {
+      "case": "preserve-gap",
+      "duration": 6.0,
+      "sha256": "54fa9b9ad051926e846ba096256586d9b405b51d76b0f6569aac2a3682cc1ead",
+      "render_sha256": "832784410a3fedf5b85c65978d5113d09ea8091b5bc09a6413b5588165671929",
+      "full_decode": true,
+      "streams": [
+        "video",
+        "audio"
+      ],
+      "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/0189119836184946b95fcec88bde2682/montage.mp4",
+      "gap_rgb_mean": 0.0,
+      "gap_audio_rms": 0.0
+    },
+    {
+      "case": "solo-independent-audio",
+      "duration": 6.0,
+      "sha256": "a0fa0a3731cd7e58b36b08506b5cb832409297baa88c22121cb5d968a357e51f",
+      "render_sha256": "55d653855336df19f0c9e70be2c43332ddae3a4e57c72da3587da4c41d66d5db",
+      "full_decode": true,
+      "streams": [
+        "video",
+        "audio"
+      ],
+      "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/016053f2d02440e4adc499a509efd0ed/montage.mp4",
+      "source_window_rms": 0.17584956499002447,
+      "output_window_rms": 0.04375778083974196,
+      "gain_ratio": 0.248836446324017,
+      "after_solo_clip_rms": 0.0
+    }
+  ],
+  "prior_runs": [
+    [
+      {
+        "case": "preserve-gap",
+        "duration": 6.0,
+        "sha256": "c0af3641f0c53a9f0a1ff247cfd2e90e9408a8afba49b9795e1ad2ce65572ab7",
+        "render_sha256": "86fd8585092a48ad6c603d4d76ed2ac8ccc791a58f5734da6cce3a0ddb404d7f",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/a08bc4b8d7da43d7b1011706345bed66/montage.mp4",
+        "gap_rgb_mean": 0.0,
+        "gap_audio_rms": 0.0
+      },
+      {
+        "case": "solo-independent-audio",
+        "duration": 6.0,
+        "sha256": "ec690d0aac3cc4e25f01e0fdf58645786f11839aec026f555248b0cbde9fbeb4",
+        "render_sha256": "cabaea567786af4be2bbe078cc343aa00695b3c70bec3909a8837c6a1442d880",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/f0198a2823244d82bfc33827458d8d7e/montage.mp4",
+        "source_window_rms": 0.17584956499002447,
+        "output_window_rms": 0.04563430163455405,
+        "gain_ratio": 0.259507617418006,
+        "after_solo_clip_rms": 0.0
+      }
+    ]
+  ],
+  "project_id": "edit-60e87d54b03b",
+  "status": "passed",
+  "source_project_unchanged": true,
+  "browser_observation": false,
+  "listening": false,
+  "limiter_correction": {
+    "installed_help_auto_level_default": true,
+    "new_graph_auto_level": false,
+    "render_contract": "timeline-v2",
+    "observed_gain_ratio_before": 0.259507617418006,
+    "observed_gain_ratio_after": 0.248836446324017,
+    "configured_gain": 0.25,
+    "scope": "AAC RMS window, not sample-perfect PCM or listening"
+  }
+}
