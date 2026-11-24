@@ -67,7 +67,9 @@ Durante un agente activo la UI no puede editar ese proyecto. El agente usa su ru
 
 Límites operativos explícitos: 200 fuentes, 200 clips, dos horas de vídeo, 2 GB por archivo importado, 500 KB por SRT, 30 s de diagnóstico y 600 s por render. Fallos se conservan en `manual_render.json`; no hay reintentos indefinidos. Se restringen protocolos/contenedores de entrada de FFmpeg; no se ejecuta código remoto, motores de IA ni descargas.
 
-No disponibles: títulos, transiciones, reencuadre focal, solo/bloqueo, mezcla A/B, selección detallada sobre waveform y conversión de proyectos de producción. Están indicadas en el panel; no hay botones que simulen haberlas hecho. #92 no se cierra hasta cubrir y validar su aceptación restante.
+Entregas posteriores amplían este contrato: [operaciones atómicas](EDITOR_OPERACIONES_ATOMICAS_ES.md), [encuadre, títulos y mezcla](EDITOR_EFECTOS_MANUALES_ES.md), [capas y transición por negro](EDITOR_CAPAS_TRANSICIONES_ES.md) y [cancelación del encoder](EDITOR_CANCELACION_RENDER_ES.md). Incluyen sus pruebas, límites y evidencia AV aislada. El servidor debe anunciar cada capacidad antes de habilitar sus controles. No se declara activación en4750 ni aceptación visual/escucha por publicar código.
+
+Siguen no disponibles: fundido cruzado, keyframes/máscaras, mezcla A/B, selección detallada sobre waveform, importación ASS/karaoke por palabra y conversión de proyectos de producción. #92 no se cierra hasta cubrir y validar su aceptación restante. La instancia activa no se reinició y mantiene el backend anterior.
 
 Referencias de interacción consultadas 2026-11-24, sin copiar código ni instalar aplicaciones: [Kdenlive 26.08, áreas/monitores](https://docs.kdenlive.org/en/user_interface.html), [Audacity, pistas y waveform](https://manual.audacityteam.org/man/audio_tracks.html), [Subtitle Edit, ventana principal](https://github.com/SubtitleEdit/subtitleedit/blob/main/docs/features/main-window.md). Inspiraron la separación fuente/montaje, controles por pista y edición temporal; no son dependencias nuevas.
 

@@ -84,5 +84,6 @@ Informe `EVIDENCIA_MODELO_TIMELINE_20261124.json`; validador opt-in
 con `--recheck` reutiliza su proyecto de laboratorio.
 
 Esto no acredita activación del backend en4750, observación de Windows, escucha
-o sincronía integral. Transformaciones, títulos, transiciones, capas y presets
-editables aún requieren sus siguientes entregas y validaciones.
+o sincronía integral. Las entregas posteriores se detallan en
+`EDITOR_EFECTOS_MANUALES_ES.md`, `EDITOR_CAPAS_TRANSICIONES_ES.md` y
+`EDITOR_CANCELACION_RENDER_ES.md`, con evidencia separada y activación pendiente.
