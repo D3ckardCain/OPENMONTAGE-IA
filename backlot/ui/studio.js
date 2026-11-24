@@ -3,9 +3,13 @@ const notice=s=>{$('#notice').textContent=s||'';};
 async function api(path,data){const r=await fetch('/api/studio/'+path,data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let v=await r.json();if(!r.ok)throw Error(typeof v.detail==='string'?v.detail:JSON.stringify(v.detail));return v;}
 function node(tag,text){let n=document.createElement(tag);n.textContent=text;return n;}
 function link(label,url){let a=node('a',label);a.href=url;return a;}
-const sectionLabels={scenes:'Mesa de escenas',production:'Producción',queue:'Cola de trabajos',finals:'Videos finales',football:'Fútbol · fuentes oficiales',references:'Referencias e imágenes',models:'Modelos y discos',applications:'Aplicaciones',setup:'Preparación del equipo',history:'Historial y pruebas'};
+const sectionLabels={video:'Vídeo',audio:'Audio',subtitles:'Subtítulos',library:'Biblioteca','edit-projects':'Proyectos',scenes:'Mesa de escenas',production:'Producción',queue:'Cola de trabajos',finals:'Videos finales',football:'Fútbol · fuentes oficiales',references:'Referencias e imágenes',models:'Modelos y discos',applications:'Aplicaciones',setup:'Preparación del equipo',history:'Historial y pruebas'};
 function showSection(name){
- if(!(name in sectionLabels))name='production';
+ if(!(name in sectionLabels))name='video';
+ const editing=['video','audio','subtitles','library','edit-projects'].includes(name);
+ document.querySelector('#manual-editor').hidden=!editing;
+ document.querySelector('#legacy-studio').hidden=editing;
+ window.dispatchEvent(new CustomEvent('studio-workspace',{detail:name}));
  for(const pane of document.querySelectorAll('[data-pane]'))pane.hidden=pane.dataset.pane!==name;
  for(const button of document.querySelectorAll('[data-section]')){if(button.dataset.section===name)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}
  $('#workspace-section').textContent=sectionLabels[name];

@@ -2,8 +2,65 @@
 import os
 import pytest
 pytest.importorskip('playwright.sync_api')
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 from tests.backlot.test_ui_bug_bash import staged_backlot_server
+
+
+@pytest.mark.parametrize('width,height', [(1280,720),(1920,1080),(2560,1440),(3440,1440),(640,720)])
+def test_manual_editor_layout_and_shared_revision_controls(staged_backlot_server, width, height, tmp_path):
+    """Browser/transport evidence, with labeled synthetic JSON; no media or AI."""
+    from pathlib import Path
+    import json
+    state = {'revision':0, 'undo':[], 'redo':[], 'events':[], 'edit_decisions':{
+        'version':'1.0', 'render_runtime':'ffmpeg', 'cuts':[], 'audio_tracks':[], 'cues':[], 'sources':{},
+        'output':{'ratio':'16:9','fps':24,'fit':'pad'}, 'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page = browser.new_page(viewport={'width':width,'height':height})
+        errors = []; page.on('pageerror', lambda error: errors.append(str(error)))
+        page.route('**/api/studio/editor/projects', lambda route: route.fulfill(json=[{'project_id':'ui-fixture','title':'Proyecto JSON sintético · sin medios'}]))
+        page.route('**/api/studio/editor/ui-fixture', lambda route: route.fulfill(json=state))
+        page.route('**/api/studio/editor/ui-fixture/render', lambda route: route.fulfill(json={'status':'idle'}))
+        calls = []
+        def command(route):
+            data = route.request.post_data_json
+            calls.append(data)
+            assert data['revision'] == state['revision']
+            state['revision'] += 1
+            if data['operation'] == 'output':
+                state['edit_decisions']['output'] = {'ratio':data['ratio'],'fps':data['fps'],'fit':'pad'}
+            route.fulfill(json=state)
+        page.route('**/api/studio/editor/ui-fixture/command', command)
+        page.goto(staged_backlot_server + '/studio?edit=ui-fixture#video')
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 0 · guardado local')
+        assert page.locator('#manual-editor').is_visible()
+        assert page.locator('#legacy-studio').is_hidden()
+        assert page.locator('#edit-player').count() == 1
+        assert page.locator('#manual-editor').bounding_box()['width'] >= width - 32
+        assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1')
+        page.locator('[data-section="subtitles"]').click()
+        assert page.locator('#edit-subtitle-panel').is_visible()
+        assert page.locator('#edit-project').input_value() == 'ui-fixture'
+        page.locator('[data-section="audio"]').click()
+        assert page.locator('#edit-subtitle-panel').is_hidden()
+        page.locator('#edit-preset').select_option('9:16')
+        page.locator('#edit-output').click()
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 1 · guardado local')
+        assert calls == [{'operation':'output','revision':0,'ratio':'9:16','fps':24}]
+        page.locator('#edit-save').click()
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 2 · guardado local')
+        page.locator('#edit-reopen').click()
+        assert page.locator('#edit-project').input_value() == 'ui-fixture'
+        page.locator('[data-section="video"]').click()
+        output = Path('tests/qa/output/studio-editor')
+        output.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(output/f'workspace-{width}x{height}.png'), full_page=True)
+        (output/f'workspace-{width}x{height}.json').write_text(json.dumps({
+            'viewport':{'width':width,'height':height}, 'scope':'synthetic JSON UI/transport; no media or inference',
+            'horizontal_overflow':page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'),
+            'commands':calls, 'page_errors':errors},ensure_ascii=False,indent=2), encoding='utf-8')
+        assert not errors
+        browser.close()
 
 
 def test_update_file_remote_comparison_without_local_reads(staged_backlot_server):

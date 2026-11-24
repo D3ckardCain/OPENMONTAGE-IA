@@ -37,11 +37,17 @@ def _timestamp(seconds):
     return f'{centis//360000}:{centis//6000%60:02d}:{centis//100%60:02d}.{centis%100:02d}'
 
 
-def _ass(cues,width,height):
+def _ass(cues,width,height,subtitle_style=None):
     vertical=height>width
     fontsize=max(24,round(width*(.052 if vertical else .038)))
     margin=max(24,round(height*(.12 if vertical else .09)))
+    alignment=2
+    if subtitle_style:
+        fontsize=round(subtitle_style['size']*height/1080)
+        alignment={'bottom':2,'center':5,'top':8}[subtitle_style['position']]
     style=f'Style: Main,Arial,{fontsize},&H00FFFFFF,&H000000FF,&H00000000,&H80000000,0,0,0,0,100,100,0,0,1,3,1,2,{max(24,width//18)},{max(24,width//18)},{margin},1'
+    if subtitle_style:
+        parts=style.split(',');parts[2]=str(fontsize);parts[18]=str(alignment);style=','.join(parts)
     header=('[Script Info]\nScriptType: v4.00+\nWrapStyle: 0\nScaledBorderAndShadow: yes\n'
             f'PlayResX: {width}\nPlayResY: {height}\n\n[V4+ Styles]\n'
             'Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\n'

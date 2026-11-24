@@ -38,13 +38,18 @@ def create_studio_router():
         try:return fn(*args)
         except FileNotFoundError as exc:raise HTTPException(404,str(exc))
         except (ValueError,KeyError,TypeError) as exc:raise HTTPException(400,str(exc))
+    from backlot.editor_routes import create_editor_router
+    router.include_router(create_editor_router(body))
+
     @router.get('/studio',response_class=HTMLResponse)
-    def page():return (Path(__file__).parent/'ui'/'studio.html').read_text()
+    def page():
+        return (Path(__file__).parent/'ui'/'studio.html').read_text(encoding='utf-8')
     @router.get('/api/studio/bootstrap')
     def bootstrap():
         projects=[]
         for f in studio.PROJECTS_DIR.glob('*/production_request.json'):
             r=studio.read_json(f)
+            if r.get('manual_edit'):continue
             if r.get('diagnostic_fixture'):continue
             projects.append({'project_id':r['project_id'],'title':r['title']})
         return {'settings':studio.settings(),'pipelines':studio.pipelines(),'projects':projects}

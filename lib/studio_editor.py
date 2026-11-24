@@ -1,0 +1,314 @@
+"""Local manual editing contract shared by Studio and the agent. No inference.
+
+The authoritative revision, EDL, media provenance and undo journal are committed
+atomically in one project artifact. Originals are never edited in place.
+"""
+from __future__ import annotations
+
+from contextlib import contextmanager
+from copy import deepcopy
+import hashlib
+import json
+import math
+from pathlib import Path
+import subprocess
+import uuid
+
+from lib import production_studio as studio, production_agent as agent
+from lib.media_executables import require_media
+from lib.scene_subtitles import parse_srt
+
+ARTIFACT = 'artifacts/manual_edit.json'
+EXTENSIONS = {'.mp4', '.mov', '.mkv', '.webm', '.m4v', '.wav', '.mp3', '.flac', '.ogg', '.m4a'}
+INPUT_OPTIONS = ['-protocol_whitelist', 'file,pipe', '-format_whitelist', 'mov,matroska,webm,wav,mp3,flac,ogg']
+PRESETS = {'16:9': (1920, 1080), '9:16': (1080, 1920), '1:1': (1080, 1080), '4:5': (1080, 1350)}
+EXPORTING: set[str] = set()
+
+
+class Conflict(ValueError):
+    """A stale revision or an active resource owner prevents a mutation."""
+
+
+def number(value, low=0, high=86400):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not low <= value <= high:
+        raise ValueError('Número o intervalo fuera de límites')
+    return float(value)
+
+
+def media_path(project, relative):
+    if not isinstance(relative, str) or '\\' in relative or not relative.startswith('assets/'):
+        raise ValueError('El medio debe estar dentro de assets/ del proyecto')
+    path = project / relative
+    path.resolve().relative_to(project.resolve())
+    if any(p in ('.', '..') for p in Path(relative).parts) or path.is_symlink() or not path.is_file():
+        raise ValueError('Medio ausente o ruta no permitida')
+    return path
+
+
+def identity(path):
+    stat = path.stat()
+    return {'bytes': stat.st_size, 'mtime_ns': stat.st_mtime_ns}
+
+
+def digest(path):
+    h = hashlib.sha256()
+    with path.open('rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def probe(path):
+    try:
+        result = subprocess.run([require_media('ffprobe'), '-v', 'error', *INPUT_OPTIONS, '-show_streams', '-show_format',
+                                 '-of', 'json', str(path)], capture_output=True, timeout=30, check=False)
+    except subprocess.TimeoutExpired as exc:
+        raise ValueError('FFprobe excedió el límite de diagnóstico de 30 segundos') from exc
+    if result.returncode:
+        raise ValueError('FFprobe no pudo leer el medio: ' + result.stderr.decode('utf-8', 'replace')[-500:])
+    data = json.loads(result.stdout)
+    streams = data.get('streams', [])
+    video = next((s for s in streams if s.get('codec_type') == 'video' and not s.get('disposition', {}).get('attached_pic')), None)
+    audio = any(s.get('codec_type') == 'audio' for s in streams)
+    if not video and not audio:
+        raise ValueError('El archivo no contiene vídeo ni audio reproducible')
+    duration = number(float(data.get('format', {}).get('duration', 0)), .001, 7200)
+    return {'duration': duration, 'kind': 'video' if video else 'audio', 'audio': audio,
+            'width': video.get('width') if video else None, 'height': video.get('height') if video else None}
+
+
+def _empty():
+    return {'version': '1.0', 'render_runtime': 'ffmpeg', 'cuts': [], 'audio_tracks': [], 'cues': [],
+            'sources': {}, 'output': {'ratio': '16:9', 'fps': 24, 'fit': 'pad'},
+            'subtitle_style': {'size': 32, 'position': 'bottom', 'mode': 'soft'}}
+
+
+def create(title):
+    if not isinstance(title, str) or not 1 <= len(title.strip()) <= 120:
+        raise ValueError('Indica un título de 1 a 120 caracteres')
+    pid = 'edit-' + uuid.uuid4().hex[:12]
+    project = studio.PROJECTS_DIR / pid
+    project.mkdir(parents=True, exist_ok=False)
+    studio.save_json(project / 'production_request.json', {'title': title.strip(), 'manual_edit': True})
+    studio.save_json(project / 'project.json', {'project_id': pid, 'title': title.strip(), 'type': 'manual_edit'})
+    studio.save_json(project / ARTIFACT, {'revision': 0, 'edit_decisions': _empty(), 'undo': [], 'redo': [], 'events': []})
+    return {'project_id': pid, **state(pid)}
+
+
+def state(pid):
+    project = studio.project_path(pid)
+    with studio.LOCK:
+        value = studio.read_json(project / ARTIFACT)
+    if value is None:
+        raise ValueError('Este proyecto usa el flujo de producción. Crea un proyecto de edición manual; no se sustituye su montaje.')
+    return value
+
+
+@contextmanager
+def guard(pid, origin='user'):
+    # Same lock ordering as the production entry points; no check/use race.
+    with agent.ACTIVE_LOCK, studio.LOCK:
+        if (pid in agent.ACTIVE and origin != 'agent') or pid in EXPORTING:
+            raise Conflict('Proyecto ocupado: detén el agente y espera su finalización, o espera la exportación')
+        yield
+
+
+def _commit(pid, value, edl, origin, operation):
+    value['undo'] = (value['undo'] + [value['edit_decisions']])[-50:]
+    value['redo'] = []
+    value['edit_decisions'] = edl
+    return _write(pid, value, origin, operation)
+
+
+def _write(pid, value, origin, operation):
+    value['revision'] += 1
+    value['events'] = (value['events'] + [{'revision': value['revision'], 'origin': origin,
+                      'operation': operation, 'at': studio.now()}])[-500:]
+    studio.save_json(studio.project_path(pid) / ARTIFACT, value)
+    return value
+
+
+def _revision(value, expected):
+    if type(expected) is not int or expected != value['revision']:
+        raise Conflict('El proyecto cambió. Reabre la revisión actual antes de editar')
+
+
+def register(pid, relative, expected, origin='user', original_name=None):
+    with guard(pid, origin):
+        value = state(pid)
+        _revision(value, expected)
+        path = media_path(studio.project_path(pid), relative)
+        if path.suffix.lower() not in EXTENSIONS:
+            raise ValueError('Formato multimedia no admitido')
+        edl = deepcopy(value['edit_decisions'])
+        if len(edl['sources']) >= 200:
+            raise ValueError('Límite local: 200 fuentes por proyecto')
+        before = identity(path)
+        if before['bytes'] > 2_000_000_000:
+            raise ValueError('Límite de importación: 2 GB por archivo')
+        info = probe(path)
+        sha = digest(path)
+        if before != identity(path):
+            raise Conflict('El archivo cambió durante la importación')
+        key = uuid.uuid4().hex
+        edl['sources'][key] = {**info, **before, 'path': relative, 'sha256': sha,
+                              'original_name': original_name or path.name, 'imported_at': studio.now(), 'origin': origin}
+        return _commit(pid, value, edl, origin, 'import')
+
+
+def _item(items, key):
+    return next(item for item in items if item['id'] == key)
+
+
+def duration(edl):
+    fps = edl['output']['fps']
+    return sum(frames(c, fps) / fps for c in edl['cuts'])
+
+
+def frames(clip, fps):
+    # Match browser Math.round for nonnegative times, including half frames.
+    return math.floor((clip['out_seconds'] - clip['in_seconds']) / clip['speed'] * fps + .5)
+
+
+def command(pid, data, origin='user'):
+    if origin not in ('user', 'agent'):
+        raise ValueError('Procedencia desconocida')
+    with guard(pid, origin):
+        value = state(pid)
+        _revision(value, data.get('revision'))
+        op = data.get('operation')
+        if op in ('undo', 'redo'):
+            source, target = ('undo', 'redo') if op == 'undo' else ('redo', 'undo')
+            if not value[source]:
+                raise ValueError('No hay operaciones para ' + op)
+            value[target].append(value['edit_decisions'])
+            value['edit_decisions'] = value[source].pop()
+            return _write(pid, value, origin, op)
+        edl = deepcopy(value['edit_decisions'])
+        try:
+            if op == 'add':
+                source = edl['sources'][data['source_id']]
+                item = {'id': uuid.uuid4().hex, 'source': source['path'], 'source_id': data['source_id'],
+                        'in_seconds': 0, 'out_seconds': source['duration'], 'speed': 1, 'muted': False,
+                        'gain': 1, 'fade_in': 0, 'fade_out': 0, 'start_seconds': 0}
+                edl['cuts' if source['kind'] == 'video' else 'audio_tracks'].append(item)
+            elif op in ('trim', 'split', 'remove', 'move', 'clip'):
+                if data.get('track', 'video') not in ('video', 'audio'):
+                    raise ValueError('Pista desconocida')
+                items = edl['audio_tracks'] if data.get('track') == 'audio' else edl['cuts']
+                item = _item(items, data['id'])
+                index = items.index(item)
+                if op == 'remove':
+                    items.remove(item)
+                elif op == 'move':
+                    position = data['index']
+                    if type(position) is not int or not 0 <= position < len(items):
+                        raise ValueError('Posición fuera de la pista')
+                    items.insert(position, items.pop(index))
+                elif op == 'split':
+                    at = number(data['at'], item['in_seconds'] + .001, item['out_seconds'] - .001)
+                    second = {**item, 'id': uuid.uuid4().hex, 'in_seconds': at}
+                    if data.get('track') == 'audio':
+                        second['start_seconds'] += (at - item['in_seconds']) / item['speed']
+                    item['out_seconds'] = at
+                    items.insert(index + 1, second)
+                elif op == 'trim':
+                    start = number(data['in_seconds'])
+                    end = number(data['out_seconds'], start + .001, edl['sources'][item['source_id']]['duration'])
+                    item.update(in_seconds=start, out_seconds=end)
+                else:
+                    for key in ('speed', 'gain', 'fade_in', 'fade_out', 'start_seconds'):
+                        if key in data:
+                            item[key] = number(data[key], .25 if key == 'speed' else 0,
+                                               4 if key in ('speed', 'gain') else 7200)
+                    if 'muted' in data:
+                        if type(data['muted']) is not bool:
+                            raise ValueError('Silencio requiere un booleano')
+                        item['muted'] = data['muted']
+            elif op == 'output':
+                if data['ratio'] not in PRESETS:
+                    raise ValueError('Formato no admitido')
+                fps = data.get('fps', 24)
+                if fps not in (24, 25, 30, 60):
+                    raise ValueError('FPS no admitidos')
+                edl['output'] = {'ratio': data['ratio'], 'fps': fps, 'fit': 'pad'}
+            elif op == 'subtitles':
+                edl['cues'] = parse_srt(data['srt'], duration(edl)) if data['srt'].strip() else []
+                if data.get('source_name'):
+                    name = data['source_name']
+                    if not isinstance(name, str) or len(name) > 240:
+                        raise ValueError('Nombre SRT inválido')
+                    relative = 'assets/imports/' + uuid.uuid4().hex + '.srt'
+                    target = studio.project_path(pid) / relative
+                    target.parent.resolve().relative_to(studio.project_path(pid).resolve())
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(data['srt'], encoding='utf-8')
+                    edl.setdefault('subtitle_sources', []).append({'path': relative, 'original_name': name,
+                        'sha256': digest(target), 'bytes': target.stat().st_size, 'origin': origin, 'imported_at': studio.now()})
+            elif op in ('cue_update', 'cue_split', 'cue_merge', 'cue_offset'):
+                cues = edl['cues']
+                if op == 'cue_offset':
+                    offset = number(data['seconds'], -7200, 7200)
+                    for cue in cues:
+                        cue['start_seconds'] += offset
+                        cue['end_seconds'] += offset
+                else:
+                    index = data['index']
+                    if type(index) is not int or not 0 <= index < len(cues):
+                        raise ValueError('Subtítulo no encontrado')
+                    cue = cues[index]
+                    if op == 'cue_update':
+                        cue.update(start_seconds=number(data['start_seconds']), end_seconds=number(data['end_seconds']), text=data['text'])
+                    elif op == 'cue_split':
+                        at = number(data['at'], cue['start_seconds'] + .001, cue['end_seconds'] - .001)
+                        text_index = data['text_index']
+                        if type(text_index) is not int or not 0 < text_index < len(cue['text']):
+                            raise ValueError('Indica dónde dividir el texto')
+                        second = {**cue, 'start_seconds': at, 'text': cue['text'][text_index:].strip()}
+                        cue.update(end_seconds=at, text=cue['text'][:text_index].strip())
+                        cues.insert(index + 1, second)
+                    else:
+                        if index + 1 >= len(cues):
+                            raise ValueError('No hay subtítulo siguiente')
+                        following = cues.pop(index + 1)
+                        cue.update(end_seconds=following['end_seconds'], text=cue['text'] + '\n' + following['text'])
+                edl['cues'] = parse_srt(srt(edl), duration(edl)) if cues else []
+            elif op == 'subtitle_style':
+                size = number(data['size'], 12, 96)
+                if data['position'] not in ('bottom', 'center', 'top') or data.get('mode', 'soft') not in ('soft', 'burn'):
+                    raise ValueError('Posición no admitida')
+                edl['subtitle_style'] = {'size': size, 'position': data['position'], 'mode': data.get('mode', 'soft')}
+            elif op == 'save':
+                # Every mutation is already an atomic save. This records an explicit checkpoint.
+                return _write(pid, value, origin, op)
+            else:
+                raise ValueError('Operación aún no disponible')
+        except (KeyError, StopIteration) as exc:
+            raise ValueError('Fuente, clip o parámetro no encontrado') from exc
+        if len(edl['cuts']) + len(edl['audio_tracks']) > 200 or duration(edl) > 7200:
+            raise ValueError('Límite local: 200 clips y dos horas')
+        if any((c['out_seconds'] - c['in_seconds']) / c['speed'] < 1 / edl['output']['fps'] - 1e-9 for c in edl['cuts']):
+            raise ValueError('Cada clip de vídeo debe durar al menos un fotograma de salida')
+        if edl['cues'] and max(c['end_seconds'] for c in edl['cues']) > duration(edl) + .02:
+            raise ValueError('El montaje dejaría subtítulos fuera de duración; ajusta sus tiempos primero')
+        return _commit(pid, value, edl, origin, op)
+
+
+def srt(edl):
+    def stamp(seconds):
+        ms = round(seconds * 1000)
+        return f'{ms // 3600000:02}:{ms // 60000 % 60:02}:{ms // 1000 % 60:02},{ms % 1000:03}'
+    return '\n\n'.join(f"{i}\n{stamp(c['start_seconds'])} --> {stamp(c['end_seconds'])}\n{c['text']}"
+                       for i, c in enumerate(edl['cues'], 1)) + ('\n' if edl['cues'] else '')
+
+
+def source(pid, source_id):
+    edl = state(pid)['edit_decisions']
+    try:
+        info = edl['sources'][source_id]
+    except KeyError as exc:
+        raise ValueError('Fuente no encontrada') from exc
+    path = media_path(studio.project_path(pid), info['path'])
+    if identity(path) != {key: info[key] for key in ('bytes', 'mtime_ns')}:
+        raise Conflict('El medio cambió desde su importación; vuelve a importarlo')
+    return path
