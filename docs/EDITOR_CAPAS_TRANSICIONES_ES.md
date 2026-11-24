@@ -19,8 +19,11 @@ velocidad, rectángulo normalizado X/Y/anchura/altura y opacidad. Hasta4 capas.
 Guardar, actualizar, quitar y subir/bajar orden son transacciones reales.
 La última capa es superior; títulos/subtítulos quemados quedan sobre las capas.
 Pistas adicionales permiten seleccionarlas. Las capas deben caber en el lienzo
-y en el tiempo del montaje. Reducciones que las dejarían fuera se rechazan con
-error claro; ajustar sus tiempos primero, incluso mediante un batch atómico.
+y en el tiempo del montaje. El borrado con cierre global de vídeo ajusta sus
+intervalos y los de títulos/audio/cues/marcadores conjuntamente, con recorte o
+división de fuente cuando corresponde. Otros recortes/reordenaciones que las
+dejarían fuera se rechazan con error claro; ajustar sus tiempos primero, incluso
+mediante un batch atómico. Véase `CORRECCION_RIPPLE_CAPAS_ES.md`.
 
 Se componen con FFmpeg overlay, con PTS de inicio, intervalo habilitado y
 `eof_action=pass:repeatlast=0`. La imagen no permanece después del intervalo.

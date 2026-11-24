@@ -34,11 +34,17 @@ Ejemplos de objetos `command`; añade siempre la `revision` obtenida de `read`:
   misma procedencia. En audio cada copia empieza al terminar su original.
 - **Borrar con hueco** conserva tiempos mediante un clip real de negro/silencio,
   generado por el compositor, sin sustituirlo por un dibujo CSS.
-- **Borrar con cierre global** elimina intervalos y ajusta audio/cues/marcadores.
-  El audio que cruza un intervalo se divide en segmentos conservados y convierte
-  sus tiempos a fuente incluyendo velocidad. Los cues recortan su intervalo;
+- **Borrar con cierre global** sobre vídeo elimina intervalos y ajusta
+  audio/capas/títulos/cues/marcadores con el mismo reloj.
+  Audio y capas que cruzan un intervalo se dividen en segmentos conservados y
+  convierten sus tiempos a fuente incluyendo velocidad. Títulos y cues recortan
+  o dividen su intervalo, conservando texto y estilo;
   los marcadores dentro de lo eliminado desaparecen y los siguientes se desplazan.
   La transacción completa se rechaza si movería clips bloqueados.
+  IDs existentes se conservan en la primera parte retenida y las partes
+  adicionales reciben IDs nuevos; deshacer/rehacer recupera exactamente esos IDs.
+  Límites de4 capas/20 títulos o fragmentos de capa menores de un fotograma
+  rechazan la operación completa, sin descartar elementos silenciosamente.
 - **Entrada de audio** guarda recorte y posición juntos, manteniendo el extremo
   derecho. El borde de la interfaz no deja dos operaciones a medio aplicar.
 - **Mute/solo/bloqueo** son de clip, no grupos de pistas inexistentes. Solo aísla

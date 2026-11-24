@@ -49,6 +49,8 @@ def apply_composition(edl, data):
 def validate_composition(edl):
     from lib import studio_editor as edit
     fps=edl['output']['fps'];cuts=edl['cuts']
+    if len(edl.get('layers', [])) > 4 or len(edl.get('titles', [])) > 20:
+        raise ValueError('El montaje excedería el límite de4 capas o20 títulos; ajusta sus intervalos primero')
     for index,item in enumerate(cuts):
         incoming=item.get('transition',{}).get('duration_seconds',0)
         outgoing=cuts[index+1].get('transition',{}).get('duration_seconds',0) if index+1<len(cuts) else 0
