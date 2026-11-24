@@ -19,7 +19,7 @@ CATALOG={
  'solvespace':{'label':'SolveSpace','purpose':'Diseñar geometría y mecanismos','executables':['solvespace.exe','solvespace_single_core_x64.exe'],'extensions':['.slvs'],'mode':'desktop'},
  'blender':{'label':'Blender','automation_tools':['blender_world'],'purpose':'Crear escenas y animación 3D','executables':['blender.exe','blender'],'extensions':['.blend'],'mode':'desktop'},
  'freecad':{'label':'FreeCAD','purpose':'Preparar modelos CAD','executables':['FreeCAD.exe','FreeCAD'],'extensions':['.FCStd'],'mode':'desktop'},
- 'qgis':{'label':'QGIS','purpose':'Preparar mapas y escenas geográficas','executables':['qgis-bin.exe','qgis-ltr-bin.exe','qgis'],'extensions':['.qgs','.qgz'],'mode':'desktop'},
+ 'qgis':{'label':'QGIS','purpose':'Preparar mapas y escenas geográficas','executables':['qgis-bin.exe','qgis-ltr-bin.exe','qgis'],'extensions':['.qgs','.qgz'],'mode':'desktop','numeric_tools':['qgis_coordinates']},
 }
 CHILDREN={}
 LOCK=threading.Lock()

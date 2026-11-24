@@ -16,7 +16,7 @@ class LocalApplicationInventory(BaseTool):
         try:
             validate(inputs, self.input_schema)
             from lib.external_applications import catalog
-            fields = ('id', 'label', 'mode', 'configured', 'file_found', 'extensions', 'automation_tools', 'inspection_tools', 'integration')
+            fields = ('id', 'label', 'mode', 'configured', 'file_found', 'extensions', 'automation_tools', 'inspection_tools', 'numeric_tools', 'integration')
             return ToolResult(success=True, data={'applications': [
                 {key: row[key] for key in fields if key in row} for row in catalog()],
                 'scope': 'registration_and_file_presence_only', 'applications_launched': False,

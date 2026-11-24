@@ -529,6 +529,12 @@ def create_studio_router():
         result=KritaDocumentInspect().execute(await body(request))
         if not result.success:raise HTTPException(400,result.error)
         return result.data
+    @router.post('/api/studio/applications/qgis/transform')
+    async def qgis_coordinate_transform(request:Request):
+        from tools.analysis.qgis_coordinates import QgisCoordinates
+        result=await asyncio.to_thread(QgisCoordinates().execute,await body(request,limit=100000))
+        if not result.success:raise HTTPException(400,result.error)
+        return result.data
     @router.post('/api/studio/applications/{identifier}')
     async def application_configure(identifier:str,request:Request):
         from lib.external_applications import configure
