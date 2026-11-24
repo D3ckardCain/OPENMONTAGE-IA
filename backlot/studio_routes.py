@@ -748,11 +748,12 @@ def create_studio_router():
         from lib import model_validation as checks
         return invoke(checks.review,identifier,await body(request))
     @router.get('/api/studio/tools')
-    async def tools():
+    async def tools(name:str=Query('',max_length=100),capability:str=Query('',max_length=100)):
         def discover():
             from tools.tool_registry import registry
             registry.ensure_discovered()
             return [{'name':t.name,'capability':t.capability,'runtime':t.runtime.value,'status':t.get_status().value,
-                     'install_instructions':t.install_instructions} for t in registry._tools.values() if agent.LocalAgent.permitted(t)]
+                     'install_instructions':t.install_instructions} for t in registry._tools.values()
+                    if agent.LocalAgent.permitted(t) and (not name or t.name==name) and (not capability or t.capability==capability)]
         return await asyncio.to_thread(discover)
     return router

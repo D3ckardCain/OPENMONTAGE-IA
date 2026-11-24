@@ -19,7 +19,20 @@ Detalles y huellas en `COORDENADAS_DEPORTIVAS_ES.md`, `BIBLIOTECAS_AISLADAS_ES.m
 
 La PR #1 usa otra rama (`feat/zero-cost-local-policy`). Sus documentos se localizaron en el commit `3a4fb6658020ea9d5be556d6c859fae1bbc2abdc`; no estaban perdidos ni pertenecen automáticamente a la rama actual. El [manifiesto adicional histórico](https://github.com/D3ckardCain/OPENMONTAGE-IA/blob/3a4fb6658020ea9d5be556d6c859fae1bbc2abdc/docs/model_download_manifest_additional.json) contiene 189 archivos y 26 grupos de modelos. Su declaración es metadatos remotos, no certificación de descargas locales ni de licencias comerciales de cada componente. El [diseño histórico de agentes](https://github.com/D3ckardCain/OPENMONTAGE-IA/blob/3a4fb6658020ea9d5be556d6c859fae1bbc2abdc/docs/AUTOMATIZACION_AGENTES.md) se conserva como referencia, sin reemplazar el contrato actual.
 
-No se fusionan PRs, no se publican vídeos ni se activan proveedores comerciales. Las fases de inferencia, calidad, rendimiento RAM/VRAM y producción con datos reales siguen sin acreditarse y quedan fuera de esta validación sin contenido. Configuraciones privadas, entornos, ejecutables y pesos permanecen fuera de los commits.
+No se fusionan PRs, no se publican vídeos ni se activan proveedores comerciales. Las fases de inferencia de producción, calidad creativa, rendimiento sostenido RAM/VRAM y producción con datos reales siguen sin acreditarse. La prueba sintética de herramientas descrita abajo tiene un alcance separado. Configuraciones privadas, entornos, ejecutables y pesos permanecen fuera de los commits.
+
+## Continuación funcional
+
+| Seguimiento | Conexión validada | Alcance pendiente |
+|---|---|---|
+| #28 | Inventario al agente e inspección KRA por API/execute_tool | Pintura, edición y apariencia en #7 |
+| #29 | PyQGIS real: WGS84/Web Mercator, API/execute_tool, perfil aislado | Capas, mapas, exactitud topográfica y render |
+| #30 | FreeCAD.Units real: parámetros y unidades por API/execute_tool | Modelado, fabricación y geometría |
+| #31 | Lectura KVA2.1 y tiempos declarados, API/execute_tool | Vídeo real, tracking y mediciones espaciales |
+| #32 | Qwen3 local solicita una llamada y el puente ejecuta una conversión nativa | Director multietapa, catálogo/contexto completo y calidad |
+| #33 | Consulta HTTP de herramientas por nombre/capacidad antes de sondear estados | La carga inicial de módulos sigue existiendo |
+
+Los paquetes y aperturas ya preparados en #8–#16 no se repiten. Las bibliotecas #21–#25 conservan sus diagnósticos y limitaciones documentados; imports de MuseTalk o TVCalib no acreditan inferencia de medios. La preparación de conectores y estas operaciones de lectura/cálculo no completan la automatización integral del inventario #3. Los resultados de producción, pintura, audio, vídeo, mapas y geometría requieren su fase de validación correspondiente; no se ejecutaron dentro de esta continuación.
 
 ## Pruebas de la continuación
 
