@@ -1,0 +1,461 @@
+{
+  "observed_at_utc": "2026-11-24T15:09:33.003733+00:00",
+  "scope": "only qwen_3_4b.safetensors discrepancy",
+  "expected_sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+  "historical_local_sha256": "a5e1c4ed3f2d45531da55eaa977e44e40b8cfde7c2ebc53a5288b9573c3f45bc",
+  "historical_cache": {
+    "status": "hashed",
+    "fingerprint": {
+      "size_bytes": 8044982048,
+      "mtime_ns": 1794269667701936900,
+      "ctime_ns": 1794452246899667000,
+      "device": 2728866502,
+      "inode": 562949953421356
+    },
+    "sha256": "a5e1c4ed3f2d45531da55eaa977e44e40b8cfde7c2ebc53a5288b9573c3f45bc",
+    "git_blob_sha1": "8905eefc79c5f62f48056c5c4f976bee73c58e76",
+    "hashed_at_utc": "2026-11-24T14:51:25.271601+00:00",
+    "cache_reused": false
+  },
+  "original_volume_status": "D unavailable; not revalidated",
+  "scans": [
+    {
+      "root": "E:/OPENMONTAJE-IA",
+      "status": "scanned",
+      "files_seen": 1645
+    },
+    {
+      "root": "C:/OPENMONTAGE-IA",
+      "status": "scanned",
+      "files_seen": 15866
+    },
+    {
+      "root": "C:/OPENMONTAJE-IA",
+      "status": "absent_on_connected_volume"
+    },
+    {
+      "root": "%USERPROFILE%/Downloads",
+      "status": "scanned",
+      "files_seen": 606
+    },
+    {
+      "root": "%USERPROFILE%/.cache/huggingface",
+      "status": "scanned",
+      "files_seen": 2
+    },
+    {
+      "root": "%USERPROFILE%/.cache/torch",
+      "status": "absent_on_connected_volume"
+    },
+    {
+      "root": "%USERPROFILE%/.lmstudio/models",
+      "status": "absent_on_connected_volume"
+    }
+  ],
+  "scan_errors": [],
+  "candidates": [],
+  "cache_reused_available_paths": 0,
+  "new_content_bytes_read": 0,
+  "official_repo": "Comfy-Org/flux2-klein-4B",
+  "official_history": [
+    {
+      "revision": "5b3abca5c0dc1ecd4eaf3340868d09063fc1c965",
+      "date": "2026-10-28T02:47:51.000Z",
+      "title": "Update README.md",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/5b3abca5c0dc1ecd4eaf3340868d09063fc1c965/split_files/text_encoders"
+    },
+    {
+      "revision": "533c4cbc3d3b89af1743d9466c434e89810391c0",
+      "date": "2026-10-22T21:23:03.000Z",
+      "title": "Update README.md",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/533c4cbc3d3b89af1743d9466c434e89810391c0/split_files/text_encoders"
+    },
+    {
+      "revision": "fd2f934b35eafc5948a8983abc2919289945f8eb",
+      "date": "2026-10-22T21:09:06.000Z",
+      "title": "Update README.md",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/fd2f934b35eafc5948a8983abc2919289945f8eb/split_files/text_encoders"
+    },
+    {
+      "revision": "87cfba3d4b98662fb80f23921bb37bf887c97c58",
+      "date": "2026-10-22T09:14:30.000Z",
+      "title": "Add ComfyUI workflow template links (#8)",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/87cfba3d4b98662fb80f23921bb37bf887c97c58/split_files/text_encoders"
+    },
+    {
+      "revision": "5f526678002e43af5551dadb73ce2e8c91b43afe",
+      "date": "2026-08-17T06:14:50.000Z",
+      "title": "Normalize README metadata and formatting (#7)",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/5f526678002e43af5551dadb73ce2e8c91b43afe/split_files/text_encoders"
+    },
+    {
+      "revision": "656f889dc12f7abffea742283cad772d4b009371",
+      "date": "2026-08-17T05:01:15.000Z",
+      "title": "Add license metadata (#6)",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/656f889dc12f7abffea742283cad772d4b009371/split_files/text_encoders"
+    },
+    {
+      "revision": "c6ffb44d9b43b6a635fded0c5723173c4bcca257",
+      "date": "2026-08-14T22:34:41.000Z",
+      "title": "Add ComfyUI model installation guide (#5)",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/c6ffb44d9b43b6a635fded0c5723173c4bcca257/split_files/text_encoders"
+    },
+    {
+      "revision": "a9e4ca87c16db4c4e1a16406a9ddb300ab0ae246",
+      "date": "2026-01-15T15:43:01.000Z",
+      "title": "Upload split_files/vae/flux2-vae.safetensors with huggingface_hub",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/a9e4ca87c16db4c4e1a16406a9ddb300ab0ae246/split_files/text_encoders"
+    },
+    {
+      "revision": "7702295aa65bf7c2aba9200a515f98e991f0097a",
+      "date": "2026-01-15T03:47:03.000Z",
+      "title": "Rename split_files/diffusion_models/flux2-klein-base-4b.safetensors to split_files/diffusion_models/flux-2-klein-base-4b.safetensors",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/7702295aa65bf7c2aba9200a515f98e991f0097a/split_files/text_encoders"
+    },
+    {
+      "revision": "adabe6c3c8bdcc9cb1f27b25729b70924961c223",
+      "date": "2026-01-15T03:46:16.000Z",
+      "title": "Upload ./split_files/diffusion_models/flux-2-klein-4b.safetensors with huggingface_hub",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/adabe6c3c8bdcc9cb1f27b25729b70924961c223/split_files/text_encoders"
+    },
+    {
+      "revision": "51aa745306591355469fcbdfce597a499af8ad32",
+      "date": "2026-01-15T03:40:27.000Z",
+      "title": "Upload ./split_files/diffusion_models/flux2-klein-base-4b.safetensors with huggingface_hub",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/51aa745306591355469fcbdfce597a499af8ad32/split_files/text_encoders"
+    },
+    {
+      "revision": "8556e4d870cda7c53c7942b190bfeea5be9bd411",
+      "date": "2026-01-15T03:38:01.000Z",
+      "title": "Upload ./split_files/text_encoders/qwen_3_4b.safetensors with huggingface_hub",
+      "file_present": true,
+      "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "size_bytes": 8044982048,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/8556e4d870cda7c53c7942b190bfeea5be9bd411/split_files/text_encoders"
+    },
+    {
+      "revision": "1f52fa6a526ff84b01520be049b63f7835fe059f",
+      "date": "2026-01-15T03:34:05.000Z",
+      "title": "Upload ./split_files/text_encoders/qwen_3_4b_fp4_flux2.safetensors with huggingface_hub",
+      "file_present": false,
+      "sha256": null,
+      "size_bytes": null,
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/1f52fa6a526ff84b01520be049b63f7835fe059f/split_files/text_encoders"
+    },
+    {
+      "revision": "fc03b5e88e6066b752f5ff1d584d723d174502e1",
+      "source": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/fc03b5e88e6066b752f5ff1d584d723d174502e1/split_files/text_encoders",
+      "status": "path_not_present",
+      "http_status": 404
+    }
+  ],
+  "history_returned_commits": 14,
+  "official_match_for_historical_local": false,
+  "download_preparation": {
+    "url": "https://huggingface.co/Comfy-Org/flux2-klein-4B/resolve/5b3abca5c0dc1ecd4eaf3340868d09063fc1c965/split_files/text_encoders/qwen_3_4b.safetensors",
+    "revision": "5b3abca5c0dc1ecd4eaf3340868d09063fc1c965",
+    "size_bytes": 8044982048,
+    "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+    "license": "Apache-2.0 declared in pinned repo",
+    "new_destination": "E:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models/text_encoders/candidates/qwen_3_4b-5b3abca5-6c671498.safetensors",
+    "downloaded": false
+  },
+  "additional_official_histories": [
+    {
+      "repo": "Comfy-Org/z_image_turbo",
+      "head_revision": "6fc90a3b1b653e935a0d175e260736de25b84df5",
+      "license": "apache-2.0",
+      "returned_commits": 16,
+      "history": [
+        {
+          "revision": "6fc90a3b1b653e935a0d175e260736de25b84df5",
+          "date": "2026-09-23T08:02:57.000Z",
+          "title": "Add ComfyUI workflow template links (#29)",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/6fc90a3b1b653e935a0d175e260736de25b84df5/split_files/text_encoders"
+        },
+        {
+          "revision": "08d04455279082882deaabc8d0d09fc914c071e1",
+          "date": "2026-08-17T06:15:14.000Z",
+          "title": "Normalize README metadata and formatting (#26)",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/08d04455279082882deaabc8d0d09fc914c071e1/split_files/text_encoders"
+        },
+        {
+          "revision": "c1ae8140c9101bdc569d24510b32615c24827b7f",
+          "date": "2026-08-17T04:44:36.000Z",
+          "title": "Complete Z-Image Turbo README (#25)",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/c1ae8140c9101bdc569d24510b32615c24827b7f/split_files/text_encoders"
+        },
+        {
+          "revision": "d24c4cf2a0cd98a42f23467e27e3d76ee9438b8e",
+          "date": "2026-07-02T13:20:16.000Z",
+          "title": "Upload split_files/diffusion_models/z_image_turbo_int8_convrot.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/d24c4cf2a0cd98a42f23467e27e3d76ee9438b8e/split_files/text_encoders"
+        },
+        {
+          "revision": "2f862278568d3f0a83167a16e5f11094da6dee72",
+          "date": "2026-01-10T04:11:54.000Z",
+          "title": "Upload split_files/text_encoders/qwen_3_4b_fp8_mixed.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/2f862278568d3f0a83167a16e5f11094da6dee72/split_files/text_encoders"
+        },
+        {
+          "revision": "46a5866e80396fb4f5577a6a8a366013a4fd4096",
+          "date": "2026-01-10T04:10:16.000Z",
+          "title": "Upload split_files/text_encoders/qwen_3_4b_fp4_mixed.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/46a5866e80396fb4f5577a6a8a366013a4fd4096/split_files/text_encoders"
+        },
+        {
+          "revision": "0382f08714102ee87ca4d28f6d87a03d4242671b",
+          "date": "2026-01-06T00:22:34.000Z",
+          "title": "Upload ./split_files/diffusion_models/z_image_turbo_nvfp4.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/0382f08714102ee87ca4d28f6d87a03d4242671b/split_files/text_encoders"
+        },
+        {
+          "revision": "fbd9544aa497fbc5cdfe05999e932d2522106601",
+          "date": "2025-12-19T16:11:38.000Z",
+          "title": "Upload z_image_turbo_distill_patch_lora_bf16.safetensors",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/fbd9544aa497fbc5cdfe05999e932d2522106601/split_files/text_encoders"
+        },
+        {
+          "revision": "4f1e20c3aeca13aae20e46ff5fee8e37cd1278fc",
+          "date": "2025-11-27T04:15:24.000Z",
+          "title": "Upload z_image_convert_original_to_comfy.py",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/4f1e20c3aeca13aae20e46ff5fee8e37cd1278fc/split_files/text_encoders"
+        },
+        {
+          "revision": "835382f6b7b1b0df2f3a76845a858f6ae37e559a",
+          "date": "2025-11-26T20:43:40.000Z",
+          "title": "Update README.md",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/835382f6b7b1b0df2f3a76845a858f6ae37e559a/split_files/text_encoders"
+        },
+        {
+          "revision": "93fae7d7f6189cc408fdd7cec36c91447b8506a2",
+          "date": "2025-11-26T20:18:37.000Z",
+          "title": "Rename split_files/ae.safetensors to split_files/vae/ae.safetensors",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/93fae7d7f6189cc408fdd7cec36c91447b8506a2/split_files/text_encoders"
+        },
+        {
+          "revision": "d9885880b38188695c94f656eee9f76b3ea805f3",
+          "date": "2025-11-26T20:18:05.000Z",
+          "title": "Upload ae.safetensors",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/d9885880b38188695c94f656eee9f76b3ea805f3/split_files/text_encoders"
+        },
+        {
+          "revision": "429cce00bd1829a3dfd6c57c3204772542876215",
+          "date": "2025-11-26T01:22:14.000Z",
+          "title": "Upload ./split_files/text_encoders/qwen_3_4b.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/429cce00bd1829a3dfd6c57c3204772542876215/split_files/text_encoders"
+        },
+        {
+          "revision": "4895ae2dfb1431b12904ae792c7ec0a1770b6f55",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/4895ae2dfb1431b12904ae792c7ec0a1770b6f55/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        },
+        {
+          "revision": "d6d4e74bc9c2c29b2e36c840e7fdd47d2e688ad8",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/d6d4e74bc9c2c29b2e36c840e7fdd47d2e688ad8/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        },
+        {
+          "revision": "4e900e57276f2776b07c34b2149c04471063ca22",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image_turbo/tree/4e900e57276f2776b07c34b2149c04471063ca22/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        }
+      ]
+    },
+    {
+      "repo": "Comfy-Org/z_image",
+      "head_revision": "94d47a468ec820d29a5dc09d4642539d76d49542",
+      "license": "apache-2.0",
+      "returned_commits": 14,
+      "history": [
+        {
+          "revision": "94d47a468ec820d29a5dc09d4642539d76d49542",
+          "date": "2026-09-23T08:03:07.000Z",
+          "title": "Add ComfyUI workflow template links (#14)",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/94d47a468ec820d29a5dc09d4642539d76d49542/split_files/text_encoders"
+        },
+        {
+          "revision": "f2278092b6599e2907bb04cf70789d3fa114ddee",
+          "date": "2026-08-17T06:15:09.000Z",
+          "title": "Normalize README metadata and formatting (#12)",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/f2278092b6599e2907bb04cf70789d3fa114ddee/split_files/text_encoders"
+        },
+        {
+          "revision": "284fc80470e15ba3b71c87d3f9c0ed3ff9a97367",
+          "date": "2026-08-17T05:01:44.000Z",
+          "title": "Add license metadata (#11)",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/284fc80470e15ba3b71c87d3f9c0ed3ff9a97367/split_files/text_encoders"
+        },
+        {
+          "revision": "472f253f63a4eacb7fbdb095ab8d482e53672321",
+          "date": "2026-08-14T22:35:06.000Z",
+          "title": "Add ComfyUI model installation guide (#10)",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/472f253f63a4eacb7fbdb095ab8d482e53672321/split_files/text_encoders"
+        },
+        {
+          "revision": "eaf9ea44e47ed9778f02d8c92efdc398b6cccea3",
+          "date": "2026-07-02T13:23:31.000Z",
+          "title": "Rename split_files/diffusion_models/zimage_int8_convrot.safetensors to split_files/diffusion_models/z_image_int8_convrot.safetensors",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/eaf9ea44e47ed9778f02d8c92efdc398b6cccea3/split_files/text_encoders"
+        },
+        {
+          "revision": "cde3bc1844713cf31e8005f85163fda3fc11cf9b",
+          "date": "2026-07-02T13:23:19.000Z",
+          "title": "Upload split_files/diffusion_models/zimage_int8_convrot.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/cde3bc1844713cf31e8005f85163fda3fc11cf9b/split_files/text_encoders"
+        },
+        {
+          "revision": "793c2712165203d1ddf07e550a66fc3562c2fbb8",
+          "date": "2026-01-27T16:10:00.000Z",
+          "title": "Upload split_files/text_encoders/qwen_3_4b_fp8_mixed.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/793c2712165203d1ddf07e550a66fc3562c2fbb8/split_files/text_encoders"
+        },
+        {
+          "revision": "938ac53c1457b852fc3361bb47f176b2a2f3341b",
+          "date": "2026-01-27T16:09:12.000Z",
+          "title": "Upload split_files/text_encoders/qwen_3_4b_fp4_mixed.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/938ac53c1457b852fc3361bb47f176b2a2f3341b/split_files/text_encoders"
+        },
+        {
+          "revision": "b07c988369999bc63e43df37a7928c5b1ef326e3",
+          "date": "2026-01-27T16:07:22.000Z",
+          "title": "Upload split_files/text_encoders/qwen_3_4b.safetensors with huggingface_hub",
+          "file_present": true,
+          "size_bytes": 8044982048,
+          "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/b07c988369999bc63e43df37a7928c5b1ef326e3/split_files/text_encoders"
+        },
+        {
+          "revision": "b4924d676513e728754668e1813533deabb0c44a",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/b4924d676513e728754668e1813533deabb0c44a/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        },
+        {
+          "revision": "b022299fd3c717c0d49e1ffa0cbb26cc82fadf5c",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/b022299fd3c717c0d49e1ffa0cbb26cc82fadf5c/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        },
+        {
+          "revision": "5211935d4120bfb5d10fd34bea55e5a495b462ee",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/5211935d4120bfb5d10fd34bea55e5a495b462ee/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        },
+        {
+          "revision": "c4ee66579e9d8bccb42e081f0858732ff4fc0af8",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/c4ee66579e9d8bccb42e081f0858732ff4fc0af8/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        },
+        {
+          "revision": "b8c638cc60a53ae59ee4b207c2347e62fc81cb63",
+          "source": "https://huggingface.co/api/models/Comfy-Org/z_image/tree/b8c638cc60a53ae59ee4b207c2347e62fc81cb63/split_files/text_encoders",
+          "status": "path_not_present",
+          "http_status": 404
+        }
+      ]
+    }
+  ],
+  "total_official_revisions_checked": 44
+}
