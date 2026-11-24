@@ -1,6 +1,7 @@
 """Allowlisted dependency diagnostics and synthetic checks, never media production."""
 import importlib.metadata as metadata
 import json
+import math
 from pathlib import Path
 import sys
 
@@ -95,11 +96,81 @@ def check(name):
             'weights_loaded': False, 'cuda_validated': False}
 
 
+def operate(name, data):
+    """Functional operations use the same isolated runtimes and offline guard."""
+    if name != 'socceraction':
+        raise ValueError('LIBRARY_OPERATION_UNSUPPORTED')
+    import pandas as pd
+    from socceraction.spadl.schema import SPADLSchema
+    from socceraction.spadl import config
+    if data.get('coordinate_system') != 'spadl_105x68_bottom_left_home_to_right':
+        raise ValueError('SPADL_COORDINATES_REQUIRED: declara el marco SPADL 105x68, metros, origen inferior izquierdo y local hacia la derecha')
+    rows = data.get('actions')
+    if not isinstance(rows, list) or not 1 <= len(rows) <= 1000:
+        raise ValueError('SPADL_INPUT_INVALID: indica 1–1000 acciones')
+    required = {'game_id', 'original_event_id', 'action_id', 'period_id', 'time_seconds', 'team_id', 'player_id',
+                'start_x', 'start_y', 'end_x', 'end_y', 'bodypart_id', 'type_id', 'result_id'}
+    optional = {'bodypart_name', 'type_name', 'result_name'}
+    issues, seen = [], set()
+    for i, row in enumerate(rows):
+        if not isinstance(row, dict) or set(row) - required - optional or required - set(row):
+            issues.append({'row': i, 'field': 'columns', 'reason': 'missing_or_unknown_columns'})
+            continue
+        for field in ('action_id', 'period_id', 'bodypart_id', 'type_id', 'result_id'):
+            if type(row[field]) is not int or row[field] < 0:
+                issues.append({'row': i, 'field': field, 'reason': 'integer_required_no_lossy_coercion'})
+        for field in ('game_id', 'team_id', 'player_id', 'original_event_id'):
+            value = row[field]
+            if field == 'original_event_id' and value is None:
+                continue
+            if type(value) not in (str, int) or (isinstance(value, str) and not 1 <= len(value) <= 200):
+                issues.append({'row': i, 'field': field, 'reason': 'identifier_required'})
+        for field in ('time_seconds', 'start_x', 'start_y', 'end_x', 'end_y'):
+            if type(row[field]) not in (int, float) or not math.isfinite(row[field]):
+                issues.append({'row': i, 'field': field, 'reason': 'finite_number_required'})
+        key = (str(type(row['game_id'])), str(row['game_id']), str(row['action_id']))
+        if key in seen:
+            issues.append({'row': i, 'field': 'action_id', 'reason': 'duplicate_action_in_game'})
+        seen.add(key)
+        for field, values in (('bodypart', config.bodyparts), ('type', config.actiontypes), ('result', config.results)):
+            index = row[field + '_id']
+            if field + '_name' in row and (type(index) is not int or not 0 <= index < len(values) or row[field + '_name'] != values[index]):
+                issues.append({'row': i, 'field': field + '_name', 'reason': 'name_id_mismatch'})
+    native_checked = not issues
+    native_issue_count = 0
+    if native_checked:
+        try:
+            # Native schema checks enum IDs, periods, bounds and strict columns.
+            SPADLSchema.validate(pd.DataFrame(rows), lazy=True)
+        except Exception as exc:
+            failures = getattr(exc, 'failure_cases', None)
+            if failures is None:
+                raise
+            native_issue_count = len(failures)
+            issues = [{'row': str(r.get('index')), 'field': str(r.get('column')),
+                       'reason': str(r.get('check'))[:160]} for r in failures.to_dict('records')[:20]]
+    return {'valid': not issues, 'issues': issues[:20], 'issues_truncated': max(native_issue_count, len(issues)) > 20,
+            'action_count': len(rows), 'coordinate_system': data['coordinate_system'],
+            'versions': {key: metadata.version(key) for key in ('socceraction', 'pandera', 'multimethod', 'pandas', 'numpy')},
+            'native_schema': 'socceraction.spadl.schema.SPADLSchema',
+            'native_schema_checked': native_checked,
+            'coordinates_transformed': False, 'provider_events_converted': False,
+            'models_trained': False, 'geometry_generated': False, 'figures_generated': False,
+            'weights_loaded': False, 'model_inference_performed': False}
+
+
 if __name__ == '__main__':
     sys.addaudithook(offline)
     try:
-        report = check(sys.argv[1])
+        if len(sys.argv) == 3 and sys.argv[2] == '--operate':
+            raw = sys.stdin.buffer.read(500001)
+            if not raw or len(raw) > 500000:
+                raise ValueError('LIBRARY_INPUT_INVALID: máximo 500000 bytes')
+            report = operate(sys.argv[1], json.loads(raw))
+        else:
+            report = check(sys.argv[1])
         sys.stdout.buffer.write(json.dumps(report, allow_nan=False).encode('utf-8'))
     except Exception as exc:
-        sys.stdout.buffer.write(json.dumps({'error': 'LIBRARY_DIAGNOSTIC_FAILED: ' + str(exc)[:400]}).encode('utf-8'))
+        prefix = 'LIBRARY_OPERATION_FAILED: ' if '--operate' in sys.argv else 'LIBRARY_DIAGNOSTIC_FAILED: '
+        sys.stdout.buffer.write(json.dumps({'error': prefix + str(exc)[:400]}).encode('utf-8'))
         sys.exit(1)

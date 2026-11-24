@@ -749,6 +749,13 @@ def create_studio_router():
     async def validation_review(identifier:str,request:Request):
         from lib import model_validation as checks
         return invoke(checks.review,identifier,await body(request))
+    @router.post('/api/studio/libraries/socceraction/spadl/validate')
+    async def socceraction_spadl_validate(request:Request):
+        from tools.analysis.socceraction_spadl import SocceractionSpadl
+        result=await asyncio.to_thread(SocceractionSpadl().execute,await body(request,limit=550000))
+        if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
+        return result.data
+
     @router.get('/api/studio/tools')
     async def tools(name:str=Query('',max_length=100),capability:str=Query('',max_length=100)):
         def discover():
