@@ -322,3 +322,16 @@ def test_thread_start_failure_releases_resource(project,monkeypatch):
         render.start(pid,edit.state(pid)['revision'])
     assert pid not in edit.EXPORTING
     assert render.status(pid)['status'] == 'failed'
+
+
+def test_tool_availability_requires_current_editor_api(monkeypatch):
+    from tools.video import studio_project_edit as tool
+    from tools.base_tool import ToolStatus
+    seen=[]
+    def unavailable(path,timeout):
+        seen.append((path,timeout));return {'_error':'not found','_conflict':False}
+    monkeypatch.setattr(tool,'request',unavailable)
+    assert tool.StudioProjectEdit().get_status() == ToolStatus.UNAVAILABLE
+    assert seen == [('projects',2)]
+    monkeypatch.setattr(tool,'request',lambda path,timeout:[])
+    assert tool.StudioProjectEdit().get_status() == ToolStatus.AVAILABLE

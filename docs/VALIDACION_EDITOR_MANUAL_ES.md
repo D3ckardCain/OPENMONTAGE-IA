@@ -18,7 +18,7 @@ La previsualización y la exportación ejecutables comparten `studio_editor_rend
 
 ## Resultados locales
 
-- Resultado final local: **81 passed / 1 skipped en 9.04 s**: editor (32 casos) + producción Studio + contrato de E/S UTF-8. Se reutilizó Python 3.11.9 de `.venv`, añadiendo al proceso de pruebas el `site-packages` del entorno QA ya preparado para disponer de pytest. No se instalaron paquetes ni se cambió ningún entorno.
+- Primera entrega local: **81 passed / 1 skipped en 9.04 s**: editor (32 casos) + producción Studio + contrato de E/S UTF-8. Se reutilizó Python 3.11.9 de `.venv`, añadiendo al proceso de pruebas el `site-packages` del entorno QA ya preparado para disponer de pytest. No se instalaron paquetes ni se cambió ningún entorno.
 - 312 passed: editor + punteros de skills + contratos phase0 (69.38 s).
 - Regresión ampliada con escenas: 92 passed / 1 skipped / **1 failed**. El test antiguo `test_preview_uses_registered_image_and_does_not_advance` falló al leer `scene_batch.json` durante escritura concurrente en Windows (`PermissionError`). La ejecución aislada volvió a fallar. Otra ejecución anterior de editor/escenas/política local había aprobado 41 pruebas. No se oculta el fallo, no se deshabilita el test ni se cambia su timeout. La ampliación opcional de `_ass` mantiene por defecto su salida anterior; el lector de escenas no se modificó. CI Linux y contratos Windows deben evaluarse por separado.
 - `node --check`: módulos de Studio/editor sin errores de sintaxis. No equivale a prueba DOM ni visual.
@@ -41,6 +41,18 @@ No se encontraron medios de validación existentes en `projects/`, `.runtime/qa/
 El job existente `browser-regressions` incorpora cinco casos para 1280×720, 1920×1080, 2560×1440, 3440×1440 y 640×720. El último comprueba reflujo con espacio equivalente al de una ventana 1280 a zoom 200%; **no acredita un ensayo del zoom nativo del navegador**. Cambios de pestaña conservan proyecto, comandos envían revisión exacta, no hay overflow horizontal ni errores JS. Sus datos son JSON sintético, sin medios ni inferencia.
 
 Capturas/JSON se guardan como artifact `studio-editor-layout-<run_id>`. La CI conserva lint, suite completa, contratos Windows/Linux y pruebas de navegador sin red externa; solo se añadió preservación de evidencia, sin quitar checks, ampliar timeouts ni reintentar fallos. Los enlaces y resultados del commit se registran en #92/#3 y PR #2 después de finalizar.
+
+### Primera CI y correcciones derivadas
+
+Commit inicial `16bb3467c8b7b85f3994211e03e75c1f4776a3e6`: [CI completa45442696155](https://github.com/D3ckardCain/OPENMONTAGE-IA/actions/runs/45442696155) aprobada, **3438 passed / 44 skipped / 3 xfailed / 40 subtests passed, 127.04 s**, intento1. Instalación y contratos Windows/Linux aprobados. [Navegador PR45442696241](https://github.com/D3ckardCain/OPENMONTAGE-IA/actions/runs/45442696241) y push45442680676 fallaron: **3 failed / 28 passed**. Los cinco casos nuevos del editor pasaron; fallaron tres regresiones de los flujos existentes. No se declara verde esa entrega.
+
+Causas de esas regresiones: el nuevo inicio Vídeo ocultaba formularios cuando un enlace de canal llevaba `reference/title/brief`; y la regla específica `#legacy-studio` mantenía dos columnas a390px, anulando el reflujo anterior. Se corrige el código para respetar enlaces de preparación de producción y restaurar una columna móvil; **las tres pruebas fallidas se conservan sin cambios**. No hay ampliación de timeout ni reintento de la misma revisión para ocultarlo.
+
+[Artifact inicial14943817081](https://github.com/D3ckardCain/OPENMONTAGE-IA/actions/runs/45442696241/artifacts/14943817081): cinco PNG/cinco JSON, SHA256 ZIP `b2c282dfe6c187fd71b3a88b026884638ed3b2ef2310bdae3e9a7293161fb1d5`. Recuperado mediante GitHub; cinco informes sin overflow horizontal ni errores JS, comandos `output/save` con revisiones0/1. Se inspeccionaron las capturas1920×1080 y640×720: biblioteca, monitor, inspector y pistas presentes con GitHub Dark, sin medios. Eso acredita únicamente la UI sintética de CI, no el panel de Windows ni playback real.
+
+La corrección también hace proporcional la anchura de clips, representa los inicios independientes de audio, añade miniaturas/cursor temporal y reserva estado/importaciones/snapshots frente a escrituras genéricas del agente. El diagnóstico de la herramienta exige una API de editor accesible. Se añaden pruebas de esas reservas y del diagnóstico. El resultado final de la nueva revisión se registra en el issue; no se confunde con el resultado de `16bb3467`.
+
+Regresión local de la corrección: **86 passed / 1 skipped, 11.13 s** (33 casos del editor más producción/UTF-8). Se retienen las verificaciones de error, concurrencia, restricciones de rutas y costo cero; la CI final debe confirmar además los navegadores y todos los contratos.
 
 ## Conservación y trabajo restante
 

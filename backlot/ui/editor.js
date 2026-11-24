@@ -98,12 +98,15 @@ function drawTracks() {
   const box = q('edit-tracks'); box.replaceChildren();
   for (const [track, title, clips] of [['video','Vídeo · cortes secuenciales',edl().cuts],['audio','Audio · tiempos independientes',edl().audio_tracks]]) {
     box.append(element('h3', title)); const lane = element('div',''); lane.className = 'editor-lane editor-' + track;
+    lane.style.backgroundSize=(Number(q('edit-zoom').value)*5)+'px 100%';
     let start = 0;
     for (let index = 0; index < clips.length; index++) {
       const clip = clips[index], button = element('button', edl().sources[clip.source_id].original_name + '\n' + seconds(clip).toFixed(3) + ' s' + (clip.muted ? ' · silencio' : ''));
       button.type = 'button'; button.className = 'editor-clip'; button.draggable = true;
-      button.style.width = Math.max(80, seconds(clip) * Number(q('edit-zoom').value)) + 'px';
+      button.style.width = Math.max(10, seconds(clip) * Number(q('edit-zoom').value)) + 'px';
+      if(track==='audio'){button.style.left=(clip.start_seconds*Number(q('edit-zoom').value))+'px';button.style.top=(index*64+8)+'px';}
       button.title = 'Inicio: ' + (track === 'audio' ? clip.start_seconds : start).toFixed(3) + ' s · seleccionar para editar';
+      if(track==='video'){const thumb=document.createElement('video');thumb.muted=true;thumb.preload='metadata';thumb.src=sourceUrl(clip.source_id)+'#t='+clip.in_seconds;thumb.setAttribute('aria-hidden','true');button.prepend(thumb);}
       button.setAttribute('aria-pressed', String(selection?.id === clip.id));
       button.onclick = () => selectClip(clip, track);
       button.ondragstart = event => event.dataTransfer.setData('application/x-openmontage-clip', JSON.stringify({id:clip.id, track}));
@@ -116,8 +119,17 @@ function drawTracks() {
       lane.append(button); start += seconds(clip);
     }
     if (!clips.length) lane.append(element('p','Añade un medio desde la biblioteca.'));
+    if(track==='audio'&&clips.length){const scale=element('div','');scale.className='editor-audio-scale';scale.style.width=(Math.max(...clips.map(c=>c.start_seconds+seconds(c)))*Number(q('edit-zoom').value))+'px';lane.append(scale);lane.style.height=(clips.length*64+16)+'px';}
+    const cursor=element('div','');cursor.className='editor-playhead';cursor.setAttribute('aria-hidden','true');lane.append(cursor);
     box.append(lane);
   }
+  updatePlayhead();
+}
+function updatePlayhead(){
+  if(!state)return;let time=0;const player=q('edit-player');
+  if(preview)time=player.currentTime||0;
+  else if(selection){try{const item=selected();if(sourceKey===item.clip.source_id){const start=item.track==='audio'?item.clip.start_seconds:edl().cuts.slice(0,item.list.indexOf(item.clip)).reduce((total,c)=>total+seconds(c),0);time=start+Math.max(0,(player.currentTime-item.clip.in_seconds)/item.clip.speed);}}catch{/* removed selection */}}
+  for(const cursor of document.querySelectorAll('.editor-playhead'))cursor.style.left=(time*Number(q('edit-zoom').value))+'px';
 }
 function formatSrt(cues) {
   const stamp = s => new Date(Math.round(s * 1000)).toISOString().slice(11,23).replace('.', ',');
@@ -198,7 +210,7 @@ q('edit-clip-settings').onclick=()=>task(()=>{const item=selected(),f=q('edit-cl
 q('edit-output').onclick=()=>task(()=>command('output',{ratio:q('edit-preset').value,fps:Number(q('edit-fps').value)}));
 q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()=>task(()=>render(false));
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});
-q('edit-player').ontimeupdate=()=>{const p=q('edit-player');q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}};
+q('edit-player').ontimeupdate=()=>{const p=q('edit-player');q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};
 q('edit-player').onerror=()=>message('El navegador no pudo reproducir este archivo. Puedes preparar la vista previa MP4 con FFmpeg; no se modifica el original.');
 q('edit-srt-import').onchange=event=>task(async()=>{const f=event.target.files[0];if(!f)return;if(f.size>500000)throw Error('SRT superior a 500 KB');q('edit-srt').value=await f.text();srtSourceName=f.name;message('SRT leído; pulsa Aplicar subtítulos para validarlo y guardarlo.');});
 q('edit-srt-save').onclick=()=>task(async()=>{await command('subtitles',{srt:q('edit-srt').value,...(srtSourceName?{source_name:srtSourceName}:{})});srtSourceName=null;});

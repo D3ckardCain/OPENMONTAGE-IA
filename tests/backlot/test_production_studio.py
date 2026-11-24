@@ -18,6 +18,22 @@ def isolated(tmp_path,monkeypatch):
 def project():
     return studio.create_production({'title':'Prueba de producción','brief':'Investigar y crear un video original','pipeline':'animated-explainer','language':'es','automatic':False})['project_id']
 
+
+@pytest.mark.parametrize('name',['manual_edit','manual_render'])
+def test_manual_editor_artifacts_require_revisioned_contract(isolated,name):
+    worker=agent.LocalAgent(project())
+    with pytest.raises(ValueError,match='reservado'):
+        worker.dispatch('write_artifact',{'name':name,'data':{'revision':999}})
+    assert not (worker.path/'artifacts'/(name+'.json')).exists()
+
+
+@pytest.mark.parametrize('path',['assets/imports/original.srt','assets/editor-renders/attempt/edit_decisions.json'])
+def test_manual_editor_sources_and_snapshots_are_not_generic_text_targets(isolated,path):
+    worker=agent.LocalAgent(project())
+    with pytest.raises(ValueError,match='reservados'):
+        worker.dispatch('write_project_file',{'path':path,'content':'overwrite'})
+    assert not (worker.path/path).exists()
+
 def test_create_state_and_policy(isolated):
     pid=project();state=isolated.get('/api/studio/projects/'+pid).json()
     assert state['request']['budget_usd']==0
@@ -338,6 +354,9 @@ def test_local_tool_real_execution_and_path_contract(isolated):
     worker.registry=SimpleNamespace(get=lambda name:tool)
     for path in [None,str(studio.PROJECTS_DIR.parent/'outside.json')]:
         with pytest.raises(ValueError):worker.dispatch('execute_tool',{'name':'fixture-local','inputs':{} if path is None else {'output_path':path}})
+    for path in ['assets/imports/original.json','assets/editor-renders/attempt/edit_decisions.json']:
+        with pytest.raises(ValueError,match='sobrescribas'):
+            worker.dispatch('execute_tool',{'name':'fixture-local','inputs':{'output_path':path}})
     result=worker.dispatch('execute_tool',{'name':'fixture-local','inputs':{'output_path':'assets/fixture.json'}})
     assert result['success']
     assert studio.read_json(studio.project_path(pid)/'assets/fixture.json')=={'actual':'tool execution'}

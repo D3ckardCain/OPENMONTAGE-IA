@@ -5,7 +5,7 @@ function node(tag,text){let n=document.createElement(tag);n.textContent=text;ret
 function link(label,url){let a=node('a',label);a.href=url;return a;}
 const sectionLabels={video:'Vídeo',audio:'Audio',subtitles:'Subtítulos',library:'Biblioteca','edit-projects':'Proyectos',scenes:'Mesa de escenas',production:'Producción',queue:'Cola de trabajos',finals:'Videos finales',football:'Fútbol · fuentes oficiales',references:'Referencias e imágenes',models:'Modelos y discos',applications:'Aplicaciones',setup:'Preparación del equipo',history:'Historial y pruebas'};
 function showSection(name){
- if(!(name in sectionLabels))name='video';
+ if(!(name in sectionLabels))name=(pid||['reference','title','brief','channel_id','performance_import_id'].some(key=>new URLSearchParams(location.search).has(key)))?'production':'video';
  const editing=['video','audio','subtitles','library','edit-projects'].includes(name);
  document.querySelector('#manual-editor').hidden=!editing;
  document.querySelector('#legacy-studio').hidden=editing;

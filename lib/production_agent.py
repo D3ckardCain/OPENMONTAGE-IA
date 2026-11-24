@@ -379,13 +379,15 @@ class LocalAgent:
                     raise ValueError('Indica document_format para leer evidencia estructurada')
                 return {'path':str(p),'content':p.read_text(encoding='utf-8')}
             if not relative.parts or relative.parts[0] not in ('assets','workspaces'):raise ValueError('Escribe archivos de trabajo en assets/ o workspaces/; usa checkpoint para las etapas')
+            if relative.parts[:2] in (('assets','imports'),('assets','editor-renders')):
+                raise ValueError('Medios y snapshots reservados del editor; usa studio_project_edit')
             if p.suffix.lower() not in ('.txt','.md','.json','.srt','.vtt','.ass','.svg','.html','.css','.js','.jsx','.ts','.tsx','.csv','.yaml','.yml'):raise ValueError('Formato de texto no admitido')
             p.parent.mkdir(parents=True,exist_ok=True)
             p.write_text(args['content'],encoding='utf-8')
             return {'saved':str(p),'bytes':p.stat().st_size}
         if name=='read_artifact':return studio.read_json(self.artifact_path(args['name']),{})
         if name=='write_artifact':
-            if args['name'] in ('decision_log', 'football_comparison_selection',
+            if args['name'] in ('manual_edit', 'manual_render', 'decision_log', 'football_comparison_selection',
                                 'channel_idea_source', 'channel_research_snapshot',
                                 'video_observations_snapshot', 'source_channel_research'):
                 raise ValueError('Artefacto reservado del estudio')
@@ -416,7 +418,10 @@ class LocalAgent:
                 if key in ('output_path','output_dir','project_dir','workspace_dir','workdir') and value:
                     dest=Path(value)
                     if not dest.is_absolute():dest=self.path/dest
-                    dest=dest.resolve();dest.relative_to(self.path.resolve());inputs[key]=str(dest)
+                    dest=dest.resolve();relative=dest.relative_to(self.path.resolve())
+                    if relative.parts[:2] in (('assets','imports'),('assets','editor-renders')):
+                        raise ValueError('No sobrescribas importaciones ni snapshots del editor')
+                    inputs[key]=str(dest)
             if 'project_id' in inputs and inputs['project_id']!=self.pid:raise ValueError('La herramienta apunta a otro proyecto')
             self.event('tool','Ejecutando '+tool.name)
             result=tool.execute(inputs)
