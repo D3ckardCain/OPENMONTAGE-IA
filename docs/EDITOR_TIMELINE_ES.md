@@ -80,8 +80,8 @@ archivo; el fallo de esa comprobación no se atribuye al editor.
 
 Pendientes del encargo: selección múltiple/operaciones atómicas, entrada de audio
 con posición vinculada, duplicación, marcadores, borrado sin cierre de hueco,
-transformaciones/títulos/transiciones, capas reales, waveforms por pista,
-solo/bloqueo, medidores/mezcla, presets editables y cancelación de exportación.
+transformaciones/títulos/transiciones, capas reales, waveforms de fuentes largas,
+solo/bloqueo, mezcla en vivo/sonoridad integrada, presets editables y cancelación de exportación.
 No se añaden botones para esas capacidades antes de implementarlas. La escucha,
 sincronía y observación de la ventana local se registran separadamente de API,
 FFprobe y CI. No requiere inferencias, nuevas dependencias ni reiniciar Studio.

@@ -329,7 +329,9 @@ async function checkRender() {
   if (result.status === 'completed' && result.current && (result.edit_sha256 && state.edit_sha256 ? result.edit_sha256 === state.edit_sha256 : result.revision === state.revision)) {
     if (preview?.attempt !== result.attempt) {
       preview = result; sourceKey = null; q('edit-player').src=result.url; q('edit-player').playbackRate=1;
-      q('edit-player').onloadedmetadata = null; q('edit-monitor-title').textContent='Montaje real · revisión '+result.revision;
+      const seek=cursor,pid=project;
+      q('edit-player').onloadedmetadata = ()=>{if(project===pid&&preview?.attempt===result.attempt)q('edit-player').currentTime=Math.min(seek,videoDuration(edl()));};
+      q('edit-monitor-title').textContent='Montaje real · revisión '+result.revision;
     }
     q('edit-download').hidden=false; q('edit-download').href=result.url;
   }
