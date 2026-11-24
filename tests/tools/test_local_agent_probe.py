@@ -66,6 +66,27 @@ class AgentProbeTests(unittest.TestCase):
             self.assertFalse(agent.ACTIVE)
             self.assertFalse((self.root / self.pid).exists())
 
+    def test_two_step_chain_uses_preceding_result_mocked_model_and_native_tool(self):
+        second = {'name': 'freecad_units', 'inputs': {'project_id': self.pid,
+                  'source_unit': 'mm', 'target_unit': 'cm', 'values': [25.4]}}
+        seen = []
+        def chat(messages, tools, **kwargs):
+            if seen:
+                import json
+                self.assertEqual(json.loads(messages[-1]['content'])['data']['values'], [25.4])
+            seen.append(True)
+            return self.message if len(seen) == 1 else {'role': 'assistant', 'tool_calls': [
+                {'function': {'name': 'execute_tool', 'arguments': second}}]}
+        agent.LocalAgent.chat.side_effect = chat
+        FreecadUnits.execute.side_effect = [
+            ToolResult(success=True, data={'values': [25.4], 'provenance': {'fixture': True}}, cost_usd=0),
+            ToolResult(success=True, data={'values': [2.54], 'provenance': {'fixture': True}}, cost_usd=0)]
+        result = probe_module.probe(multistep=True)
+        self.assertTrue(result['passed'])
+        self.assertEqual(result['model_calls'], 2)
+        self.assertEqual(FreecadUnits.execute.call_args.args[0], second['inputs'])
+        self.assertFalse(agent.ACTIVE)
+
     def test_active_work_loaded_model_or_remote_model_block_probe(self):
         with patch.object(agent, 'ACTIVE', {'existing': object()}):
             with self.assertRaisesRegex(ValueError, 'AGENT_PROBE_BUSY'):probe_module.probe()
@@ -101,6 +122,18 @@ class AgentProbeTests(unittest.TestCase):
             r = client.post('/api/studio/agent/probe-tools', json={})
             self.assertEqual(r.status_code, 200, r.text)
             self.assertTrue(r.json()['passed'])
+
+    def test_multistep_api_is_explicit_fixed_post(self):
+        app = FastAPI()
+        app.include_router(create_studio_router())
+        with TestClient(app) as client, patch.object(probe_module, 'probe', return_value={'passed': True}) as run:
+            url = '/api/studio/agent/probe-multistep'
+            self.assertEqual(client.get(url).status_code, 405)
+            self.assertEqual(client.post(url, json={'prompt': 'arbitrary'}).status_code, 400)
+            self.assertEqual(client.post(url, json={}, headers={'Origin': 'https://remote.example'}).status_code, 403)
+            run.assert_not_called()
+            self.assertTrue(client.post(url, json={}).json()['passed'])
+            run.assert_called_once_with(multistep=True)
 
     def test_studio_bootstrap_remains_available_and_hides_live_probe_fixture(self):
         app = FastAPI()

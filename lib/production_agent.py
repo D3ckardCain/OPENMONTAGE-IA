@@ -535,26 +535,10 @@ class LocalAgent:
                         'pending_editorial_revision':self.pending_editorial_revision(),
                         'source_image':self.dispatch('project_source_image',{}),
                         'reference_analysis':self.dispatch('reference_analysis',{})},ensure_ascii=False)}]
+            from lib.agent_conversation import Conversation
+            conversation=Conversation(self,messages,tools=TOOLS)
             for _ in range(self.config['max_turns']):
-                if sum(len(json.dumps(m)) for m in messages)>450000:raise Pause('blocked','Se alcanzó el límite de contexto. Artefactos conservados para reanudar.')
-                message=self.chat(messages,TOOLS);messages.append(message)
-                calls=message.get('tool_calls',[])
-                if not calls:
-                    raise Pause('awaiting_input',message.get('content') or 'El modelo no emitió llamadas de herramientas. Revisa compatibilidad del modelo.')
-                if len(calls)>16:raise ValueError('Demasiadas llamadas simultáneas')
-                for call in calls:
-                    if self.cancel.is_set():raise Pause('stopped','Detenido entre acciones; no se cancelan silenciosamente renders ya enviados.')
-                    fn=call.get('function',{});args=fn.get('arguments',{})
-                    if isinstance(args,str):args=json.loads(args)
-                    try:
-                        result=self.dispatch(fn.get('name'),args)
-                    except Pause:raise
-                    except Exception as exc:
-                        result={'error':str(exc)[:1200]};self.event('error',str(exc)[:1200])
-                    content=json.dumps(result,ensure_ascii=False,default=str)
-                    if len(content)>100000:content=json.dumps({'error':'Resultado demasiado grande; solicita una capacidad o artefacto concreto.'})
-                    messages.append({'role':'tool','tool_name':fn.get('name'),'content':content})
-                studio.save_json(self.path/'agent_session.json',{'updated_at':studio.now(),'messages':messages})
+                conversation.turn()
             raise Pause('blocked','Límite de turnos alcanzado. Se conserva el estado para revisar y reanudar.')
         except Pause as exc:self.status(exc.status,str(exc))
         except Exception as exc:

@@ -270,6 +270,46 @@ def test_transport_emits_validated_artifact_then_blocks_without_faking_render(is
     assert studio.read_json(studio.project_path(pid)/'artifacts/source_notes.json')['sources']==['fixture evidence']
     with pytest.raises(ValueError,match='etapas'):worker.verify_outputs()
 
+
+def test_director_two_stages_resume_preserves_artifact_and_guided_gate(isolated,monkeypatch):
+    """Real checkpoints/dispatch, simulated model; no media or model inference."""
+    from tests.contracts.test_phase0_contracts import sample_artifact
+    pid=studio.create_production({'title':'Synthetic stages','brief':'Offline protocol fixture',
+        'pipeline':'hybrid','language':'es','automatic':False})['project_id']
+    worker=agent.LocalAgent(pid)
+    first,second=worker.manifest['stages'][:2]
+    def call(name,args):return {'role':'assistant','tool_calls':[{'function':{'name':name,'arguments':args}}]}
+    stream=iter([call('read_instruction',{'path':'skills/'+first['skill']+'.md'}),
+        call('checkpoint',{'stage':first['name'],'status':'completed','artifacts':{'brief':sample_artifact('brief')}})])
+    worker._chat=lambda m,t:next(stream)
+    worker.run()
+    path=studio.project_path(pid)
+    assert studio.read_json(path/'job.json')['status']=='awaiting_human'
+    assert studio.read_json(path/'agent_session.json')['in_flight'] is None
+    artifact=(path/'artifacts/brief.json').read_bytes()
+    monkeypatch.setattr(agent,'start',lambda _: {'started':False})
+    agent.approve(pid)  # Explicit approval in the synthetic fixture; production gate remains enforced.
+    resumed=agent.LocalAgent(pid)
+    seen=[]
+    def chat(messages,tools):
+        seen.append(json.loads(messages[-1]['content']))
+        assert seen[-1]['next_stage']==second['name']
+        assert any(m.get('tool_name')=='checkpoint' for m in messages)
+        return call('read_instruction',{'path':'skills/'+second['skill']+'.md'})
+    def consume_brief(messages,tools):
+        assert messages[-1]['tool_name']=='read_artifact'
+        assert json.loads(messages[-1]['content'])==sample_artifact('brief')
+        return call('checkpoint',{'stage':second['name'],'status':'completed',
+            'artifacts':{'script':sample_artifact('script')}})
+    stream2=iter([chat, lambda m,t:call('read_artifact',{'name':'brief'}), consume_brief])
+    resumed._chat=lambda m,t:next(stream2)(m,t)
+    resumed.run()
+    assert seen and (path/'artifacts/brief.json').read_bytes()==artifact
+    assert studio.read_json(path/('checkpoint_'+first['name']+'.json'))['human_approved'] is True
+    assert studio.read_json(path/'job.json')['status']=='awaiting_human'
+    assert studio.read_json(path/('checkpoint_'+second['name']+'.json'))['human_approved'] is False
+    assert not studio.production_state(pid)['outputs']
+
 def test_invalid_canonical_artifact_and_decision_rewrite_rejected(isolated):
     worker=agent.LocalAgent(project())
     with pytest.raises(Exception):worker.dispatch('write_artifact',{'name':'script','data':{}})

@@ -96,6 +96,12 @@ def create_studio_router():
         from lib.local_agent_probe import probe
         try:return await asyncio.to_thread(probe)
         except (ValueError,OSError) as exc:raise HTTPException(400,str(exc))
+    @router.post('/api/studio/agent/probe-multistep')
+    async def agent_multistep_probe(request:Request):
+        if await body(request):raise HTTPException(400,'La prueba fija no admite parámetros')
+        from lib.local_agent_probe import probe
+        try:return await asyncio.to_thread(probe,multistep=True)
+        except (ValueError,OSError,agent.Pause) as exc:raise HTTPException(400,str(exc))
     @router.post('/api/studio/settings')
     async def settings(request:Request):
         data=await body(request)

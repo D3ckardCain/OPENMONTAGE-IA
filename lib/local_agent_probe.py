@@ -12,7 +12,7 @@ from lib import production_agent as agent
 SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
 
-def probe():
+def probe(*, multistep=False):
     if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != SOURCE_SHA256:
         raise ValueError('AGENT_PROBE_CHANGED: reinicia Studio tras cambiar el diagnóstico')
     from lib import production_queue as queue, reference_analysis
@@ -52,6 +52,8 @@ def probe():
         instance = agent.LocalAgent(pid, registry=registry)
         skill = instance.manifest['stages'][0]['skill']
         instance.instruction('skills/' + skill + '.md')
+        if multistep:
+            return _chain(instance, base, model, tag, show)
         inputs = {'project_id': pid, 'source_unit': 'in', 'target_unit': 'mm', 'values': [1]}
         expected = {'name': 'freecad_units', 'inputs': inputs}
         schema = {'type': 'object', 'additionalProperties': False, 'required': ['name', 'inputs'],
@@ -95,3 +97,56 @@ def probe():
         finally:
             with agent.ACTIVE_LOCK:
                 agent.ACTIVE.pop(pid, None)
+
+
+def _chain(instance, base, model, tag, show):
+    """Fixed diagnostic only: model chooses two calls using real preceding results."""
+    from lib.agent_conversation import Conversation
+    inputs = {'type': 'object', 'additionalProperties': False,
+              'required': ['project_id', 'source_unit', 'target_unit', 'values'],
+              'properties': {'project_id': {'enum': [instance.pid]},
+                  'source_unit': {'enum': ['in', 'mm']}, 'target_unit': {'enum': ['mm', 'cm']},
+                  'values': {'type': 'array', 'minItems': 1, 'maxItems': 1,
+                             'items': {'type': 'number', 'minimum': 0, 'maximum': 100}}}}
+    tool = agent.descriptor('execute_tool', 'Synthetic FreeCAD.Units conversion only; no geometry.',
+        {'name': {'enum': ['freecad_units']}, 'inputs': inputs}, ['name', 'inputs'])
+    messages = [{'role': 'system', 'content': 'Protocol diagnostic only. Call execute_tool exactly once per response. No other tools or tasks.'},
+                {'role': 'user', 'content': 'First convert [1] from in to mm with freecad_units. After its tool result, convert the returned data.values from mm to cm. Use project_id ' + instance.pid + '. Do not guess the second input before reading the tool result.'}]
+    original = instance.dispatch
+    receipts = []
+    def dispatch(name, args):
+        index = len(receipts)
+        expected = {'name': 'freecad_units', 'inputs': {'project_id': instance.pid,
+                    'source_unit': 'in' if index == 0 else 'mm',
+                    'target_unit': 'mm' if index == 0 else 'cm',
+                    'values': [1] if index == 0 else receipts[0]['data']['values']}}
+        if index >= 2 or name != 'execute_tool' or args != expected:
+            raise ValueError('AGENT_CHAIN_PROTOCOL: argumentos no corresponden al resultado anterior')
+        if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != SOURCE_SHA256:
+            raise ValueError('AGENT_PROBE_CHANGED: reinicia Studio')
+        result = original(name, args)
+        if not result['success']:
+            raise ValueError('AGENT_CHAIN_TOOL: ' + str(result.get('error')))
+        receipts.append(result)
+        return result
+    instance.dispatch = dispatch
+    conversation = Conversation(instance, messages, tools=[tool], chat_options={
+        'context_tokens': 4096, 'max_output_tokens': 256,
+        'thinking': False if 'thinking' in show.get('capabilities', []) else None})
+    for index in range(2):
+        conversation.turn()
+        if len(receipts) != index + 1 or len(conversation.state['pending']) != 1:
+            raise ValueError('AGENT_CHAIN_PROTOCOL: se requiere una llamada válida por paso')
+    values = [r['data']['values'] for r in receipts]
+    if values != [[25.4], [2.54]]:
+        raise ValueError('AGENT_CHAIN_TOOL: valores nativos inesperados')
+    transcript = conversation.state['messages']
+    return {'passed': True, 'scope': 'two_synthetic_numeric_steps_not_full_production',
+            'model': model, 'model_manifest_digest': tag.get('digest'),
+            'model_calls': 2, 'model_transport': 'local_ollama', 'native_tool_calls': 2,
+            'steps': [{'tool': 'freecad_units', 'values': r['data']['values'],
+                       'provenance': r['data'].get('provenance')} for r in receipts],
+            'transcript_sha256': hashlib.sha256(json.dumps(transcript, sort_keys=True).encode()).hexdigest(),
+            'model_unloaded_verified': studio.local_request(base, '/api/ps').get('models') == [],
+            'geometry_created': False, 'creative_content_generated': False, 'cost_usd': 0,
+            'created_at_utc': datetime.now(timezone.utc).isoformat(), 'probe_sha256': SOURCE_SHA256}
