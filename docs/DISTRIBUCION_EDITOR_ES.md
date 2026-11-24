@@ -25,7 +25,7 @@ de segundos, vídeo, audio y subtítulos comparten escala y desplazamiento horiz
 Los bloques de subtítulos abren su edición debajo de las pistas y seleccionan
 el cue. Seleccionar un clip habilita las acciones directas de división,
 reordenación y eliminación; el formulario de recorte, ganancia, fades y velocidad
-se despliega debajo. El botón **Ver montaje guardado** vuelve desde una fuente
+se despliega en el inspector. El botón **Ver montaje guardado** vuelve desde una fuente
 al render existente sin generar otro. Preparación y exportación están en la
 barra del proyecto. Se conserva un solo proyecto y la misma revisión.
 
@@ -83,3 +83,10 @@ La ventana Windows, su reproducción y sus interacciones todavía requieren
 observación: no hay `node_repl`/`@oai/sky` disponible en esta sesión. Se solicitó
 comprobación física de la pestaña; no se atribuyen resultados no recibidos.
 La recuperación HTTP no sustituye esa aceptación ni las capturas CI anteriores.
+
+## Encargo ampliado 7141865417
+
+La corrección de preferencias y proporciones, Ajustar al montaje y el cursor
+se documentan en `EDITOR_TIMELINE_ES.md`. Los parámetros detallados de clip y
+subtítulos pasan al inspector para mantener las pistas visibles; la barra de
+acciones permanece debajo. Se conserva la distinción entre CI y ventana local.

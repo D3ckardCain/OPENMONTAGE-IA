@@ -1,8 +1,23 @@
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
+import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor } from './editor-time.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
+let cursor=0, zoomMode='fit', ruler=null;
+function storeView(){if(project)try{localStorage.setItem('edit-timeline-view:'+project,JSON.stringify({mode:zoomMode,zoom:Number(q('edit-zoom').value),cursor}));}catch{/* optional */}}
+function loadView(){
+  cursor=0;zoomMode='fit';try{const v=JSON.parse(localStorage.getItem('edit-timeline-view:'+project));if(v){zoomMode=v.mode==='manual'?'manual':'fit';if(Number.isFinite(v.zoom)&&v.zoom>0)q('edit-zoom').value=Math.min(10000,v.zoom);if(Number.isFinite(v.cursor))cursor=Math.max(0,Math.min(timelineEnd(edl()),v.cursor));}}catch{/* optional */}
+}
+function fitTimeline(){if(!state)return;zoomMode='fit';q('edit-tracks').scrollLeft=0;drawTracks();storeView();}
+function zoomTimeline(factor){if(!state)return;zoomMode='manual';q('edit-zoom').value=Math.max(.001,Math.min(Number(q('edit-zoom').max),Number(q('edit-zoom').value)*factor));drawTracks();storeView();}
+function seekTimeline(time){
+  if(!state)return;cursor=Math.max(0,Math.min(timelineEnd(edl()),Math.round(time*edl().output.fps)/edl().output.fps));
+  const p=q('edit-player');
+  if(preview){if(cursor<=videoDuration(edl()))p.currentTime=cursor;else p.pause();}
+  else if(sourceKey&&selection){try{const item=selected(),at=sourceTime(edl(),item.clip,item.track,cursor);if(sourceKey===item.clip.source_id&&at>=item.clip.in_seconds&&at<=item.clip.out_seconds)p.currentTime=at;}catch{/* selection removed */}}
+  updatePlayhead();storeView();
+}
 const message = text => { q('edit-message').textContent = text; };
 const element = (tag, text) => { const n = document.createElement(tag); n.textContent = text; return n; };
 const seconds = c => {const raw=(c.out_seconds-c.in_seconds)/c.speed;return edl().sources[c.source_id].kind==='video'?Math.round(raw*edl().output.fps)/edl().output.fps:raw;};
@@ -47,7 +62,7 @@ async function reopen(id=project) {
   q('edit-player').pause(); q('edit-player').removeAttribute('src'); q('edit-player').load();
   q('edit-monitor-title').textContent = 'Montaje reabierto · selecciona una fuente o prepara la vista previa';
   const url = new URL(location.href); url.searchParams.set('edit', project); history.replaceState(null, '', url);
-  q('edit-project').value = project; draw(); await checkRender();
+  q('edit-project').value = project; loadView();draw(); await checkRender();
   message('Proyecto reabierto desde disco · revisión ' + state.revision);
 }
 async function importFiles(files) {
@@ -80,13 +95,15 @@ function selected() {
   return {list, clip, ...selection};
 }
 function selectClip(clip, track) {
-  selection = {id:clip.id, track}; q('edit-clip-tools').open=true; showSource(clip.source_id, clip); drawInspector(); drawTracks();
+  selection = {id:clip.id, track}; q('edit-clip-tools').open=true; drawInspector(); drawTracks();
+  if(workspace==='audio'&&edl().sources[clip.source_id].audio)waveform(clip.source_id);
 }
 function drawInspector() {
   const form = q('edit-clip-form'); let item;
-  for(const id of ['edit-split','edit-remove','edit-left','edit-right'])q(id).disabled=true;
+  for(const id of ['edit-split','edit-split-cursor','edit-remove','edit-left','edit-right','edit-view-source'])q(id).disabled=true;
   try { item = selected(); } catch { form.hidden = true; q('edit-selection').textContent = 'Selecciona un clip en las pistas.'; return; }
   q('edit-split').disabled=q('edit-remove').disabled=false;
+  q('edit-split-cursor').disabled=q('edit-view-source').disabled=false;
   form.hidden = false; const c = item.clip;
   q('edit-selection').textContent = edl().sources[c.source_id].original_name + ' · ' + item.track;
   for (const key of ['in_seconds','out_seconds','speed','gain','fade_in','fade_out','start_seconds']) form.elements[key].value = c[key];
@@ -98,13 +115,18 @@ function drawInspector() {
 }
 function drawTracks() {
   const box = q('edit-tracks'); box.replaceChildren();
-  const zoom=Number(q('edit-zoom').value), duration=edl().cuts.reduce((sum,c)=>sum+seconds(c),0);
-  const end=Math.max(duration,...edl().audio_tracks.map(c=>c.start_seconds+seconds(c)),...edl().cues.map(c=>c.end_seconds),0);
-  const width=Math.max(box.clientWidth-2,end*zoom+60), ruler=element('div','');ruler.className='editor-ruler';ruler.style.width=width+'px';
+  const end=timelineEnd(edl());
+  q('edit-zoom').max=Math.min(10000,5000000/Math.max(1,end));
+  if(zoomMode==='fit')q('edit-zoom').value=fitZoom(edl(),box.clientWidth);
+  const zoom=Number(q('edit-zoom').value),width=Math.max(box.clientWidth-2,end*zoom+48);
+  ruler=element('div','');ruler.className='editor-ruler';ruler.style.width=width+'px';
+  ruler.tabIndex=0;ruler.setAttribute('role','slider');ruler.setAttribute('aria-valuemin','0');ruler.setAttribute('aria-valuemax',String(end));
   ruler.setAttribute('aria-label','Regla temporal del montaje en segundos');
-  const tick=zoom>=40?1:5;
-  for(let t=0;t<=width/zoom;t+=tick){const label=element('span',t+' s');label.style.left=(t*zoom)+'px';ruler.append(label);}
   box.append(ruler);
+  const seek=event=>seekTimeline((event.clientX-ruler.getBoundingClientRect().left)/Number(q('edit-zoom').value));
+  ruler.onpointerdown=event=>{if(event.button!==0)return;event.preventDefault();ruler.setPointerCapture(event.pointerId);ruler.focus();seek(event);};
+  ruler.onpointermove=event=>{if(ruler.hasPointerCapture(event.pointerId))seek(event);};
+  ruler.onkeydown=event=>{let next=cursor;if(event.key==='Home')next=0;else if(event.key==='End')next=end;else if(event.key==='ArrowLeft')next-=event.shiftKey?1:1/edl().output.fps;else if(event.key==='ArrowRight')next+=event.shiftKey?1:1/edl().output.fps;else return;event.preventDefault();seekTimeline(next);};
   for (const [track, title, clips] of [['video','Vídeo · cortes secuenciales',edl().cuts],['audio','Audio · tiempos independientes',edl().audio_tracks]]) {
     box.append(element('h3', title)); const lane = element('div',''); lane.className = 'editor-lane editor-' + track;
     lane.style.width=width+'px';
@@ -143,18 +165,26 @@ function drawTracks() {
     button.onclick=()=>{
       document.querySelector('.editor-menu [data-section="subtitles"]').click();q('edit-cue-index').value=index+1;
       const input=q('edit-srt'),at=input.value.indexOf(cue.text);input.focus();if(at>=0)input.setSelectionRange(at,at+cue.text.length);
-      if(preview)q('edit-player').currentTime=cue.start_seconds;
+      seekTimeline(cue.start_seconds);
     };cues.append(button);
   }
   if(!edl().cues.length)cues.append(element('p','Sin subtítulos; importa o edita SRT debajo de las pistas.'));
   const cursor=element('div','');cursor.className='editor-playhead';cursor.setAttribute('aria-hidden','true');cues.append(cursor);box.append(cues);
-  updatePlayhead();
+  const note=q('edit-timeline-note'),tail=end-videoDuration(edl());note.hidden=tail<.02;
+  note.textContent=tail>=.02?'Colas fuera del vídeo: '+tail.toFixed(3)+' s. La salida actual termina con el vídeo; ajusta esas pistas antes de exportar.':'';
+  box.onscroll=drawRuler;drawRuler();updatePlayhead();
+}
+function drawRuler(){
+  if(!state||!ruler)return;const box=q('edit-tracks'),zoom=Number(q('edit-zoom').value),tick=tickStep(zoom,edl().output.fps);
+  ruler.replaceChildren();
+  const start=Math.floor(box.scrollLeft/zoom/tick)*tick,end=Math.min(timelineEnd(edl()),(box.scrollLeft+box.clientWidth)/zoom);
+  for(let t=start,n=0;t<=end+1e-7&&n<200;n++,t+=tick){const label=element('span',Number(t.toFixed(3))+' s');label.style.left=(t*zoom)+'px';ruler.append(label);}
+  const head=element('div','');head.className='editor-playhead';head.style.left=(cursor*zoom)+'px';ruler.append(head);
 }
 function updatePlayhead(){
-  if(!state)return;let time=0;const player=q('edit-player');
-  if(preview)time=player.currentTime||0;
-  else if(selection){try{const item=selected();if(sourceKey===item.clip.source_id){const start=item.track==='audio'?item.clip.start_seconds:edl().cuts.slice(0,item.list.indexOf(item.clip)).reduce((total,c)=>total+seconds(c),0);time=start+Math.max(0,(player.currentTime-item.clip.in_seconds)/item.clip.speed);}}catch{/* removed selection */}}
-  for(const cursor of document.querySelectorAll('.editor-playhead'))cursor.style.left=(time*Number(q('edit-zoom').value))+'px';
+  if(!state)return;cursor=Math.min(cursor,timelineEnd(edl()));
+  for(const head of document.querySelectorAll('.editor-playhead'))head.style.left=(cursor*Number(q('edit-zoom').value))+'px';
+  if(ruler){ruler.setAttribute('aria-valuenow',String(cursor));ruler.setAttribute('aria-valuetext',cursor.toFixed(3)+' segundos');}
 }
 function formatSrt(cues) {
   const stamp = s => new Date(Math.round(s * 1000)).toISOString().slice(11,23).replace('.', ',');
@@ -165,7 +195,7 @@ function draw() {
   q('edit-undo').disabled = !state.undo.length; q('edit-redo').disabled = !state.redo.length;
   const list = q('edit-sources'); list.replaceChildren();
   for (const [key, info] of Object.entries(edl().sources)) {
-    const item = element('div',''); item.className = 'editor-source'; item.append(element('strong',info.original_name));
+    const item = element('div',''); item.className = 'editor-source';const name=element('strong',info.original_name);name.title=info.original_name;item.append(name);
     if (info.kind === 'video') { const image = document.createElement('video'); image.preload='metadata'; image.muted=true; image.src=sourceUrl(key)+'#t=0.1'; image.setAttribute('aria-label','Miniatura de '+info.original_name); item.append(image); }
     item.append(element('small', info.kind + ' · ' + info.duration.toFixed(3) + ' s · ' + info.bytes + ' bytes'));
     const play = element('button','Ver fuente'); play.onclick = () => showSource(key);
@@ -205,14 +235,14 @@ async function render(previewOnly) {
 }
 async function waveform(key) {
   const canvas=q('edit-waveform'), status=q('edit-waveform-status'); canvas.hidden=true; status.hidden=false;
-  const info=edl().sources[key], captured=project;
+  const info=edl().sources[key], captured=project,capturedSelection=selection?.id;
   if (info.bytes > 100_000_000) { status.textContent='Forma de onda no disponible para archivos mayores de 100 MB. La reproducción sigue disponible.'; return; }
   let context;
   try {
     status.textContent='Decodificando audio local para la forma de onda…';
     const response=await fetch(sourceUrl(key)); if(!response.ok)throw Error('No se pudo leer el audio');
     context=new AudioContext(); const buffer=await context.decodeAudioData(await response.arrayBuffer());
-    if(captured!==project || sourceKey!==key)return;
+    if(captured!==project || (sourceKey!==key&&selection?.id!==capturedSelection))return;
     const channel=buffer.getChannelData(0), ctx=canvas.getContext('2d'), step=Math.max(1,Math.ceil(channel.length/canvas.width));
     ctx.clearRect(0,0,canvas.width,canvas.height); ctx.strokeStyle='#3fb950'; ctx.beginPath();
     for(let x=0;x<canvas.width;x++){let min=1,max=-1; for(let i=x*step;i<Math.min(channel.length,(x+1)*step);i++){min=Math.min(min,channel[i]);max=Math.max(max,channel[i]);}ctx.moveTo(x,(1+min)*70);ctx.lineTo(x,(1+max)*70);}ctx.stroke();
@@ -237,7 +267,7 @@ q('edit-output').onclick=()=>task(()=>command('output',{ratio:q('edit-preset').v
 q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()=>task(()=>render(false));
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});
 q('edit-show-montage').onclick=()=>task(async()=>{requireProject();await checkRender();if(!preview)message('El montaje actual aún no tiene vista previa guardada. Usa Preparar vista previa del montaje.');});
-q('edit-player').ontimeupdate=()=>{const p=q('edit-player');q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};
+q('edit-player').ontimeupdate=()=>{const p=q('edit-player');if(preview)cursor=p.currentTime||0;else if(selection&&state){try{const item=selected();if(sourceKey===item.clip.source_id)cursor=clipStart(edl(),item.clip,item.track)+Math.max(0,(p.currentTime-item.clip.in_seconds)/item.clip.speed);}catch{/* removed */}}q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};
 q('edit-player').onerror=()=>message('El navegador no pudo reproducir este archivo. Puedes preparar la vista previa MP4 con FFmpeg; no se modifica el original.');
 q('edit-srt-import').onchange=event=>task(async()=>{requireProject();const f=event.target.files[0];if(!f)return;if(f.size>500000)throw Error('SRT superior a 500 KB');const response=await fetch(base()+'/subtitles/import?filename='+encodeURIComponent(f.name)+'&revision='+state.revision,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f});const value=await response.json();if(!response.ok)throw Error(value.detail);state=value;invalidate();draw();message('SRT importado y validado; se conservan sus bytes originales. Aplica los cambios posteriores del campo SRT por separado.');});
 q('edit-srt-save').onclick=()=>task(()=>command('subtitles',{srt:q('edit-srt').value}));
@@ -245,9 +275,14 @@ q('edit-cue-offset-apply').onclick=()=>task(()=>command('cue_offset',{seconds:Nu
 q('edit-cue-split').onclick=()=>task(()=>command('cue_split',{index:Number(q('edit-cue-index').value)-1,at:Number(q('edit-cue-at').value),text_index:Number(q('edit-cue-text-index').value)}));
 q('edit-cue-merge').onclick=()=>task(()=>command('cue_merge',{index:Number(q('edit-cue-index').value)-1}));
 q('edit-subtitle-style').onclick=()=>task(()=>command('subtitle_style',{size:Number(q('edit-subtitle-size').value),position:q('edit-subtitle-position').value,mode:q('edit-subtitle-mode').value}));
-q('edit-zoom').oninput=()=>{if(state)drawTracks();};
+q('edit-zoom').oninput=()=>{zoomMode='manual';if(state)drawTracks();storeView();};
+q('edit-fit').onclick=fitTimeline;q('edit-zoom-out').onclick=()=>zoomTimeline(1/1.25);q('edit-zoom-in').onclick=()=>zoomTimeline(1.25);
+q('edit-view-source').onclick=()=>task(()=>{const item=selected();showSource(item.clip.source_id,item.clip);});
+q('edit-split-cursor').onclick=()=>task(()=>{const item=selected();return command('split',splitAtCursor(edl(),item.clip,item.track,cursor));});
+new ResizeObserver(()=>{if(state&&zoomMode==='fit')drawTracks();}).observe(q('edit-tracks'));
+
 function showWorkspace(){q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
-document.addEventListener('keydown',event=>{if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
+document.addEventListener('keydown',event=>{if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
 initializeEditorLayout();
 showWorkspace();task(async()=>{try{await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});

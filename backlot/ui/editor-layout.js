@@ -2,7 +2,8 @@
 export function initializeEditorLayout() {
   const q=id=>document.getElementById(id), root=q('manual-editor'), grid=q('editor-grid');
   const keys={library:'edit-library-size',inspector:'edit-inspector-size',tracks:'edit-track-size'};
-  const defaults={library:240,inspector:280,tracks:null}, prefs={};
+  const defaults={library:320,inspector:280,tracks:null}, prefs={};
+  let migrate=false;try{migrate=localStorage.getItem('edit-layout-version')!=='3';}catch{/* storage is optional */}
   for(const [key,id] of Object.entries(keys)){
     let raw;try{raw=localStorage.getItem(id);}catch{/* storage is optional */}
     const n=raw===null||raw===undefined?NaN:Number(raw);
@@ -19,9 +20,17 @@ export function initializeEditorLayout() {
   function apply(){
     if(root.hidden||grid.clientWidth<=0||grid.clientHeight<=0)return;
     const showLibrary=!q('edit-hide-library').checked, showInspector=!q('edit-hide-inspector').checked;
-    const minLibrary=showLibrary?160:0, minInspector=showInspector?180:0;
+    const minLibrary=showLibrary?(grid.clientWidth>=1000?260:160):0, minInspector=showInspector?180:0;
     const gutters=(Number(showLibrary)+Number(showInspector))*10;
     const sideBudget=Math.max(minLibrary+minInspector,grid.clientWidth-240-gutters);
+    const height=grid.clientHeight, minTop=Math.min(240,height*.4), minTracks=Math.min(360,height*.48);
+    if(migrate){
+      if(prefs.library<260||prefs.library>grid.clientWidth*.4)prefs.library=defaults.library;
+      if(prefs.tracks!==null&&(prefs.tracks<minTracks||prefs.tracks>height*.65)){
+        prefs.tracks=null;try{localStorage.removeItem(keys.tracks);}catch{/* storage is optional */}
+      }
+      save(keys.library,String(prefs.library));save('edit-layout-version','3');migrate=false;
+    }
     let library=showLibrary?Math.max(minLibrary,prefs.library):0;
     let inspector=showInspector?Math.max(minInspector,prefs.inspector):0;
     if(library+inspector>sideBudget){
@@ -29,9 +38,8 @@ export function initializeEditorLayout() {
       const factor=extra?Math.max(0,(sideBudget-minLibrary-minInspector)/extra):0;
       library=minLibrary+(library-minLibrary)*factor;inspector=minInspector+(inspector-minInspector)*factor;
     }
-    const height=grid.clientHeight, minTop=Math.min(200,height*.4), minTracks=Math.min(160,height*.3);
     effective={library:Math.round(library),inspector:Math.round(inspector),tracks:Math.round(clamp(prefs.tracks??height*.42,minTracks,Math.max(minTracks,height-10-minTop)))};
-    limits={library:[160,Math.max(160,Math.floor(sideBudget-inspector))],inspector:[180,Math.max(180,Math.floor(sideBudget-library))],tracks:[Math.round(minTracks),Math.floor(Math.max(minTracks,height-10-minTop))]};
+    limits={library:[minLibrary||160,Math.max(minLibrary||160,Math.floor(sideBudget-inspector))],inspector:[180,Math.max(180,Math.floor(sideBudget-library))],tracks:[Math.round(minTracks),Math.floor(Math.max(minTracks,height-10-minTop))]};
     for(const [key,id] of Object.entries(keys)){
       root.style.setProperty('--'+key,effective[key]+'px');
       const input=q(id);input.min=limits[key][0];input.max=limits[key][1];input.value=Math.max(limits[key][0],effective[key]);
@@ -43,6 +51,14 @@ export function initializeEditorLayout() {
   }
   function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;apply();});}
   function commit(key){apply();prefs[key]=effective[key];save(keys[key],String(prefs[key]));}
+  q('edit-layout-reset').onclick=()=>{
+    Object.assign(prefs,defaults);
+    for(const key of Object.values(keys))try{localStorage.removeItem(key);}catch{/* storage is optional */}
+    for(const [id,cls] of [['edit-hide-library','library-hidden'],['edit-hide-inspector','inspector-hidden']]){
+      q(id).checked=false;root.classList.remove(cls);save(id,'false');
+    }
+    save('edit-layout-version','3');migrate=false;apply();
+  };
   for(const [key,id] of Object.entries(keys))q(id).oninput=()=>{prefs[key]=Number(q(id).value);commit(key);};
   for(const key of Object.keys(keys)){
     const handle=q('edit-split-'+(key==='tracks'?'timeline':key));

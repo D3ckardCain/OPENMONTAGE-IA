@@ -135,6 +135,10 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page(viewport={'width':width,'height':height});errors=[];writes=[]
+        page.add_init_script("""if(!localStorage.getItem('layout-test-seeded')){
+            localStorage.setItem('edit-layout-version','2');localStorage.setItem('edit-track-size','160');
+            localStorage.setItem('edit-library-size','180');localStorage.setItem('unrelated-preference','keep');
+            localStorage.setItem('layout-test-seeded','true');}""")
         page.on('pageerror',lambda error:errors.append(str(error)))
         page.on('request',lambda request:writes.append(request.url) if request.method=='POST' else None)
         page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':pid,'title':fixture['title']}]))
@@ -164,8 +168,19 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
             assert positions['editor-tools']['bottom']<=positions['editor-timeline']['bottom']+1
             return b
         before=contained();src=page.locator('#edit-player').get_attribute('src')
-        assert page.locator('#editor-tools #edit-clip-form').count()==1
-        assert page.locator('#editor-tools #edit-subtitle-panel').count()==1
+        assert before['panels']['editor-library']['width']>=319
+        assert before['panels']['editor-timeline']['height']>=359
+        assert page.evaluate("localStorage.getItem('edit-layout-version')")=='3'
+        fit_scale=float(page.locator('#edit-zoom').input_value())
+        assert fit_scale>160
+        ticks=page.locator('.editor-ruler span').all_text_contents()
+        assert max(float(t.split()[0]) for t in ticks)<=3.5
+        page.locator('#edit-zoom-in').click()
+        assert float(page.locator('#edit-zoom').input_value())>fit_scale
+        page.locator('#edit-fit').click()
+        assert abs(float(page.locator('#edit-zoom').input_value())-fit_scale)<.01
+        assert page.locator('#editor-inspector #edit-clip-form').count()==1
+        assert page.locator('#editor-inspector #edit-subtitle-panel').count()==1
         assert page.locator('#edit-tracks .editor-ruler').count()==1
         assert page.locator('#edit-tracks .editor-cues .editor-clip').count()==len(state['edit_decisions']['cues'])
         track_bounds=page.locator('#edit-tracks').bounding_box()
@@ -212,6 +227,8 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         page.locator('.editor-video .editor-clip').first.click()
         expect(page.locator('#edit-clip-form')).to_be_visible()
         assert not page.locator('#edit-split').is_disabled()
+        assert page.locator('#edit-player').get_attribute('src')==src
+        page.locator('#edit-view-source').click()
         assert page.locator('#edit-player').get_attribute('src')!=src
         page.locator('#edit-show-montage').click()
         expect(page.locator('#edit-player')).to_have_attribute('src',src)
@@ -224,6 +241,88 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         (output/f'existing-layout-{width}x{height}.json').write_text(json.dumps({
             'scope':fixture['scope'],'project_id':pid,'revision':state['revision'],'edit_sha256':state['edit_sha256'],
             'before':before,'resized':resized,'restored':restored,'clamped':clamped,'inspector_scroll':scroll,'writes':writes,'page_errors':errors},indent=2),encoding='utf-8')
+        page.locator('#edit-layout-options summary').click();page.locator('#edit-layout-reset').click();page.keyboard.press('Escape')
+        reset=contained();assert reset['panels']['editor-library']['width']==320
+        assert page.evaluate("localStorage.getItem('unrelated-preference')")=='keep'
+        browser.close()
+
+
+def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_server):
+    """UI contract with intercepted JSON, not local AV playback."""
+    from copy import deepcopy
+    import json
+    from pathlib import Path
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    state=deepcopy(fixture['state']);original=deepcopy(state);pid=fixture['project_id'];calls=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1920,'height':1080})
+        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Cursor contract fixture'}]))
+        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=state))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda r:r.fulfill(json=fixture['render']))
+        page.route('**/media/**',lambda r:r.fulfill(status=204))
+        page.route('**/api/studio/editor/'+pid+'/source/**',lambda r:r.fulfill(status=204))
+        def command(route):
+            data=route.request.post_data_json;calls.append(data);assert data['revision']==state['revision']
+            revision=state['revision']+1
+            if data['operation']=='split':
+                assert data['at']==pytest.approx(11);assert data['track']=='video'
+                clip=state['edit_decisions']['cuts'][1];assert data['id']==clip['id']
+                state['edit_decisions']['cuts'].append({**clip,'id':'split-part','in_seconds':data['at']})
+                clip['out_seconds']=data['at'];state['edit_sha256']='b'*64;state['undo']=[original['edit_decisions']]
+            else:
+                assert data['operation']=='undo';state.clear();state.update(deepcopy(original))
+            state['revision']=revision;route.fulfill(json=state)
+        page.route('**/api/studio/editor/'+pid+'/command',command)
+        page.goto(staged_backlot_server+'/studio?edit='+pid+'#video')
+        expect(page.locator('#edit-player')).to_have_attribute('src',fixture['render']['url'])
+        page.locator('.editor-video .editor-clip').nth(1).click()
+        expect(page.locator('#edit-player')).to_have_attribute('src',fixture['render']['url'])
+        ruler=page.get_by_role('slider',name='Regla temporal del montaje en segundos');ruler.focus()
+        page.keyboard.press('Home');page.keyboard.press('Shift+ArrowRight');page.keyboard.press('Shift+ArrowRight')
+        for _ in range(12):page.keyboard.press('ArrowRight')
+        assert float(ruler.get_attribute('aria-valuenow'))==pytest.approx(2.5)
+        page.locator('#edit-split-cursor').click()
+        expect(page.locator('.editor-video .editor-clip')).to_have_count(3)
+        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+1))
+        page.locator('#edit-undo').click()
+        expect(page.locator('.editor-video .editor-clip')).to_have_count(2)
+        page.locator('#edit-reopen').click()
+        expect(page.locator('#edit-player')).to_have_attribute('src',fixture['render']['url'])
+        assert len(calls)==2
+        browser.close()
+
+
+@pytest.mark.parametrize('width,height',[(1920,1080),(3440,1440)])
+def test_fit_long_timeline_includes_audio_tail_and_keyboard_cursor(staged_backlot_server,width,height):
+    """Long metadata scenario derived from the existing source, no media payloads."""
+    from copy import deepcopy
+    import json
+    from pathlib import Path
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    state=deepcopy(fixture['state']);pid=fixture['project_id'];edl=state['edit_decisions']
+    edl['cuts'][0].update(in_seconds=0,out_seconds=30);edl['cuts'][1].update(in_seconds=40,out_seconds=70)
+    edl['audio_tracks'][0].update(start_seconds=62,in_seconds=0,out_seconds=4,speed=1)
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':width,'height':height})
+        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Long JSON timeline; no CI media'}]))
+        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=state))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda r:r.fulfill(json={'status':'idle'}))
+        page.route('**/api/studio/editor/'+pid+'/source/**',lambda r:r.fulfill(status=204))
+        page.goto(staged_backlot_server+'/studio?edit='+pid+'#video')
+        expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
+        ruler=page.get_by_role('slider',name='Regla temporal del montaje en segundos')
+        assert float(ruler.get_attribute('aria-valuemax'))==66
+        assert page.locator('#edit-timeline-note').is_visible()
+        assert page.locator('#edit-tracks').evaluate('(n)=>n.scrollWidth<=n.clientWidth+1')
+        page.locator('#edit-zoom-in').click();scale=float(page.locator('#edit-zoom').input_value())
+        page.reload();expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
+        assert float(page.locator('#edit-zoom').input_value())==pytest.approx(scale)
+        page.locator('#edit-fit').click();ruler=page.get_by_role('slider',name='Regla temporal del montaje en segundos');ruler.focus()
+        page.keyboard.press('End');assert float(ruler.get_attribute('aria-valuenow'))==66
+        output=Path('tests/qa/output/studio-editor');output.mkdir(parents=True,exist_ok=True)
+        page.screenshot(path=str(output/f'fit-long-{width}x{height}.png'),full_page=True)
         browser.close()
 
 
