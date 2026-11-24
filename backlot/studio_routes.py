@@ -535,6 +535,12 @@ def create_studio_router():
         result=await asyncio.to_thread(QgisCoordinates().execute,await body(request,limit=100000))
         if not result.success:raise HTTPException(400,result.error)
         return result.data
+    @router.post('/api/studio/applications/freecad/units')
+    async def freecad_unit_conversion(request:Request):
+        from tools.analysis.freecad_units import FreecadUnits
+        result=await asyncio.to_thread(FreecadUnits().execute,await body(request,limit=100000))
+        if not result.success:raise HTTPException(400,result.error)
+        return result.data
     @router.post('/api/studio/applications/{identifier}')
     async def application_configure(identifier:str,request:Request):
         from lib.external_applications import configure
