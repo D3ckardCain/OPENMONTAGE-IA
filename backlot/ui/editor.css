@@ -45,12 +45,25 @@ body.editor-active>.editor-shell{flex:1;display:grid;grid-template-rows:auto aut
 .editor-source small{display:block;color:#b1bac4}
 .editor-source audio{width:100%}
 .editor-timeline{grid-row:3;display:flex;flex-direction:column;overflow:hidden}
+.editor-timeline>h2{flex:none;font-size:12px;margin:0 0 2px}
+.editor-tools{flex:none;max-height:min(60%,calc(100% - 80px));overflow:auto;border-top:1px solid #30363d;padding-top:4px}
+.editor-tools>.editor-toolbar{flex-wrap:wrap;gap:5px}
+.editor-tools>.editor-toolbar label{margin:0}
+.editor-tools details{margin:4px 0 0}
+.editor-tools form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;align-items:end}
+.editor-tools form label{margin:0}
+.editor-tools form>div{display:contents}
+.editor-tools #edit-selection{font-size:11px}
 .editor-timeline>.editor-toolbar{flex:none;min-height:28px}
 .editor-timeline>.editor-toolbar h2{margin:0}
 .editor-timeline>.editor-toolbar span{font-size:11px;color:#b1bac4}
-#edit-tracks{flex:1;min-height:0;overflow:auto}
-#edit-subtitle-panel{flex:1;min-height:0;overflow:auto;padding:8px;border-top:1px solid #30363d}
-.editor-lane{position:relative;display:flex;gap:0;min-height:58px;overflow:auto;padding:4px 0;align-items:stretch;background-image:linear-gradient(to right,#30363d 1px,transparent 1px);background-attachment:local}
+#edit-tracks{flex:1;min-height:40px;overflow:auto}
+#edit-subtitle-panel{min-height:0;overflow:auto;padding:8px;border-top:1px solid #30363d}
+.editor-ruler{position:relative;height:22px;background:#0d1117;border-bottom:1px solid #484f58;font-size:11px}
+.editor-ruler span{position:absolute;border-left:1px solid #8b949e;padding-left:3px;white-space:nowrap}
+.editor-cues{display:block;height:46px;min-height:46px}
+.editor-cues .editor-clip{position:absolute;top:4px;height:36px;background:#302642;border-color:#bc8cff}
+.editor-lane{position:relative;display:flex;gap:0;min-height:58px;overflow:visible;padding:4px 0;align-items:stretch;background-image:linear-gradient(to right,#30363d 1px,transparent 1px);background-attachment:local}
 .editor-clip{flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-color:#388bfd;background:#163451;text-align:left;min-width:10px;max-width:none;margin:0!important;padding:4px!important}
 .editor-clip[aria-pressed=true]{outline:2px solid #f2cc60;outline-offset:-2px}
 .editor-clip video{height:32px;max-width:100%;display:block;pointer-events:none}

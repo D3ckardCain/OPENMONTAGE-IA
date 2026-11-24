@@ -158,8 +158,17 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
             for panel in b['panels'].values():
                 assert panel['y']>=0 and panel['bottom']<=height+1
             assert b['panels']['editor-timeline']['height']>=159
+            positions=page.evaluate('''()=>Object.fromEntries(['editor-upper','editor-timeline','edit-tracks','editor-tools'].map(id=>{const r=document.getElementById(id).getBoundingClientRect();return [id,{top:r.top,bottom:r.bottom}]}))''')
+            assert positions['editor-timeline']['top']>=positions['editor-upper']['bottom']
+            assert positions['editor-tools']['top']>=positions['edit-tracks']['bottom']-1
+            assert positions['editor-tools']['bottom']<=positions['editor-timeline']['bottom']+1
             return b
         before=contained();src=page.locator('#edit-player').get_attribute('src')
+        assert page.locator('#editor-tools #edit-clip-form').count()==1
+        assert page.locator('#editor-tools #edit-subtitle-panel').count()==1
+        assert page.locator('#edit-tracks .editor-ruler').count()==1
+        assert page.locator('#edit-tracks .editor-cues .editor-clip').count()==len(state['edit_decisions']['cues'])
+        assert page.locator('#edit-split').is_disabled()
         page.screenshot(path=str(output/f'existing-layout-{width}x{height}-default.png'),full_page=True)
         for identifier,dx,dy in [('library',60,0),('inspector',-50,0),('timeline',0,-40)]:
             box=page.locator('#edit-split-'+identifier).bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
@@ -183,6 +192,11 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         for section in ['audio','subtitles','video']:
             page.locator('[data-section="'+section+'"]').click();contained()
             assert page.locator('#edit-project').input_value()==pid
+        page.locator('.editor-cues .editor-clip').first.click()
+        assert page.locator('#edit-subtitle-panel').is_visible()
+        assert page.locator('#edit-cue-index').input_value()=='1'
+        assert state['edit_decisions']['cues'][0]['text'] in page.locator('#edit-srt').input_value()
+        contained();page.locator('[data-section="video"]').click()
         # Enormous saved preferences must be clamped to a usable current viewport.
         page.evaluate("localStorage.setItem('edit-track-size','9999');localStorage.setItem('edit-library-size','9999')")
         page.reload();expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
@@ -192,6 +206,11 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         assert page.locator('#edit-player').get_attribute('src')==src
         page.locator('.editor-video .editor-clip').first.click()
         expect(page.locator('#edit-clip-form')).to_be_visible()
+        assert not page.locator('#edit-split').is_disabled()
+        assert page.locator('#edit-player').get_attribute('src')!=src
+        page.locator('#edit-show-montage').click()
+        expect(page.locator('#edit-player')).to_have_attribute('src',src)
+        assert page.locator('#edit-clip-tools').get_attribute('open') is not None
         scroll=page.locator('#editor-inspector').evaluate('(p)=>{p.scrollTop=p.scrollHeight;return {top:p.scrollTop,height:p.clientHeight,total:p.scrollHeight,overflow:getComputedStyle(p).overflowY}}')
         assert scroll['overflow']=='auto' and scroll['top']>0
         contained()

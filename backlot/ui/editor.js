@@ -80,11 +80,13 @@ function selected() {
   return {list, clip, ...selection};
 }
 function selectClip(clip, track) {
-  selection = {id:clip.id, track}; showSource(clip.source_id, clip); drawInspector(); drawTracks();
+  selection = {id:clip.id, track}; q('edit-clip-tools').open=true; showSource(clip.source_id, clip); drawInspector(); drawTracks();
 }
 function drawInspector() {
   const form = q('edit-clip-form'); let item;
+  for(const id of ['edit-split','edit-remove','edit-left','edit-right'])q(id).disabled=true;
   try { item = selected(); } catch { form.hidden = true; q('edit-selection').textContent = 'Selecciona un clip en las pistas.'; return; }
+  q('edit-split').disabled=q('edit-remove').disabled=false;
   form.hidden = false; const c = item.clip;
   q('edit-selection').textContent = edl().sources[c.source_id].original_name + ' · ' + item.track;
   for (const key of ['in_seconds','out_seconds','speed','gain','fade_in','fade_out','start_seconds']) form.elements[key].value = c[key];
@@ -96,8 +98,16 @@ function drawInspector() {
 }
 function drawTracks() {
   const box = q('edit-tracks'); box.replaceChildren();
+  const zoom=Number(q('edit-zoom').value), duration=edl().cuts.reduce((sum,c)=>sum+seconds(c),0);
+  const end=Math.max(duration,...edl().audio_tracks.map(c=>c.start_seconds+seconds(c)),...edl().cues.map(c=>c.end_seconds),0);
+  const width=Math.max(box.clientWidth-2,end*zoom+60), ruler=element('div','');ruler.className='editor-ruler';ruler.style.width=width+'px';
+  ruler.setAttribute('aria-label','Regla temporal del montaje en segundos');
+  const tick=zoom>=40?1:5;
+  for(let t=0;t<=width/zoom;t+=tick){const label=element('span',t+' s');label.style.left=(t*zoom)+'px';ruler.append(label);}
+  box.append(ruler);
   for (const [track, title, clips] of [['video','Vídeo · cortes secuenciales',edl().cuts],['audio','Audio · tiempos independientes',edl().audio_tracks]]) {
     box.append(element('h3', title)); const lane = element('div',''); lane.className = 'editor-lane editor-' + track;
+    lane.style.width=width+'px';
     lane.style.backgroundSize=(Number(q('edit-zoom').value)*5)+'px 100%';
     let start = 0;
     for (let index = 0; index < clips.length; index++) {
@@ -123,6 +133,21 @@ function drawTracks() {
     const cursor=element('div','');cursor.className='editor-playhead';cursor.setAttribute('aria-hidden','true');lane.append(cursor);
     box.append(lane);
   }
+  box.append(element('h3','Subtítulos · tiempos del montaje'));
+  const cues=element('div','');cues.className='editor-lane editor-cues';cues.style.width=width+'px';
+  for(const [index,cue] of edl().cues.entries()){
+    const button=element('button',cue.text);button.type='button';button.className='editor-clip';
+    button.style.left=(cue.start_seconds*zoom)+'px';button.style.width=Math.max(10,(cue.end_seconds-cue.start_seconds)*zoom)+'px';
+    button.title=`Subtítulo ${index+1} · ${cue.start_seconds}–${cue.end_seconds} s · editar debajo de pistas`;
+    button.setAttribute('aria-label',`Editar subtítulo ${index+1}: ${cue.text}`);
+    button.onclick=()=>{
+      document.querySelector('.editor-menu [data-section="subtitles"]').click();q('edit-cue-index').value=index+1;
+      const input=q('edit-srt'),at=input.value.indexOf(cue.text);input.focus();if(at>=0)input.setSelectionRange(at,at+cue.text.length);
+      if(preview)q('edit-player').currentTime=cue.start_seconds;
+    };cues.append(button);
+  }
+  if(!edl().cues.length)cues.append(element('p','Sin subtítulos; importa o edita SRT debajo de las pistas.'));
+  const cursor=element('div','');cursor.className='editor-playhead';cursor.setAttribute('aria-hidden','true');cues.append(cursor);box.append(cues);
   updatePlayhead();
 }
 function updatePlayhead(){
@@ -211,6 +236,7 @@ q('edit-clip-settings').onclick=()=>task(()=>{const item=selected(),f=q('edit-cl
 q('edit-output').onclick=()=>task(()=>command('output',{ratio:q('edit-preset').value,fps:Number(q('edit-fps').value)}));
 q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()=>task(()=>render(false));
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});
+q('edit-show-montage').onclick=()=>task(async()=>{requireProject();await checkRender();if(!preview)message('El montaje actual aún no tiene vista previa guardada. Usa Preparar vista previa del montaje.');});
 q('edit-player').ontimeupdate=()=>{const p=q('edit-player');q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};
 q('edit-player').onerror=()=>message('El navegador no pudo reproducir este archivo. Puedes preparar la vista previa MP4 con FFmpeg; no se modifica el original.');
 q('edit-srt-import').onchange=event=>task(async()=>{requireProject();const f=event.target.files[0];if(!f)return;if(f.size>500000)throw Error('SRT superior a 500 KB');const response=await fetch(base()+'/subtitles/import?filename='+encodeURIComponent(f.name)+'&revision='+state.revision,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f});const value=await response.json();if(!response.ok)throw Error(value.detail);state=value;invalidate();draw();message('SRT importado y validado; se conservan sus bytes originales. Aplica los cambios posteriores del campo SRT por separado.');});
