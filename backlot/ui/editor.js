@@ -185,6 +185,7 @@ function addTrimHandles(button,clip,track){
     const paramsFor=delta=>track==='audio'&&edge==='in'?audioTrimByDelta(edl(),clip,delta):trimByDelta(edl(),clip,track,edge,delta);
     const save=params=>command(track==='audio'&&edge==='in'?'audio_trim_position':'trim',params);
     const handle=element('span','');handle.className='editor-trim-handle editor-trim-'+edge;handle.tabIndex=0;
+    handle.dataset.focus='edge:'+track+':'+clip.id+':'+edge;
     handle.draggable=false;handle.setAttribute('role','slider');handle.setAttribute('aria-label',`${track} ${clip.id}: recortar ${edge==='in'?'entrada':'salida'}`);
     handle.setAttribute('aria-valuemin','0');handle.setAttribute('aria-valuemax',String(clip.kind==='gap'?clip.gap_duration:edl().sources[clip.source_id].duration));handle.setAttribute('aria-valuenow',String(clip[edge+'_seconds']));
     handle.title=track==='video'?'Recorte con cierre de hueco · flechas: un fotograma · Mayús: un segundo':edge==='in'?'Recortar entrada de audio y mover su inicio atómicamente':'Recortar salida de audio · conserva su posición';
@@ -218,12 +219,13 @@ function addTrimHandles(button,clip,track){
   }
 }
 function drawTracks() {
-  const box = q('edit-tracks'); box.replaceChildren();
+  const box = q('edit-tracks'),focus=box.contains(document.activeElement)?document.activeElement.dataset.focus:null; box.replaceChildren();
   const end=timelineEnd(edl());
   q('edit-zoom').max=Math.min(10000,5000000/Math.max(1,end));
   if(zoomMode==='fit')q('edit-zoom').value=fitZoom(edl(),box.clientWidth);
   const zoom=Number(q('edit-zoom').value),width=Math.max(box.clientWidth-2,end*zoom+48);
   ruler=element('div','');ruler.className='editor-ruler';ruler.style.width=width+'px';
+  ruler.dataset.focus='ruler';
   ruler.tabIndex=0;ruler.setAttribute('role','slider');ruler.setAttribute('aria-valuemin','0');ruler.setAttribute('aria-valuemax',String(end));
   ruler.setAttribute('aria-label','Regla temporal del montaje en segundos');
   box.append(ruler);
@@ -247,6 +249,7 @@ function drawTracks() {
     for (let index = 0; index < clips.length; index++) {
       const clip = clips[index], button = element('button', (clip.kind==='gap'?'Vacío negro/silencio':edl().sources[clip.source_id].original_name) + '\n' + seconds(clip).toFixed(3) + ' s' + (clip.muted ? ' · silencio' : '')+(clip.locked?' · bloqueado':''));
       button.type = 'button'; button.className = 'editor-clip'; button.draggable = true;
+      button.dataset.focus='clip:'+track+':'+clip.id;
       button.style.width = Math.max(10, seconds(clip) * Number(q('edit-zoom').value)) + 'px';
       if(track==='audio'){button.style.left=(clip.start_seconds*Number(q('edit-zoom').value))+'px';button.style.top=(index*64+8)+'px';}
       button.title = 'Inicio: ' + (track === 'audio' ? clip.start_seconds : start).toFixed(3) + ' s · seleccionar para editar';
@@ -281,6 +284,7 @@ function drawTracks() {
   };
   for(const [index,cue] of edl().cues.entries()){
     const button=element('button',cue.text);button.type='button';button.className='editor-clip';
+    button.dataset.focus='cue:'+index;
     button.style.left=(cue.start_seconds*zoom)+'px';button.style.width=Math.max(10,(cue.end_seconds-cue.start_seconds)*zoom)+'px';
     button.title=`Subtítulo ${index+1} · ${cue.start_seconds}–${cue.end_seconds} s · editar debajo de pistas`;
     button.setAttribute('aria-label',`Editar subtítulo ${index+1}: ${cue.text}`);
@@ -296,6 +300,7 @@ function drawTracks() {
   const note=q('edit-timeline-note'),tail=end-videoDuration(edl());note.hidden=tail<.02;
   note.textContent=tail>=.02?'Colas fuera del vídeo: '+tail.toFixed(3)+' s. La salida actual termina con el vídeo; ajusta esas pistas antes de exportar.':'';
   box.onscroll=drawRuler;drawRuler();updatePlayhead();
+  if(focus)box.querySelector('[data-focus="'+CSS.escape(focus)+'"]')?.focus({preventScroll:true});
 }
 function drawRuler(){
   if(!state||!ruler)return;const box=q('edit-tracks'),zoom=Number(q('edit-zoom').value),tick=tickStep(zoom,edl().output.fps);
@@ -446,7 +451,8 @@ q('edit-snapping').onchange=storeView;
 q('edit-fit').onclick=fitTimeline;q('edit-zoom-out').onclick=()=>zoomTimeline(1/1.25);q('edit-zoom-in').onclick=()=>zoomTimeline(1.25);
 q('edit-view-source').onclick=()=>task(()=>{const item=selected();showSource(item.clip.source_id,item.clip);});
 q('edit-split-cursor').onclick=()=>task(()=>{const item=selected();return command('split',splitAtCursor(edl(),item.clip,item.track,cursor));});
-new ResizeObserver(()=>{if(state&&zoomMode==='fit')drawTracks();}).observe(q('edit-tracks'));
+let measuredTimelineWidth=0;
+new ResizeObserver(()=>{const width=q('edit-tracks').clientWidth;if(width===measuredTimelineWidth)return;measuredTimelineWidth=width;if(state&&zoomMode==='fit'&&!edgeGesture)drawTracks();}).observe(q('edit-tracks'));
 
 function showWorkspace(){waveformSelection++;q('edit-waveform-retry').hidden=true;q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&state){if(selection){try{const item=selected();if(item.clip.kind!=='gap'&&edl().sources[item.clip.source_id].audio)waveform(item.clip.source_id);}catch{/* removed */}}else if(sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);}if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
