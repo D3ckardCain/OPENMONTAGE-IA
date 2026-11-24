@@ -770,6 +770,13 @@ def create_studio_router():
         if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
         return result.data
 
+    @router.post('/api/studio/libraries/musetalk/batch-plan')
+    async def musetalk_batch_plan(request:Request):
+        from tools.analysis.musetalk_batch_plan import MusetalkBatchPlan
+        result=await asyncio.to_thread(MusetalkBatchPlan().execute,await body(request))
+        if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
+        return result.data
+
     @router.get('/api/studio/tools')
     async def tools(name:str=Query('',max_length=100),capability:str=Query('',max_length=100)):
         def discover():

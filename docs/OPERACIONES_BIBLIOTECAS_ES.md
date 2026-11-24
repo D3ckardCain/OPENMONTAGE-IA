@@ -25,3 +25,9 @@ La sintaxis está limitada a números/fracciones positivas y tamaños numerados 
 ## Soccer Tactical Vision: homografía declarada
 
 Herramienta `soccervision_homography`; `POST /api/studio/libraries/soccervision/homography`. Entrada: proyecto, matriz3x3 conocida, 1–1000puntosXY y source_units/target_units explícitos (pixels/metres/normalized/declared). Se llama al apply_homography oficial del entorno CPU, con rechazo de matrices singulares/condición>1e10, no finitos, puntos sobre el horizonte e inversa inestable. La salida conserva unidades declaradas y error de ida/vuelta, no exactitud de calibración. No estima la matriz desde imágenes, identifica puntos de campo, detecta jugadores, ejecuta tracking ni carga pesos. Las unidades declaradas no demuestran que la matriz corresponda a un campo o cámara reales.
+
+## MuseTalk: plan de lotes con placeholders CPU
+
+Herramienta `musetalk_batch_plan`; `POST /api/studio/libraries/musetalk/batch-plan`. Entrada: proyecto, audio_chunk_count/latent_frame_count (1–32), batch_size (1–16) y delay_frame (0–1000). Usa el datagen oficial de la fuente preparada para agrupar tensores CPU sintéticos pequeños. Devuelve índices de chunks/latentes, shapes y lote final parcial; prueba la correspondencia modular con desplazamiento. No recibe medios, rutas o checkpoints, ni ejecuta Whisper/VAE/UNet. Las formas placeholder no certifican embeddings/latentes reales ni sincronía de labios.
+
+Se evita preprocessing, que construye modelos al importarse. El componente de batching es funcional y comprobable sin inferencia; la síntesis completa de avatares, compatibilidad de pesos y calidad siguen fuera de esta fase sin contenido real. La instalación CPU y las condiciones de componentes de #24 se conservan; no se añade CUDA ni se descargan modelos.

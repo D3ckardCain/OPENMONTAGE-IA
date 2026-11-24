@@ -161,6 +161,30 @@ def operate(name, data):
 
 
 def operate_component(name, data):
+    if name == 'musetalk':
+        chunks, frames, batch, delay = (data.get(k) for k in ('audio_chunk_count', 'latent_frame_count', 'batch_size', 'delay_frame'))
+        if any(type(v) is not int for v in (chunks, frames, batch, delay)) or not 1 <= chunks <= 32 or not 1 <= frames <= 32 or not 1 <= batch <= 16 or not 0 <= delay <= 1000:
+            raise ValueError('MUSETALK_PLAN_INVALID: chunks/frames1–32, batch1–16, delay0–1000')
+        source = Path(__file__).resolve().parents[1] / '.runtime/musetalk/sources/0a89dec45a01'
+        if not source.is_dir():
+            raise ValueError('LIBRARY_SOURCE_MISSING: fuentes MuseTalk preparadas ausentes')
+        sys.path.insert(0, str(source))
+        import torch
+        from musetalk.utils.utils import datagen
+        with torch.no_grad():
+            conditioning = [torch.full((2, 384), float(i), device='cpu') for i in range(chunks)]
+            latents = [torch.full((1, 4, 2, 2), float(i), device='cpu') for i in range(frames)]
+            batches = []
+            for audio, latent in datagen(conditioning, latents, batch_size=batch, delay_frame=delay, device='cpu'):
+                batches.append({'chunk_indices': [int(v) for v in audio[:, 0, 0].tolist()],
+                                'latent_indices': [int(v) for v in latent[:, 0, 0, 0].tolist()],
+                                'conditioning_shape': list(audio.shape), 'latent_shape': list(latent.shape)})
+        if [i for b in batches for i in b['chunk_indices']] != list(range(chunks)):
+            raise ValueError('MUSETALK_PLAN_INVALID: se perdieron chunks')
+        return {'batches': batches, 'batch_count': len(batches), 'placeholder_tensors_only': True,
+                'versions': {p: metadata.version(p) for p in ('torch', 'diffusers', 'transformers')},
+                'geometry_generated': False, 'figures_generated': False, 'weights_loaded': False,
+                'model_inference_performed': False, 'audio_decoded': False, 'avatar_generated': False}
     if name == 'soccervision':
         import numpy as np
         from soccervision.calib.homography import apply_homography

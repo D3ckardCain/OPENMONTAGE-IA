@@ -14,10 +14,12 @@ from lib.production_agent import LocalAgent
 from lib.pipeline_loader import load_pipeline_readonly
 from tools.analysis import warehouse_dimensions
 from tools.analysis import soccervision_homography
+from tools.analysis import musetalk_batch_plan
 from tools.tool_registry import ToolRegistry
 
 CASES = [(warehouse_dimensions, 'WarehouseDimensions', {'project_id':'fixture','size':'#8-32','across_flats_mm':10,'sides':6}, '/api/studio/libraries/cq_warehouse/dimensions')]
 CASES += [(soccervision_homography,'SoccervisionHomography',{'project_id':'fixture','matrix':[[2,0,10],[0,3,20],[0,0,1]],'points':[[0,0],[3,4]],'source_units':'pixels','target_units':'metres'},'/api/studio/libraries/soccervision/homography')]
+CASES += [(musetalk_batch_plan,'MusetalkBatchPlan',{'project_id':'fixture','audio_chunk_count':5,'latent_frame_count':2,'batch_size':2,'delay_frame':1},'/api/studio/libraries/musetalk/batch-plan')]
 
 
 @pytest.mark.parametrize('module,clsname,inputs,route', CASES)
@@ -84,3 +86,9 @@ def test_native_component_operation(module,clsname,inputs,route,tmp_path,monkeyp
         assert r.data['roundtrip_max_error_in_source_units']<1e-10
         assert not tool.execute({**inputs,'matrix':[[0,0,0],[0,0,0],[0,0,0]]}).success
         assert not tool.execute({**inputs,'matrix':[[1,0,0],[0,1,0],[1,0,1]],'points':[[-1,0]]}).success
+    elif tool.library=='musetalk':
+        assert [b['chunk_indices'] for b in r.data['batches']]==[[0,1],[2,3],[4]]
+        assert [b['latent_indices'] for b in r.data['batches']]==[[1,0],[1,0],[1]]
+        assert r.data['batches'][-1]['latent_shape']==[1,4,2,2]
+        assert not r.data['weights_loaded'] and not r.data['avatar_generated']
+        assert not tool.execute({**inputs,'latent_frame_count':0}).success
