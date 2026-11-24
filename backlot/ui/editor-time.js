@@ -17,3 +17,26 @@ export function splitAtCursor(edl,clip,track,cursor){
   if(at<clip.in_seconds+minimum-1e-8||at>clip.out_seconds-minimum+1e-8)throw Error('El cursor debe estar dentro del clip y dejar al menos un fotograma a cada lado.');
   return {id:clip.id,track,at};
 }
+export function snapTime(time,points,zoom,enabled=true){
+  if(!enabled)return time;
+  let result=time,distance=8/zoom;
+  for(const point of points){const d=Math.abs(point-time);if(d<=distance){result=point;distance=d;}}
+  return result;
+}
+export function editPoints(edl,cursor=0){
+  const points=[0,cursor];let t=0;
+  for(const clip of edl.cuts){points.push(t);t+=clipDuration(clip,edl);points.push(t);}
+  for(const clip of edl.audio_tracks)points.push(clip.start_seconds,clip.start_seconds+clipDuration(clip,edl,false));
+  for(const cue of edl.cues)points.push(cue.start_seconds,cue.end_seconds);
+  return points;
+}
+export function trimByDelta(edl,clip,track,edge,delta){
+  if(edge!=='in'&&edge!=='out')throw Error('Borde desconocido');
+  if(track==='audio'&&edge==='in')throw Error('El borde de entrada de audio requiere recorte y desplazamiento atómicos; usa el inspector.');
+  const step=track==='video'?clip.speed/edl.output.fps:.001;
+  const amount=track==='video'?Math.round(delta*edl.output.fps)/edl.output.fps:delta;
+  let start=clip.in_seconds,end=clip.out_seconds;
+  if(edge==='in')start=Math.max(0,Math.min(end-step,start+amount*clip.speed));
+  else end=Math.max(start+step,Math.min(edl.sources[clip.source_id].duration,end+amount*clip.speed));
+  return {id:clip.id,track,in_seconds:start,out_seconds:end};
+}

@@ -253,7 +253,7 @@ def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_se
     import json
     from pathlib import Path
     fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
-    state=deepcopy(fixture['state']);original=deepcopy(state);pid=fixture['project_id'];calls=[]
+    state=deepcopy(fixture['state']);original=deepcopy(state);pid=fixture['project_id'];calls=[];trim_ends=[41.75,42-1/24]
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page(viewport={'width':1920,'height':1080})
@@ -270,6 +270,10 @@ def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_se
                 clip=state['edit_decisions']['cuts'][1];assert data['id']==clip['id']
                 state['edit_decisions']['cuts'].append({**clip,'id':'split-part','in_seconds':data['at']})
                 clip['out_seconds']=data['at'];state['edit_sha256']='b'*64;state['undo']=[original['edit_decisions']]
+            elif data['operation']=='trim':
+                assert data['track']=='video';assert data['in_seconds']==40
+                assert data['out_seconds']==pytest.approx(trim_ends.pop(0))
+                state['edit_decisions']['cuts'][0]['out_seconds']=data['out_seconds'];state['edit_sha256']='c'*64;state['undo']=[original['edit_decisions']]
             else:
                 assert data['operation']=='undo';state.clear();state.update(deepcopy(original))
             state['revision']=revision;route.fulfill(json=state)
@@ -290,6 +294,20 @@ def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_se
         page.locator('#edit-reopen').click()
         expect(page.locator('#edit-player')).to_have_attribute('src',fixture['render']['url'])
         assert len(calls)==2
+        def drag_edge(delta,cancel=False):
+            handle=page.locator('.editor-video .editor-clip').first.locator('.editor-trim-out')
+            box=handle.bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
+            page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+delta,y,steps=5)
+            if cancel:page.keyboard.press('Escape')
+            page.mouse.up()
+        drag_edge(25,cancel=True);assert len(calls)==2
+        zoom=float(page.locator('#edit-zoom').input_value());drag_edge(-zoom*.25)
+        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+3))
+        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+4))
+        handle=page.locator('.editor-video .editor-clip').first.locator('.editor-trim-out');handle.focus();page.keyboard.press('ArrowLeft')
+        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+5))
+        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+6))
+        assert len(calls)==6 and not trim_ends
         browser.close()
 
 

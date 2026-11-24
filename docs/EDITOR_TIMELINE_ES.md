@@ -35,6 +35,23 @@ con revisión, procedencia, guardado atómico y deshacer/rehacer existentes.
 El recorte por números, división por tiempo de fuente, mover/reordenar, quitar,
 ganancia, fades, velocidad, SRT y estilos conservan sus operaciones previas.
 
+## Segunda entrega: bordes e imán
+
+Los bordes azules de los clips de vídeo recortan entrada/salida con cierre de
+hueco en la secuencia. Arrastrar muestra el intervalo propuesto; soltar guarda
+un único `trim`; Esc cancela sin escribir. Con el borde enfocado, flechas recortan
+un fotograma y Mayús+flechas un segundo. Se limita a la fuente y a un fotograma
+mínimo, incluyendo velocidad. Deshacer restaura el intervalo y la secuencia.
+El borde de salida de audio cambia su duración conservando la posición; no se
+ofrece un borde de entrada que fingiese recorte+desplazamiento atómicos.
+
+Arrastrar un bloque de audio cambia su inicio temporal mediante `clip`, conserva
+su punto de agarre y no cambia el orden de las demás pistas. **Imán** ajusta esos
+arrastres y los bordes a cortes, extremos de audio, cues y cursor dentro de8px;
+puede desactivarse y se guarda con la vista del proyecto. El borrado de vídeo
+se rotula **Quitar y cerrar hueco**, porque el motor es secuencial. Quitar audio
+conserva las posiciones de las otras pistas. No se simula todavía borrado con hueco.
+
 ## Validación y siguientes entregas
 
 Pruebas Node sin dependencias sobre el código de tiempo real: montaje3.5s,
@@ -44,8 +61,8 @@ escalas corta/larga, selección sin cambiar de monitor, cursor por teclado,
 división revisionada y deshacer. Son evidencia de navegador en CI, no de la
 pestaña Windows ni de reproducción real. Se conservan los medios existentes.
 
-Pendientes del encargo: selección múltiple/operaciones atómicas, recorte por
-bordes y snapping, duplicación, marcadores, borrado con/sin cierre de hueco,
+Pendientes del encargo: selección múltiple/operaciones atómicas, entrada de audio
+con posición vinculada, duplicación, marcadores, borrado sin cierre de hueco,
 transformaciones/títulos/transiciones, capas reales, waveforms por pista,
 solo/bloqueo, medidores/mezcla, presets editables y cancelación de exportación.
 No se añaden botones para esas capacidades antes de implementarlas. La escucha,

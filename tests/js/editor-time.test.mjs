@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { timelineEnd,videoDuration,fitZoom,tickStep,splitAtCursor } from '../../backlot/ui/editor-time.js';
+import { timelineEnd,videoDuration,fitZoom,tickStep,splitAtCursor,snapTime,editPoints,trimByDelta } from '../../backlot/ui/editor-time.js';
 const first={id:'first',in_seconds:40,out_seconds:42,speed:1};
 const second={id:'second',in_seconds:10.5,out_seconds:12,speed:1};
 const edl={output:{fps:24},cuts:[first,second],audio_tracks:[],cues:[]};
@@ -34,4 +34,19 @@ test('cursor split converts montage time into source time including speed',()=>{
 test('reject boundaries and cuts shorter than an output frame',()=>{
   for(const t of [0,.001,2,2.5])assert.throws(()=>splitAtCursor(edl,first,'video',t));
   assert.equal(splitAtCursor(edl,first,'video',1/24).at,40+1/24);
+});
+test('edge trim stays inside source and leaves one output frame at any speed',()=>{
+  const clip={...first,speed:2,source_id:'s'};
+  const e={...edl,sources:{s:{duration:76}},cuts:[clip]};
+  assert.deepEqual(trimByDelta(e,clip,'video','in',.5),{id:'first',track:'video',in_seconds:41,out_seconds:42});
+  assert.equal(trimByDelta(e,clip,'video','in',100).in_seconds,42-2/24);
+  assert.equal(trimByDelta(e,clip,'video','out',100).out_seconds,76);
+  assert.equal(trimByDelta(e,clip,'video','out',-100).out_seconds,40+2/24);
+  assert.throws(()=>trimByDelta(e,clip,'audio','in',.5));
+});
+test('snap uses a pixel threshold and can be explicitly disabled',()=>{
+  assert.equal(snapTime(1.96,[1,2,3],100,true),2);
+  assert.equal(snapTime(1.8,[1,2,3],100,true),1.8);
+  assert.equal(snapTime(1.96,[1,2,3],100,false),1.96);
+  assert.ok(editPoints({...edl,audio_tracks:[],cues:[{start_seconds:.75,end_seconds:1.75}]},1).includes(.75));
 });

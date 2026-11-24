@@ -96,3 +96,9 @@ body.editor-active>.editor-shell{flex:1;display:grid;grid-template-rows:auto aut
 
 #edit-timeline-note{flex:none;font-size:11px;max-height:2.8em;overflow:auto;margin:0}
 .editor-ruler:focus-visible{outline:2px solid #58a6ff;outline-offset:-2px}
+
+.editor-clip{position:relative}
+.editor-trim-handle{position:absolute;top:0;bottom:0;width:8px;z-index:3;background:#58a6ff66;cursor:ew-resize;touch-action:none}
+.editor-trim-in{left:0}.editor-trim-out{right:0}
+.editor-trim-handle:focus-visible{outline:2px solid #f2cc60;outline-offset:-2px;background:#58a6ff}
+.editor-edge-drag *{cursor:ew-resize!important;user-select:none!important}
