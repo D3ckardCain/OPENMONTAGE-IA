@@ -1,0 +1,21 @@
+{
+  "scope": "Existing rendered-file audio decoded with FFmpeg then measured by actual JS waveform/meter module; NOT WebAudio capture, browser playback or listening",
+  "project_id": "edit-173e7bc16d1e",
+  "output_time": 2.5,
+  "source": "existing 60s QA preview",
+  "samples": {
+    "samples": 24000,
+    "duration": 0.5,
+    "peak_bins": 94,
+    "peak_min": -0.19833314418792725,
+    "peak_max": 0.18804742395877838,
+    "level": {
+      "rms": 0.04952277175909735,
+      "peak": 0.19833314418792725,
+      "dbfs": -26.103901122249205
+    }
+  },
+  "new_render": false,
+  "local_browser_observed": false,
+  "listening": false
+}

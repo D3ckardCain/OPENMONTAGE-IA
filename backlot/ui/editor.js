@@ -1,10 +1,56 @@
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue } from './editor-time.js';
+import { makePeaks,paintPeaks,signalLevel } from './editor-waveform.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
+const waveformCache=new Map();let waveformQueue=Promise.resolve(),waveformSelection=0;
+let meterContext=null,meterSource=null,meterAnalyser=null,meterEnabled=false,meterFrame=0,meterSamples=null,lastMeter='Sin medición';
+function meterLoop(){
+  cancelAnimationFrame(meterFrame);if(!meterEnabled)return;
+  if(q('edit-player').paused){q('edit-meter-level').textContent='Detenido · '+lastMeter;return;}
+  meterAnalyser.getFloatTimeDomainData(meterSamples);const level=signalLevel(meterSamples);
+  lastMeter=`RMS ${level.dbfs.toFixed(1)} dBFS · pico ${level.peak>0?(20*Math.log10(level.peak)).toFixed(1):'-96'} dBFS (mono)`;
+  q('edit-meter').hidden=false;q('edit-meter').value=Math.min(0,level.dbfs);q('edit-meter-level').textContent=lastMeter;
+  meterFrame=requestAnimationFrame(meterLoop);
+}
+q('edit-meter-toggle').onclick=async()=>{
+  const button=q('edit-meter-toggle');button.disabled=true;
+  try{
+    if(meterEnabled){meterEnabled=false;cancelAnimationFrame(meterFrame);q('edit-meter').hidden=true;q('edit-meter-level').textContent='Medidor desactivado';}
+    else{
+      if(!meterContext){meterContext=new AudioContext();meterSource=meterContext.createMediaElementSource(q('edit-player'));meterAnalyser=meterContext.createAnalyser();meterAnalyser.fftSize=2048;meterSamples=new Float32Array(meterAnalyser.fftSize);meterSource.connect(meterAnalyser);meterAnalyser.connect(meterContext.destination);}
+      await meterContext.resume();meterEnabled=true;meterLoop();
+    }
+  }catch(error){meterEnabled=false;q('edit-meter-level').textContent='Medidor no disponible: '+error.message;if(meterSource&&meterContext){try{meterSource.disconnect();meterSource.connect(meterContext.destination);await meterContext.resume();}catch{/* keep error visible */}}}
+  finally{button.disabled=false;button.setAttribute('aria-pressed',String(meterEnabled));button.textContent=meterEnabled?'Desactivar medidor':'Activar medidor';}
+};
+q('edit-player').addEventListener('play',()=>{if(meterEnabled)meterLoop();});
+q('edit-player').addEventListener('pause',()=>{cancelAnimationFrame(meterFrame);if(meterEnabled)q('edit-meter-level').textContent='Detenido · '+lastMeter;});
+function loadWaveform(key){
+  const info=edl().sources[key],pid=project,cacheKey=pid+':'+info.sha256;
+  if(waveformCache.has(cacheKey))return waveformCache.get(cacheKey);
+  const promise=waveformQueue.then(async()=>{
+    if(info.bytes>100000000||info.duration>300)throw Error('Límite local de waveform: 100 MB y 5 minutos por fuente. La reproducción sigue disponible.');
+    const response=await fetch('/api/studio/editor/'+encodeURIComponent(pid)+'/source/'+encodeURIComponent(key));
+    if(!response.ok)throw Error('No se pudo leer el audio local');
+    const context=new AudioContext();
+    try{const buffer=await context.decodeAudioData(await response.arrayBuffer());return makePeaks(buffer.getChannelData(0),buffer.sampleRate);}finally{await context.close();}
+  });
+  waveformQueue=promise.catch(()=>{});waveformCache.set(cacheKey,promise);
+  if(waveformCache.size>4)waveformCache.delete(waveformCache.keys().next().value);
+  return promise;
+}
+function addTrackWaveform(button,clip,index){
+  const canvas=document.createElement('canvas');canvas.className='editor-track-waveform';canvas.width=Math.min(2048,Math.max(1,Math.ceil(seconds(clip)*Number(q('edit-zoom').value))));canvas.height=48;
+  canvas.setAttribute('aria-hidden','true');canvas.hidden=true;button.prepend(canvas);
+  const status=element('small','Forma de onda: '+(index<4?'decodificando…':'selecciona el clip'));status.className='editor-waveform-note';button.append(status);
+  if(index>=4&&selection?.id!==clip.id)return;
+  const pid=project;
+  loadWaveform(clip.source_id).then(peaks=>{if(pid!==project||!canvas.isConnected)return;paintPeaks(canvas,peaks,clip.in_seconds,clip.out_seconds);canvas.hidden=false;status.textContent='Fuente · primer canal';}).catch(error=>{if(status.isConnected)status.textContent='Forma de onda no disponible';button.title=error.message;});
+}
 function storeView(){if(project)try{localStorage.setItem('edit-timeline-view:'+project,JSON.stringify({mode:zoomMode,zoom:Number(q('edit-zoom').value),cursor,snap:q('edit-snapping').checked}));}catch{/* optional */}}
 function loadView(){
   cursor=0;zoomMode='fit';q('edit-snapping').checked=true;try{const v=JSON.parse(localStorage.getItem('edit-timeline-view:'+project));if(v){zoomMode=v.mode==='manual'?'manual':'fit';if(Number.isFinite(v.zoom)&&v.zoom>0)q('edit-zoom').value=Math.min(10000,v.zoom);if(Number.isFinite(v.cursor))cursor=Math.max(0,Math.min(timelineEnd(edl()),v.cursor));q('edit-snapping').checked=v.snap!==false;}}catch{/* optional */}
@@ -58,7 +104,7 @@ async function projects() {
 async function reopen(id=project) {
   if (!id) throw Error('Selecciona un proyecto');
   const value = await api('/api/studio/editor/' + encodeURIComponent(id));
-  project = id; state = value; selection = null; sourceKey = null; preview = null;
+  project = id; state = value; selection = null; sourceKey = null; preview = null;lastMeter='Sin medici\u00f3n para este proyecto';q('edit-meter').hidden=true;q('edit-meter-level').textContent=lastMeter;
   q('edit-player').pause(); q('edit-player').removeAttribute('src'); q('edit-player').load();
   q('edit-monitor-title').textContent = 'Montaje reabierto · selecciona una fuente o prepara la vista previa';
   const url = new URL(location.href); url.searchParams.set('edit', project); history.replaceState(null, '', url);
@@ -132,7 +178,7 @@ function addTrimHandles(button,clip,track){
     handle.onpointermove=event=>{
       if(!edgeGesture||!handle.hasPointerCapture(event.pointerId))return;
       const zoom=Number(q('edit-zoom').value),initial=clipStart(edl(),clip,track)+(edge==='out'?seconds(clip):0);
-      const time=snapTime(initial+(event.clientX-edgeGesture.x)/zoom,editPoints(edl(),cursor),zoom,q('edit-snapping').checked);
+      const raw=initial+(event.clientX-edgeGesture.x)/zoom,time=snapTime(raw,editPoints(edl(),cursor,raw),zoom,q('edit-snapping').checked);
       const params=trimByDelta(edl(),clip,track,edge,time-initial);edgeGesture.params=params;
       button.style.width=Math.max(10,(params.out_seconds-params.in_seconds)/clip.speed*zoom)+'px';
       message('Recorte '+params.in_seconds.toFixed(3)+'–'+params.out_seconds.toFixed(3)+' s de fuente · suelta para guardar · Esc cancela');
@@ -170,7 +216,7 @@ function drawTracks() {
     const dropAudio=(event,from)=>task(()=>{
       const clip=edl().audio_tracks.find(c=>c.id===from.id);if(!clip)throw Error('El clip de audio de origen no está en este proyecto.');
       const zoom=Number(q('edit-zoom').value),raw=(event.clientX-lane.getBoundingClientRect().left)/zoom-(from.grabSeconds||0);
-      const start_seconds=Math.max(0,snapTime(raw,editPoints(edl(),cursor),zoom,q('edit-snapping').checked));
+      const start_seconds=Math.max(0,snapTime(raw,editPoints(edl(),cursor,raw),zoom,q('edit-snapping').checked));
       return command('clip',{id:clip.id,track:'audio',start_seconds});
     });
     lane.ondragover=event=>event.preventDefault();
@@ -184,6 +230,7 @@ function drawTracks() {
       button.title = 'Inicio: ' + (track === 'audio' ? clip.start_seconds : start).toFixed(3) + ' s · seleccionar para editar';
       if(track==='video'){const thumb=document.createElement('video');thumb.muted=true;thumb.preload='metadata';thumb.src=sourceUrl(clip.source_id)+'#t='+clip.in_seconds;thumb.setAttribute('aria-hidden','true');button.prepend(thumb);}
       button.setAttribute('aria-pressed', String(selection?.id === clip.id));
+      if(track==='audio')addTrackWaveform(button,clip,index);
       button.onclick = () => selectClip(clip, track);
       button.ondragstart = event => {if(event.target.closest('.editor-trim-handle')){event.preventDefault();return;}event.dataTransfer.setData('application/x-openmontage-clip', JSON.stringify({id:clip.id, track,grabSeconds:(event.clientX-button.getBoundingClientRect().left)/Number(q('edit-zoom').value)}));};
       button.ondragover = event => event.preventDefault();
@@ -205,7 +252,7 @@ function drawTracks() {
     if(!event.dataTransfer.types.includes('application/x-openmontage-cue'))return;event.preventDefault();
     task(()=>{const from=JSON.parse(event.dataTransfer.getData('application/x-openmontage-cue')),cue=edl().cues[from.index];if(!cue)throw Error('Subtítulo de origen no encontrado.');
       const zoom=Number(q('edit-zoom').value),raw=(event.clientX-cues.getBoundingClientRect().left)/zoom-from.grabSeconds;
-      const time=snapTime(raw,editPoints(edl(),cursor),zoom,q('edit-snapping').checked);q('edit-cue-index').value=from.index+1;
+      const time=snapTime(raw,editPoints(edl(),cursor,raw),zoom,q('edit-snapping').checked);q('edit-cue-index').value=from.index+1;
       return command('cue_update',{index:from.index,...moveCue(edl(),cue,time)});
     });
   };
@@ -293,22 +340,18 @@ async function render(previewOnly) {
   requireProject(); await api(base()+'/render',{revision:state.revision,preview:previewOnly}); await checkRender();
 }
 async function waveform(key) {
-  const canvas=q('edit-waveform'), status=q('edit-waveform-status'); canvas.hidden=true; status.hidden=false;
-  const info=edl().sources[key], captured=project,capturedSelection=selection?.id;
-  if (info.bytes > 100_000_000) { status.textContent='Forma de onda no disponible para archivos mayores de 100 MB. La reproducción sigue disponible.'; return; }
-  let context;
-  try {
-    status.textContent='Decodificando audio local para la forma de onda…';
-    const response=await fetch(sourceUrl(key)); if(!response.ok)throw Error('No se pudo leer el audio');
-    context=new AudioContext(); const buffer=await context.decodeAudioData(await response.arrayBuffer());
-    if(captured!==project || (sourceKey!==key&&selection?.id!==capturedSelection))return;
-    const channel=buffer.getChannelData(0), ctx=canvas.getContext('2d'), step=Math.max(1,Math.ceil(channel.length/canvas.width));
-    ctx.clearRect(0,0,canvas.width,canvas.height); ctx.strokeStyle='#3fb950'; ctx.beginPath();
-    for(let x=0;x<canvas.width;x++){let min=1,max=-1; for(let i=x*step;i<Math.min(channel.length,(x+1)*step);i++){min=Math.min(min,channel[i]);max=Math.max(max,channel[i]);}ctx.moveTo(x,(1+min)*70);ctx.lineTo(x,(1+max)*70);}ctx.stroke();
-    canvas.hidden=false;status.textContent='Forma de onda real · primer canal · archivo completo (sin efectos del montaje).';
-    canvas.onclick=event=>{q('edit-player').currentTime=(event.offsetX/canvas.clientWidth)*buffer.duration;};
-  } catch(error){status.textContent='Forma de onda no disponible: '+error.message;} finally{if(context)await context.close();}
+  const canvas=q('edit-waveform'),status=q('edit-waveform-status'),pid=project,token=++waveformSelection;
+  canvas.hidden=true;q('edit-waveform-retry').hidden=true;status.hidden=false;status.textContent='Decodificando audio local para forma de onda…';
+  try{
+    const peaks=await loadWaveform(key);if(pid!==project||token!==waveformSelection)return;
+    paintPeaks(canvas,peaks);canvas.hidden=false;status.textContent='Forma de onda real · primer canal · fuente completa, sin efectos ni mezcla.';
+    canvas.onclick=event=>{const time=(event.offsetX/canvas.clientWidth)*peaks.duration;
+      if(sourceKey===key)q('edit-player').currentTime=time;
+      else if(selection){const item=selected();seekTimeline(clipStart(edl(),item.clip,item.track)+(Math.max(item.clip.in_seconds,Math.min(item.clip.out_seconds,time))-item.clip.in_seconds)/item.clip.speed);}
+    };
+  }catch(error){if(pid===project&&token===waveformSelection){status.textContent='Forma de onda no disponible: '+error.message;q('edit-waveform-retry').hidden=edl().sources[key].duration>300||edl().sources[key].bytes>100000000;q('edit-waveform-retry').dataset.source=key;}}
 }
+q('edit-waveform-retry').onclick=async()=>{const key=q('edit-waveform-retry').dataset.source;if(!state||!edl().sources[key])return;waveformCache.delete(project+':'+edl().sources[key].sha256);await waveform(key);drawTracks();};
 q('edit-create').onclick=()=>task(async()=>{const title=prompt('Título del nuevo montaje');if(!title)return;const result=await api('/api/studio/editor/projects',{title});project=result.project_id;await projects();await reopen();});
 q('edit-project').onchange=event=>task(()=>reopen(event.target.value));
 q('edit-reopen').onclick=()=>task(()=>reopen());
@@ -343,7 +386,7 @@ q('edit-view-source').onclick=()=>task(()=>{const item=selected();showSource(ite
 q('edit-split-cursor').onclick=()=>task(()=>{const item=selected();return command('split',splitAtCursor(edl(),item.clip,item.track,cursor));});
 new ResizeObserver(()=>{if(state&&zoomMode==='fit')drawTracks();}).observe(q('edit-tracks'));
 
-function showWorkspace(){q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
+function showWorkspace(){waveformSelection++;q('edit-waveform-retry').hidden=true;q('edit-subtitle-panel').hidden=workspace!=='subtitles';q('edit-waveform').hidden=true;q('edit-waveform-status').hidden=workspace!=='audio';if(workspace==='audio'&&state){if(selection){try{const item=selected();if(edl().sources[item.clip.source_id].audio)waveform(item.clip.source_id);}catch{/* removed */}}else if(sourceKey&&edl().sources[sourceKey].audio)waveform(sourceKey);}if(workspace==='library')q('edit-import').focus();if(workspace==='edit-projects')q('edit-project').focus();}
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture){event.preventDefault();edgeGesture.cancel();return;}if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
 initializeEditorLayout();

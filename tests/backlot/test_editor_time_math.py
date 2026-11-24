@@ -10,6 +10,6 @@ def test_browser_timeline_arithmetic():
     node = shutil.which('node')
     if node is None:
         pytest.skip('Node is unavailable; run tests/js/editor-time.test.mjs on the prepared Node runtime')
-    result = subprocess.run([node, '--test', 'tests/js/editor-time.test.mjs'],
+    result = subprocess.run([node, '--test', 'tests/js/editor-time.test.mjs', 'tests/js/editor-waveform.test.mjs'],
                             cwd=Path(__file__).resolve().parents[2], capture_output=True, timeout=30)
     assert result.returncode == 0, (result.stdout + result.stderr).decode('utf-8', 'replace')

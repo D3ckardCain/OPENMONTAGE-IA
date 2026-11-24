@@ -367,6 +367,45 @@ def test_fit_long_timeline_includes_audio_tail_and_keyboard_cursor(staged_backlo
         browser.close()
 
 
+def test_waveform_and_meter_use_decoded_data_with_explicit_mock_scope(staged_backlot_server):
+    """Mock AudioContext only; no claim of local audio playback or listening."""
+    import json
+    from pathlib import Path
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    pid=fixture['project_id']
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1920,'height':1080})
+        page.add_init_script('''window.audioFixture={decodes:0,sources:0};window.AudioContext=class{
+          constructor(){this.destination={};} async close(){} async resume(){}
+          async decodeAudioData(){audioFixture.decodes++;const samples=Float32Array.from({length:192000},(_,i)=>Math.sin(i/48000*2*Math.PI*110)*.5);return {sampleRate:48000,getChannelData(){return samples}};}
+          createMediaElementSource(){audioFixture.sources++;return {connect(){},disconnect(){}};}
+          createAnalyser(){return {fftSize:2048,connect(){},getFloatTimeDomainData(a){a.fill(.25)}};}
+        };''')
+        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'SYNTHETIC decoder; no AV playback'}]))
+        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=fixture['state']))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda r:r.fulfill(json=fixture['render']))
+        page.route('**/media/**',lambda r:r.fulfill(status=204))
+        page.route('**/api/studio/editor/'+pid+'/source/**',lambda r:r.fulfill(status=204))
+        page.goto(staged_backlot_server+'/studio?edit='+pid+'#audio')
+        canvas=page.locator('.editor-track-waveform').first;expect(canvas).to_be_visible()
+        assert canvas.evaluate('(c)=>c.getContext("2d").getImageData(0,0,c.width,c.height).data.some((v,i)=>i%4===3&&v>0)')
+        page.locator('.editor-audio .editor-clip').first.click()
+        expect(page.locator('#edit-waveform')).to_be_visible()
+        assert page.evaluate('audioFixture.decodes')==1
+        page.locator('#edit-meter-toggle').click()
+        expect(page.locator('#edit-meter-toggle')).to_have_attribute('aria-pressed','true')
+        assert page.locator('#edit-meter').is_hidden()
+        page.locator('#edit-player').evaluate('(p)=>{Object.defineProperty(p,"paused",{configurable:true,value:false});p.dispatchEvent(new Event("play"))}')
+        expect(page.locator('#edit-meter')).to_be_visible()
+        assert float(page.locator('#edit-meter').get_attribute('value'))==pytest.approx(-12.0411998266)
+        page.locator('#edit-player').evaluate('(p)=>{Object.defineProperty(p,"paused",{configurable:true,value:true});p.dispatchEvent(new Event("pause"))}')
+        expect(page.locator('#edit-meter-level')).to_contain_text('Detenido')
+        page.locator('#edit-meter-toggle').click();expect(page.locator('#edit-meter')).to_be_hidden()
+        assert page.evaluate('audioFixture.sources')==1
+        browser.close()
+
+
 def test_update_file_remote_comparison_without_local_reads(staged_backlot_server):
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))

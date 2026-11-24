@@ -23,8 +23,9 @@ export function snapTime(time,points,zoom,enabled=true){
   for(const point of points){const d=Math.abs(point-time);if(d<=distance){result=point;distance=d;}}
   return result;
 }
-export function editPoints(edl,cursor=0){
+export function editPoints(edl,cursor=0,nearTime=null){
   const points=[0,cursor];let t=0;
+  if(Number.isFinite(nearTime))points.push(Math.round(nearTime*edl.output.fps)/edl.output.fps);
   for(const clip of edl.cuts){points.push(t);t+=clipDuration(clip,edl);points.push(t);}
   for(const clip of edl.audio_tracks)points.push(clip.start_seconds,clip.start_seconds+clipDuration(clip,edl,false));
   for(const cue of edl.cues)points.push(cue.start_seconds,cue.end_seconds);

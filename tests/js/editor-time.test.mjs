@@ -49,6 +49,8 @@ test('snap uses a pixel threshold and can be explicitly disabled',()=>{
   assert.equal(snapTime(1.8,[1,2,3],100,true),1.8);
   assert.equal(snapTime(1.96,[1,2,3],100,false),1.96);
   assert.ok(editPoints({...edl,audio_tracks:[],cues:[{start_seconds:.75,end_seconds:1.75}]},1).includes(.75));
+  assert.equal(snapTime(.497549,editPoints(edl,0,.497549),525,true),.5);
+  assert.equal(snapTime(.497549,editPoints(edl,0,.497549),525,false),.497549);
 });
 test('moving a cue preserves text and length, clamps to actual video output',()=>{
   const cue={start_seconds:.75,end_seconds:1.75,text:'Line one\nLine two'};

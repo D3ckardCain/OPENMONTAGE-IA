@@ -102,3 +102,9 @@ body.editor-active>.editor-shell{flex:1;display:grid;grid-template-rows:auto aut
 .editor-trim-in{left:0}.editor-trim-out{right:0}
 .editor-trim-handle:focus-visible{outline:2px solid #f2cc60;outline-offset:-2px;background:#58a6ff}
 .editor-edge-drag *{cursor:ew-resize!important;user-select:none!important}
+
+.editor-track-waveform{position:absolute;inset:0;width:100%;height:100%;opacity:.4;pointer-events:none}
+.editor-waveform-note{display:block;position:relative;font-size:10px;color:#b1bac4}
+
+#edit-meter{width:120px;height:16px;accent-color:#3fb950}
+#edit-meter-level{font-size:11px;max-width:340px}

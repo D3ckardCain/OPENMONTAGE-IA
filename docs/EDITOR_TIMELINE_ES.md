@@ -102,3 +102,33 @@ nuevos tiempos/texto, deshacer manual, movimiento calculado por JS y deshacer
 desde agente. El hash previo y el render vigente se recuperan sin volver a
 renderizar. Informe `EVIDENCIA_CUES_LIVE_20261124.json`. No acredita observación
 de la pestaña local ni escucha. Las pruebas de navegador siguen separadas.
+
+## Cuarta entrega: señal de audio visible
+
+Las pistas de audio muestran min/max de muestras realmente decodificadas, usando
+el intervalo de fuente del clip. No se dibuja una onda a partir del nombre ni una
+decoración. Se procesa el primer canal, sin aplicar efectos ni representar la
+mezcla exportada. Hasta cuatro fuentes en caché, decodificación secuencial y
+límite de100MB/5min por fuente para contener memoria. Las primeras cuatro pistas
+se preparan al abrir; las demás al seleccionarlas. Si falta decodificador o se
+supera el límite, el estado lo indica. La lectura fallida puede reintentarse
+explícitamente; no hay bucle de reintentos. La reproducción no depende de esa onda.
+
+**Activar medidor** conecta un analizador WebAudio al reproductor existente y
+mide RMS/pico de muestra de preescucha mono. Solo muestra valores durante señal
+reproducida; al pausar identifica la última lectura y al desactivar oculta el
+medidor sin cortar el audio. No representa LUFS, true-peak ni medición de cada
+pista por separado. Requiere acción del usuario para activar el contexto de audio.
+No solicita micrófono, accede a servicios ni modifica el archivo o el EDL.
+
+Pruebas: extremos positivos/negativos, intervalo de recorte, RMS/pico/silencio;
+navegador con AudioContext explícitamente simulado para verificar caché/dibujo/
+activación/pausa/desactivación (NO prueba de audio real). Separadamente, el módulo
+JS procesa PCM real del render QA existente: informe `EVIDENCIA_AUDIO_TIMELINE_20261124.json`.
+No se atribuye a esos datos una captura WebAudio local, escucha ni prueba visual
+de la pestaña Windows. Esas comprobaciones permanecen pendientes.
+
+El imán incorpora el fotograma próximo solo dentro de la tolerancia de8px;
+desactivado conserva precisión temporal libre. Esto evita que un arrastre
+destinado a0.5s termine a0.4975s por redondeo de píxeles, sin ocultar la diferencia
+mediante una tolerancia de prueba más amplia.
