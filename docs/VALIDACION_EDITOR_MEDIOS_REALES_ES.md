@@ -1,5 +1,7 @@
 # #92: validación con medios existentes (2026-11-24)
 
+**Estado posterior:** la API del servidor activo ya responde200 y se completó una [validación por HTTP real sin reiniciarlo](VALIDACION_EDITOR_HTTP_ACTIVO_ES.md). El404 y el reinicio bloqueado descritos abajo corresponden a esta fase anterior. La revisión de la ventana local permanece pendiente.
+
 **El motor y la API aislada se comprobaron con medios reales. El panel local todavía no está validado.** No se utilizaron mocks de FFmpeg/FFprobe ni se inició inferencia, descarga o instalación. Esta actualización continúa la [entrega anterior](VALIDACION_EDITOR_MANUAL_ES.md); no acredita todavía todos los criterios de #92.
 
 ## Estado de la instancia que está abierta

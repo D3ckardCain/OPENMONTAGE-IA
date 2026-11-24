@@ -6,6 +6,8 @@ Implementación inicial, local y sin inferencias. **#92 sigue abierto:** publica
 
 Abre `/studio`. Vídeo, Audio, Subtítulos, Biblioteca y Proyectos conservan el mismo montaje seleccionado (`?edit=…`). La biblioteca queda a la izquierda, el monitor en el centro, el inspector a la derecha y las pistas abajo. Distribución permite ajustar tamaños y ocultar paneles; esos valores se guardan en el navegador. El color sigue siendo GitHub Dark. Producción y agente, Aplicaciones, Cola y Recursos conservan los flujos anteriores y sus configuraciones.
 
+La raíz `/` es **Backlot — Library**; el enlace Studio lleva al editor `/studio`. Entrar en Proyectos actualiza su lista sin perder la selección, incluyendo altas hechas desde otro cliente/agente.
+
 La fuente individual y el montaje tienen etiquetas distintas. **Ver fuente** reproduce el archivo importado, no simula la edición. **Preparar vista previa del montaje** ejecuta FFmpeg sobre la revisión guardada. La exportación usa el mismo grafo a resolución completa. Un cambio invalida la reproducción del montaje anterior. No se inicia inferencia al abrir una pestaña.
 
 Guardar/reabrir sin cambiar decisiones conserva una vista previa vigente: su validez se determina por la huella del montaje, mientras la revisión de comandos sigue protegiendo las escrituras concurrentes. Los resultados anteriores sin huella conservan el criterio de revisión y pueden requerir una nueva preview una vez.
@@ -72,3 +74,5 @@ Referencias de interacción consultadas 2026-11-24, sin copiar código ni instal
 Evidencia y bloqueos: [VALIDACION_EDITOR_MANUAL_ES.md](VALIDACION_EDITOR_MANUAL_ES.md).
 
 Validación posterior del motor con un vídeo existente, audio real y subtítulos manuales: [VALIDACION_EDITOR_MEDIOS_REALES_ES.md](VALIDACION_EDITOR_MEDIOS_REALES_ES.md). Incluye el protocolo reproducible y separa API aislada/render real de revisión del panel local.
+
+La [validación del servidor activo](VALIDACION_EDITOR_HTTP_ACTIVO_ES.md) comprueba por HTTP real ese ciclo, exportación y herramienta del agente sin reiniciar Studio. La revisión de la ventana local sigue diferenciada.

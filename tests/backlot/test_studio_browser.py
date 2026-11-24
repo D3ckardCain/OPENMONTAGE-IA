@@ -6,6 +6,29 @@ from playwright.sync_api import sync_playwright, expect
 from tests.backlot.test_ui_bug_bash import staged_backlot_server
 
 
+def test_projects_menu_refreshes_agent_created_projects_without_losing_selection(staged_backlot_server):
+    """Shared-project discovery/DOM contract; no audiovisual claims."""
+    projects=[{'project_id':'shared-a','title':'Selected JSON project'}]
+    state={'revision':0,'edit_sha256':'a'*64,'undo':[],'redo':[],'events':[],
+           'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg','cuts':[], 'audio_tracks':[],
+             'cues':[],'sources':{},'output':{'ratio':'16:9','fps':24,'fit':'pad'},
+             'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=projects))
+        page.route('**/api/studio/editor/shared-a',lambda route:route.fulfill(json=state))
+        page.route('**/api/studio/editor/shared-a/render',lambda route:route.fulfill(json={'status':'idle'}))
+        page.goto(staged_backlot_server+'/studio?edit=shared-a#library')
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 0 · guardado local')
+        projects.append({'project_id':'shared-b','title':'Created through another client'})
+        page.locator('[data-section="edit-projects"]').click()
+        expect(page.locator('#edit-project option[value="shared-b"]')).to_have_count(1)
+        expect(page.locator('#edit-project')).to_have_value('shared-a')
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 0 · guardado local')
+        browser.close()
+
+
 def test_save_keeps_preview_but_edit_invalidates_it(staged_backlot_server):
     """Transport/DOM regression only; real FFmpeg evidence is a separate opt-in run."""
     state = {'revision':0,'edit_sha256':'a'*64,'undo':[],'redo':[],'events':[],

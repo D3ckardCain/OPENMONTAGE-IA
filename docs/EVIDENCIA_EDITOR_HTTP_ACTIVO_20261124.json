@@ -1,0 +1,371 @@
+{
+  "transport": "live_loopback_HTTP",
+  "server_url": "http://127.0.0.1:4750",
+  "media_engine": "real_ffmpeg_and_ffprobe",
+  "mocks": false,
+  "browser_playback_verified": false,
+  "listening_verified": false,
+  "source": {
+    "path": "D:\\OPENMONTAJE-IA\\BIBLIOTECAS_VIDEO\\ANIMALES\\NOAA\\ex2502-dive04-0323-pinnoctopus_1920x1080.mp4",
+    "bytes": 40145569,
+    "mtime_ns": 1794587378849668800,
+    "sha256": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+    "probe": {
+      "duration": 76.743333,
+      "kind": "video",
+      "audio": true,
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "started_at": "2026-11-24T18:03:56.807773+00:00",
+  "renders": {
+    "video_before": {
+      "status": "completed",
+      "attempt": "c9b049bd34d540358f79c057d9cf6883",
+      "revision": 3,
+      "origin": "user",
+      "edit_sha256": "4259fefb3c06d43a0b2e7a5c54118c4e84a937e3ff4144479ca7096aa0548a17",
+      "preview": true,
+      "started_at": "2026-11-24T18:03:57.249129+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:04:01.669795+00:00",
+      "path": "assets/editor-renders/c9b049bd34d540358f79c057d9cf6883/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/c9b049bd34d540358f79c057d9cf6883/montage.mp4",
+      "sha256": "96553230d64317ad0c52421f2b686c92db489d02c0b4da3da9142eb3326377ce",
+      "bytes": 2081618,
+      "duration": 4.0,
+      "subtitle_mode": "none",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "video_after": {
+      "status": "completed",
+      "attempt": "383c470179af4b389cd14f229c9a4752",
+      "revision": 8,
+      "origin": "user",
+      "edit_sha256": "4c67e21a648a39c9b1fa932979f7a1e157ea55a98a9b41bd015bc5be15355eb6",
+      "preview": true,
+      "started_at": "2026-11-24T18:04:02.178291+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:04:04.121780+00:00",
+      "path": "assets/editor-renders/383c470179af4b389cd14f229c9a4752/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/383c470179af4b389cd14f229c9a4752/montage.mp4",
+      "sha256": "d3e7f691e3e24e478f8e6d87fffba4a1eb53bdeb976fbb2da9b070ece216870d",
+      "bytes": 1768524,
+      "duration": 3.5,
+      "subtitle_mode": "none",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "audio_unity": {
+      "status": "completed",
+      "attempt": "2a68bca43d6f4c46af7df437886fa575",
+      "revision": 13,
+      "origin": "user",
+      "edit_sha256": "54e5fc0d45fe53a51b7b363a1d4e7824ec85978d611a1dfde59edfd9a68846ff",
+      "preview": true,
+      "started_at": "2026-11-24T18:04:37.104907+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:04:39.076039+00:00",
+      "path": "assets/editor-renders/2a68bca43d6f4c46af7df437886fa575/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/2a68bca43d6f4c46af7df437886fa575/montage.mp4",
+      "sha256": "5e3e3857eaaa456482656d3b48a2299f4ecdf5eda43b848d736fc6ba823b017d",
+      "bytes": 1768491,
+      "duration": 3.5,
+      "subtitle_mode": "none",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+        "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "audio_gain_fades": {
+      "status": "completed",
+      "attempt": "34adb0338a4246c791bc210edbd62f0d",
+      "revision": 14,
+      "origin": "user",
+      "edit_sha256": "aa4005bd3870f1ce70360d370884a75fe2d7174166f985942e4755f3e663a7d3",
+      "preview": true,
+      "started_at": "2026-11-24T18:04:39.409717+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:04:41.400157+00:00",
+      "path": "assets/editor-renders/34adb0338a4246c791bc210edbd62f0d/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/34adb0338a4246c791bc210edbd62f0d/montage.mp4",
+      "sha256": "6ee6d9393f53d2a47da9f7bea146e6cf2ce1c5f98adda9e658ae4c9dce5072da",
+      "bytes": 1768460,
+      "duration": 3.5,
+      "subtitle_mode": "none",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+        "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "audio_muted": {
+      "status": "completed",
+      "attempt": "bd37214ff8204994ae39a22fb3d48064",
+      "revision": 15,
+      "origin": "user",
+      "edit_sha256": "fe293e5d64ab7fc3ce0ea2074ec4631121c9d325c485be26e322d0ecae4d21ef",
+      "preview": true,
+      "started_at": "2026-11-24T18:04:41.736526+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:04:43.689737+00:00",
+      "path": "assets/editor-renders/bd37214ff8204994ae39a22fb3d48064/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/bd37214ff8204994ae39a22fb3d48064/montage.mp4",
+      "sha256": "bc480f5e4e27dd6bd4b0a0133ef9a1cddffbea50a51c9ff130320eab9aef72bc",
+      "bytes": 1685529,
+      "duration": 3.5,
+      "subtitle_mode": "none",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+        "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "subtitles_soft": {
+      "status": "completed",
+      "attempt": "130b33e48fe245f2b867db1ef241b839",
+      "revision": 21,
+      "origin": "user",
+      "edit_sha256": "cb671496e9740a60f32e08052773250793aab77df4a06342620a8a450ba88dfb",
+      "preview": true,
+      "started_at": "2026-11-24T18:04:50.751164+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:04:52.860141+00:00",
+      "path": "assets/editor-renders/130b33e48fe245f2b867db1ef241b839/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/130b33e48fe245f2b867db1ef241b839/montage.mp4",
+      "sha256": "2dbe71860a91083234a99e58f41db1d955303666e00cd104d1bfccbe27415e1b",
+      "bytes": 1769016,
+      "duration": 3.5,
+      "subtitle_mode": "mov_text",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+        "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "subtitles_burned": {
+      "status": "completed",
+      "attempt": "3127e2048df1483ab0fd4b818cf8caef",
+      "revision": 22,
+      "origin": "user",
+      "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad",
+      "preview": true,
+      "started_at": "2026-11-24T18:04:53.330443+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:04:55.486152+00:00",
+      "path": "assets/editor-renders/3127e2048df1483ab0fd4b818cf8caef/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/3127e2048df1483ab0fd4b818cf8caef/montage.mp4",
+      "sha256": "38b3748e103a4f9cfd97d6569daf2c11996f418125992441b24af71acedfe4dc",
+      "bytes": 1773744,
+      "duration": 3.5,
+      "subtitle_mode": "burn",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+        "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "save_preview_identity": {
+      "status": "completed",
+      "attempt": "034cc39b203f41408d9fe99a5d3c488a",
+      "revision": 23,
+      "origin": "user",
+      "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad",
+      "preview": true,
+      "started_at": "2026-11-24T18:05:02.866076+00:00",
+      "width": 960,
+      "height": 540,
+      "completed_at": "2026-11-24T18:05:04.857182+00:00",
+      "path": "assets/editor-renders/034cc39b203f41408d9fe99a5d3c488a/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/034cc39b203f41408d9fe99a5d3c488a/montage.mp4",
+      "sha256": "38b3748e103a4f9cfd97d6569daf2c11996f418125992441b24af71acedfe4dc",
+      "bytes": 1773744,
+      "duration": 3.5,
+      "subtitle_mode": "burn",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+        "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    },
+    "full_resolution_export": {
+      "status": "completed",
+      "attempt": "ed823b46a1c54cbbae4bc0aa21faed3a",
+      "revision": 26,
+      "origin": "user",
+      "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad",
+      "preview": false,
+      "started_at": "2026-11-24T18:09:22.133513+00:00",
+      "width": 1920,
+      "height": 1080,
+      "completed_at": "2026-11-24T18:09:27.527426+00:00",
+      "path": "assets/editor-renders/ed823b46a1c54cbbae4bc0aa21faed3a/montage.mp4",
+      "url": "/media/edit-827337e03f38/assets/editor-renders/ed823b46a1c54cbbae4bc0aa21faed3a/montage.mp4",
+      "sha256": "72af68d538d06a7ccccc89a3ce554d64a3defa7a53779a80a70a324c0cdda734",
+      "bytes": 6210256,
+      "duration": 3.5,
+      "subtitle_mode": "burn",
+      "source_sha256": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+        "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+      },
+      "current": true,
+      "full_decode_passed": true,
+      "http_range_status": 206,
+      "range_bytes_verified": 32
+    }
+  },
+  "status": "live_HTTP_workflows_passed_native_panel_unverified",
+  "server_project_root": "C:\\OPENMONTAGE-IA\\projects",
+  "project_id": "edit-827337e03f38",
+  "project_path": "C:\\OPENMONTAGE-IA\\projects\\edit-827337e03f38",
+  "video_persistence_verified": true,
+  "frame_evidence_path": "C:\\OPENMONTAGE-IA\\projects\\edit-827337e03f38\\assets\\qa-evidence",
+  "source_unchanged": true,
+  "finished_at": "2026-11-24T18:09:28.023524+00:00",
+  "audio": {
+    "started_at": "2026-11-24T18:04:36.416478+00:00",
+    "status": "real_backend_passed_live_UI_and_listening_unverified",
+    "source_pcm": {
+      "samples": 192000,
+      "rms": 0.0792763731249726,
+      "peak": 0.46563720703125
+    },
+    "unity_pcm": {
+      "samples": 168000,
+      "rms": 0.07560493358952851,
+      "peak": 0.489471435546875
+    },
+    "gain_fades_pcm": {
+      "samples": 168000,
+      "rms": 0.016919351810229192,
+      "peak": 0.11773681640625
+    },
+    "rms_ratio": 0.22378634577059622,
+    "muted_pcm": {
+      "samples": 168000,
+      "rms": 0.0,
+      "peak": 0.0
+    },
+    "revision": 17,
+    "finished_at": "2026-11-24T18:04:44.135070+00:00"
+  },
+  "subtitles": {
+    "started_at": "2026-11-24T18:04:50.623698+00:00",
+    "status": "real_backend_passed_live_UI_and_listening_unverified",
+    "soft_srt_extracted": "1\n00:00:00,750 --> 00:00:01,750\nQA #92:\nTEXTO MANUAL DE PRUEBA\n\n",
+    "burn_bottom_mean_pixel_change": 5.304471450617284,
+    "original_srt_bytes_preserved": true,
+    "manual_QA_text_not_transcription": true,
+    "revision": 23,
+    "finished_at": "2026-11-24T18:04:56.090473+00:00"
+  },
+  "save-preview": {
+    "started_at": "2026-11-24T18:05:02.818147+00:00",
+    "status": "real_backend_passed_live_UI_and_listening_unverified",
+    "preview_reused_after_save": true,
+    "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad",
+    "output": "C:\\OPENMONTAGE-IA\\projects\\edit-827337e03f38\\assets\\editor-renders\\034cc39b203f41408d9fe99a5d3c488a\\montage.mp4",
+    "before_revision": 23,
+    "after_save_revision": 24,
+    "revision": 25,
+    "finished_at": "2026-11-24T18:05:05.191141+00:00"
+  },
+  "native_agent_tool": {
+    "status": "available",
+    "read_success": true,
+    "save_success": true,
+    "before_revision": 25,
+    "after_revision": 26,
+    "render_still_current": true,
+    "stale_user_revision_http": 409,
+    "stale_detail": "El proyecto cambió. Reabre la revisión actual antes de editar",
+    "Ollama_calls": 0,
+    "origin": "agent"
+  },
+  "editor_url": "http://127.0.0.1:4750/studio?edit=edit-827337e03f38#video",
+  "export": {
+    "started_at": "2026-11-24T18:09:22.037857+00:00",
+    "status": "real_backend_passed_live_UI_and_listening_unverified",
+    "output": "C:\\OPENMONTAGE-IA\\projects\\edit-827337e03f38\\assets\\editor-renders\\ed823b46a1c54cbbae4bc0aa21faed3a\\montage.mp4",
+    "width": 1920,
+    "height": 1080,
+    "sha256": "72af68d538d06a7ccccc89a3ce554d64a3defa7a53779a80a70a324c0cdda734",
+    "revision": 27,
+    "finished_at": "2026-11-24T18:09:28.023524+00:00"
+  },
+  "request_status_counts": {
+    "200": 154
+  },
+  "server_pid_before": 73536,
+  "server_pid_after": 73536,
+  "server_restart_performed": false,
+  "source_unchanged_after_all_phases": true,
+  "decoded_frames_reviewed": true,
+  "native_windows_panel_verified": false,
+  "root_route_title": "Backlot ? Library",
+  "editor_route": "/studio",
+  "served_editor_js_matches_local": true,
+  "final_state": {
+    "project_revision": 27,
+    "render_revision": 26,
+    "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad",
+    "render_current": true,
+    "cues": [
+      {
+        "start_seconds": 0.75,
+        "end_seconds": 1.75,
+        "text": "QA #92:\nTEXTO MANUAL DE PRUEBA"
+      }
+    ],
+    "cuts": [
+      {
+        "in_seconds": 40.0,
+        "out_seconds": 42.0
+      },
+      {
+        "in_seconds": 10.5,
+        "out_seconds": 12.0
+      }
+    ]
+  },
+  "served_editor_js_sha256": "28c40e342387ff2436d6d738f8fe52a82b252e82cbd246142ce526c945c0d039"
+}
