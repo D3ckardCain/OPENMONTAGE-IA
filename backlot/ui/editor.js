@@ -2,7 +2,6 @@
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
-let srtSourceName = null;
 const message = text => { q('edit-message').textContent = text; };
 const element = (tag, text) => { const n = document.createElement(tag); n.textContent = text; return n; };
 const seconds = c => {const raw=(c.out_seconds-c.in_seconds)/c.speed;return edl().sources[c.source_id].kind==='video'?Math.round(raw*edl().output.fps)/edl().output.fps:raw;};
@@ -212,8 +211,8 @@ q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});
 q('edit-player').ontimeupdate=()=>{const p=q('edit-player');q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};
 q('edit-player').onerror=()=>message('El navegador no pudo reproducir este archivo. Puedes preparar la vista previa MP4 con FFmpeg; no se modifica el original.');
-q('edit-srt-import').onchange=event=>task(async()=>{const f=event.target.files[0];if(!f)return;if(f.size>500000)throw Error('SRT superior a 500 KB');q('edit-srt').value=await f.text();srtSourceName=f.name;message('SRT leído; pulsa Aplicar subtítulos para validarlo y guardarlo.');});
-q('edit-srt-save').onclick=()=>task(async()=>{await command('subtitles',{srt:q('edit-srt').value,...(srtSourceName?{source_name:srtSourceName}:{})});srtSourceName=null;});
+q('edit-srt-import').onchange=event=>task(async()=>{requireProject();const f=event.target.files[0];if(!f)return;if(f.size>500000)throw Error('SRT superior a 500 KB');const response=await fetch(base()+'/subtitles/import?filename='+encodeURIComponent(f.name)+'&revision='+state.revision,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f});const value=await response.json();if(!response.ok)throw Error(value.detail);state=value;invalidate();draw();message('SRT importado y validado; se conservan sus bytes originales. Aplica los cambios posteriores del campo SRT por separado.');});
+q('edit-srt-save').onclick=()=>task(()=>command('subtitles',{srt:q('edit-srt').value}));
 q('edit-cue-offset-apply').onclick=()=>task(()=>command('cue_offset',{seconds:Number(q('edit-cue-offset').value)}));
 q('edit-cue-split').onclick=()=>task(()=>command('cue_split',{index:Number(q('edit-cue-index').value)-1,at:Number(q('edit-cue-at').value),text_index:Number(q('edit-cue-text-index').value)}));
 q('edit-cue-merge').onclick=()=>task(()=>command('cue_merge',{index:Number(q('edit-cue-index').value)-1}));

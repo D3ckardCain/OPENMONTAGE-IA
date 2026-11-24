@@ -54,6 +54,10 @@ La corrección también hace proporcional la anchura de clips, representa los in
 
 Regresión local de la corrección: **86 passed / 1 skipped, 11.13 s** (33 casos del editor más producción/UTF-8). Se retienen las verificaciones de error, concurrencia, restricciones de rutas y costo cero; la CI final debe confirmar además los navegadores y todos los contratos.
 
+La revisión `3fbf57b83ed7dbca8b7f31735be2212451299ef8` quedó aprobada en intento1: [CI45444307267](https://github.com/D3ckardCain/OPENMONTAGE-IA/actions/runs/45444307267), **3443 passed / 44 skipped / 3 xfailed / 40 subtests passed, 103.01 s**; [contratos PR45444307274](https://github.com/D3ckardCain/OPENMONTAGE-IA/actions/runs/45444307274) y [push45444290361](https://github.com/D3ckardCain/OPENMONTAGE-IA/actions/runs/45444290361), incluidos navegador e instalación/contratos Windows/Linux. Las tres regresiones anteriores están resueltas sin modificar sus pruebas.
+
+Revisión posterior de procedencia: se separa importar SRT original (bytes exactos, BOM/CRLF y hash conservados) de aplicar cambios al texto. Antes, editar el campo antes de aplicar podía guardar una copia modificada bajo el nombre de origen. Un test HTTP conserva los bytes originales tras editar cues, rechaza revisiones anteriores y valida entradas inválidas sin mutar el proyecto. Las lecturas SHA256 quedan acotadas al tamaño inicial y rechazan crecimiento/truncado durante la lectura, sin perseguir un archivo en expansión. **Regresión local posterior: 89 passed / 1 skipped, 12.47 s**. Los resultados CI de esta última revisión se publican en #92; no se atribuyen a la revisión anterior.
+
 ## Conservación y trabajo restante
 
 SHA256 de configuraciones conservadas:

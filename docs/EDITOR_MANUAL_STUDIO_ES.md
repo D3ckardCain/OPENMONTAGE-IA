@@ -32,7 +32,7 @@ Kokoro, Qwen y ACE-Step no se ejecutan desde este editor. Sus flujos existentes 
 
 ## Subtítulos
 
-Importa SRT o escribe texto/tiempos en el campo SRT; pulsa Aplicar para validar y guardar. Se conserva una copia del SRT importado con procedencia cuando se aplica. Se comprueban numeración, intervalos, duración, orden y solapamientos mediante el lector existente. Se muestran caracteres por segundo; no se declara un umbral universal de calidad.
+Importar SRT valida y guarda sus cues y una copia de **los bytes originales**, con nombre y SHA256, incluso si incluye BOM o saltos CRLF. Los cambios posteriores en el campo SRT se guardan con Aplicar; nunca sustituyen esa copia de origen. También puedes escribir texto/tiempos directamente y aplicar. Se comprueban numeración, intervalos, duración, orden y solapamientos mediante el lector existente. Se muestran caracteres por segundo; no se declara un umbral universal de calidad.
 
 Puedes desplazar todos los tiempos, dividir un cue por tiempo/carácter y unirlo al siguiente. Texto y tiempos también se corrigen en SRT. Exportar SRT/ASS descarga una representación de la revisión actual. ASS reutiliza el generador existente con Arial, tamaño relativo a 1080p, posición y márgenes seguros. Las llaves y barras del texto se escapan.
 

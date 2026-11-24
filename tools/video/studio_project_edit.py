@@ -67,9 +67,11 @@ class StudioProjectEdit(BaseTool):
                 value = request(path + '/agent-render', {'revision':inputs['revision'], 'preview':inputs.get('preview', False)})
             else:
                 raise ValueError('Acción no disponible')
+            if not isinstance(value, dict):
+                raise ValueError('La respuesta de Studio no corresponde a un proyecto editable')
             if '_error' in value:
                 return ToolResult(success=False, error=value['_error'], data={'conflict': value['_conflict']})
             value = {k:v for k,v in value.items() if k not in ('undo', 'redo')}
             return ToolResult(success=True, data={'project_id': pid, **value, 'origin': 'agent'})
-        except (ValueError, KeyError, OSError, URLError) as exc:
+        except (ValueError, TypeError, KeyError, OSError, URLError) as exc:
             return ToolResult(success=False, error='Studio local no disponible o solicitud inválida: ' + str(exc), data={'conflict': False})

@@ -335,3 +335,34 @@ def test_tool_availability_requires_current_editor_api(monkeypatch):
     assert seen == [('projects',2)]
     monkeypatch.setattr(tool,'request',lambda path,timeout:[])
     assert tool.StudioProjectEdit().get_status() == ToolStatus.AVAILABLE
+
+
+def test_srt_import_preserves_bytes_and_is_separate_from_edits(project):
+    pid,key,_ = project
+    add(pid,key)
+    original = b'\xef\xbb\xbf' + SRT.replace('\n','\r\n').encode('utf-8')
+    client = TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    revision = edit.state(pid)['revision']
+    route = f'/api/studio/editor/{pid}/subtitles/import?filename=original.srt&revision={revision}'
+    response = client.post(route,content=original)
+    assert response.status_code == 200
+    provenance = response.json()['edit_decisions']['subtitle_sources'][0]
+    target = studio.project_path(pid)/provenance['path']
+    assert target.read_bytes() == original and provenance['exact_original_bytes']
+    assert provenance['sha256'] == edit.digest(target)
+    command(pid,'subtitles',srt=SRT.replace('Hola mundo','Texto editado'))
+    assert target.read_bytes() == original
+    assert edit.state(pid)['edit_decisions']['cues'][0]['text'] == 'Texto editado'
+    assert client.post(route,content=original).status_code == 409
+    before = edit.state(pid)
+    assert client.post(route.replace(f'revision={revision}',f'revision={before["revision"]}'),content=b'bad').status_code == 400
+    assert edit.state(pid) == before
+
+
+@pytest.mark.parametrize('content',[b'abc',b'abcde'])
+def test_hash_read_is_bounded_when_source_changes(content):
+    import io
+    class ChangingFile:
+        def stat(self): return SimpleNamespace(st_size=4)
+        def open(self,mode): return io.BytesIO(content)
+    with pytest.raises(edit.Conflict): edit.digest(ChangingFile())

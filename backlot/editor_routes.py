@@ -96,6 +96,20 @@ def create_editor_router(body):
         return PlainTextResponse(editor.srt(value['edit_decisions']), media_type='application/x-subrip',
                                  headers={'Content-Disposition': 'attachment; filename="subtitles.srt"'})
 
+    @router.post('/{pid}/subtitles/import')
+    async def import_subtitles(pid: str, request: Request, filename: str, revision: int):
+        origin = request.headers.get('origin')
+        if origin and origin.rstrip('/') != str(request.base_url).rstrip('/'):
+            raise HTTPException(403, 'Origen no autorizado')
+        chunks = []
+        size = 0
+        async for chunk in request.stream():
+            size += len(chunk)
+            if size > 500_000:
+                raise HTTPException(413, 'SRT superior a 500 KB')
+            chunks.append(chunk)
+        return invoke(editor.import_subtitles, pid, b''.join(chunks), filename, revision)
+
     @router.get('/{pid}/render')
     def render_status(pid: str):
         return invoke(render.status, pid)

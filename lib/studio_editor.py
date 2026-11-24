@@ -52,9 +52,16 @@ def identity(path):
 
 def digest(path):
     h = hashlib.sha256()
+    remaining = path.stat().st_size
     with path.open('rb') as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+        while remaining:
+            chunk = stream.read(min(1024 * 1024, remaining))
+            if not chunk:
+                raise Conflict('El archivo se truncó durante su verificación')
+            remaining -= len(chunk)
             h.update(chunk)
+        if stream.read(1):
+            raise Conflict('El archivo creció durante su verificación')
     return h.hexdigest()
 
 
@@ -160,6 +167,29 @@ def _item(items, key):
     return next(item for item in items if item['id'] == key)
 
 
+def import_subtitles(pid, blob, filename, expected):
+    """Preserve the actual imported bytes, separately from subsequent cue edits."""
+    if not isinstance(filename, str) or len(filename) > 240 or Path(filename).suffix.lower() != '.srt':
+        raise ValueError('Indica un archivo SRT')
+    if not isinstance(blob, bytes) or not 0 < len(blob) <= 500_000:
+        raise ValueError('SRT vacío o superior a 500 KB')
+    with guard(pid):
+        value = state(pid)
+        _revision(value, expected)
+        edl = deepcopy(value['edit_decisions'])
+        edl['cues'] = parse_srt(blob.decode('utf-8-sig'), duration(edl))
+        relative = 'assets/imports/' + uuid.uuid4().hex + '.srt'
+        target = studio.project_path(pid) / relative
+        target.parent.resolve().relative_to(studio.project_path(pid).resolve())
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open('xb') as stream:
+            stream.write(blob)
+        edl.setdefault('subtitle_sources', []).append({'path': relative, 'original_name': filename,
+            'sha256': hashlib.sha256(blob).hexdigest(), 'bytes': len(blob), 'origin': 'user',
+            'exact_original_bytes': True, 'imported_at': studio.now()})
+        return _commit(pid, value, edl, 'user', 'import_subtitles')
+
+
 def duration(edl):
     fps = edl['output']['fps']
     return sum(frames(c, fps) / fps for c in edl['cuts'])
@@ -234,17 +264,6 @@ def command(pid, data, origin='user'):
                 edl['output'] = {'ratio': data['ratio'], 'fps': fps, 'fit': 'pad'}
             elif op == 'subtitles':
                 edl['cues'] = parse_srt(data['srt'], duration(edl)) if data['srt'].strip() else []
-                if data.get('source_name'):
-                    name = data['source_name']
-                    if not isinstance(name, str) or len(name) > 240:
-                        raise ValueError('Nombre SRT inválido')
-                    relative = 'assets/imports/' + uuid.uuid4().hex + '.srt'
-                    target = studio.project_path(pid) / relative
-                    target.parent.resolve().relative_to(studio.project_path(pid).resolve())
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    target.write_text(data['srt'], encoding='utf-8')
-                    edl.setdefault('subtitle_sources', []).append({'path': relative, 'original_name': name,
-                        'sha256': digest(target), 'bytes': target.stat().st_size, 'origin': origin, 'imported_at': studio.now()})
             elif op in ('cue_update', 'cue_split', 'cue_merge', 'cue_offset'):
                 cues = edl['cues']
                 if op == 'cue_offset':
