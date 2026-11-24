@@ -8,6 +8,26 @@ on:
 permissions:
   contents: read
 jobs:
+  studio-installation:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Studio in its own environment
+        run: python scripts/setup_local_studio.py
+      - name: Start isolated Studio without production or models
+        run: python tests/windows/smoke_studio_installation.py
+      - name: Read-only Windows setup entry point
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: PREPARAR_ESTUDIO.cmd --check
   contracts:
     strategy:
       fail-fast: false
@@ -27,6 +47,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - name: Isolated Studio installation lifecycle without downloads
+        run: python -m pytest tests/contracts/test_local_studio_setup.py tests/contracts/test_studio_source_status.py -q
       - name: Update center file comparisons
         run: python -m pytest tests/tools/test_update_center.py tests/tools/test_update_downloads.py tests/tools/test_application_updates.py -q
       - run: python -m pytest tests/tools/test_official_uefa_live.py tests/tools/test_official_spl_status.py tests/tools/test_official_jleague.py tests/tools/test_official_mls.py tests/tools/test_uefa_names.py tests/tools/test_uefa_visual_flow.py tests/tools/test_official_fifa_live.py tests/tools/test_official_mlb_live.py tests/tools/test_official_wba_live.py tests/tools/test_producer_sports_flow.py tests/tools/test_sports_export_requirements.py tests/tools/test_wba_visual_flow.py tests/tools/test_mlb_visual_flow.py tests/tools/test_fifa_player_resolution.py tests/tools/test_sports_card_svg.py tests/tools/test_sports_card_video.py tests/tools/test_sports_sources.py tests/tools/test_football_research.py tests/tools/test_youtube_research.py tests/tools/test_youtube_client.py tests/contracts/test_cultural_audio.py tests/contracts/test_local_budget_policy.py tests/tools/test_youtube_channels.py tests/tools/test_channel_identity.py tests/tools/test_youtube_errors.py tests/tools/test_youtube_channel_batch.py tests/backlot/test_channel_search.py tests/backlot/test_production_studio.py tests/backlot/test_studio_multilingual_flow.py tests/tools/test_model_adapters.py tests/tools/test_model_validation.py tests/tools/test_wan_presets.py -q
