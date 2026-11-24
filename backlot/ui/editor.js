@@ -162,7 +162,8 @@ function draw() {
 async function checkRender() {
   if (!project || !state) return;
   const captured = project, result = await api(base() + '/render'); if (captured !== project) return;
-  q('edit-render-status').textContent = result.status === 'running' ? 'FFmpeg está preparando el montaje; no se puede editar durante el render.' : result.status === 'failed' || result.status === 'interrupted' ? result.error : result.status === 'completed' ? (result.current ? 'Montaje de revisión ' + result.revision + (result.preview ? ' · vista previa a media resolución' : ' · exportación final local') + ' · subtítulos seleccionables, sin estilo quemado' : 'Resultado anterior: prepara la revisión actual.') : 'Sin montaje renderizado.';
+  const subtitles = result.subtitle_mode === 'burn' ? 'texto visible quemado' : result.subtitle_mode === 'mov_text' ? 'subtítulos seleccionables, sin estilo quemado' : 'sin subtítulos incorporados';
+  q('edit-render-status').textContent = result.status === 'running' ? 'FFmpeg está preparando el montaje; no se puede editar durante el render.' : result.status === 'failed' || result.status === 'interrupted' ? result.error : result.status === 'completed' ? (result.current ? 'Montaje de revisión ' + result.revision + (result.preview ? ' · vista previa a media resolución' : ' · exportación final local') + ' · ' + subtitles : 'Resultado anterior: prepara la revisión actual.') : 'Sin montaje renderizado.';
   q('edit-preview').disabled = q('edit-export').disabled = result.status === 'running';
   if (result.status === 'completed' && result.current && (result.edit_sha256 && state.edit_sha256 ? result.edit_sha256 === state.edit_sha256 : result.revision === state.revision)) {
     if (preview?.attempt !== result.attempt) {

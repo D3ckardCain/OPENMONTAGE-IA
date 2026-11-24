@@ -144,6 +144,8 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         page.route('**/api/studio/editor/'+pid+'/source/**',lambda route:route.fulfill(status=204))
         page.goto(staged_backlot_server+'/studio?edit='+pid+'#video')
         expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
+        expect(page.locator('#edit-player')).to_have_attribute('src',job['url'])
+        expect(page.locator('#edit-render-status')).to_contain_text('texto visible quemado')
         # Stress the intrinsic 1920x1080 media size without claiming decoded frames.
         page.locator('#edit-player').evaluate('(v)=>{v.width=1920;v.height=1080}')
         def bounds():
@@ -188,11 +190,16 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         page.locator('#edit-split-timeline').focus();page.keyboard.press('Home');contained()
         page.locator('#edit-split-timeline').focus();page.keyboard.press('End');contained()
         assert page.locator('#edit-player').get_attribute('src')==src
+        page.locator('.editor-video .editor-clip').first.click()
+        expect(page.locator('#edit-clip-form')).to_be_visible()
+        scroll=page.locator('#editor-inspector').evaluate('(p)=>{p.scrollTop=p.scrollHeight;return {top:p.scrollTop,height:p.clientHeight,total:p.scrollHeight,overflow:getComputedStyle(p).overflowY}}')
+        assert scroll['overflow']=='auto' and scroll['top']>0
+        contained()
         assert not writes and not errors
         page.screenshot(path=str(output/f'existing-layout-{width}x{height}-clamped.png'),full_page=True)
         (output/f'existing-layout-{width}x{height}.json').write_text(json.dumps({
             'scope':fixture['scope'],'project_id':pid,'revision':state['revision'],'edit_sha256':state['edit_sha256'],
-            'before':before,'resized':resized,'restored':restored,'clamped':clamped,'writes':writes,'page_errors':errors},indent=2),encoding='utf-8')
+            'before':before,'resized':resized,'restored':restored,'clamped':clamped,'inspector_scroll':scroll,'writes':writes,'page_errors':errors},indent=2),encoding='utf-8')
         browser.close()
 
 
