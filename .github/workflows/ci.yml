@@ -34,7 +34,8 @@ jobs:
             requirements-dev.txt
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        timeout-minutes: 6
+        run: bash .github/scripts/ensure-media-cli.sh
 
       - name: Install dependencies
         run: make install-dev
