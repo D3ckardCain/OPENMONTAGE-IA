@@ -8,8 +8,8 @@ No confundir desarrollo/estable ni instalar por nombre sin lock. Solo lectura.
 
 No otro transcriptor. `tools/analysis/transcriber.py` ya usa faster-whisper con
 word_timestamps=True y tiene paso opcional WhisperX de alineación/diarización.
-Actualmente su helper carga alineador CPU con language_code=en y vuelve a segmentos
-originales ante excepción; word_timestamps se obtiene antes de ese paso. No se
+Actualmente su helper carga alineador CPU con language_code=language y vuelve a
+segmentos originales ante excepción; word_timestamps se obtiene antes de ese paso. No se
 acredita alineación española ni ausencia de degradación silenciosa por esa presencia.
 La API de diarización usada por ese código debe contrastarse con upstream actual.
 E04/E16 y #68 ya cubren speakers, tiempos, perfiles y procedencia: ampliar esas
@@ -50,7 +50,7 @@ deben conservarse al fallar alineación; timestamp inferido/interpolado no es me
 
 | Prioridad | Entrega / grupo | Aceptación |
 |---|---|---|
-| P1 | Alineación española opcional E04 | Separar ASR/alineación/speaker; lengua seleccionada vs detectada, sin hardcode en; conservar palabra sin timestamp y su estado/reason, cifras/acentos/code-switch y spans originales |
+| P1 | Alineación española opcional E04 | Separar ASR/alineación/speaker; comprobar lengua seleccionada vs detectada; conservar palabra sin timestamp y su estado/reason, cifras/acentos/code-switch y spans originales |
 | P1 | Contrato no degradado E04/E05 | Mock de error/token ausente/modelo faltante devuelve aligned=false/diarized=false, nunca éxito completo; palabras alineadas corresponden al mismo texto/hash/offset |
 | P1 | Inventario offline E01/E16 | ASR/alineador/VAD/diarizador/NLTK y revisiones/avisos; cero descargas implícitas; diarización desactivada sin términos/recursos elegibles |
 | P2 | Validación futura | WER y error de alineación/DER separados de pruebas de schema; corpus español autorizado y memoria/RTF medidos frente a ASR actual, sin audio aquí |
