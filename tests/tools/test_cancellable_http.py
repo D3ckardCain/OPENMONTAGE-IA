@@ -64,7 +64,9 @@ def test_cancel_closes_real_socket_before_headers_or_mid_stream(server,mode):
     assert isinstance(errors[0],CancelledRequest)
     assert state.disconnected.wait(1)
     assert observed[-1]['transport_closed']
-    assert observed[-1]['socket_shutdown_requested']
+    # Cancellation may be observed just before getresponse starts, in which case
+    # finally closes the socket directly. A blocked read uses watcher shutdown.
+    assert observed[-1]['socket_shutdown_requested'] or not observed[-1]['response_open']
     assert observed[-1]['server_inference_stopped']=='not_verified'
 
 
