@@ -3,11 +3,13 @@ import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
 import { makePeaks,paintPeaks,signalLevel } from './editor-waveform.js';
 import { initializeEffectsUI } from './editor-effects-ui.js';
+import { initializeCompositionUI } from './editor-composition-ui.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
+let compositionUI=null;
 let cancelSupported=false,renderAttempt=null;
 const capabilities=new Set(),selectedIds=new Set();
 async function loadCapabilities(){
@@ -160,7 +162,7 @@ function selectClip(clip, track, event=null) {
   if(workspace==='audio'&&clip.kind!=='gap'&&edl().sources[clip.source_id].audio)waveform(clip.source_id);
 }
 function drawInspector() {
-  effectsUI?.drawSelection();
+  effectsUI?.drawSelection();compositionUI?.drawSelection();
   const form = q('edit-clip-form'); let item;
   for(const id of ['edit-split','edit-split-cursor','edit-remove','edit-left','edit-right','edit-view-source'])q(id).disabled=true;
   for(const id of ['edit-duplicate','edit-delete-gap','edit-delete-ripple'])q(id).disabled=true;
@@ -305,7 +307,11 @@ function drawTracks() {
     box.append(element('h3','Títulos · texto visible'));const lane=element('div','');lane.className='editor-lane editor-cues editor-titles';lane.style.width=width+'px';
     for(const title of edl().titles){const button=element('button',title.text);button.type='button';button.className='editor-clip';button.style.left=(title.start_seconds*zoom)+'px';button.style.width=Math.max(10,(title.end_seconds-title.start_seconds)*zoom)+'px';button.onclick=()=>{effectsUI?.selectTitle(title.id);seekTimeline(title.start_seconds);};lane.append(button);}box.append(lane);
   }
-  const rows=3+Math.max(0,edl().audio_tracks.length-1)+(edl().titles?.length?1:0);
+  for(const [index,layer]of (edl().layers||[]).entries()){
+    box.append(element('h3','Capa visual '+(index+1)));const lane=element('div','');lane.className='editor-lane editor-cues editor-layers';lane.style.width=width+'px';
+    const button=element('button',edl().sources[layer.source_id].original_name||'Capa');button.type='button';button.className='editor-clip';button.style.left=(layer.start_seconds*zoom)+'px';button.style.width=Math.max(10,(layer.out_seconds-layer.in_seconds)/layer.speed*zoom)+'px';button.onclick=()=>{compositionUI?.selectLayer(layer.id);seekTimeline(layer.start_seconds);};lane.append(button);box.append(lane);
+  }
+  const rows=3+Math.max(0,edl().audio_tracks.length-1)+(edl().titles?.length?1:0)+(edl().layers?.length||0);
   if(q('manual-editor').dataset.timelineRows!==String(rows)){q('manual-editor').dataset.timelineRows=rows;window.dispatchEvent(new Event('studio-tracks-layout'));}
   const note=q('edit-timeline-note'),tail=end-videoDuration(edl());note.hidden=tail<.02;
   note.textContent=tail>=.02?'Colas fuera del vídeo: '+tail.toFixed(3)+' s. La salida actual termina con el vídeo; ajusta esas pistas antes de exportar.':'';
@@ -375,7 +381,7 @@ function draw() {
   const selectedMarker=q('edit-marker-select').value;
   q('edit-marker-select').replaceChildren(new Option('Selecciona marcador',''),...(edl().markers||[]).map(m=>new Option(m.seconds.toFixed(3)+' s · '+m.label,m.id)));
   q('edit-marker-select').value=selectedMarker;drawMarkerInspector();
-  effectsUI?.draw();
+  effectsUI?.draw();compositionUI?.draw();
   q('edit-events').replaceChildren(...state.events.slice(-12).reverse().map(e => element('p',`r${e.revision} · ${e.origin} · ${e.operation} · ${e.at}`)));
 }
 async function checkRender() {
@@ -474,5 +480,6 @@ function showWorkspace(){waveformSelection++;q('edit-waveform-retry').hidden=tru
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture){event.preventDefault();edgeGesture.cancel();return;}if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='d'&&capabilities.has('duplicate')&&selection){event.preventDefault();q('edit-duplicate').click();return;}if(event.key==='Delete'&&capabilities.has('batch')&&selection){event.preventDefault();q(event.shiftKey?'edit-delete-ripple':'edit-delete-gap').click();return;}if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){if(event.key.toLowerCase()==='m'&&capabilities.has('markers')){event.preventDefault();q('edit-marker-add').click();return;}const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
 effectsUI=initializeEffectsUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
+compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
 initializeEditorLayout();
 showWorkspace();task(async()=>{try{await loadCapabilities();await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});

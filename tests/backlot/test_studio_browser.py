@@ -551,7 +551,24 @@ def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
         assert title.locator('[name=text]').input_value()=='Manual fixture title'
         page.locator('#edit-undo').click();expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
         assert 'audio_mix' not in state['edit_decisions']
-        assert [c['operation'] for c in calls]==['transform','title_add','output_custom','audio_mix','undo']
+        clips.nth(1).click();page.locator('#edit-transition-panel summary').click()
+        page.locator('#edit-transition-form [name=duration_seconds]').fill('0.25')
+        page.locator('#edit-transition-form [type=submit]').click()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert state['edit_decisions']['cuts'][1]['transition']['duration_seconds']==.25
+        page.locator('#edit-layers-panel summary').click()
+        layer=page.locator('#edit-layer-form');layer.locator('[name=in_seconds]').fill('0')
+        layer.locator('[name=out_seconds]').fill('1');layer.locator('[name=start_seconds]').fill('0.5')
+        layer.locator('[type=submit]').click();expect(page.locator('.editor-layers button')).to_have_count(1)
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        layer.locator('[name=opacity]').fill('0.5');layer.locator('[type=submit]').click()
+        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert state['edit_decisions']['layers'][0]['opacity']==.5
+        page.locator('#edit-undo').click();expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert state['edit_decisions']['layers'][0]['opacity']==1
+        page.locator('#edit-reopen').click();expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
+        assert layer.locator('[name=opacity]').input_value()=='1'
+        assert [c['operation'] for c in calls]==['transform','title_add','output_custom','audio_mix','undo','transition','layer_add','layer_update','undo']
         assert not errors
         browser.close()
 

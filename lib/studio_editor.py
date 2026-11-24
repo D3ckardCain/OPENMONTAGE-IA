@@ -129,6 +129,8 @@ def render_digest(edl, contract=RENDER_CONTRACT):
     content['output'] = {'width': width, 'height': height, 'fps': output['fps'], 'fit': output['fit']}
     if edl.get('titles'):
         content['titles'] = deepcopy(edl['titles'])
+    if edl.get('layers'):
+        content['layers'] = deepcopy(edl['layers'])
     mix = edl.get('audio_mix', {})
     if mix.get('normalize') or mix.get('gain', 1) != 1:
         content['audio_mix'] = {'gain': mix.get('gain', 1), 'normalize': mix.get('normalize', False)}
@@ -138,7 +140,7 @@ def render_digest(edl, contract=RENDER_CONTRACT):
         clip.pop('locked', None)
         if not clip.get('solo'):
             clip.pop('solo', None)
-    used = {c['source_id'] for c in content['cuts'] + content['audio_tracks'] if c.get('kind') != 'gap'}
+    used = {c['source_id'] for c in content['cuts'] + content['audio_tracks'] + content.get('layers', []) if c.get('kind') != 'gap'}
     content['sources'] = {key: {name: edl['sources'][key].get(name) for name in ('path', 'sha256', 'kind', 'audio')}
                           for key in sorted(used)}
     return edit_digest(content)
@@ -298,6 +300,7 @@ def _apply_edit(edl, data):
             elif op == 'split':
                 at = number(data['at'], item['in_seconds'] + .001, item['out_seconds'] - .001)
                 second = {**item, 'id': uuid.uuid4().hex, 'in_seconds': at}
+                second.pop('transition', None)
                 if data.get('track') == 'audio':
                     second['start_seconds'] += (at - item['in_seconds']) / item['speed']
                 item['out_seconds'] = at
@@ -365,6 +368,8 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_editor_layers import validate_composition
+    validate_composition(edl)
     if len(edl['cuts']) + len(edl['audio_tracks']) > 200 or duration(edl) > 7200:
         raise ValueError('Límite local: 200 clips y dos horas')
     if any((c['out_seconds'] - c['in_seconds']) / c['speed'] < 1 / edl['output']['fps'] - 1e-9 for c in edl['cuts']):

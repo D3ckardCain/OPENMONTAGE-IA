@@ -23,9 +23,10 @@ def main():
     parser.add_argument('--workspace', type=Path, required=True)
     parser.add_argument('--recheck', action='store_true')
     parser.add_argument('--effects', action='store_true')
+    parser.add_argument('--composition', action='store_true')
     args = parser.parse_args()
-    if args.effects and not args.recheck:
-        parser.error('--effects requires --recheck to reuse the prepared QA workspace')
+    if (args.effects or args.composition) and not args.recheck:
+        parser.error('--effects/--composition require --recheck to reuse the prepared QA workspace')
     repo = Path(__file__).resolve().parents[1]
     original = (repo / 'projects' / args.source_project).resolve(strict=True)
     original.relative_to(repo / 'projects')
@@ -129,7 +130,49 @@ def main():
         assert abs(float(entry['loudnorm_measurement']['input_i'])+18) < 1.5
         return True
 
+    def composition_cases():
+        edl=edit.state(pid)['edit_decisions']
+        video_key=next(k for k,v in edl['sources'].items() if v['kind']=='video')
+        operations=[{'operation':'title_remove','id':t['id']} for t in edl.get('titles',[])]
+        operations += [{'operation':'layer_remove','id':l['id']} for l in edl.get('layers',[])]
+        operations += [{'operation':'remove','track':'audio','id':c['id']} for c in edl['audio_tracks']]
+        operations += [{'operation':'remove','id':c['id']} for c in edl['cuts']]
+        operations += [{'operation':'add','source_id':video_key}]
+        value=command('batch',operations=operations);first=value['edit_decisions']['cuts'][0]['id']
+        command('trim',id=first,in_seconds=0,out_seconds=2)
+        value=command('add',source_id=video_key);second=value['edit_decisions']['cuts'][1]['id']
+        command('trim',id=second,in_seconds=10,out_seconds=12)
+        command('audio_mix',normalize=False,gain=1)
+        command('transition',id=second,type='dip_black',duration_seconds=.25)
+        baseline,entry=output('dip-black-av-transition-no-overlap')
+        def pixels(path,seconds,filters='scale=64:36'):
+            return subprocess.run([ffmpeg,'-v','error','-ss',str(seconds),'-i',str(path),'-frames:v','1',
+                                   '-vf',filters,'-f','rawvideo','-pix_fmt','rgb24','-'],capture_output=True,check=True,timeout=15).stdout
+        black=pixels(baseline,2);entry['boundary_rgb_mean']=sum(black)/len(black)
+        assert entry['boundary_rgb_mean']<3
+        command('layer_add',source_id=video_key,in_seconds=30,out_seconds=31,start_seconds=.5,x=.5,y=0,width=.5,height=.5,opacity=1)
+        composed,entry=output('real-video-layer-window-and-rectangle')
+        def mae(a,b):
+            assert len(a)==len(b) and a
+            return sum(abs(x-y) for x,y in zip(a,b))/len(a)
+        rectangle='crop=320:180:320:0,scale=64:36'
+        actual=pixels(composed,1,rectangle);base=pixels(baseline,1,rectangle)
+        expected=pixels(edit.source(pid,video_key),30.5)
+        entry['layer_region_vs_source_mae']=mae(actual,expected)
+        entry['layer_region_vs_base_mae']=mae(actual,base)
+        entry['outside_region_vs_base_mae']=mae(pixels(composed,1,'crop=320:180:0:180,scale=64:36'),pixels(baseline,1,'crop=320:180:0:180,scale=64:36'))
+        entry['after_layer_window_vs_base_mae']=mae(pixels(composed,1.75),pixels(baseline,1.75))
+        assert entry['layer_region_vs_source_mae']<8 and entry['layer_region_vs_base_mae']>2
+        assert entry['outside_region_vs_base_mae']<4 and entry['after_layer_window_vs_base_mae']<4
+        frame=composed.parent/'layer-frame.png'
+        subprocess.run([ffmpeg,'-v','error','-n','-ss','1','-i',str(composed),'-frames:v','1',str(frame)],capture_output=True,check=True,timeout=10)
+        entry['frame']=frame.relative_to(repo).as_posix()
+
     try:
+        if args.composition:
+            composition_cases()
+            report['status']='passed'
+            return 0
         if args.effects:
             effects_cases()
             report['status'] = 'passed'

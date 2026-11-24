@@ -11,6 +11,7 @@ from lib.scene_burned_subtitles import _ass
 from lib.studio_editor_effects import transform_filter
 from tools.audio.audio_mixer import AudioMixer
 from lib.studio_render_process import CONTROLS, Control, Cancelled, execute
+from lib.studio_editor_layers import transition_filters
 
 
 def plan(pid, edl, preview=False):
@@ -43,9 +44,10 @@ def plan(pid, edl, preview=False):
         is_video = i < len(edl['cuts'])
         if is_video:
             seconds = editor.frames(clip, fps) / fps
+            vf, af_transition = transition_filters(edl['cuts'], i, seconds)
             filters.append(f'[{i}:v:0]trim=start={start}:end={end},setpts=(PTS-STARTPTS)/{speed},'
                            + transform_filter(width, height, clip.get('transform')) + f',setsar=1,fps={fps},'
-                           f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds},format=yuv420p[v{i}]')
+                           f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds}{vf},format=yuv420p[v{i}]')
         gain = 0 if clip['muted'] or (solo and not clip.get('solo')) else clip['gain']
         if info['audio']:
             af = (f'[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'
@@ -59,12 +61,28 @@ def plan(pid, edl, preview=False):
             af += f',apad,atrim=duration={seconds}'
         else:
             af = f'anullsrc=r=48000:cl=stereo,atrim=duration={seconds}'
+        if is_video:
+            af += af_transition
         if not is_video:
             af += f",adelay={round(clip['start_seconds'] * 1000)}:all=1"
         filters.append(af + f'[a{i}]')
         if is_video:
             labels.append(f'[v{i}][a{i}]')
-    filters.append(''.join(labels) + f"concat=n={len(edl['cuts'])}:v=1:a=1[montage][baseaudio]")
+    layers=edl.get('layers', [])
+    base='basevideo' if layers else 'montage'
+    filters.append(''.join(labels) + f"concat=n={len(edl['cuts'])}:v=1:a=1[{base}][baseaudio]")
+    for index,layer in enumerate(layers):
+        source_index=len(tracks)+index
+        args += [*editor.INPUT_OPTIONS,'-i',str(editor.source(pid,layer['source_id']))]
+        w,h=max(2,round(width*layer['width']/2)*2),max(2,round(height*layer['height']/2)*2)
+        filters.append(f"[{source_index}:v:0]trim=start={layer['in_seconds']}:end={layer['out_seconds']},"
+                       f"setpts=(PTS-STARTPTS)/{layer['speed']}+{layer['start_seconds']}/TB,"
+                       +transform_filter(w,h,None)+f",setsar=1,fps={fps},format=rgba,colorchannelmixer=aa={layer['opacity']}[layer{index}]")
+        target='montage' if index==len(layers)-1 else f'composite{index}'
+        end=layer['start_seconds']+(layer['out_seconds']-layer['in_seconds'])/layer['speed']
+        filters.append(f"[{base}][layer{index}]overlay=x={round(width*layer['x'])}:y={round(height*layer['y'])}:"
+                       f"eof_action=pass:repeatlast=0:enable='gte(t,{layer['start_seconds']})*lt(t,{end})'[{target}]")
+        base=target
     audio = '[baseaudio]' + ''.join(f'[a{i}]' for i in range(len(edl['cuts']), len(tracks)))
     mix = edl.get('audio_mix', {})
     filters.append(audio + f'amix=inputs={len(edl["audio_tracks"])+1}:duration=first:normalize=0,volume={mix.get("gain", 1)}[premix]')
@@ -154,7 +172,7 @@ def _worker(pid, edl, job, args, filters):
         control.check()
         work.resolve().relative_to(project.resolve())
         work.mkdir(parents=True, exist_ok=False)
-        used = {clip['source_id'] for clip in edl['cuts'] + edl['audio_tracks'] if clip.get('kind') != 'gap'}
+        used = {clip['source_id'] for clip in edl['cuts'] + edl['audio_tracks'] + edl.get('layers', []) if clip.get('kind') != 'gap'}
         for key in used:
             control.check()
             info = edl['sources'][key]
@@ -180,7 +198,7 @@ def _worker(pid, edl, job, args, filters):
         command = [require_media('ffmpeg'), '-nostdin', '-v', 'error', '-xerror', '-n', *args,
                    '-filter_complex', ';'.join(filters), '-map', video_label, '-map', '[mix]']
         if edl['cues'] and not burn:
-            command += ['-map', f"{len(edl['cuts'])+len(edl['audio_tracks'])}:s:0", '-c:s', 'mov_text',
+            command += ['-map', f"{len(edl['cuts'])+len(edl['audio_tracks'])+len(edl.get('layers', []))}:s:0", '-c:s', 'mov_text',
                         '-metadata:s:s:0', 'language=spa']
         command += ['-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k',
                     '-t', str(editor.duration(edl)), '-movflags', '+faststart', str(output)]
