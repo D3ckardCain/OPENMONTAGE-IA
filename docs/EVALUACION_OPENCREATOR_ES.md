@@ -8,6 +8,8 @@ Desktop declara **3.3.4**, daemon **0.1.0**: no son una versión binaria local a
 
 Windows dispone de host Electron43.8.1 con daemon/Web compartidos; source usa pnpm9.15.0, TypeScript, dependencias nativas better-sqlite3/sharp y compilación del runtime KrillinAI. Codecs, FFmpeg, yt-dlp, fuentes y Codex CLI forman parte del inventario efectivo. No se establece aquí un mínimo medido de RAM/VRAM/disco: depende del renderer y servicios/modelos seleccionados, no de instalar Electron. No se probó compilación Windows.
 
+README exige Node22+ para desarrollo; el instalador Windows x64 incluye runtime/Codex y no exige Node/pnpm al usuario. Son escenarios distintos, ninguno ejecutado aquí.
+
 ## Offline y costo
 
 Guardar archivos/configuración localmente y usar Codex CLI no hace gratuita ni offline la inferencia. Login/clave, catálogo de proveedores y servicios de imagen/vídeo/voz tienen términos/cargos propios. Reutilizar conceptualmente el puente Ollama de OpenMontage, sin afirmar compatibilidad de OpenCreator ya comprobada. Edición SRT con recursos preparados puede ser local; búsqueda, descarga de vídeos, comprobación de actualizaciones y proveedores remotos requieren red.123 lenguas fuente/124 destinos son catálogo, no calidad española verificada.

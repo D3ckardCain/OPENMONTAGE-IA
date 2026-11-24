@@ -8,6 +8,8 @@ Código y **klein4B/base4B** declarados Apache-2.0; cumplir avisos/modificacione
 
 ## Windows, memoria y offline
 
+Fuente de encoder exacta del código: `src/flux2/text_encoder.py` carga **Qwen/Qwen3-4B-FP8** para4B. [Metadatos oficiales fijados](https://huggingface.co/Qwen/Qwen3-4B-FP8/tree/96b30dc13593a244a5e59e84687309f53c375cfa) declaran Apache-2.0. No equivale sin contraste al artefacto qwen3_4b del catálogo/loader ComfyUI; layout, precisión y tokenizer deben identificarse por archivo antes de elegir ruta. Solo se consultó metadata, sin descargar encoder.
+
 pyproject admite Python>=3.10,<3.13; upstream probó inferencia en GB200/CUDA12.9/Python3.12, no en nuestra laptop Windows. README dice ~8GB VRAM para4B y model card **~13GB**: discrepancia explícita, sin elegir la cifra conveniente. Se debe medir pipeline completo transformer+encoder+VAE+activaciones, resolución/referencias y offload/RAM; no prometer cabida en RTX4060Laptop8GB/16GBRAM. Espacio de descarga/caché/duplicados y tiempo de offload no medidos. No se instala ni modifica ComfyUI.
 
 Model card muestra Diffusers desde Git con CPU offload; no ejecutar su actualización. Referencia a soporte ComfyUI no demuestra que la copia instalada tenga loaders compatibles. `from_pretrained` puede descargar recursos; offline requiere todos preparados/localizados y egreso deshabilitado. BFL API/OpenRouter/encoder remoto quedan fuera de costo$0. Con artefactos elegibles locales no exige una API de pago, pero aún no se acredita ejecución en este hardware.
@@ -15,6 +17,8 @@ Model card muestra Diffusers desde Git con CPU offload; no ejecutar su actualiza
 Español y texto exacto en miniaturas no validados: la tarjeta declara `en` y advierte distorsión del texto. No usar generador para cifras/titulares factuales cuando compositor local puede escribir tipografía exacta.
 
 ## Comparación y aceptación
+
+Contraste adicional del inventario: `docs/models/base.json` ya registra **flux-klein** y encoder Qwen3_4b compartido con Z-Image; `lib/model_adapters.py` ya enruta familia a image_generation/ComfyUI. En esta sesión0/3 archivos listados estaban presentes en **esas rutas de catálogo**; no demuestra inexistencia en otros discos/rutas. No repetir descarga, reinstalar ni afirmar que esos nodos están preparados. Reutilizar el adaptador existente; la carencia es su perfil de recursos/evidencia de compatibilidad, no otro conector.
 
 Ya existen rutas ComfyUI/FLUX inventariadas (incluido FLUX.1-schnell) y E01/E05/E06; no volver a descargarlas ni otro adaptador por nombre. Aporte diferencial potencial: edición multirreferencia local de4B, condicionada a recursos/compatibilidad, sin desplazar motor aprobado.
 

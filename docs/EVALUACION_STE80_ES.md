@@ -6,6 +6,10 @@ MIT con avisos; THIRD_PARTY_NOTICES incluye catálogo adaptado de blader/humaniz
 
 ## Windows, offline y costo
 
+Manifiesto `.claude-plugin/plugin.json` declara **4.0.0** en la misma revisión; metadato leído, sin instalar plugin ni confundir versión del plugin con ASD-STE100 Issue9.
+
+El docstring del checker declara **Python3.8+**; esto precisa el README genérico y no constituye una ejecución verificada en3.8/Windows. `--json` emite hallazgos por línea/regla y salida1 significa hallazgos,2 error de uso: el puente debe distinguir esos estados. Su `STRICT_ONLY_SWAPS` propone should→must y may→can: no aplicar automáticamente a texto protegido, porque cambia modalidad/certeza. WORD_RE centra letras A–Z, razón concreta para no usarlo como contador español sin adaptación.
+
 Checker Python usa biblioteca estándar, sin dependencias runtime declaradas; debe verificarse sintaxis/CLI con intérprete aislado antes de adopción. No se deduce piso Python preciso de “Python” en README. Windows con Python preparado puede leer archivos/texto, sujeto a Unicode/CRLF/rutas/permisos. No GPU/modelo para checker; RAM/disco ligados a longitud, sin benchmark local. Reescritura requiere agente/modelo distinto del checker; Ollama existente, sin API pagada ni otra descarga, es ruta conceptual. Evals upstream llaman agente con permisos Write/Edit/Bash: no ejecutarlos ni instalar skill/plugin/global.
 
 Reglas/texto presentes pueden analizarse offline$0, pero no se ejecutó diagnóstico ni reescritura aquí. No afirmar calidad española por ejemplos en inglés o cuatro casos evaluados por upstream.

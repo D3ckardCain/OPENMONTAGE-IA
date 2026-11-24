@@ -18,6 +18,8 @@ Ollama/OpenAI-compatible puede usar un modelo realmente local preparado, pero un
 
 ## Existente y decisión
 
+Rango del aviso crítico contrastado directamente: [GHSA-fjvm-966v-hmm2](https://github.com/LearningCircuit/local-deep-research/security/advisories/GHSA-fjvm-966v-hmm2) afecta >=1.0.0,<1.10.4, corregido en1.10.4; v2.0.4 queda fuera de ese rango. Esto no resuelve por sí solo los otros avisos ni acredita despliegue seguro. Main __version__.py también declara2.0.4.
+
 OpenMontage ya conecta Feedparser/Trafilatura en `lib/document_reading.py`/worker aislado, research y Ollama/director. No segundo agente, biblioteca vectorial o UI por defecto. E08/E05/E10 pueden incorporar **dossier con trazabilidad afirmación→pasaje** y presupuesto de investigación, sin ejecutar LDR.
 
 | Grupo | Aceptación futura con documentos textuales/mocks |

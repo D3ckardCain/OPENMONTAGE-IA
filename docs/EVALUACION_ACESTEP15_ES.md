@@ -10,6 +10,8 @@ Código MIT con avisos y tarjeta principal MIT. No extrapolar esa etiqueta a cua
 
 ## Windows, recursos, offline y costo
 
+Lectura de presencia del catálogo:0/27 archivos ACE-Step en las rutas allí guardadas,0bytes observados; no se concluye que falten en todos los discos ni se reaprovisiona. Ninguna configuración específica de estas familias en `adapter_settings` del archivo leído. Es un límite de inventario/ruta, no autorización para duplicar descargas. Se conserva el catálogo y la configuración.
+
 Python **>=3.11,<3.13**, rutas Windows CUDA y portátil según README; PyTorch Windows con CUDA12.8 en manifiesto. ROCm Windows exige3.12 según upstream; no actualizar Python de Studio/ComfyUI ni instalar portátil. MPS/CPU/XPU son rutas con requisitos distintos, no rendimiento equivalente.
 
 **2B y XL4B separados**: README propone turbo2B y LM0.6B para6–8GB, pero inventario actual incluye LM1.7B. No sustituir ni descargar0.6B automáticamente. La frase <4GB exige offload/quantización/LM desactivado según perfil; no representa todos los modos. XL requiere>=12GB con offload/quantización, >=20GB sin offload según upstream: no elegible para nuestra GPU8GB. Memoria RAM/disco y activaciones/duración/lotes deben medirse, no solo sumar pesos. A100/3090 no predicen latencia local.
