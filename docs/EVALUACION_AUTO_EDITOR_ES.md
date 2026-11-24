@@ -2,6 +2,7 @@
 
 24-11-2026 UTC. `WyattBlue/auto-editor@3841cc93f6196be01eac268bacae16452ff5aeac`.
 ae.nimble declara0.0.0 de build, no versión instalable estable. Revisión estática
+Tag de release observado31.10.0, resuelto a `8ba98a1d358b3181ad320653804601ea3d455e45`; no confundir con0.0.0 del manifiesto ni afirmar prueba binaria.
 del CLI Nim actual; no reutilizar requisitos de antiguas versiones Python.
 
 ## Decisión y existente

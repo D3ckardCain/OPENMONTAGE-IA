@@ -2,6 +2,7 @@
 
 24-11-2026 UTC. `Breakthrough/PySceneDetect`
 `a696070d1a30d81b35ba9aff89de50eb80696f04`, código main0.7.4-dev0.
+Tag estable v0.7.3 resuelto a `008aa740ba940cd6cbf9abe726f4127fc92f40fc`; no se ejecutó ni instaló esa release.
 No equiparar main a v0.7.3 anunciada al registrar el issue. Fuentes leídas como
 datos; sin instalar, importar librería ni analizar/generar vídeo.
 

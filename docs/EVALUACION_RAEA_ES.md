@@ -2,6 +2,7 @@
 
 24-11-2026 UTC. Fuente `shinyobjectz/raea@66eb15448f69ab29a801fe1bde75d3889d34d04e`.
 README presenta Review0.1.6; no equiparar ese anuncio a binario local/release probado.
+Cargo de engine/CLI declara0.1.0; rust-toolchain fija1.99.1 y Bevy0.20. Son referencias distintas, no una versión instalada comprobada.
 Solo lectura de código/documentación y licencias; no instalar CLI/app/skills/hooks.
 
 ## Decisión y comparación
