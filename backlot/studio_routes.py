@@ -50,7 +50,7 @@ def create_studio_router():
         for f in studio.PROJECTS_DIR.glob('*/production_request.json'):
             r=studio.read_json(f)
             if r.get('manual_edit'):continue
-            if r.get('diagnostic_fixture'):continue
+            if r.get('diagnostic_fixture') or r.get('diagnostic_only'):continue
             projects.append({'project_id':r['project_id'],'title':r['title']})
         return {'settings':studio.settings(),'pipelines':studio.pipelines(),'projects':projects}
     @router.get('/api/studio/queue')

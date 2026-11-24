@@ -70,3 +70,14 @@ CI45482058890/14963015589. Acreditan layout con JSON del proyecto existente,
 medios204 interceptados; el visor vacío/error en ellas NO acredita reproducción.
 Evidencia HTTP actual: `EVIDENCIA_ACTIVACION_EDITOR_20261124.json`, con coincidencia
 de archivos estáticos servidos y workspace, PID73536, health200/capabilities404.
+
+## Hallazgo de revisión previa a activación
+
+El listado activo incluye dos proyectos antiguos `diagnostic_only` de apertura
+de aplicaciones. `kinovea-integration-check` carece de pipeline y su ficha devuelve
+400 (`'pipeline'`); no es una producción ni un trabajo probado como activo.
+Se corrigió el filtro del bootstrap para excluir `diagnostic_only` además del
+anterior `diagnostic_fixture`, sin editar/eliminar esos proyectos. Prueba de
+regresión comprueba conservación de bytes y permanencia de producciones reales.
+Como el servidor sigue con código anterior, no se afirma resuelto allí ni se
+infiere ausencia total de trabajos a partir de esa ficha fallida.

@@ -34,6 +34,18 @@ def test_manual_editor_sources_and_snapshots_are_not_generic_text_targets(isolat
         worker.dispatch('write_project_file',{'path':path,'content':'overwrite'})
     assert not (worker.path/path).exists()
 
+def test_bootstrap_excludes_legacy_application_diagnostics_without_changing_them(isolated):
+    pid=project();saved=[]
+    for name,flag in [('kinovea-check','diagnostic_only'),('older-check','diagnostic_fixture')]:
+        path=studio.PROJECTS_DIR/name/'production_request.json'
+        studio.save_json(path,{'project_id':name,'title':'Application opening check',flag:True})
+        saved.append((path,path.read_bytes()))
+    response=isolated.get('/api/studio/bootstrap')
+    assert response.status_code==200
+    assert [p['project_id'] for p in response.json()['projects']]==[pid]
+    assert all(path.read_bytes()==original for path,original in saved)
+
+
 def test_create_state_and_policy(isolated):
     pid=project();state=isolated.get('/api/studio/projects/'+pid).json()
     assert state['request']['budget_usd']==0
