@@ -259,3 +259,25 @@ Solo comprobación documental de UTF-8/enlaces/cobertura/pins; no repetir suites
 ni CI aprobadas, no instalaciones/modelos ni captura HTTP/red. El diagnóstico
 HTTP queda preservado como observación con causa raíz pendiente. Cierre de
 evaluación significa informe/decisión completos, no integración ni AV validado.
+
+## Preparación #117 — Blender paralelo, 25-11-2026
+
+Extensión de E01/E06/E10/E11 existentes, sin nueva familia ni otro MCP:
+[plan y aceptación](BLENDER_117_PREPARACION_PARALELA_ES.md),
+[versiones/checksums/destinos](BLENDER_117_PLAN_20261125.json).
+5.3.0 portable paralelo es el candidato reciente;4.5.15LTS conserva MN4.5.11
+y Archimesh ya registrados. Enlace/tamaño/SHA256 oficiales publicados antes de
+descargar; no binario descargado/instalado ni cambio de ruta activa en esta fase.
+MN520.2.0 ya existe y se reutilizará como candidato; rango/ABI no prueban carga.
+
+Aceptación incremental: provisión verificada en carpeta nueva/perfil aislado;
+registro sin red/ABI real; selección explícita del mismo perfil Studio/agente;
+adaptación del runtime EEVEE/acciones/samples a5.x con error ante incompatibilidad;
+copia .blend y QA autorizados antes de migrar. El actual centro de actualizaciones
+no tiene comparación automática Blender ni Applications selector multiperfil:
+ampliarlos sin duplicar centro/instalaciones. No actualizar únicamente4.5 ni
+instalar también5.2 por rutina; mantenimiento4.5.17 se evalúa por separado.
+
+La activación previa #112–#115 ya tiene [evidencia local](ACTIVACION_112_115_RESULTADOS_ES.md).
+#112 recuperación de completado sin recibo elegible y acciones ocultas de#113
+siguen pendientes; no repetir síntesis/pruebas aprobadas ni reiniciar Studio.
