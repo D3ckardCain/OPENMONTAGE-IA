@@ -1,0 +1,176 @@
+{
+  "observed_at_utc": "2026-11-25T23:47:13.227891+00:00",
+  "official_reference": {
+    "metadata_url": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/tree/5b3abca5c0dc1ecd4eaf3340868d09063fc1c965/split_files/text_encoders",
+    "queried_at_utc": "2026-11-24T22:15:12.525374+00:00",
+    "entry": {
+      "type": "file",
+      "oid": "8eb608c38dfe7461d3a72a8c3c1c5db10da90ee0",
+      "size": 8044982048,
+      "lfs": {
+        "oid": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+        "size": 8044982048,
+        "pointerSize": 135
+      },
+      "xetHash": "f459cd74b7868799ea82f97601a650afcedc399596dc262f302e3505761c9995",
+      "path": "split_files/text_encoders/qwen_3_4b.safetensors"
+    },
+    "size_matches": true,
+    "sha256_matches": false
+  },
+  "new_download_verification": {
+    "path": "C:\\Users\\sando\\Downloads\\qwen_3_4b.safetensors\\qwen_3_4b.safetensors",
+    "expected_sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+    "before": {
+      "size": 8044982048,
+      "mtime_ns": 1795561757120216100,
+      "ctime_ns": 1795558963554738300,
+      "device": 314632661,
+      "inode": 20829148276781338
+    },
+    "started": 1795650110.342923,
+    "structure": {
+      "header_bytes": 45848,
+      "header_sha256": "4552846f1e705a23d7340bf1ffcc7251d9f742cd45e5029f80cc6694507a89ce",
+      "tensors": 398,
+      "dtypes": {
+        "BF16": 398
+      },
+      "payload_bytes": 8044936192,
+      "offsets_contiguous": true,
+      "metadata": {}
+    },
+    "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+    "bytes_hashed": 8044982048,
+    "after": {
+      "size": 8044982048,
+      "mtime_ns": 1795561757120216100,
+      "ctime_ns": 1795558963554738300,
+      "device": 314632661,
+      "inode": 20829148276781338
+    },
+    "matches_official": true,
+    "success": true,
+    "finished": 1795650120.804884
+  },
+  "transfer_and_cleanup": {
+    "started": 1795650207.2519975,
+    "source": "C:\\Users\\sando\\Downloads\\qwen_3_4b.safetensors\\qwen_3_4b.safetensors",
+    "destination": "D:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\qwen_3_4b.safetensors",
+    "stage": "D:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\qwen_3_4b.verified-transfer.part",
+    "other_defective": "F:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\candidates\\qwen_3_4b-5b3abca5-6c671498.safetensors\\qwen_3_4b.safetensors",
+    "actions": [
+      {
+        "time": 1795650207.2529974,
+        "action": "preconditions_passed",
+        "old_active": {
+          "size": 8044982048,
+          "mtime_ns": 1794269667701936900,
+          "ctime_ns": 1794452246899667000,
+          "device": 2728866502,
+          "inode": 562949953421356
+        },
+        "other_defective": {
+          "size": 8044982048,
+          "mtime_ns": 1795543843023824300,
+          "ctime_ns": 1795534958952692900,
+          "device": 4101616990,
+          "inode": 2814749767109048
+        },
+        "new_source": {
+          "size": 8044982048,
+          "mtime_ns": 1795561757120216100,
+          "ctime_ns": 1795558963554738300,
+          "device": 314632661,
+          "inode": 20829148276781338
+        }
+      },
+      {
+        "time": 1795650308.807291,
+        "action": "copy_completed",
+        "bytes": 8044982048,
+        "stream_sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a"
+      },
+      {
+        "time": 1795650406.5821943,
+        "action": "destination_transfer_verified",
+        "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+        "fingerprint": {
+          "size": 8044982048,
+          "mtime_ns": 1795650308803320800,
+          "ctime_ns": 1795650207252997300,
+          "device": 2728866502,
+          "inode": 844424930382701
+        },
+        "structure": {
+          "header_bytes": 45848,
+          "header_sha256": "4552846f1e705a23d7340bf1ffcc7251d9f742cd45e5029f80cc6694507a89ce",
+          "tensors": 398,
+          "dtypes": {
+            "BF16": 398
+          },
+          "payload_bytes": 8044936192,
+          "offsets_contiguous": true,
+          "metadata": {}
+        }
+      },
+      {
+        "time": 1795650406.6233459,
+        "action": "active_invalid_replaced_without_backup",
+        "destination_fingerprint": {
+          "size": 8044982048,
+          "mtime_ns": 1795650308803320800,
+          "ctime_ns": 1795650207252997300,
+          "device": 2728866502,
+          "inode": 844424930382701
+        },
+        "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+        "verification": "Full staged-destination hash; same file identity after atomic rename; bounded header rechecked"
+      },
+      {
+        "time": 1795650418.2070131,
+        "action": "other_identified_defective_deleted",
+        "path": "F:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\candidates\\qwen_3_4b-5b3abca5-6c671498.safetensors\\qwen_3_4b.safetensors"
+      },
+      {
+        "time": 1795650418.2170832,
+        "action": "temporary_C_download_deleted",
+        "path": "C:\\Users\\sando\\Downloads\\qwen_3_4b.safetensors\\qwen_3_4b.safetensors"
+      },
+      {
+        "time": 1795650418.2190852,
+        "action": "finished",
+        "success": true
+      }
+    ],
+    "success": true,
+    "finished": 1795650418.218085,
+    "final_fingerprint": {
+      "size": 8044982048,
+      "mtime_ns": 1795650308803320800,
+      "ctime_ns": 1795650207252997300,
+      "device": 2728866502,
+      "inode": 844424930382701
+    },
+    "final_sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+    "final_structure": {
+      "header_bytes": 45848,
+      "header_sha256": "4552846f1e705a23d7340bf1ffcc7251d9f742cd45e5029f80cc6694507a89ce",
+      "tensors": 398,
+      "dtypes": {
+        "BF16": 398
+      },
+      "payload_bytes": 8044936192,
+      "offsets_contiguous": true,
+      "metadata": {}
+    },
+    "sole_valid_copy_in_known_paths": true
+  },
+  "compatibility": "Not tested: no Torch/ComfyUI/model load or inference",
+  "configuration_changes": 0,
+  "downloads_by_agent": 0,
+  "old_defective_hashes_reused": {
+    "D_active": "a5e1c4ed3f2d45531da55eaa977e44e40b8cfde7c2ebc53a5288b9573c3f45bc",
+    "F_previously_E_candidate": "6cbad3f9d28e15e86d3ddb1842cd51653ad236c92e9a2204bd4415241af22f53"
+  }
+}
