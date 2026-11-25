@@ -43,7 +43,17 @@ def create_studio_router():
 
     @router.get('/studio',response_class=HTMLResponse)
     def page():
-        return (Path(__file__).parent/'ui'/'studio.html').read_text(encoding='utf-8')
+        from backlot.studio_identity import ROOT, fingerprint
+        html = (Path(__file__).parent/'ui'/'studio.html').read_text(encoding='utf-8')
+        build = fingerprint(ROOT, ui=True).get('sha256', '')
+        return HTMLResponse(html.replace('</head>', f'<meta name="studio-ui-build" content="{build}"></head>'),
+                            headers={'Cache-Control': 'no-store'})
+
+    @router.get('/api/studio/identity')
+    def resident_identity():
+        from backlot.studio_identity import identity
+        from fastapi.responses import JSONResponse
+        return JSONResponse(identity(), headers={'Cache-Control': 'no-store'})
     @router.get('/api/studio/bootstrap')
     def bootstrap():
         projects=[]

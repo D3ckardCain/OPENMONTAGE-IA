@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, PlainTextResponse
 from lib import production_studio as studio, studio_editor as editor, studio_editor_render as render
+from backlot.studio_identity import capabilities as editor_capabilities
 
 
 def create_editor_router(body):
@@ -22,8 +23,7 @@ def create_editor_router(body):
 
     @router.get('/capabilities')
     def capabilities():
-        from lib.studio_timeline_ops import CAPABILITIES
-        return {'version': '3.0', 'commands': CAPABILITIES, 'render_cancel': True, 'shared_revision': True}
+        return editor_capabilities()
 
     @router.get('/projects')
     def projects():

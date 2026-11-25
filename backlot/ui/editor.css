@@ -1,5 +1,7 @@
 /* GitHub Dark. The editor owns the viewport; each panel owns its overflow. */
 body.editor-active{height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+#studio-compatibility{flex:none;padding:6px 12px;background:#292316;color:#ffe6a7;border-bottom:1px solid #a67c28;max-height:18vh;overflow:auto;font-size:13px}
+#studio-compatibility[hidden]{display:none}
 body.editor-active>header{flex:none;padding:6px 12px;gap:12px;font-size:13px}
 body.editor-active>header nav{gap:12px;flex-wrap:wrap}
 body.editor-active>header span{font-size:11px}

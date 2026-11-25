@@ -4,6 +4,7 @@ import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAt
 import { makePeaks,paintPeaks,signalLevel } from './editor-waveform.js';
 import { initializeEffectsUI } from './editor-effects-ui.js';
 import { initializeCompositionUI } from './editor-composition-ui.js';
+import { compatibilityReady,compatibilityState } from './studio-compatibility.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
@@ -13,11 +14,15 @@ let compositionUI=null;
 let cancelSupported=false,renderAttempt=null;
 const capabilities=new Set(),selectedIds=new Set();
 async function loadCapabilities(){
-  try{const response=await fetch('/api/studio/editor/capabilities');if(response.ok){const data=await response.json();cancelSupported=data.render_cancel===true;for(const name of data.commands||[])capabilities.add(name);}}
-  catch{/* older/offline backend keeps advanced actions hidden */}
+  applyCapabilities(await compatibilityReady);
+}
+function applyCapabilities(result){
+  capabilities.clear();cancelSupported=result.caps?.render_cancel===true;
+  if(result.ok){for(const name of result.caps.commands)capabilities.add(name);}
   q('edit-advanced-tools').hidden=!capabilities.has('batch');q('edit-flags-panel').hidden=!capabilities.has('flags');q('edit-markers-panel').hidden=!capabilities.has('markers');
 }
 const waveformCache=new Map();let waveformQueue=Promise.resolve(),waveformSelection=0;
+document.addEventListener('studio-compatibility',event=>applyCapabilities(event.detail));
 let meterContext=null,meterSource=null,meterAnalyser=null,meterEnabled=false,meterFrame=0,meterSamples=null,lastMeter='Sin medición';
 function meterLoop(){
   cancelAnimationFrame(meterFrame);if(!meterEnabled)return;
@@ -81,6 +86,7 @@ const seconds = c => clipDuration(c,edl(),c.kind==='gap'||edl().sources[c.source
 const edl = () => state.edit_decisions;
 const base = () => '/api/studio/editor/' + encodeURIComponent(project);
 async function api(path, data) {
+  if(data!==undefined&&!path.endsWith('/render/cancel')&&!compatibilityState().ok)throw Error(compatibilityState().message);
   const response = await fetch(path, data === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
   const value = await response.json();
   if (!response.ok) throw Error(response.status===404 && path==='/api/studio/editor/projects' ? 'Esta instancia de Studio necesita reiniciarse para activar la API del editor. El espacio visual está preparado; las operaciones aún no están disponibles aquí.' : value.detail || 'Error de edición');
@@ -93,7 +99,7 @@ async function task(fn) {
   try { await fn(); } catch (error) { message(error.message); }
   finally { pending = false; q('manual-editor').removeAttribute('aria-busy'); }
 }
-function requireProject() { if (!state || !project) throw Error('Selecciona o crea un proyecto de edición'); }
+function requireProject() { if(!compatibilityState().ok)throw Error(compatibilityState().message);if (!state || !project) throw Error('Selecciona o crea un proyecto de edición'); }
 async function command(operation, params={}) {
   requireProject();
   state = await api(base() + '/command', {operation, revision:state.revision, ...params});

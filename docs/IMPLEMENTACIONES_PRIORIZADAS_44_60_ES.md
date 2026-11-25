@@ -165,6 +165,12 @@ Las aceptaciones siguientes amplían las filas anteriores; no abren otros motore
 
 ### Verificación de esta ampliación
 
+Seguimiento de implementación [#105](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/105):
+E01/E02 identidad residente/UI/API/capacidades implementada y probada de forma
+focalizada; [manual y límites](IDENTIDAD_COMPATIBILIDAD_STUDIO_ES.md). Activación
+en4750 pendiente de reinicio manual, no autorizado automáticamente. No se marca
+completa toda E01/E02 ni se considera resuelto el diagnóstico HTTP.
+
 Solo comprobación documental de UTF-8/enlaces/cobertura/pins; no repetir suites
 ni CI aprobadas, no instalaciones/modelos ni captura HTTP/red. El diagnóstico
 HTTP queda preservado como observación con causa raíz pendiente. Cierre de
