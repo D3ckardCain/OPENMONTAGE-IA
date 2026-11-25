@@ -25,6 +25,24 @@ def create_editor_router(body):
     def capabilities():
         return editor_capabilities()
 
+    @router.get('/piper/voices')
+    def piper_voices():
+        from lib.studio_piper import catalog
+        return invoke(catalog)
+
+    @router.post('/{pid}/piper/preview')
+    async def piper_preview(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_piper import preview
+        data = await body(request, 8000)
+        return await run_in_threadpool(invoke, preview, pid, data)
+
+    @router.get('/{pid}/piper/audio/{filename}')
+    def piper_audio(pid: str, filename: str):
+        if not filename.startswith('piper-') or Path(filename).name != filename or not filename.endswith('.wav'):
+            raise HTTPException(400, 'Invalid preview')
+        return FileResponse(invoke(studio.project_path, pid) / 'assets' / 'audio' / filename, media_type='audio/wav')
+
     @router.get('/projects')
     def projects():
         return [{'project_id': p.parent.name, 'title': studio.read_json(p).get('title', p.parent.name)}
