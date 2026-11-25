@@ -29,6 +29,13 @@ export function editPoints(edl,cursor=0,nearTime=null){
   for(const clip of edl.cuts){points.push(t);t+=clipDuration(clip,edl);points.push(t);}
   for(const clip of edl.audio_tracks)points.push(clip.start_seconds,clip.start_seconds+clipDuration(clip,edl,false));
   for(const cue of edl.cues)points.push(cue.start_seconds,cue.end_seconds);
+  // Composition intervals use montage time, not the source file's in/out.
+  const interval=(start,end)=>{if(Number.isFinite(start)&&Number.isFinite(end)&&start>=0&&end>start)points.push(start,end);};
+  for(const layer of edl.layers||[]){
+    if(Number.isFinite(layer.speed)&&layer.speed>0&&Number.isFinite(layer.in_seconds)&&Number.isFinite(layer.out_seconds))
+      interval(layer.start_seconds,layer.start_seconds+(layer.out_seconds-layer.in_seconds)/layer.speed);
+  }
+  for(const title of edl.titles||[])interval(title.start_seconds,title.end_seconds);
   return points;
 }
 export function trimByDelta(edl,clip,track,edge,delta){

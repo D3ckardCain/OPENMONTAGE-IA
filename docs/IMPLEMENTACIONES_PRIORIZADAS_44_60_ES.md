@@ -171,6 +171,12 @@ focalizada; [manual y límites](IDENTIDAD_COMPATIBILIDAD_STUDIO_ES.md). Activaci
 en4750 pendiente de reinicio manual, no autorizado automáticamente. No se marca
 completa toda E01/E02 ni se considera resuelto el diagnóstico HTTP.
 
+Continuación [#106](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/106),
+E04/#93: snapping existente ampliado a límites de capas/títulos, sin escribir EDL
+ni añadir otro motor. [Manual y alcance](SNAPPING_CAPAS_TITULOS_ES.md);3casos Node
+numéricos nuevos aprobados. Interacción de ventana local pendiente, no inferida
+de las pruebas; no se repiten regresiones antiguas ni se reinicia Studio.
+
 Solo comprobación documental de UTF-8/enlaces/cobertura/pins; no repetir suites
 ni CI aprobadas, no instalaciones/modelos ni captura HTTP/red. El diagnóstico
 HTTP queda preservado como observación con causa raíz pendiente. Cierre de

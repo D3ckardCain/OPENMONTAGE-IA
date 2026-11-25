@@ -13,3 +13,12 @@ def test_studio_compatibility_javascript():
     result = subprocess.run([node, '--test', 'tests/js/studio-compatibility.test.mjs'],
                             cwd=Path(__file__).resolve().parents[2], capture_output=True, timeout=30)
     assert result.returncode == 0, (result.stdout + result.stderr).decode('utf-8', 'replace')
+
+
+def test_composition_snap_javascript():
+    node = shutil.which('node')
+    if node is None:
+        pytest.skip('Node unavailable; run tests/js/editor-composition-snap.test.mjs on prepared runtime')
+    result = subprocess.run([node, '--test', 'tests/js/editor-composition-snap.test.mjs'],
+                            cwd=Path(__file__).resolve().parents[2], capture_output=True, timeout=30)
+    assert result.returncode == 0, (result.stdout + result.stderr).decode('utf-8', 'replace')
