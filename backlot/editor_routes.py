@@ -124,6 +124,11 @@ def create_editor_router(body):
         return PlainTextResponse(editor.srt(value['edit_decisions']), media_type='application/x-subrip',
                                  headers={'Content-Disposition': 'attachment; filename="subtitles.srt"'})
 
+    @router.get('/{pid}/subtitle-words')
+    def subtitle_words(pid: str, set_id: str):
+        from lib.studio_word_clock import project_report
+        return invoke(project_report,pid,set_id)
+
     @router.post('/{pid}/subtitles/import')
     async def import_subtitles(pid: str, request: Request, filename: str, revision: int):
         origin = request.headers.get('origin')

@@ -15,6 +15,15 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Nueva entrega P0 E04 [#115](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/115):
+[palabras en reloj del montaje](PALABRAS_RELOJ_MONTAJE_ES.md), inspección compartida
+UI/API/agente sin ASR/cues/export. Reutiliza frames del EDL, conserva procedencia,
+spans y racionales; reporta palabras parciales/cero y cobertura sin inventar
+alineación.25pytest nuevos y control UI sintético(3GET/0POST) aprobados. Activación
+pendiente en el mismo lote #112–#115; E04 global no se da por completo.
+[Smoke breve preparado #112–#114](COMPROBACION_CONJUNTA_112_114_ES.md), no ejecutado;
+sin repetir baterías ni síntesis aprobadas y sin fabricar recibos elegibles.
+
 Siguiente entrega P0 E02 [#114](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/114):
 [errores HTTP y formularios conservados](STUDIO_ERRORES_HTTP_ES.md), lector común
 sin reintentos, deadline explícito solo en metadatos locales, protección de doble

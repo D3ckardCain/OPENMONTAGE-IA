@@ -1,5 +1,5 @@
 // Existing ASR JSON and revisioned EDL commands only. No model calls.
-export function initializeCandidatesUI({q,getEdl,getProject,run,has,reviewSource}){
+export function initializeCandidatesUI({q,getEdl,getProject,run,has,reviewSource,getRevision=()=>null,inspectWords}){
   let imported=null,key=null;
   const make=(tag,text)=>{const node=document.createElement(tag);node.textContent=text;return node;};
   const form=q('edit-candidate-form'),field=name=>form.elements[name];
@@ -49,6 +49,39 @@ export function initializeCandidatesUI({q,getEdl,getProject,run,has,reviewSource
       const coverage=dataset.coverage;
       list.append(make('p',`Cobertura ASR declarada: ${coverage.processed_seconds.toFixed(3)} / ${coverage.source_seconds.toFixed(3)}s (${(coverage.fraction*100).toFixed(1)}%) · ${coverage.word_count} palabras · ${coverage.complete?'completa declarada':'PARCIAL'} · no verificada independientemente`));
       list.append(make('p','Procesado declarado: '+coverage.processed_ranges.map(([a,b])=>`${a}–${b}s`).join(', ')+'. No procesado: '+(coverage.unprocessed_ranges?.map(([a,b])=>`${a}–${b}s`).join(', ')||'sin huecos declarados')+'. Selección editorial limitada a propuestas; no se revisó automáticamente toda la fuente.'));
+      if(has('subtitle_words')&&inspectWords){
+        const reportBox=make('div',''),button=make('button','Inspeccionar palabras en el reloj del montaje');button.type='button';
+        button.onclick=async()=>{
+          const pid=getProject();button.disabled=true;
+          try{
+            const loading=make('p','Consultando tiempos guardados, sin ASR ni cambios del montaje…');loading.setAttribute('role','status');reportBox.replaceChildren(loading);
+            const report=await inspectWords(dataset.id);
+            if(pid!==getProject()||!reportBox.isConnected)return;
+            if(getRevision()!==null&&report.revision!==getRevision())throw Error('El montaje cambió; vuelve a consultar sus tiempos.');
+            const summary=make('p',`${report.words.length} ocurrencias · ${report.excluded_word_occurrences} exclusiones · revisión ${report.revision}. Solo lectura, sin crear subtítulos.`);summary.setAttribute('role','status');reportBox.replaceChildren(summary);
+            const wrap=make('div','');wrap.className='editor-word-clock';const table=make('table','');
+            table.append(make('caption','Palabras guardadas: tiempos de fuente y de montaje'));
+            const header=make('tr','');for(const name of ['Clip','Palabra / índice','Fuente (s)','Montaje (s)','Tiempos declarados']){const cell=make('th',name);cell.scope='col';header.append(cell);}table.append(header);
+            const timingLabels={measured:'medido declarado',estimated:'estimado declarado',imputed:'imputado declarado',unknown:'origen no declarado'};
+            for(const word of report.words.slice(0,100)){
+              const row=make('tr','');for(const value of [word.clip_id.slice(0,8),`${word.text} / ${word.word_index}`,
+                `${word.source.start_seconds.toFixed(3)}–${word.source.end_seconds.toFixed(3)}`,
+                `${word.timeline.start_seconds.toFixed(3)}–${word.timeline.end_seconds.toFixed(3)}`,
+                `${timingLabels[word.timing_status]||'origen no declarado'} · ${word.language||'idioma no declarado'} · ${word.speaker===null?'hablante sin declarar':'hablante declarado '+JSON.stringify(word.speaker)}`])row.append(make('td',value));table.append(row);
+            }
+            wrap.append(table);reportBox.append(wrap);
+            if(report.words.length>100)reportBox.append(make('p','Se muestran100ocurrencias; el informe JSON de API/agente conserva todas.'));
+            const reasons={zero_duration:'duración cero, sin intervalo que mostrar',partial_source_word:'palabra cortada por el límite del clip',partial_frame_quantization:'palabra cortada por la duración en fotogramas'};
+            let shown=0;for(const clip of report.clips){
+              for(const word of clip.excluded_words||[])if(shown++<20)reportBox.append(make('p',`Excluida: ${word.text} / ${word.word_index} · ${reasons[word.reason]||word.reason}. Revisa el límite del corte.`));
+              if(clip.source_inspected&&!clip.coverage_complete_declared)reportBox.append(make('p','Cobertura ASR parcial en clip '+clip.clip_id+'; ausencia de palabras no prueba silencio.'));
+            }
+            for(const warning of report.warnings)reportBox.append(make('p',warning));
+          }catch(error){if(pid===getProject()){const errorLine=make('p',error.message);errorLine.setAttribute('role','status');reportBox.replaceChildren(errorLine);}}
+          finally{button.disabled=false;}
+        };
+        list.append(button,reportBox);
+      }
       for(const item of dataset.candidates){
         const card=make('article',''),details=make('details','');details.append(make('summary',`${item.status} · ${item.start_seconds.toFixed(3)}–${item.end_seconds.toFixed(3)}s · ${item.text}`));
         details.append(make('p','Motivo: '+item.reason),make('p','Antes: '+item.context_before),make('p','Selección exacta: '+item.text),make('p','Después: '+item.context_after),make('p',item.warnings.join(' ')));

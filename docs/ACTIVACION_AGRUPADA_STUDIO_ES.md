@@ -11,7 +11,13 @@ activación será manual y agrupada con futuros cambios, sin repetir pruebas
 españolas. [Contrato/pruebas/límites #112](PIPER_RECUPERACION_ES.md) y
 [contraste/foco #113](STUDIO_CONTRASTE_FOCO_ES.md).
 
-## Próximo lote pendiente: #112 + #113 + #114 y próximas entregas
+## Próximo lote pendiente: #112 + #113 + #114 + #115 y próximas entregas
+
+[Comprobación conjunta breve preparada](COMPROBACION_CONJUNTA_112_114_ES.md):
+criterios pendientes revisados, una sola activación, recuperación por recibo
+existente, contraste/foco y un400 interceptado sin mutaciones reales. Si no hay
+recibo elegible de #112, ese paso queda explícitamente pendiente; no repetir
+síntesis ni fabricar evidencia. No se ejecuta todavía.
 
 No ejecutar todavía. Un único reinicio manual de4750 cargará la recuperación de
 Piper preparada en #112; recargar después aplicará los tokens/estilos de #113
@@ -19,6 +25,11 @@ y los errores/formularios de #114 ([contrato y pruebas](STUDIO_ERRORES_HTTP_ES.m
 Antes, comprobar trabajos activos. Después, verificar identidad coherente y el
 contrato nuevo, sin repetir síntesis ni comprobaciones ya aprobadas de #111.
 Mantener la valoración natural/robótica aplazada. El agente no reinicia Studio.
+
+#115 añade capability/GET de inspección de palabras en reloj del montaje y su
+control de lectura ([manual](PALABRAS_RELOJ_MONTAJE_ES.md)). Se incorpora al mismo
+reinicio, no requiere otro. Su comprobación posterior no llama ASR ni exporta;
+la comprobación breve de #112–#114 conserva su alcance y resultados previos.
 
 Para #114, validar mensajes/foco sin enviar creaciones o settings reales como
 mero diagnóstico; las pruebas offline ya cubren los fallos sintéticos. No repetir

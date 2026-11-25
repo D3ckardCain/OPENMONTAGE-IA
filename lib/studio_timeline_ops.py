@@ -3,7 +3,7 @@ from copy import deepcopy
 import uuid
 
 CAPABILITIES = ['batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
-                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language']
+                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words']
 
 
 def assert_editable(edl, data):

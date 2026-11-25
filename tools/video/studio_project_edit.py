@@ -30,16 +30,17 @@ def request(path, data=None, timeout=120):
 
 class StudioProjectEdit(BaseTool):
     name = 'studio_project_edit'
-    version = '3.0.0'
+    version = '3.1.0'
     capability = 'video_post'
     provider = 'local'
     description = 'Read and edit the shared Studio manual project; no inference. Revision required for writes.'
     install_instructions = 'Inicia la instancia actualizada de Studio local (BACKLOT_PORT o 4750); no requiere modelos ni paquetes nuevos.'
-    capabilities = ['read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities']
+    capabilities = ['read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words']
     side_effects = ['Writes the selected manual project through the running local Studio server']
     not_good_for = ['Starting inference', 'Editing production pipeline artifacts', 'Editing while Studio is stopped']
     input_schema = {'type': 'object', 'required': ['project_id', 'action'], 'properties': {
-        'project_id': {'type': 'string'}, 'action': {'enum': ['read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities']},
+        'project_id': {'type': 'string'}, 'action': {'enum': ['read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words']},
+        'set_id': {'type': 'string'},
         'command': {'type': 'object'}, 'relative_path': {'type': 'string'}, 'revision': {'type': 'integer'},
         'preview': {'type': 'boolean'}, 'attempt': {'type': 'string'}}}
 
@@ -59,6 +60,8 @@ class StudioProjectEdit(BaseTool):
                 value = request('capabilities')
             elif action == 'read':
                 value = request(path)
+            elif action == 'subtitle_words':
+                value = request(path + '/subtitle-words?set_id=' + quote(inputs['set_id'],safe=''))
             elif action == 'command':
                 value = request(path + '/agent-command', inputs['command'])
             elif action == 'register':
