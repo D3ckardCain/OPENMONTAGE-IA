@@ -4,10 +4,22 @@ Actualización: el lote #111 se verificó directamente en4750/PID125660,
 resident=disk=e68adc7a05b647f5d49b31b293b2d093a2c024d06ce5ee51b5e7d2c72fecc647,
 restart_required=false; subtitle_language presente,109 hablantes VCTK y
 preescucha real2.147846s reproducida. El agente no reinició el servidor.
-La tabla conserva el plan de ese lote; la ampliación posterior **#112/E05 de
-recuperación Piper** está preparada pero aún no activada en4750. Su siguiente
+La tabla conserva el plan de ese lote; las ampliaciones posteriores **#112/E05 de
+recuperación Piper** y **#113/E02 de contraste/foco** están preparadas pero aún no
+validadas en4750. Su siguiente
 activación será manual y agrupada con futuros cambios, sin repetir pruebas
-españolas. [Contrato/pruebas/límites](PIPER_RECUPERACION_ES.md).
+españolas. [Contrato/pruebas/límites #112](PIPER_RECUPERACION_ES.md) y
+[contraste/foco #113](STUDIO_CONTRASTE_FOCO_ES.md).
+
+## Próximo lote pendiente: #112 + #113 y próximas entregas
+
+No ejecutar todavía. Un único reinicio manual de4750 cargará la recuperación de
+Piper preparada en #112; recargar después aplicará los tokens/estilos de #113.
+Antes, comprobar trabajos activos. Después, verificar identidad coherente y el
+contrato nuevo, sin repetir síntesis ni comprobaciones ya aprobadas de #111.
+Mantener la valoración natural/robótica aplazada. El agente no reinicia Studio.
+
+## Historial del lote anterior
 
 Petición del usuario: agrupar45b8609 con los demás cambios, evitando reinicios
 repetidos. Esta entrega **no reinicia Studio ni activa herramientas**. La muestra

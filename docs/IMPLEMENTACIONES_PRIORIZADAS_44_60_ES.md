@@ -15,6 +15,13 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Entrega independiente E02 [#113](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/113):
+[contraste y foco de controles](STUDIO_CONTRASTE_FOCO_ES.md). Falla observada del
+botón verde3.919:1 corregida a4.631:1, preservando GitHub Dark. HTML/CSS reales
+en fixture offline,4viewports/teclado/colores/negativos aprobados, sin servidor
+activo ni acciones de producción. Se agrupa con #112 para una activación manual
+futura. No se repite #111; E02 completo y validación del panel abierto pendientes.
+
 Seguimiento E05 acotado [#112](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/112):
 [recuperación de preescuchas Piper](PIPER_RECUPERACION_ES.md), ID compartido,
 recibo/huellas y reconciliación sin repetir proveedor completado.26pruebas nuevas
