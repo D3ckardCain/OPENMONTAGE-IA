@@ -2,6 +2,11 @@
 
 Fecha: 2026-11-25. Código: `dfb8e15ad5bbfeace9c16105f238a688955221f6`.
 
+Este informe conserva la prueba inicial, cuando VCTK antiguo estaba bloqueado.
+La sustitución autorizada posterior y su validación están en
+[PIPER_VCTK_RETRAIN_ES.md](PIPER_VCTK_RETRAIN_ES.md); sus resultados actualizan
+el estado de VCTK, sin repetir las cuatro combinaciones españolas aquí aprobadas.
+
 ## Activación pendiente
 
 El servidor 4750, PID 89172, responde salud pero informa `restart_required=true`:

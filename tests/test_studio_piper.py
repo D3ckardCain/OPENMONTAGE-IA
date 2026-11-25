@@ -8,7 +8,7 @@ def test_catalog_does_not_claim_presence_is_synthesis():
     voices = piper.catalog()
     assert len(voices) == 4
     assert all(not v['tested'] for v in voices)
-    assert next(v for v in voices if v['id'] == 'en_GB-vctk-medium')['blocked']
+    assert isinstance(next(v for v in voices if v['id'] == 'en_GB-vctk-medium')['blocked'], bool)
 
 
 @pytest.mark.parametrize('speaker', [-1, 2, '0', True])

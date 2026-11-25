@@ -25,7 +25,7 @@ No se implementan clonación, traducción ni aprobación automática de calidad.
 
 ## Inventario y diferencia VCTK
 
-Los cuatro paquetes existentes coinciden con la revisión oficial
+Los cuatro paquetes del inventario inicial coincidían con la revisión oficial
 `0ca208afc2a2ee102b1e961e72e0a7e4907be3d0` de
 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices/tree/0ca208afc2a2ee102b1e961e72e0a7e4907be3d0).
 El catálogo `lib/piper_voices.json` registra tamaños, SHA256 locales y referencias.
@@ -36,13 +36,19 @@ Davefx: CC0 y base rdh CC0. Carlfm: dominio público, desde cero.
 Sharvard: dataset CC BY 3.0 y base HiFiTTS CC BY 4.0, Cori Samuel, lector 92;
 se conservan ambas atribuciones. Hablantes M=0 y F=1.
 
-VCTK local es versión de configuración 1.0.0 y su tarjeta declara base Lessac.
-Coincide con la revisión fijada, por tanto no es corrupción. Está bloqueado;
-sus 109 hablantes se enumeran pero no se declaran probados ni habilitados.
-La revisión oficial actual `5ec43b186ef915a195d3ddbcfd9916e76c503c3f`
-contiene VCTK 1.5.0, base HiFiTTS, 76972979 bytes y SHA256
+VCTK inicial era versión de configuración 1.0.0 y su tarjeta declaraba base Lessac.
+Coincidía con la revisión fijada: no era corrupción. Tras autorización se
+sustituyó el conjunto completo por la revisión
+`5ec43b186ef915a195d3ddbcfd9916e76c503c3f`: VCTK 1.5.0, base HiFiTTS,
+76972979 bytes y SHA256 verificado localmente
 `fc3d92d266b1a6c03af2a38215e0eee430ca7fb360f641d7c3dcb17c7670c0f3`.
-No se descargó ni sustituyó. Véase también la advertencia oficial de
+El conjunto antiguo se eliminó después de comprobar hashes y síntesis real;
+no quedan copias antiguas ni staging en el destino administrado. Los 109 IDs
+son válidos; síntesis representativa de 0/p239,54/p267 y108/p362 aprobada,
+no se afirma haber probado individualmente los109 ni haber validado escucha.
+[Informe de sustitución y resultados](PIPER_VCTK_RETRAIN_ES.md).
+Se conservan VCTK CC BY4.0 y HiFiTTS CC BY4.0/Cori Samuel reader92.
+Véase también la advertencia oficial de
 [uso comercial](https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/COMMERCIAL_USE.md).
 
 ## Evidencia y límites

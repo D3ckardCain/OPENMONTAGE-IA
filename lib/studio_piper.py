@@ -6,6 +6,24 @@ from pathlib import Path
 from lib import production_studio as studio
 
 
+VCTK_RETRAINED_REVISION = '5ec43b186ef915a195d3ddbcfd9916e76c503c3f'
+VCTK_RETRAINED_SHA256 = 'fc3d92d266b1a6c03af2a38215e0eee430ca7fb360f641d7c3dcb17c7670c0f3'
+
+
+def vctk_blocked(reference, config, card):
+    """Enable only the pinned retrain; presence and speaker count are insufficient."""
+    return not (
+        reference.get('revision') == VCTK_RETRAINED_REVISION
+        and any(f.get('sha256') == VCTK_RETRAINED_SHA256 for f in reference.get('files', [])
+                if f.get('name') == 'en_GB-vctk-medium.onnx')
+        and config.get('piper_version') == '1.5.0'
+        and config.get('num_speakers') == 109
+        and len(config.get('speaker_id_map', {})) == 109
+        and set(config.get('speaker_id_map', {}).values()) == set(range(109))
+        and 'hifi_tts_92' in card and 'Cori Samuel' in card and 'lessac' not in card.lower()
+    )
+
+
 def configuration():
     return studio.read_json(studio.CONFIG_DIR / 'piper.json', {})
 
@@ -21,7 +39,11 @@ def catalog():
         voice['sample_rate'] = config.get('audio', {}).get('sample_rate')
         voice['available'] = bool(cfg.get('python') and Path(cfg['python']).is_file() and
                                   all((folder / f['name']).is_file() for f in voice['files']))
-        voice['blocked'] = voice['id'] == 'en_GB-vctk-medium'
+        voice['blocked'] = False
+        if voice['id'] == 'en_GB-vctk-medium':
+            card_path = folder / 'MODEL_CARD'
+            card = card_path.read_text(encoding='utf-8') if card_path.is_file() else ''
+            voice['blocked'] = vctk_blocked(voice, config, card)
         voice['tested'] = False  # Presence never proves synthesis or perceptual quality.
         result.append(voice)
     return result
