@@ -165,6 +165,13 @@ Las aceptaciones siguientes amplían las filas anteriores; no abren otros motore
 
 ### Verificación de esta ampliación
 
+Actualización #107 tras reconectar D:/E:: herramientas guardadas FFmpeg/FFprobe9.0.2
+confirmadas con -version, sin cambios/descargas/copias de herramientas. Exportación
+real3.416667s/1080×1920 H.264/AAC/mov_text aprobada técnicamente; encuadre comparado
+con fuente, audio no silencioso y SRT0.5–2.5s extraído. [Evidencia actual](VALIDACION_CANDIDATOS_HTTP_ES.md).
+El bloqueo físico del párrafo histórico siguiente queda levantado; #107 continúa
+abierto por ventana/interacción/escucha no verificadas, no por falta de MP4.
+
 Seguimiento #107: [activación y HTTP real en copia](VALIDACION_CANDIDATOS_HTTP_ES.md)
 comprobados, candidatos/undo/reopen y encuadre persistente. Exportación AV bloqueada
 por D: no conectado; #107 abierto, sin afirmar resultado audiovisual.
