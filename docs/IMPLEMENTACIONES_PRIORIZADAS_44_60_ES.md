@@ -165,6 +165,17 @@ Las aceptaciones siguientes amplían las filas anteriores; no abren otros motore
 
 ### Verificación de esta ampliación
 
+Implementación [#107](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/107),
+E03/E04 desde #103: candidatos por ocurrencia de palabra/tiempos, motivo,
+contexto/negación y cobertura ASR declarada con huecos; aceptar/rechazar/corregir
+e insertar en el EDL mediante add/trim existentes, undo/reopen compartidos.
+Revisión visual local de fuente/foco/zoom/bandas aplica transform/FFmpeg actual,
+sin nuevo tracker/ASR/AutoClip. [Manual y límites](CANDIDATOS_ENCUADRE_STUDIO_ES.md).
+15pytest nuevas aprobadas, incluyendo wrapper de6Node; datos/DOM sintéticos,
+no validación AV/ventana. Activación4750 y comprobación con medios pendientes;
+trayectorias/keyframes/zona segura dinámica siguen pendientes de E04. No se
+marca completa toda la familia ni se repiten suites aprobadas.
+
 Seguimiento de implementación [#105](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/105):
 E01/E02 identidad residente/UI/API/capacidades implementada y probada de forma
 focalizada; [manual y límites](IDENTIDAD_COMPATIBILIDAD_STUDIO_ES.md). Activación

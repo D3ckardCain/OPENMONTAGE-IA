@@ -3,7 +3,7 @@ from copy import deepcopy
 import uuid
 
 CAPABILITIES = ['batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
-                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers']
+                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates']
 
 
 def assert_editable(edl, data):
@@ -93,6 +93,9 @@ def _ripple_labels(items, removed):
 
 
 def apply_timeline(edl, data):
+    from lib.studio_clip_candidates import apply_candidates
+    if apply_candidates(edl, data):
+        return True
     from lib import studio_editor as edit
     from lib.studio_editor_effects import apply_effect
     from lib.studio_editor_layers import apply_composition

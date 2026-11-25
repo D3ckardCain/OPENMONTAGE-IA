@@ -2,6 +2,12 @@
 body.editor-active{height:100dvh;overflow:hidden;display:flex;flex-direction:column}
 #studio-compatibility{flex:none;padding:6px 12px;background:#292316;color:#ffe6a7;border-bottom:1px solid #a67c28;max-height:18vh;overflow:auto;font-size:13px}
 #studio-compatibility[hidden]{display:none}
+#edit-candidate-words{max-height:180px;overflow:auto;border:1px solid #30363d;padding:4px}
+#edit-candidate-words button{margin:2px;white-space:normal;text-align:left}
+#edit-candidate-list article{border-top:1px solid #30363d;padding:6px 0;overflow-wrap:anywhere}
+#edit-candidate-list p{font-size:12px;white-space:pre-wrap}
+#edit-crop-source video,#edit-crop-canvas{display:block;max-width:100%;max-height:220px;margin:auto;background:#000}
+#edit-crop-canvas[hidden]{display:none}
 body.editor-active>header{flex:none;padding:6px 12px;gap:12px;font-size:13px}
 body.editor-active>header nav{gap:12px;flex-wrap:wrap}
 body.editor-active>header span{font-size:11px}

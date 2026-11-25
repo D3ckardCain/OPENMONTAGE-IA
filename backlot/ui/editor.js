@@ -5,12 +5,15 @@ import { makePeaks,paintPeaks,signalLevel } from './editor-waveform.js';
 import { initializeEffectsUI } from './editor-effects-ui.js';
 import { initializeCompositionUI } from './editor-composition-ui.js';
 import { compatibilityReady,compatibilityState } from './studio-compatibility.js';
+import { initializeCandidatesUI } from './editor-candidates-ui.js';
+import { initializeCropPreview } from './editor-crop-preview.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
 let compositionUI=null;
+let candidatesUI=null,cropPreview=null;
 let cancelSupported=false,renderAttempt=null;
 const capabilities=new Set(),selectedIds=new Set();
 async function loadCapabilities(){
@@ -92,11 +95,11 @@ async function api(path, data) {
   if (!response.ok) throw Error(response.status===404 && path==='/api/studio/editor/projects' ? 'Esta instancia de Studio necesita reiniciarse para activar la API del editor. El espacio visual está preparado; las operaciones aún no están disponibles aquí.' : value.detail || 'Error de edición');
   return value;
 }
-async function task(fn) {
-  if (pending) return;
+async function task(fn,propagate=false) {
+  if (pending) {if(propagate)throw Error('Hay una operación pendiente');return;}
   pending = true;
   q('manual-editor').setAttribute('aria-busy', 'true');
-  try { await fn(); } catch (error) { message(error.message); }
+  try { await fn(); } catch (error) { message(error.message);if(propagate)throw error; }
   finally { pending = false; q('manual-editor').removeAttribute('aria-busy'); }
 }
 function requireProject() { if(!compatibilityState().ok)throw Error(compatibilityState().message);if (!state || !project) throw Error('Selecciona o crea un proyecto de edición'); }
@@ -126,7 +129,7 @@ async function reopen(id=project) {
   q('edit-download').hidden=true;
   q('edit-monitor-title').textContent = 'Montaje reabierto · selecciona una fuente o prepara la vista previa';
   const url = new URL(location.href); url.searchParams.set('edit', project); history.replaceState(null, '', url);
-  q('edit-project').value = project;effectsUI?.reset(); loadView();draw(); await checkRender();
+  q('edit-project').value = project;effectsUI?.reset();candidatesUI?.reset();cropPreview?.reset(); loadView();draw(); await checkRender();
   message('Proyecto reabierto desde disco · revisión ' + state.revision);
 }
 async function importFiles(files) {
@@ -169,6 +172,7 @@ function selectClip(clip, track, event=null) {
 }
 function drawInspector() {
   effectsUI?.drawSelection();compositionUI?.drawSelection();
+  cropPreview?.selectionChanged();
   const form = q('edit-clip-form'); let item;
   for(const id of ['edit-split','edit-split-cursor','edit-remove','edit-left','edit-right','edit-view-source'])q(id).disabled=true;
   for(const id of ['edit-duplicate','edit-delete-gap','edit-delete-ripple'])q(id).disabled=true;
@@ -362,6 +366,7 @@ function pruneSelection(){
   if(!items.some(c=>c.id===selection.id))selection=selectedIds.size?{...selection,id:[...selectedIds][0]}:null;
 }
 function draw() {
+  candidatesUI?.draw();cropPreview?.selectionChanged();
   q('edit-revision').textContent = 'Revisión ' + state.revision + ' · guardado local';
   q('edit-undo').disabled = !state.undo.length; q('edit-redo').disabled = !state.redo.length;
   const list = q('edit-sources'); list.replaceChildren();
@@ -486,6 +491,8 @@ function showWorkspace(){waveformSelection++;q('edit-waveform-retry').hidden=tru
 window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWorkspace();if(workspace==='edit-projects')projects().catch(error=>message(error.message));});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture){event.preventDefault();edgeGesture.cancel();return;}if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='d'&&capabilities.has('duplicate')&&selection){event.preventDefault();q('edit-duplicate').click();return;}if(event.key==='Delete'&&capabilities.has('batch')&&selection){event.preventDefault();q(event.shiftKey?'edit-delete-ripple':'edit-delete-gap').click();return;}if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){if(event.key.toLowerCase()==='m'&&capabilities.has('markers')){event.preventDefault();q('edit-marker-add').click();return;}const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
 effectsUI=initializeEffectsUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
+candidatesUI=initializeCandidatesUI({q,getEdl:edl,getProject:()=>project,run:(op,params)=>task(()=>command(op,params),true),has:name=>capabilities.has(name),reviewSource:showSource});
+cropPreview=initializeCropPreview({q,getEdl:edl,getSelection:selected,sourceUrl});
 compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
 initializeEditorLayout();
 showWorkspace();task(async()=>{try{await loadCapabilities();await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});
