@@ -62,7 +62,11 @@ class LocalCliEnvironmentTests(unittest.TestCase):
     def test_server_applies_configured_environment_before_starting_uvicorn(self):
         from backlot import __main__ as backlot_cli
         with patch.dict(os.environ, {'PATH': 'original'}), patch.object(cli, 'configured_environment',
-                return_value={'PATH': 'server-only'}), patch('uvicorn.run') as run:
+                return_value={'PATH': 'server-only'}), patch('backlot.runtime.StudioServer') as server:
+            server.return_value.started = True
             self.assertEqual(backlot_cli.cmd_serve(4751), 0)
             self.assertEqual(os.environ['PATH'], 'server-only')
-            run.assert_called_once_with('backlot.server:app', host='127.0.0.1', port=4751, log_level='warning')
+            server.assert_called_once()
+            config = server.call_args.args[0]
+            self.assertEqual((config.host, config.port, config.log_level), ('127.0.0.1', 4751, 'warning'))
+            server.return_value.run.assert_called_once_with()

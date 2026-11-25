@@ -361,5 +361,456 @@
     }
   ],
   "utc": "2026-11-25T00:45:13Z",
-  "warning": "Caller headers do not prove persistent HTTP: urllib forces Connection: close. Selector comparison is ONLY http-actual-selector; policy-only earlier experiment was not effective."
+  "warning": "Caller headers do not prove persistent HTTP: urllib forces Connection: close. Selector comparison is ONLY http-actual-selector; policy-only earlier experiment was not effective.",
+  "persistent_http_control": {
+    "transport": "real stdlib http.client persistent connections",
+    "port": 57648,
+    "server_pid": 81404,
+    "sse_connections": 2,
+    "rows": [
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/queue",
+        "local_port": 57654,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-default",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57654,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/queue",
+        "local_port": 57655,
+        "bytes": 161,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57656,
+        "bytes": 91055,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/queue",
+        "local_port": 57657,
+        "bytes": 161,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57658,
+        "bytes": 91055,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/queue",
+        "local_port": 57659,
+        "bytes": 161,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57660,
+        "bytes": 91055,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/queue",
+        "local_port": 57661,
+        "bytes": 161,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57662,
+        "bytes": 91055,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/queue",
+        "local_port": 57663,
+        "bytes": 161,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57664,
+        "bytes": 91055,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/queue",
+        "local_port": 57665,
+        "bytes": 161,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57666,
+        "bytes": 91055,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "route": "/api/studio/queue",
+        "local_port": 57667,
+        "bytes": 161,
+        "will_close": true,
+        "ok": true
+      },
+      {
+        "mode": "explicit-close",
+        "ok": false,
+        "received": 65280,
+        "expected": 91055,
+        "error": "TimeoutError('timed out')",
+        "local_port": 57668
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/queue",
+        "local_port": 57670,
+        "bytes": 161,
+        "will_close": false,
+        "ok": true
+      },
+      {
+        "mode": "persistent-explicit",
+        "route": "/api/studio/editor/edit-5e7871196c49",
+        "local_port": 57670,
+        "bytes": 91055,
+        "will_close": false,
+        "ok": true
+      }
+    ],
+    "server_exit": 0
+  },
+  "focused_pytest_final": {
+    "passed": 42,
+    "seconds": 3.38,
+    "files": [
+      "tests/backlot/test_studio_shutdown.py",
+      "tests/backlot/test_server.py",
+      "tests/tools/test_local_cli_environment_integration.py"
+    ]
+  },
+  "ci_initial_warning": "bc18d89 old environment test mocked uvicorn.run, no longer the entry point. Test adapted to StudioServer; initial CI not claimed green."
 }

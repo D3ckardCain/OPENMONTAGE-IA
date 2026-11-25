@@ -52,21 +52,34 @@ Los fallos son intermitentes: también hubo ejecuciones Proactor sin fallos.
 `Connection: close` explícito **no es una corrección**: vuelve a fallar en los
 controles. urllib ya fuerza ese valor en el transporte, incluso si el llamador
 solicita keep-alive. Las etiquetas de cabecera del informe describen la solicitud
-del llamador, no prueban conexiones persistentes reales. No se probó una sesión
-HTTP/1.1 reutilizada mediante un cliente que la soporte.
+del llamador, no prueban conexiones persistentes reales.
+
+Control adicional con `http.client.HTTPConnection`, dos SSE abiertos y servidor
+aislado corregido (puerto 57648, PID 81404): sin cabecera Connection, 20/20
+lecturas completas reutilizando el puerto cliente 57654; keep-alive explícito,
+20/20 reutilizando 57670. Connection: close: 13 completas y una incompleta,
+65.280/91.055 bytes, 14 conexiones distintas. El servidor terminó con SIGINT y
+código 0 sin cerrar antes los SSE. La asociación observada con el camino de
+cierre de conexión acota el problema, pero no identifica su causa raíz.
 
 Un primer intento de comparar Selector cambiando solo la política global no
 cambió el bucle que Uvicorn crea explícitamente. Solo el caso
 `http-actual-selector` fuerza `asyncio:SelectorEventLoop`; los anteriores no se
 usan como evidencia de Selector. No se cambió el bucle del producto.
 
-37 pruebas focalizadas: `test_studio_shutdown.py` y `test_server.py`, 3,23 s.
+37 pruebas focalizadas iniciales: `test_studio_shutdown.py` y `test_server.py`, 3,23 s.
 Comprueban cierre de colas y generadores reales, suscriptores llenos/tardíos,
 orden aviso→drenaje, error de inicio y regresiones HTTP existentes.
 Se reutilizó pytest de `.runtime/qa/venv` con las dependencias de Studio desde
 `.venv`, mediante `sys.path` solo en el proceso de prueba; ningún entorno cambió.
 Aviso previo de pytest-asyncio sobre configuración de loop pendiente, sin fallo.
 No se ejecutó una suite completa local.
+
+La revisión posterior encontró un mock antiguo en
+`test_local_cli_environment_integration.py`: interceptaba `uvicorn.run`, que
+ya no es el punto de arranque, y podía iniciar un servidor real y retener CI.
+Se adaptó a `StudioServer`, conservando la comprobación de entorno y parámetros;
+no se elimina ni omite la prueba. La CI inicial de `bc18d89` no se declara verde.
 
 Informe resumido: [JSON de evidencia](EVIDENCIA_CIERRE_HTTP_STUDIO_20261124.json).
 Logs y cuerpos detallados permanecen en `.runtime/qa/http-*`, sin publicar
@@ -110,9 +123,9 @@ corrección mientras siga ejecutándose**; no se reinició ni se recargó.
 Proyecto original y settings/applications mantienen SHA256 de la evidencia
 anterior. No se afirma validación visual, escucha ni exportación.
 
-El siguiente paso HTTP mínimo es capturar una lectura incompleta con trazas
-del protocolo/cierre y un cliente persistente real, comparando un único
-parámetro por vez. Mantener fixture textual y servidor aislado. No aumentar
+El siguiente paso HTTP mínimo es capturar la secuencia de envío/FIN/cierre de
+la lectura incompleta, conservando el cliente persistente de control y cambiando
+un único parámetro por vez. Mantener fixture textual y servidor aislado. No aumentar
 timeouts, añadir reintentos automáticos a escrituras ni cambiar Selector,
 dependencias o configuración sin identificar la causa. Una recepción parcial
 no demuestra pérdida/corrupción del proyecto guardado.
