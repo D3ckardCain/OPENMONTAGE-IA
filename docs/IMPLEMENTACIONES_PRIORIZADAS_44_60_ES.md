@@ -15,6 +15,13 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Siguiente entrega P0 E02 [#114](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/114):
+[errores HTTP y formularios conservados](STUDIO_ERRORES_HTTP_ES.md), lector común
+sin reintentos, deadline explícito solo en metadatos locales, protección de doble
+submit/foco y reconocimiento de creación antes de fallo de refresco.26casos Node
+y16escenarios browser sintéticos nuevos aprobados, sin API real ni inferencia.
+Se agrupa con #112/#113 para una única activación manual futura; no los repite.
+
 Entrega independiente E02 [#113](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/113):
 [contraste y foco de controles](STUDIO_CONTRASTE_FOCO_ES.md). Falla observada del
 botón verde3.919:1 corregida a4.631:1, preservando GitHub Dark. HTML/CSS reales

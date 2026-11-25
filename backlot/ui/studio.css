@@ -41,3 +41,6 @@ button[type=submit],#create button{
 @media(forced-colors:active){
   :where(button,input,textarea,select,summary,a[href]):focus-visible{outline-color:Highlight}
 }
+
+/* API errors can contain a long local path; keep it inside the message panel. */
+#notice{overflow-wrap:anywhere;min-width:0}

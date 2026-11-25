@@ -5,19 +5,24 @@ resident=disk=e68adc7a05b647f5d49b31b293b2d093a2c024d06ce5ee51b5e7d2c72fecc647,
 restart_required=false; subtitle_language presente,109 hablantes VCTK y
 preescucha real2.147846s reproducida. El agente no reinició el servidor.
 La tabla conserva el plan de ese lote; las ampliaciones posteriores **#112/E05 de
-recuperación Piper** y **#113/E02 de contraste/foco** están preparadas pero aún no
-validadas en4750. Su siguiente
+recuperación Piper**, **#113/E02 de contraste/foco** y **#114/E02 de errores HTTP**
+están preparadas pero aún no validadas en4750. Su siguiente
 activación será manual y agrupada con futuros cambios, sin repetir pruebas
 españolas. [Contrato/pruebas/límites #112](PIPER_RECUPERACION_ES.md) y
 [contraste/foco #113](STUDIO_CONTRASTE_FOCO_ES.md).
 
-## Próximo lote pendiente: #112 + #113 y próximas entregas
+## Próximo lote pendiente: #112 + #113 + #114 y próximas entregas
 
 No ejecutar todavía. Un único reinicio manual de4750 cargará la recuperación de
-Piper preparada en #112; recargar después aplicará los tokens/estilos de #113.
+Piper preparada en #112; recargar después aplicará los tokens/estilos de #113
+y los errores/formularios de #114 ([contrato y pruebas](STUDIO_ERRORES_HTTP_ES.md)).
 Antes, comprobar trabajos activos. Después, verificar identidad coherente y el
 contrato nuevo, sin repetir síntesis ni comprobaciones ya aprobadas de #111.
 Mantener la valoración natural/robótica aplazada. El agente no reinicia Studio.
+
+Para #114, validar mensajes/foco sin enviar creaciones o settings reales como
+mero diagnóstico; las pruebas offline ya cubren los fallos sintéticos. No repetir
+#111/#112/#113 aprobados ni lanzar modelos para probar una alerta de la interfaz.
 
 ## Historial del lote anterior
 
