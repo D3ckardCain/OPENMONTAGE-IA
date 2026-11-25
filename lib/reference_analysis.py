@@ -4,6 +4,7 @@ import math
 import os
 import re
 import shutil
+import stat
 import subprocess
 import threading
 import uuid
@@ -15,6 +16,31 @@ LOCK=threading.RLock()
 ACTIVE=set()
 
 
+def _checked_executable(value, name):
+    """Keep a configured path authoritative; describe failure without fallback."""
+    path = Path(value)
+    try:
+        info = path.stat()
+    except FileNotFoundError as exc:
+        if path.anchor:
+            try:
+                Path(path.anchor).stat()
+            except FileNotFoundError:
+                raise ValueError(f'La unidad o raíz {path.anchor} de {name} no está disponible; reconéctala sin cambiar la ruta guardada') from exc
+            except PermissionError:
+                raise ValueError(f'Acceso denegado a la raíz de {name}; no se demuestra que el archivo esté ausente') from exc
+            except OSError as root_error:
+                raise ValueError(f'No se pudo consultar la raíz de {name}: {root_error}; se conserva la ruta') from root_error
+        raise ValueError(f'La ruta de {name} no existe: {value}; se conserva la configuración') from exc
+    except PermissionError as exc:
+        raise ValueError(f'Acceso denegado a {name}: {value}; no se demuestra que esté ausente') from exc
+    except OSError as exc:
+        raise ValueError(f'No se pudo leer la ruta de {name}: {exc}; se conserva la configuración') from exc
+    if not stat.S_ISREG(info.st_mode):
+        raise ValueError(f'La ruta de {name} no es un archivo ejecutable: {value}')
+    return str(value)
+
+
 def executable(name):
     configured=studio.settings().get(name.replace('-','_')+'_path','')
     value=configured or shutil.which(name)
@@ -23,8 +49,8 @@ def executable(name):
             patterns=[f'HERRAMIENTAS/yt-dlp/{name}.exe'] if name in ('yt-dlp','deno') else [f'HERRAMIENTAS/FFmpeg/bin/{name}.exe',f'HERRAMIENTAS/FFmpeg/*/bin/{name}.exe']
             found=next((path for pattern in patterns for path in sorted(root.glob(pattern)) if path.is_file()),None)
             if found:value=str(found);break
-    if not value or not Path(value).is_file():raise ValueError('Configura la ruta de '+name+' en el Estudio')
-    return str(value)
+    if not value:raise ValueError('Configura la ruta de '+name+' en el Estudio')
+    return _checked_executable(value, name)
 
 
 def portable_roots():

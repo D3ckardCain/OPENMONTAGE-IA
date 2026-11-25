@@ -165,6 +165,13 @@ Las aceptaciones siguientes amplían las filas anteriores; no abren otros motore
 
 ### Verificación de esta ampliación
 
+Seguimiento #107: [activación y HTTP real en copia](VALIDACION_CANDIDATOS_HTTP_ES.md)
+comprobados, candidatos/undo/reopen y encuadre persistente. Exportación AV bloqueada
+por D: no conectado; #107 abierto, sin afirmar resultado audiovisual.
+Continuación E01 [#108 diagnóstico de rutas](DIAGNOSTICO_RUTAS_MULTIMEDIA_ES.md):
+7casos nuevos aprobados, distingue unidad/archivo/permiso/E/S sin cambiar rutas
+ni fallback. Activación de ese texto en el proceso abierto no certificada.
+
 Implementación [#107](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/107),
 E03/E04 desde #103: candidatos por ocurrencia de palabra/tiempos, motivo,
 contexto/negación y cobertura ASR declarada con huecos; aceptar/rechazar/corregir
