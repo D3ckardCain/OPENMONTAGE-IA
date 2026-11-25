@@ -165,6 +165,14 @@ Las aceptaciones siguientes amplían las filas anteriores; no abren otros motore
 
 ### Verificación de esta ampliación
 
+Continuación independiente E01/#110: [BgRemove local explícito](BG_REMOVE_LOCAL_ES.md),
+sin default/fallback/descarga de pesos, revisión declarada ligada a SHA y recibo
+de procedencia.24pruebas focalizadas nuevas/adaptadas con proveedores/ONNX ficticios;
+sin segmentación real, instalación ni nueva evaluación. E05/cancelación y calidad
+visual siguen pendientes. [Activación agrupada](ACTIVACION_AGRUPADA_STUDIO_ES.md)
+con #109/45b8609 y #108; sin reinicio en esta entrega. #107: portugués validado,
+español pendiente, sin repetir comprobaciones aceptadas.
+
 Confirmación humana registrada en #107: **muestra portuguesa validada**; la
 española sigue pendiente y no se repiten las comprobaciones aceptadas. E04/#109
 [idioma de subtítulos](IDIOMA_SUBTITULOS_STUDIO_ES.md): contrato compartido, und

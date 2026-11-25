@@ -58,3 +58,8 @@ frame no aportan consistencia temporal de vídeo.
 
 No instalación, descarga, inferencia ni procesamiento de imágenes. La decisión
 es mejorar el contrato de los adaptadores existentes, no añadir otro runtime.
+
+Seguimiento posterior [#110](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/110):
+[contrato local de BgRemove0.2.0](BG_REMOVE_LOCAL_ES.md), sin default/fallback de
+modelos, con preflight/huella/revisión por artefacto y pruebas sintéticas. Este
+añadido no repite la evaluación ni aprueba pesos reales/licencias/calidad visual.
