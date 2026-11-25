@@ -87,8 +87,15 @@ def cmd_serve(port: int) -> int:
 
     os.environ.update(configured_environment())
 
-    uvicorn.run("backlot.server:app", host="127.0.0.1", port=port, log_level="warning")
-    return 0
+    from backlot.server import app, hub
+    from backlot.runtime import StudioServer
+
+    server = StudioServer(
+        uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning"),
+        stop_notifications=hub.close,
+    )
+    server.run()
+    return 0 if server.started else 3
 
 
 def main(argv: list[str] | None = None) -> int:

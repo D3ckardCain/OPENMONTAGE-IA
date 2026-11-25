@@ -52,16 +52,21 @@ class ChangeHub:
 
     def __init__(self) -> None:
         self._subscribers: dict[asyncio.Queue, Optional[str]] = {}
+        self.closed = False
 
     def subscribe(self, project_id: Optional[str] = None) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue(maxsize=64)
         self._subscribers[q] = project_id
+        if self.closed:
+            q.put_nowait(None)
         return q
 
     def unsubscribe(self, q: asyncio.Queue) -> None:
         self._subscribers.pop(q, None)
 
     def publish(self, project_id: str) -> None:
+        if self.closed:
+            return
         for q, only in list(self._subscribers.items()):
             if only is not None and only != project_id:
                 continue
@@ -71,6 +76,14 @@ class ChangeHub:
                 # Queue holds only THIS subscriber's relevant ids, so a full
                 # queue already guarantees a pending wake-up → safe to drop.
                 pass
+
+    def close(self) -> None:
+        """Wake every stream, including a subscriber whose queue is full."""
+        self.closed = True
+        for q in list(self._subscribers):
+            while not q.empty():
+                q.get_nowait()
+            q.put_nowait(None)
 
 
 hub = ChangeHub()
@@ -154,11 +167,13 @@ async def _watch_projects() -> None:
 async def _lifespan(app: FastAPI):
     """Own and cleanly stop the project watcher with FastAPI's lifespan API."""
 
+    hub.closed = False
     task = asyncio.create_task(_watch_projects())
     app.state.watch_task = task
     try:
         yield
     finally:
+        hub.close()
         task.cancel()
         with suppress(asyncio.CancelledError):
             await task
@@ -200,10 +215,12 @@ def create_app() -> FastAPI:
                     if await request.is_disconnected():
                         return
                     try:
-                        await asyncio.wait_for(q.get(), timeout=SSE_HEARTBEAT_SECONDS)
+                        changed = await asyncio.wait_for(q.get(), timeout=SSE_HEARTBEAT_SECONDS)
                     except asyncio.TimeoutError:
                         yield _sse({"type": "heartbeat", "ts": time.time()})
                         continue
+                    if changed is None or hub.closed:
+                        return
                     # Coalesce bursts: drain anything else queued.
                     while not q.empty():
                         try:
@@ -233,6 +250,8 @@ def create_app() -> FastAPI:
                     except asyncio.TimeoutError:
                         yield _sse({"type": "heartbeat", "ts": time.time()})
                         continue
+                    if changed is None or hub.closed:
+                        return
                     while not q.empty():
                         try:
                             q.get_nowait()

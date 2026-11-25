@@ -1,0 +1,365 @@
+{
+  "scope": "Isolated native Windows loopback with synthetic JSON only. No requests/signals to 4750; no D: access.",
+  "baseline_commit": "badfae3cf567ebb964607aaf19f0db79cdd8916b",
+  "versions": {
+    "python": "3.11.9",
+    "uvicorn": "0.54.0",
+    "starlette": "1.10.0",
+    "fastapi": "0.165.0",
+    "anyio": "4.16.0",
+    "h11": "0.16.0"
+  },
+  "cases": [
+    {
+      "case": "http-shutdown-baseline",
+      "requests": 26,
+      "failures": [
+        {
+          "route": "/api/studio/editor/edit-d8dfd1ceb9cf",
+          "connection": "urllib default",
+          "error": "TimeoutError('timed out')",
+          "ok": false
+        },
+        {
+          "route": "/api/studio/editor/edit-d8dfd1ceb9cf",
+          "connection": "keep-alive",
+          "error": "TimeoutError('timed out')",
+          "ok": false
+        }
+      ],
+      "sse_open": true,
+      "fixed": false,
+      "exited_before_clients_closed": false,
+      "wait_seconds": 2.0,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "signal.raise_signal SIGINT",
+      "server_pid": null,
+      "loop": null,
+      "io_send_short": 0
+    },
+    {
+      "case": "http-shutdown-diag",
+      "requests": 20,
+      "failures": [
+        {
+          "route": "/api/studio/editor/edit-a7d008722100",
+          "connection": "urllib default",
+          "error": "TimeoutError('timed out')",
+          "ok": false
+        },
+        {
+          "route": "/api/studio/editor/edit-a7d008722100",
+          "connection": "close",
+          "error": "TimeoutError('timed out')",
+          "ok": false
+        }
+      ],
+      "sse_open": true,
+      "fixed": false,
+      "exited_before_clients_closed": false,
+      "wait_seconds": 2.0,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "signal.raise_signal SIGINT",
+      "server_pid": null,
+      "loop": null,
+      "io_send_short": 0
+    },
+    {
+      "case": "http-shutdown-no-base",
+      "requests": 16,
+      "failures": [
+        {
+          "route": "/api/studio/editor/edit-b772b306367f",
+          "connection": "urllib default",
+          "error": "TimeoutError('timed out')",
+          "ok": false
+        },
+        {
+          "route": "/api/studio/editor/edit-b772b306367f",
+          "connection": "close",
+          "error": "TimeoutError('timed out')",
+          "ok": false
+        },
+        {
+          "route": "/api/studio/editor/edit-b772b306367f",
+          "connection": "keep-alive",
+          "error": "TimeoutError('timed out')",
+          "ok": false
+        }
+      ],
+      "sse_open": true,
+      "fixed": false,
+      "exited_before_clients_closed": false,
+      "wait_seconds": 2.016,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "signal.raise_signal SIGINT",
+      "server_pid": null,
+      "loop": null,
+      "io_send_short": 0
+    },
+    {
+      "case": "http-shutdown-no-sse",
+      "requests": 34,
+      "failures": [
+        {
+          "route": "/api/studio/editor/edit-4e443dd66f99",
+          "connection": "keep-alive",
+          "error": "TimeoutError('timed out')",
+          "received": 65280,
+          "expected": 91055,
+          "ok": false
+        }
+      ],
+      "sse_open": false,
+      "fixed": false,
+      "exited_before_clients_closed": true,
+      "wait_seconds": 0.562,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "signal.raise_signal SIGINT",
+      "server_pid": null,
+      "loop": null,
+      "io_send_short": 0
+    },
+    {
+      "case": "http-raw-asgi",
+      "requests": 24,
+      "failures": [
+        {
+          "route": "/api/studio/editor/edit-657ac7a34c7d",
+          "connection": "urllib default",
+          "error": "TimeoutError('timed out')",
+          "received": 65280,
+          "expected": 90891,
+          "ok": false
+        },
+        {
+          "route": "/api/studio/editor/edit-657ac7a34c7d",
+          "connection": "keep-alive",
+          "error": "TimeoutError('timed out')",
+          "received": 65280,
+          "expected": 90891,
+          "ok": false
+        }
+      ],
+      "sse_open": false,
+      "fixed": false,
+      "exited_before_clients_closed": true,
+      "wait_seconds": 0.281,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "signal.raise_signal SIGINT",
+      "server_pid": null,
+      "loop": null,
+      "io_send_short": 0
+    },
+    {
+      "case": "http-actual-selector",
+      "requests": 36,
+      "failures": [],
+      "sse_open": false,
+      "fixed": false,
+      "exited_before_clients_closed": true,
+      "wait_seconds": 0.468,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "signal.raise_signal SIGINT",
+      "server_pid": null,
+      "loop": null,
+      "io_send_short": 0
+    },
+    {
+      "case": "http-proactor-send-trace2",
+      "requests": 28,
+      "failures": [
+        {
+          "route": "/api/studio/editor/edit-af64d8da435b",
+          "connection": "close",
+          "error": "TimeoutError('timed out')",
+          "received": 65280,
+          "expected": 91055,
+          "ok": false
+        },
+        {
+          "route": "/api/studio/editor/edit-af64d8da435b",
+          "connection": "keep-alive",
+          "error": "TimeoutError('timed out')",
+          "received": 65280,
+          "expected": 91055,
+          "ok": false
+        }
+      ],
+      "sse_open": true,
+      "fixed": false,
+      "exited_before_clients_closed": false,
+      "wait_seconds": 2.015,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "signal.raise_signal SIGINT",
+      "server_pid": null,
+      "loop": "ProactorEventLoop",
+      "io_send_short": 0
+    },
+    {
+      "case": "http-native-ctrlc-baseline",
+      "requests": 36,
+      "failures": [],
+      "sse_open": true,
+      "fixed": false,
+      "exited_before_clients_closed": false,
+      "wait_seconds": 2.016,
+      "process_exit": 3221225786,
+      "forced_cleanup": false,
+      "signal": "Windows GenerateConsoleCtrlEvent CTRL_C_EVENT to the owned NEW console",
+      "server_pid": 83428,
+      "loop": null,
+      "io_send_short": 0
+    },
+    {
+      "case": "http-native-ctrlc-fixed2",
+      "requests": 22,
+      "failures": [
+        {
+          "route": "/api/studio/editor/edit-e2f85f8c42ad",
+          "connection": "close",
+          "error": "TimeoutError('timed out')",
+          "received": 65280,
+          "expected": 91055,
+          "ok": false
+        },
+        {
+          "route": "/api/studio/editor/edit-e2f85f8c42ad",
+          "connection": "keep-alive",
+          "error": "TimeoutError('timed out')",
+          "received": 65280,
+          "expected": 91055,
+          "ok": false
+        }
+      ],
+      "sse_open": true,
+      "fixed": true,
+      "exited_before_clients_closed": true,
+      "wait_seconds": 0.109,
+      "process_exit": 0,
+      "forced_cleanup": false,
+      "signal": "Windows GenerateConsoleCtrlEvent CTRL_C_EVENT to the owned NEW console",
+      "server_pid": 73700,
+      "loop": "ProactorEventLoop",
+      "io_send_short": 0
+    },
+    {
+      "case": "http-native-ctrlc-final",
+      "requests": 36,
+      "failures": [],
+      "sse_open": true,
+      "fixed": true,
+      "exited_before_clients_closed": true,
+      "wait_seconds": 0.047,
+      "process_exit": 0,
+      "forced_cleanup": false,
+      "signal": "Windows GenerateConsoleCtrlEvent CTRL_C_EVENT to the owned NEW console",
+      "port": 64682,
+      "server_pid": 73700
+    }
+  ],
+  "protected_sha256_after": {
+    ".backlot\\studio\\settings.json": "497ddcd071b06f9ad4109e3123cdb36ebc6bb5a1f33ab53e556fe931b09ad952",
+    ".backlot\\studio\\applications.json": "33073a45e5d34775aae08cef0557bce23b59ddeaf0699be26b70909dce4ccf7b",
+    "projects\\edit-827337e03f38\\artifacts\\manual_edit.json": "29afe82ebc61b99601e7ad6fda4a00d256fccb84cf77a2016edf3a34189ac71b"
+  },
+  "focused_pytest": {
+    "passed": 37,
+    "seconds": 3.23,
+    "files": [
+      "tests/backlot/test_studio_shutdown.py",
+      "tests/backlot/test_server.py"
+    ]
+  },
+  "unchanged_live_pid": 78256,
+  "http_root_cause_identified": false,
+  "http_fixed": false,
+  "console_selection_cause_confirmed": false,
+  "physical_keyboard_tested": false,
+  "native_console_ctrl_c_event_tested": true,
+  "stdlib_http_control": [
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    }
+  ],
+  "asyncio_streams_control": [
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    },
+    {
+      "ok": true
+    }
+  ],
+  "utc": "2026-11-25T00:45:13Z",
+  "warning": "Caller headers do not prove persistent HTTP: urllib forces Connection: close. Selector comparison is ONLY http-actual-selector; policy-only earlier experiment was not effective."
+}
