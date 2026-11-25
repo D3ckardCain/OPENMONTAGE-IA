@@ -1,4 +1,4 @@
-# Implementaciones priorizadas de las evaluaciones #44–#91 (excepto #70, CI)
+# Implementaciones priorizadas de las evaluaciones #44–#104 (excepto #70 CI y #92 editor)
 
 24-11-2026 UTC. Consolidación documental; **ninguna implementación de esta lista se
 declara ejecutada por cerrar su evaluación**. Orden por impacto, reutilización y
@@ -58,7 +58,7 @@ Los bloqueos se refieren a adopción/ejecución futura, no a impedimentos docume
 No comprar licencias, crear cuentas/Apps, aceptar términos, descargar pesos ni
 activar instancias para intentar cerrarlos en esta fase.
 
-## Cobertura sin duplicados de las47 evaluaciones
+## Cobertura previa sin duplicados de las47 evaluaciones #44–#91
 
 | Evaluación | Informe y destino consolidado |
 |---|---|
@@ -123,3 +123,49 @@ fijadas, licencias leídas y rutas/contratos locales contrastados. Validación e
 de UTF-8/enlaces/IDs/cobertura; CI remota se registra en #3 y PR#2. Sin ejecutar
 candidatos, inferencia, indexación, render, audio o medios reales. Configuraciones,
 originales, ComfyUI y GitHub Dark conservados; PR#2 permanece en borrador sin merge.
+
+## Ampliación #93–#104 — 25-11-2026 UTC
+
+Se añaden12 evaluaciones: total59 (#44–#69, #71–#91 y #93–#104), conservando
+16 entregas E01–E16 y8 bloqueos B01–B08. #92 es implementación del editor,
+no otra evaluación. [Índice y fuentes de esta tanda](EVALUACIONES_93_104_ES.md).
+Las aceptaciones siguientes amplían las filas anteriores; no abren otros motores.
+
+| Familia / prioridad | Carencia demostrada y aceptación añadida | Informes |
+|---|---|---|
+| E01/E02 P0 | Identidad residente vs archivos servidos/capabilities: detectar revisión mezclada o reinicio necesario sin reiniciar automáticamente. Mantener contrato único UI/agente. Panel no promete operación por estar en catálogo. | [#93](EVALUACION_OPENSHOT_ES.md), [#99](EVALUACION_PHOSPHENE_ES.md) |
+| E01 P0 | BgRemove ya fija u2net: no hereda hoy BRIA implícito. Resolver modelo/cache elegible explícito, licencia/huella/procedencia, error sin descarga o proveedor alternativo oculto. Perfil H3 separa encoder32B/VAE/LoRA y tiempo real. | [#94](EVALUACION_REMBG_ES.md), [#95](EVALUACION_H3_WORKFLOW_ES.md), [#98](EVALUACION_LONGLIVE_ES.md) |
+| E03/E04 P0 | Candidatos por índice/ocurrencia de palabra y tiempos medidos, contexto y aceptación manual; crop editable/confianza/fallback ancho. No nuevo ASR, downloader ni puntuación viral. Snapping considera títulos/capas además de cortes/audio/cues, misma base temporal racional. | [#103](EVALUACION_AUTOCLIP_ES.md), [#93](EVALUACION_OPENSHOT_ES.md) |
+| E05 P0 | Versionar toma/resultado y recursos compatibles; cancelar/reanudar sin repetir completados; solicitado/transporte cerrado/cómputo detenido/parcial son estados distintos. Formato QA y evidencia semántica/AV no intercambiables. | [#97](EVALUACION_CODE2VIDEO_ES.md), [#99](EVALUACION_PHOSPHENE_ES.md), [#104](EVALUACION_VOICEBOX_ES.md) |
+| E06/E16 P1 | Proyecto neutral para capas/máscaras/texto/tomas/voz, pérdidas explícitas, undo/redo/reapertura. Regional Chatterbox V3 no se conecta por nombre al loader actual; tags y lenguas por variante, Kokoro es→e existente. | [#94](EVALUACION_REMBG_ES.md), [#96](EVALUACION_CHATTERBOX_ES.md), [#101](EVALUACION_PHOTOCRAFT_ES.md), [#104](EVALUACION_VOICEBOX_ES.md) |
+| E10/E12 P1 OBS | Doctor autenticado de lectura/RPC/métodos disponibles; futuro start/stop explícito con propietario y reconciliación, nunca ToggleRecord ciego ni stop ajeno. Archivo nuevo con roots/procedencia importable. Puentes gráficos/audio no heredan toda REST por tener MCP. | [#102](EVALUACION_OBS_ES.md), [#101](EVALUACION_PHOTOCRAFT_ES.md), [#104](EVALUACION_VOICEBOX_ES.md) |
+| E08/E09/E11 P1/P2 | Spec/fuentes/eventos medidos, QA por ventanas con presupuesto, audio original vs preview y licencia por recurso, mismo seek/preview/export. No llamar sincronía visual a detección de onsets, ni RMS a LUFS. Galería pequeña posterior, no importar catálogo creativo a atelier. | [#97](EVALUACION_CODE2VIDEO_ES.md), [#100](EVALUACION_SHOTCRAFT_ES.md), [#98](EVALUACION_LONGLIVE_ES.md) |
+
+### Precisiones de bloqueos existentes
+
+- **B01: distinguir MiniMax de Tencent.** H3 Community fija exclusión de UE,
+  Reino Unido, Corea del Sur **y Estados Unidos**; cláusulaV.4 afecta outputs y
+  revenue comercial anual superior aUSD20M requiere autorización previa. No
+  confundirlo con MovieRoll/Tencent (territorios UE/UK/Corea, umbral100M MAU y
+  cláusula5(c)). El workflow H3 de #95 no tiene LICENSE y no autoriza copiarlo.
+  LongLive1.3B declara CC-BY-NC-SA4 (uso comercial bloqueado);2.0 usa NVIDIA Open
+  Model License con obligaciones propias, no Apache del código. Plug no elimina
+  condiciones de base. Ninguna de estas demos acredita8GB ni Windows local.
+- **B03/B04:** Code2Video tiene pesos27B Apache2, pero repositorio/scripts sin
+  LICENSE. Phosphene MIT es MLX/Apple, no ruta Windows probada. PhotoCraft alpha
+  no promete PSD/KRA/ORA sin pérdidas y su marca/recursos no heredan MIT/Apache.
+  Mantener B02 Remotion, derechos de recursos Shotcraft, Hypit y PixelFX previos.
+- **B08:** TADA Llama3.2 y tokenizer no se vuelven MIT por codec/mirror; BRIA
+  comercial requiere acuerdo, no se habilita por licenciaMIT de rembg. Chatterbox
+  regional y companions requieren compatibilidad/identidad, no nueva descarga
+  automática. Reverb NC continúa bloqueado comercialmente y Raea conserva la
+  distinción uso interno/distribución; no se flexibilizan condiciones previas.
+- **B06/B07:** No se ejecutaron OBS, GUI, voces, clips o redes sociales. Offline
+  anunciado, cobertura de formatos o un endpoint no acreditan resultado real.
+
+### Verificación de esta ampliación
+
+Solo comprobación documental de UTF-8/enlaces/cobertura/pins; no repetir suites
+ni CI aprobadas, no instalaciones/modelos ni captura HTTP/red. El diagnóstico
+HTTP queda preservado como observación con causa raíz pendiente. Cierre de
+evaluación significa informe/decisión completos, no integración ni AV validado.
