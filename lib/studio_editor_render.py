@@ -12,6 +12,7 @@ from lib.studio_editor_effects import transform_filter
 from tools.audio.audio_mixer import AudioMixer
 from lib.studio_render_process import CONTROLS, Control, Cancelled, execute
 from lib.studio_editor_layers import transition_filters
+from lib.studio_subtitle_language import metadata_args
 
 
 def plan(pid, edl, preview=False):
@@ -199,7 +200,7 @@ def _worker(pid, edl, job, args, filters):
                    '-filter_complex', ';'.join(filters), '-map', video_label, '-map', '[mix]']
         if edl['cues'] and not burn:
             command += ['-map', f"{len(edl['cuts'])+len(edl['audio_tracks'])+len(edl.get('layers', []))}:s:0", '-c:s', 'mov_text',
-                        '-metadata:s:s:0', 'language=spa']
+                        *metadata_args(edl['subtitle_style'])]
         command += ['-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k',
                     '-t', str(editor.duration(edl)), '-movflags', '+faststart', str(output)]
         result = execute(command, work, control, timeout=600)

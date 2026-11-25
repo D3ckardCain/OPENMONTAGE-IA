@@ -111,5 +111,8 @@ o configuraciones de Blender/FreeCAD/Krita/ComfyUI. Solo adaptador ASR autorizad
 Archivos de entorno, logs, settings, audio, transcripción y vídeo permanecen
 locales; GitHub recibe lock/manual/resultados, no medios ni pesos.
 
-**#107 permanece abierto**, incluida validación española y aceptación de ventana/
-escucha. La muestra portuguesa ya está preparada y exportada para esa revisión.
+**Confirmación posterior del usuario:** la muestra portuguesa queda validada.
+Se registra como aceptación humana de esta muestra, sin repetir ASR/exportación
+ni las comprobaciones anteriores. Las observaciones técnicas conservan su alcance.
+**#107 permanece abierto por la prueba española pendiente**, que no hereda la
+aceptación portuguesa. No se afirma validación general de otras muestras/idiomas.

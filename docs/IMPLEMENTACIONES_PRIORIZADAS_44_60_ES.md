@@ -165,6 +165,13 @@ Las aceptaciones siguientes amplían las filas anteriores; no abren otros motore
 
 ### Verificación de esta ampliación
 
+Confirmación humana registrada en #107: **muestra portuguesa validada**; la
+española sigue pendiente y no se repiten las comprobaciones aceptadas. E04/#109
+[idioma de subtítulos](IDIOMA_SUBTITULOS_STUDIO_ES.md): contrato compartido, und
+en proyectos nuevos, declaración explícita para soft export, compatibilidad
+antigua sin migrar.16casos pytest nuevos aprobados (incluye2Node y3muxes sintéticos
+de0.4s), sin repetir muestra/ASR/CI. Activación local nueva pendiente, no reinicio.
+
 Actualización #107: [entorno ASR aislado y muestra portuguesa](FASTER_WHISPER_AISLADO_PT_ES.md)
 conFaster-Whisper1.2.1/CT2 4.9.1, pesos locales sin descarga. Inferencia CPU/int8
 real0–25s:116palabras/12segmentos; copia22.72s,3candidatos,24subtítulos portugueses

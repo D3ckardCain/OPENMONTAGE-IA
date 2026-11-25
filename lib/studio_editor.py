@@ -88,7 +88,7 @@ def probe(path):
 def _empty():
     return {'version': '1.0', 'render_runtime': 'ffmpeg', 'cuts': [], 'audio_tracks': [], 'cues': [],
             'sources': {}, 'output': {'ratio': '16:9', 'fps': 24, 'fit': 'pad'},
-            'subtitle_style': {'size': 32, 'position': 'bottom', 'mode': 'soft'}}
+            'subtitle_style': {'size': 32, 'position': 'bottom', 'mode': 'soft', 'language': 'und'}}
 
 
 def create(title):
@@ -357,10 +357,15 @@ def _apply_edit(edl, data):
                     cue.update(end_seconds=following['end_seconds'], text=cue['text'] + '\n' + following['text'])
             edl['cues'] = parse_srt(srt(edl), duration(edl)) if cues else []
         elif op == 'subtitle_style':
+            from lib.studio_subtitle_language import validate_language
             size = number(data['size'], 12, 96)
             if data['position'] not in ('bottom', 'center', 'top') or data.get('mode', 'soft') not in ('soft', 'burn'):
                 raise ValueError('Posición no admitida')
+            old = edl['subtitle_style']
+            language = validate_language(data['language']) if 'language' in data else old.get('language')
             edl['subtitle_style'] = {'size': size, 'position': data['position'], 'mode': data.get('mode', 'soft')}
+            if language is not None:
+                edl['subtitle_style']['language'] = language
         else:
             raise ValueError('Operación aún no disponible')
     except (KeyError, StopIteration) as exc:
