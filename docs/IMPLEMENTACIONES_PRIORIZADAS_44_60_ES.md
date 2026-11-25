@@ -165,6 +165,13 @@ Las aceptaciones siguientes amplían las filas anteriores; no abren otros motore
 
 ### Verificación de esta ampliación
 
+Actualización #107: [entorno ASR aislado y muestra portuguesa](FASTER_WHISPER_AISLADO_PT_ES.md)
+conFaster-Whisper1.2.1/CT2 4.9.1, pesos locales sin descarga. Inferencia CPU/int8
+real0–25s:116palabras/12segmentos; copia22.72s,3candidatos,24subtítulos portugueses
+incrustados y cambio de encuadre11.52s exportados. Original intacto; solo settings
+del adaptador ASR autorizados. Validación española/escucha/ventana y comparación
+transparente de audio pendientes; no se cierran E03/E04/E09 ni #107 por métricas.
+
 Actualización #107 tras reconectar D:/E:: herramientas guardadas FFmpeg/FFprobe9.0.2
 confirmadas con -version, sin cambios/descargas/copias de herramientas. Exportación
 real3.416667s/1080×1920 H.264/AAC/mov_text aprobada técnicamente; encuadre comparado
