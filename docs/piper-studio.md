@@ -1,5 +1,11 @@
 # Piper local en Audio (#111)
 
+Actualización: #111 verificado en4750/PID125660, identidad coherente y selector/
+preescucha VCTK109 hablantes. Usuario confirmó Davefx y Sharvard F/M; valoración
+natural/robótica aplazada. Sin repetir sus síntesis. El contrato posterior de
+[#112 recuperación por recibo](PIPER_RECUPERACION_ES.md) está preparado para otra
+activación manual; no se presenta como cargado por aquella comprobación de #111.
+
 Runtime aislado: Piper 1.8.0, Python 3.11.9, CPU; instalación binaria sin pesos.
 No modifica `.venv`, ComfyUI ni sus configuraciones. Código Piper GPL-3.0-or-later;
 las licencias de las voces son independientes. No redistribuimos pesos.

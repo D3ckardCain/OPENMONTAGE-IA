@@ -21,7 +21,7 @@ from tools.base_tool import (
 
 class PiperTTS(BaseTool):
     name = "piper_tts"
-    version = "0.2.0"
+    version = "0.3.0"
     tier = ToolTier.VOICE
     capability = "tts"
     provider = "piper"
@@ -55,8 +55,15 @@ class PiperTTS(BaseTool):
 
     input_schema = {
         "type": "object",
-        "required": ["text"],
+        "anyOf": [
+            {"required": ["text"]},
+            {"properties": {"operation": {"const": "status"}},
+             "required": ["operation", "project_id", "request_id"]},
+        ],
         "properties": {
+            "operation": {"type": "string", "enum": ["synthesize", "preview", "status"], "default": "synthesize"},
+            "project_id": {"type": "string"},
+            "request_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
             "text": {"type": "string"},
             "model": {
                 "type": "string",
@@ -74,7 +81,7 @@ class PiperTTS(BaseTool):
         cpu_cores=2, ram_mb=512, vram_mb=0, disk_mb=200, network_required=False
     )
     retry_policy = RetryPolicy(max_retries=1, retryable_errors=[])
-    idempotency_key_fields = ["text", "model", "speaker_id", "output_path"]
+    idempotency_key_fields = ["operation", "project_id", "request_id", "text", "model", "speaker_id", "output_path"]
     side_effects = ["writes audio file to output_path"]
     user_visible_verification = ["Listen to generated audio for intelligibility"]
 
@@ -86,7 +93,7 @@ class PiperTTS(BaseTool):
         return 0.0
 
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
-        if self.get_status() != ToolStatus.AVAILABLE:
+        if inputs.get('operation') != 'status' and self.get_status() != ToolStatus.AVAILABLE:
             return ToolResult(success=False, error="Piper TTS not available. " + self.install_instructions)
 
         start = time.time()
@@ -99,6 +106,18 @@ class PiperTTS(BaseTool):
         return result
 
     def _generate(self, inputs: dict[str, Any]) -> ToolResult:
+        if inputs.get('operation') in ('preview', 'status'):
+            from lib import studio_piper_jobs as jobs
+            pid = inputs['project_id']
+            if inputs['operation'] == 'status':
+                result = jobs.status(pid, inputs['request_id'])
+                return ToolResult(success=True, data=result)
+            data = dict(voice=inputs.get('model', 'es_ES-davefx-medium'),
+                        text=inputs['text'], speaker_id=inputs.get('speaker_id', 0))
+            if 'request_id' in inputs:
+                data['request_id'] = inputs['request_id']
+            result = jobs.preview(pid, data)
+            return ToolResult(success=True, data=result, artifacts=[result['output']], model=data['voice'])
         from lib.studio_piper import synthesize
         result = synthesize(inputs['text'], inputs.get('model', 'es_ES-davefx-medium'),
                             inputs.get('speaker_id', 0), inputs.get('output_path', 'tts_output.wav'))

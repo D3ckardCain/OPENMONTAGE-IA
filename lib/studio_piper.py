@@ -1,7 +1,6 @@
 """Explicit local Piper resources shared by Studio and the agent; no downloads."""
 import json
 import subprocess
-import uuid
 from pathlib import Path
 from lib import production_studio as studio
 
@@ -45,6 +44,7 @@ def catalog():
             card = card_path.read_text(encoding='utf-8') if card_path.is_file() else ''
             voice['blocked'] = vctk_blocked(voice, config, card)
         voice['tested'] = False  # Presence never proves synthesis or perceptual quality.
+        voice['preview_contract'] = 1
         result.append(voice)
     return result
 
@@ -76,8 +76,5 @@ def synthesize(text, voice_id, speaker_id, output):
 
 
 def preview(pid, data):
-    project = studio.project_path(pid)
-    relative = 'assets/audio/piper-' + uuid.uuid4().hex + '.wav'
-    result = synthesize(data.get('text'), data.get('voice'), data.get('speaker_id', 0), project / relative)
-    result['relative_path'] = relative
-    return result
+    from lib.studio_piper_jobs import preview as tracked_preview
+    return tracked_preview(pid, data)

@@ -1,5 +1,14 @@
 # Activación agrupada pendiente de Studio
 
+Actualización: el lote #111 se verificó directamente en4750/PID125660,
+resident=disk=e68adc7a05b647f5d49b31b293b2d093a2c024d06ce5ee51b5e7d2c72fecc647,
+restart_required=false; subtitle_language presente,109 hablantes VCTK y
+preescucha real2.147846s reproducida. El agente no reinició el servidor.
+La tabla conserva el plan de ese lote; la ampliación posterior **#112/E05 de
+recuperación Piper** está preparada pero aún no activada en4750. Su siguiente
+activación será manual y agrupada con futuros cambios, sin repetir pruebas
+españolas. [Contrato/pruebas/límites](PIPER_RECUPERACION_ES.md).
+
 Petición del usuario: agrupar45b8609 con los demás cambios, evitando reinicios
 repetidos. Esta entrega **no reinicia Studio ni activa herramientas**. La muestra
 portuguesa de #107 está validada por el usuario; la española sigue pendiente.

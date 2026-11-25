@@ -15,6 +15,14 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Seguimiento E05 acotado [#112](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/112):
+[recuperación de preescuchas Piper](PIPER_RECUPERACION_ES.md), ID compartido,
+recibo/huellas y reconciliación sin repetir proveedor completado.26pruebas nuevas
+sintéticas y regresión UI de pérdida HTTP/reload; sin nuevas síntesis españolas.
+Preparado para activación posterior, no nueva cola ni cancelación del cálculo.
+E05 global permanece abierto. #111 activado/verificado en4750; usuario confirmó
+Davefx/Sharvard F/M, valoración natural/robótica aplazada.
+
 | ID / prioridad | Implementación y evaluaciones agrupadas | Reutilización / dependencia | Entrega y aceptación concreta |
 |---|---|---|---|
 | E01 P0 | Diagnóstico local sin instalaciones y contrato de efectos (#46/#47/#51/#52/#53/#54/#56/#58/#59/#60); ampliado #62/#63/#66/#67/#68/#69; ampliado #71/#72/#73/#74/#75/#76/#77/#78; ampliado #79/#82/#83/#88/#89 | Registry, application/model diagnostics y settings actuales; primero especificación compartida, extensiones por adaptador | Reporta versión observada vs lock/fuente, ruta ausente vs denegada/incompatible, licencia pendiente, efectos lectura/medición/escritura y recursos offline. Fixtures de paths Windows/symlinks, dependencia ausente y timeout; nunca npx/pip/download/upgrade implícito. No reauditar instalaciones aprobadas sin necesidad. Servicio externo vs propio, PID/puerto/instancia y code revision vs image digest separados; requisitos de Node/runtime/loader no obligan a actualizar lo aprobado. Preflight distingue recursos preparados de descargas de codec/tokenizer/preset; tamaño cuantizado en disco no acredita memoria de ejecución. Sin reinstalar lo aprobado. Perfil completo de imagen/música incluye transformer/DiT/encoder/VAE/LM/variante/backend/offload y licencia por recurso. Reutilizar familias flux-klein/acestep catalogadas; ruta catalogada ausente no demuestra falta global ni autoriza descarga. Hypit/Codex global y ComfyUI no se alteran. |

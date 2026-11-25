@@ -43,6 +43,11 @@ def create_editor_router(body):
             raise HTTPException(400, 'Invalid preview')
         return FileResponse(invoke(studio.project_path, pid) / 'assets' / 'audio' / filename, media_type='audio/wav')
 
+    @router.get('/{pid}/piper/requests/{request_id}')
+    def piper_request(pid: str, request_id: str):
+        from lib.studio_piper_jobs import status
+        return invoke(status, pid, request_id)
+
     @router.get('/projects')
     def projects():
         return [{'project_id': p.parent.name, 'title': studio.read_json(p).get('title', p.parent.name)}

@@ -66,6 +66,17 @@ aprobadas; no suite completa ni repetición de las pruebas españolas aprobadas.
 
 ## Activación y límites
 
+**Actualización4750:** el usuario confirmó Davefx y Sharvard F/M; valoración
+natural/robótica aplazada, sin repetir sus síntesis. Verificación directa tras
+su arranque manual: PID125660, resident=disk=e68adc7a05b647f5d49b31b293b2d093a2c024d06ce5ee51b5e7d2c72fecc647,
+restart_required=false, capability subtitle_language presente. En Chrome sobre
+4750: selector109 hablantes VCTK habilitado,54/p267, preescucha2.147846s/22050Hz,
+ended=true/readyState4 y sin error multimedia/JS. Atribución visible. No reinicio
+por el agente. Esto levanta el pendiente de activación #111 descrito abajo;
+no acredita escucha humana VCTK/Carlfm ni naturalidad. La ampliación posterior
+[#112 recuperación](PIPER_RECUPERACION_ES.md) queda preparada para otra activación,
+sin convertir una validación de #111 en validación de ese código nuevo.
+
 Después de instalar el conjunto final se abrió un servidor aislado4751 con
 el código actualizado y se cerró al acabar. Chrome instalado/Playwright
 existente: selector real con109 hablantes, VCTK habilitado, hablante54, texto

@@ -31,6 +31,9 @@ def main():
         result = dict(output=data['output'], frames=wav.getnframes(), sample_rate=wav.getframerate(),
                       seconds=wav.getnframes()/wav.getframerate(), speaker_id=data['speaker_id'],
                       piper_version=version, provenance=data['references'], listening_validated=False)
+    result['text_sha256'] = hashlib.sha256(data['text'].encode('utf-8')).hexdigest()
+    with Path(data['output']).open('rb') as stream:
+        result['wave_sha256'] = hashlib.file_digest(stream,'sha256').hexdigest()
     Path(data['output'] + '.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
     print(json.dumps(result))
 
