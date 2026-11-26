@@ -1,0 +1,134 @@
+{
+  "new_focused_tests_passed": 14,
+  "audio": {
+    "scope": "Real FFmpeg full editor audio graph, existing Portuguese voice 1..3s and existing bed; no synthetic voice or new video render",
+    "project_id": "edit-3a89b7b9db09",
+    "settings": {
+      "threshold_db": -40,
+      "ratio": 8,
+      "attack_ms": 10,
+      "release_ms": 100
+    },
+    "music_rms_relative_to_bypass": {
+      "before_voice": 1.0,
+      "during_voice": 0.5691647529602051,
+      "after_release": 1.0
+    },
+    "samples_per_channel": 192000,
+    "bypass_pcm_exact_equal": true,
+    "bypass_render_identity_restored": true,
+    "undo_redo_reopen": true,
+    "voice_source_sha256": "8c91014b94ee773afb32260534eff3113fd27ef3f11f9af7d27dab9f8cb31670",
+    "voice_scope": "Existing video may contain embedded background; detector sees whole video audio, not separated speech",
+    "bed_source": "Existing authorized QA video audio, extracted locally; not proof with all music genres",
+    "main4750_checked": false,
+    "human_listening": false
+  },
+  "ui": {
+    "scope": "Real editor UI/API4773, existing Portuguese QA copy; no render or synthesis",
+    "project_id": "edit-3a89b7b9db09",
+    "active_save": true,
+    "music_selection": true,
+    "bypass_persisted": true,
+    "undo_redo_reopen": true,
+    "clear_with_invalid_draft": true,
+    "missing_music_rejected_without_mutation": true,
+    "page_errors": [],
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "3278920d7db5b6cb0681be97a7fb23ca34cd4ab88a67ebfb5f5a4ca96a0c4018",
+        "files": 48
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "3278920d7db5b6cb0681be97a7fb23ca34cd4ab88a67ebfb5f5a4ca96a0c4018",
+        "files": 48
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "bb10d7ddf83e894a74e8a1fc5103f0e7fde7e7c9ca7e2a325699dd857591f755",
+        "files": 40
+      },
+      "restart_required": false,
+      "pid": 145696,
+      "loaded_at_utc": "2026-11-26T23:08:39.079568+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "audio_ducking",
+          "track_mixer",
+          "audio_processing",
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "3278920d7db5b6cb0681be97a7fb23ca34cd4ab88a67ebfb5f5a4ca96a0c4018"
+      }
+    },
+    "main4750_checked": false,
+    "human_listening": false,
+    "qa_server": "closed",
+    "identity_note": "UI reset hooks added after interaction checks; expected disk UI is separate. No 4750 check."
+  },
+  "expected_disk_for_grouped_activation": {
+    "backend": {
+      "status": "available",
+      "sha256": "3278920d7db5b6cb0681be97a7fb23ca34cd4ab88a67ebfb5f5a4ca96a0c4018",
+      "files": 48
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "0b74a4651eaf53361fddd72230e4340806a29617660991c11eaf9927e6b1f11c",
+      "files": 40
+    }
+  }
+}

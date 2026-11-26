@@ -158,6 +158,14 @@ def render_digest(edl, contract=RENDER_CONTRACT):
     if mixer:
         content['track_mixer'] = mixer
         content['track_mixer_contract'] = 'logical-lanes-v1'
+    from lib.studio_ducking import effective as effective_ducking, RENDER_CONTRACT as ducking_contract
+    ducking = effective_ducking(edl)
+    if ducking:
+        content['audio_ducking'] = ducking
+        content['ducking_contract'] = ducking_contract
+        content['ducking_music_ids'] = [c['id'] for c in edl['audio_tracks'] if c.get('ducking_music')]
+    for clip in content['audio_tracks']:
+        clip.pop('ducking_music', None)
     used = {c['source_id'] for c in content['cuts'] + content['audio_tracks'] + content.get('layers', []) if c.get('kind') != 'gap'}
     content['sources'] = {key: {name: edl['sources'][key].get(name) for name in ('path', 'sha256', 'kind', 'audio')}
                           for key in sorted(used)}
@@ -408,6 +416,8 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_ducking import validate as validate_ducking
+    validate_ducking(edl)
     from lib.studio_track_mixer import normalize as normalize_mixer
     normalize_mixer(edl.get('track_mixer', {}))
     from lib.studio_audio_processing import validate as validate_processing

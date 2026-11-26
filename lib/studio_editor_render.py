@@ -118,9 +118,10 @@ def plan(pid, edl, preview=False):
         filters.append(f"[{base}][layer{index}]{overlay}:"
                        f"eof_action=pass:repeatlast=0:enable='gte(t,{layer['start_seconds']})*lt(t,{end})'[{target}]")
         base=target
-    audio = '[baseaudio]' + ''.join(f'[a{i}]' for i in range(len(edl['cuts']), len(tracks)))
+    from lib.studio_ducking import mix_inputs
+    audio, input_count = mix_inputs(edl, filters)
     mix = edl.get('audio_mix', {})
-    filters.append(audio + f'amix=inputs={len(edl["audio_tracks"])+1}:duration=first:normalize=0,volume={mix.get("gain", 1)}[premix]')
+    filters.append(audio + f'amix=inputs={input_count}:duration=first:normalize=0,volume={mix.get("gain", 1)}[premix]')
     label = 'premix'
     if mix.get('normalize'):
         filters.append(AudioMixer._loudnorm_filter({'loudnorm_target': mix['target_lufs']}, label, 'normalized'))

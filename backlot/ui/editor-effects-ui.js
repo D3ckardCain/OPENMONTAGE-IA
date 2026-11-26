@@ -3,8 +3,10 @@ import {videoDuration} from './editor-time.js';
 import {initializeAudioBalance} from './editor-audio-balance.js';
 import {initializeAudioProcessing} from './editor-audio-processing.js';
 import {initializeTrackMixer} from './editor-track-mixer.js';
+import {initializeDucking} from './editor-ducking.js';
 export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBalance=run,has,cursor}){
   const mixerUI=initializeTrackMixer({host:q('edit-mix-panel'),getEdl,getProject,run:runBalance,has});
+  const duckingUI=initializeDucking({host:q('edit-mix-panel'),getEdl,getProject,run:runBalance,has});
   const balanceUI=initializeAudioBalance({host:q('edit-mix-panel'),getEdl,getProject,getSelection,run:runBalance,has});
   const processingUI=initializeAudioProcessing({host:q('edit-mix-panel'),getEdl,getProject,getSelection,run:runBalance,has});
   const anchorLabel=document.createElement('label');anchorLabel.textContent='Ancla horizontal del componente (0–1) ';
@@ -33,6 +35,7 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBal
   function duration(){return videoDuration(getEdl());}
   function draw(){
     mixerUI.draw();
+    duckingUI.draw();
     drawSelection();q('edit-title-panel').hidden=!has('titles');q('edit-output-custom-panel').hidden=!has('output_custom');q('edit-mix-panel').hidden=!has('audio_mix');
     const selected=q('edit-title-select').value;
     q('edit-title-select').replaceChildren(new Option('Nuevo título',''),...(getEdl().titles||[]).map(t=>new Option(t.start_seconds.toFixed(3)+' s · '+t.text.slice(0,50),t.id)));
@@ -50,5 +53,5 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBal
   q('edit-title-remove').onclick=()=>run('title_remove',{id:q('edit-title-select').value});
   q('edit-output-custom-form').onsubmit=event=>{event.preventDefault();const f=event.target;run('output_custom',{width:numeric(f,'width'),height:numeric(f,'height'),fps:numeric(f,'fps'),platform:f.elements.platform.value,preset_name:f.elements.preset_name.value});};
   q('edit-mix-form').onsubmit=event=>{event.preventDefault();const f=event.target;run('audio_mix',{normalize:f.elements.normalize.checked,target_lufs:numeric(f,'target_lufs'),gain:numeric(f,'gain')});};
-  return {draw,drawSelection,selectTitle(id){q('edit-title-panel').open=true;q('edit-title-select').value=id;drawTitle(true);q('edit-title-form').elements.text.focus();},reset(){balanceUI.reset();processingUI.reset();transformKey=titleKey=outputKey=mixKey=null;}};
+  return {draw,drawSelection,selectTitle(id){q('edit-title-panel').open=true;q('edit-title-select').value=id;drawTitle(true);q('edit-title-form').elements.text.focus();},reset(){mixerUI.reset();duckingUI.reset();balanceUI.reset();processingUI.reset();transformKey=titleKey=outputKey=mixKey=null;}};
 }
