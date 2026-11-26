@@ -1,5 +1,10 @@
 # Chatterbox y español regional — evaluación #96
 
+Preparación posterior autorizada: [estado real y bloqueos de loader](PREPARACION_CHATTERBOX_COSYVOICE_ES.md).
+T3 es-MX verificado, recursos pequeños compartidos de D: reutilizados, diagnóstico
+aislado/Studio/agente preparados; todavía no hay síntesis regional operativa.
+La evaluación original conserva su alcance y no se repite.
+
 25-11-2026 UTC. Código [ab55923c27757c90cfcc407baa57dc25a7d25217](https://github.com/resemble-ai/chatterbox/tree/ab55923c27757c90cfcc407baa57dc25a7d25217),
 manifiesto 0.1.7. Reutiliza inspección de `mtl_tts.py` en #96/7146443057.
 

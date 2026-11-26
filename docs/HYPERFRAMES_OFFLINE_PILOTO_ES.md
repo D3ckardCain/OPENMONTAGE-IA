@@ -26,6 +26,12 @@ HiFiTTS/Cori Samuel92 CC BY4.0. Costo operativo$0.
 
 ## Uso por el agente
 
+Actualización de uso normal: [selección persistente de Studio](HYPERFRAMES_PERFIL_PERSISTENTE_ES.md).
+El puente existente ya no exige el perfil QA como argumento ni variables de la
+consola: lee la selección privada compartida con el adaptador. El perfil del
+piloto descrito abajo es evidencia histórica, no la solución permanente.
+`--inspect-profile` comprueba disponibilidad sin ejecutar otra vez el render.
+
 Pipeline `hyperframes-offline-pilot`, director `skills/qa/hyperframes-offline-pilot.md`,
 herramienta registrada `hyperframes_offline_pilot`, proyecto separado
 `qa132-hyperframes-offline`. Autorización completa registrada antes de assets.

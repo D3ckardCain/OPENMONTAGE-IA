@@ -24,7 +24,8 @@ def environment(profile, network_log):
         HYPERFRAMES_SKIP_SKILLS='1', HYPERFRAMES_NO_TELEMETRY='1',
         DO_NOT_TRACK='1', NODE_DISABLE_COMPILE_CACHE='1', CI='1',
         PUPPETEER_SKIP_DOWNLOAD='1',
-        NODE_OPTIONS='--require="' + str(guard) + '"',
+        # Node parses backslashes as escapes inside NODE_OPTIONS on Windows.
+        NODE_OPTIONS='--require="' + guard.as_posix() + '"',
         OPENMONTAGE_HF_NETWORK_LOG=str(Path(network_log).resolve()),
     )
     # The prepared npm layout contains GSAP beside HyperFrames. An explicit

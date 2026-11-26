@@ -62,6 +62,15 @@ def progress(request,phase,**values):
 
 def run(request):
     family=request['family'];m=Path(request['model_dir']);data=request['inputs'];out=Path(request['output_dir'])
+    if family=='chatterbox' and data.get('regional_profile'):
+        try:from lib.voice_preparation import guard_request
+        except ImportError:from voice_preparation import guard_request
+        guard_request(data)
+    if family=='cosyvoice' and (m/'cosyvoice3.yaml').is_file():
+        try:from lib.voice_preparation import cosyvoice3
+        except ImportError:from voice_preparation import cosyvoice3
+        prepared=cosyvoice3(m)
+        if not prepared['ready']:raise ValueError('CosyVoice3 no preparado: '+'; '.join(prepared['problems']))
     progress(request,'starting')
     if family=='qwen-tts-17b-base':
         if data.get('reference_authorized') is not True:raise ValueError('Se requiere autorización explícita de la voz de referencia')

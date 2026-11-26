@@ -28,8 +28,9 @@ def remember(current, report):
     _DOCTOR[current['identity_key']] = (time.monotonic(), report)
 
 
-def resolve():
-    explicit = os.environ.get('HYPERFRAMES_PACKAGE_DIR')
+def resolve(env=None):
+    env = environment() if env is None else env
+    explicit = env.get('HYPERFRAMES_PACKAGE_DIR')
     roots = [Path(explicit)] if explicit else [ROOT/'node_modules/hyperframes', ROOT/'node_modules/@hyperframes/cli']
     for root in roots:
         manifest = root/'package.json'
@@ -58,6 +59,15 @@ def resolve():
 
 def environment():
     env = media_environment()
+    # Internal selection proof is set by the store, never inherited from a shell.
+    for key in ('OPENMONTAGE_HF_PROFILE_REVISION','OPENMONTAGE_HF_NODE'):
+        env.pop(key,None)
+    media_path = env.get('PATH', '')
+    from lib.hyperframes_profile_store import selected_environment
+    selected = selected_environment()
+    if selected is not None:
+        env.update(selected)
+        env['PATH'] = str(Path(selected['OPENMONTAGE_HF_NODE']).parent) + os.pathsep + media_path
     env.update(HYPERFRAMES_NO_TELEMETRY='1', DO_NOT_TRACK='1')
     for name in ('ffmpeg', 'ffprobe'):
         path = find_media(name)
@@ -67,8 +77,14 @@ def environment():
 
 
 def check():
-    package = resolve()
-    node = shutil.which('node')
+    try:
+        env = environment()
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return dict(runtime_available=False, local_requirements_met=False, installed=False,
+                    profile_selected=True, selected_profile_execution_verified=False,
+                    render_validated=False, identity_key=(), reasons=['Perfil seleccionado inválido: '+str(exc)])
+    package = resolve(env)
+    node = env.get('OPENMONTAGE_HF_NODE') or shutil.which('node')
     major = None
     if node:
         try:
@@ -79,7 +95,7 @@ def check():
         except (OSError, subprocess.SubprocessError):
             pass
     ffmpeg, ffprobe = find_media('ffmpeg'), find_media('ffprobe')
-    browser = os.environ.get('HYPERFRAMES_BROWSER_PATH', '')
+    browser = env.get('HYPERFRAMES_BROWSER_PATH', '')
     reasons = []
     if 'error' in package:
         reasons.append(package['error'])
@@ -91,15 +107,24 @@ def check():
         reasons.append('FFprobe no disponible en su ruta guardada/PATH')
     if not browser or not Path(browser).is_file():
         reasons.append('Declara HYPERFRAMES_BROWSER_PATH con un navegador ya preparado; no se descarga uno')
-    key=tuple(_identity(p) for p in (package.get('manifest'),package.get('entry'),node,ffmpeg,ffprobe,browser))
+    gsap = env.get('HYPERFRAMES_GSAP_PACKAGE_DIR')
+    key=tuple(_identity(p) for p in (package.get('manifest'),package.get('entry'),node,ffmpeg,ffprobe,browser,
+              str(Path(gsap)/'package.json') if gsap else None, str(Path(gsap)/'dist/gsap.min.js') if gsap else None))
     cached=_DOCTOR.get(key)
     probe=cached[1] if cached and time.monotonic()-cached[0]<60 else None
     local_ready=not reasons
-    if local_ready and not probe:
-        reasons.append('Requisitos locales presentes; falta doctor explícito vigente (sin render validado)')
-    elif local_ready and probe.get('status')!='ok':
+    from lib.hyperframes_profile_store import probe_matches
+    selected_probe=bool(env.get('OPENMONTAGE_HF_PROFILE_REVISION') and
+        probe_matches(key, env['OPENMONTAGE_HF_PROFILE_REVISION']))
+    if local_ready and not probe and not selected_probe:
+        reasons.append('Falta comprobación explícita de ejecución del perfil seleccionado' if env.get('OPENMONTAGE_HF_PROFILE_REVISION')
+                       else 'Requisitos locales presentes; falta doctor explícito vigente (sin render validado)')
+    elif local_ready and probe and probe.get('status')!='ok' and not selected_probe:
         reasons.append(probe.get('error') or 'Doctor falló')
-    return dict(runtime_available=local_ready and bool(probe) and probe['status']=='ok', installed='entry' in package,
+    return dict(runtime_available=local_ready and (selected_probe or bool(probe) and probe['status']=='ok'), installed='entry' in package,
+                profile_selected=bool(env.get('OPENMONTAGE_HF_PROFILE_REVISION')),
+                selected_profile_execution_verified=selected_probe,
+                availability_basis='selected_profile_cli_execution' if selected_probe else 'legacy_explicit_doctor',
                 local_requirements_met=local_ready, render_validated=False, identity_key=key,
                 diagnostic_scope='local_metadata_and_node_version_only',
                 node=node, node_major=major, ffmpeg_available=bool(ffmpeg), ffprobe_available=bool(ffprobe),

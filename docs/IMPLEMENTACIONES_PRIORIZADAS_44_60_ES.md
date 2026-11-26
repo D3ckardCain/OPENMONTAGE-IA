@@ -15,6 +15,15 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Entrega posterior a f1dddfa: [perfil HyperFrames persistente](HYPERFRAMES_PERFIL_PERSISTENTE_ES.md)
+en puente nativo/launcher y panel, recursos existentes y probe CLI sin render.
+Once pruebas nuevas y una regresión focal; activación4750 se agrupa sin reiniciar.
+[Chatterbox/CosyVoice](PREPARACION_CHATTERBOX_COSYVOICE_ES.md): T3 es-MX terminado
+verificado una vez, tokenizer/ve existentes reutilizados; V3/esES y loader bloquean
+síntesis. CosyVoice ya tiene candidato completo por tamaños en D:, sin hashes
+masivos ni más descargas de pesos; nueve auxiliares mínimos preparados en C:.
+Ocho pruebas nuevas; no repetir CI, Qwen, pilotos o síntesis. HTTP10054 intacto.
+
 Actualización tras reinicio manual26-11-2026: [activación4750](ACTIVACION_544C57F_ES.md)
 comprobada, PID138604/identidad esperada/sin reinicio pendiente. Silencios y
 componentes reversibles, Qwen recuperado sin nueva síntesis y contrato de

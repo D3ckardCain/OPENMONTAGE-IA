@@ -35,6 +35,16 @@ def create_editor_router(body):
         from lib.qwen_tts_local import catalog
         return invoke(catalog)
 
+    @router.get('/chatterbox/profiles')
+    def chatterbox_profiles():
+        from lib.voice_preparation import catalog
+        return invoke(catalog)
+
+    @router.get('/cosyvoice/preparation')
+    def cosyvoice_preparation():
+        from lib.voice_preparation import cosyvoice3
+        return invoke(cosyvoice3)
+
     @router.post('/{pid}/qwen/preview')
     async def qwen_preview(pid: str, request: Request):
         from starlette.concurrency import run_in_threadpool

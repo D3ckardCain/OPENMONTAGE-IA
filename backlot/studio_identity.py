@@ -16,6 +16,9 @@ def fingerprint(root: Path, ui: bool = False) -> dict:
         'backlot/*.py', 'lib/studio*.py', 'lib/production_studio.py', 'lib/production_queue.py',
         'lib/qwen_tts_local.py', 'lib/qwen_tts_runtime.py', 'lib/model_adapters.py', 'lib/model_adapter_worker.py',
         'lib/model_languages.py', 'docs/models/qwen17.json',
+        'lib/hyperframes_runtime.py', 'lib/hyperframes_offline_profile.py',
+        'lib/hyperframes_profile_store.py', 'tools/video/hyperframes_compose.py',
+        'lib/voice_preparation.py',
     )
     digest = hashlib.sha256()
     try:

@@ -175,6 +175,9 @@ def resolve_model(family):
 
 def expected_files(family,model):
     """Expected local files for this variant, not unrelated variants in its group."""
+    if family=='cosyvoice' and ('Fun-CosyVoice3' in model.name or (model/'cosyvoice3.yaml').is_file()):
+        from lib.voice_preparation import COSY_WEIGHTS,COSY_AUX
+        return list(COSY_WEIGHTS)+COSY_AUX
     result=[]
     for entry in CATALOG[family]['entries']:
         dest=entry['destination'].replace('\\','/')
@@ -280,6 +283,10 @@ def diagnostics(family,probe=True,device=None):
             result['cuda_memory_preflight']=preflight(python,model)
             if not result['cuda_memory_preflight']['allowed']:result['problems'].append(result['cuda_memory_preflight'].get('reason','CUDA no preparado'))
         elif not result['cpu_memory_preflight']['allowed']:result['problems'].append('RAM libre insuficiente para la ruta CPU FP32 actual; no se cambia el motor automaticamente')
+    if model is not None and family=='cosyvoice' and ('Fun-CosyVoice3' in model.name or (model/'cosyvoice3.yaml').is_file()):
+        from lib.voice_preparation import cosyvoice3
+        result['cosyvoice3_preparation']=cosyvoice3(model)
+        result['problems'].extend(result['cosyvoice3_preparation']['problems'])
     result['ready']=model is not None and not result['problems']
     if model is not None:
         from lib.model_validation import current_evidence
@@ -341,6 +348,9 @@ class LocalModelAdapter(BaseTool):
     def execute(self,inputs,*,control=None):
         from jsonschema import validate
         try:
+            if self.family=='chatterbox' and inputs.get('regional_profile'):
+                from lib.voice_preparation import guard_request
+                guard_request(inputs)
             validate(inputs,self.input_schema)
             from lib.model_languages import validate_request
             validate_request(self.family,inputs)

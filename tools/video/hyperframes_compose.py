@@ -50,7 +50,7 @@ _AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"}
 
 class HyperFramesCompose(BaseTool):
     name = "hyperframes_compose"
-    version = "0.3.1"
+    version = "0.3.2"
     tier = ToolTier.CORE
     capability = "video_post"
     provider = "hyperframes"
@@ -385,7 +385,7 @@ class HyperFramesCompose(BaseTool):
         width, height, fps = self._resolve_dimensions(profile_name, inputs.get("fps", 30))
 
         # Explicit resource selection is binding. Verify before creating the workspace.
-        gsap_dir = inputs.get('local_gsap_package_dir') or os.environ.get('HYPERFRAMES_GSAP_PACKAGE_DIR')
+        gsap_dir = inputs.get('local_gsap_package_dir') or hyperframes_runtime.environment().get('HYPERFRAMES_GSAP_PACKAGE_DIR')
         inspected_gsap = None
         if gsap_dir:
             from lib.hyperframes_resources import inspect_gsap

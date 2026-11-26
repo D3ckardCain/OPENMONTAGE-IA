@@ -216,7 +216,7 @@ def test_install_instructions_reference_correct_npm_package_name():
 
 def test_runtime_check_fails_when_local_package_missing(monkeypatch):
     from lib import hyperframes_runtime as runtime
-    monkeypatch.setattr(runtime, 'resolve', lambda: {'error': 'local CLI missing'})
+    monkeypatch.setattr(runtime, 'resolve', lambda env=None: {'error': 'local CLI missing'})
     rc = HyperFramesCompose()._runtime_check()
     assert not rc['runtime_available'] and not rc['installed']
     assert rc['npm_resolve_error'] == 'local CLI missing'

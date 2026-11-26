@@ -833,6 +833,36 @@ def create_studio_router():
         if not result.success:raise HTTPException(400,{'message':result.error,'report':result.data})
         return result.data
 
+    @router.get('/api/studio/hyperframes/profile')
+    def hyperframes_profile():
+        from lib import hyperframes_profile_store as profiles, hyperframes_runtime
+        return invoke(lambda: {'selection': profiles.read(), 'availability': hyperframes_runtime.check()})
+
+    @router.post('/api/studio/hyperframes/profile')
+    async def select_hyperframes_profile(request:Request):
+        from lib import hyperframes_profile_store as profiles, reference_analysis
+        data=await body(request, 16000)
+        if set(data)!={'profile','revision'}:raise HTTPException(400,'Indica profile y revision')
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:
+                raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar el perfil')
+            try:value=profiles.save(data['profile'],data['revision'])
+            except studio_editor.Conflict as exc:raise HTTPException(409,str(exc)) from exc
+            except (ValueError,KeyError,TypeError,OSError) as exc:raise HTTPException(400,str(exc)) from exc
+        return {'selection': value}
+
+    @router.post('/api/studio/hyperframes/profile/probe')
+    async def probe_hyperframes_profile(request:Request):
+        from lib import hyperframes_profile_store as profiles, reference_analysis
+        if await body(request):raise HTTPException(400,'La comprobación no admite entradas ni render')
+        # Keep the same resource locks throughout the short, bounded CLI probe.
+        def probe():
+            with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+                if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:
+                    raise HTTPException(409,'Hay una tarea local activa')
+                return invoke(profiles.execute_probe)
+        return await asyncio.to_thread(probe)
+
     @router.get('/api/studio/tools')
     async def tools(name:str=Query('',max_length=100),capability:str=Query('',max_length=100)):
         def discover():
