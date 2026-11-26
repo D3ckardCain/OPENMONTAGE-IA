@@ -35,7 +35,7 @@ def test_protects_negation_rounds_inward_and_never_touches_project_or_media(edl)
     before = deepcopy(edl)
     with patch('subprocess.Popen') as spawn, patch.object(editor, 'digest') as hash_file:
         report = silence.draft(edl, payload(edl))
-    assert report['ready_for_review'] and not report['apply_available']
+    assert report['ready_for_review'] and report['apply_available']
     assert report['analysis_provenance']['evidence'] == 'synthetic_not_measured'
     assert [c['frames'] for c in report['candidates']] == [[15, 20], [30, 60]]
     assert all(not c['selected'] and not c['reviewed'] for c in report['candidates'])
@@ -155,7 +155,7 @@ def test_read_only_api_agent_contract_and_stale_revision(edl, monkeypatch, tmp_p
     assert result.success and result.data['ready_for_review']
     assert path.read_bytes() == before and not list((tmp_path / pid / 'assets').rglob('*.mp4'))
     caps = client.get(base + 'capabilities').json()
-    assert caps['silence_proposal']['read_only'] and not caps['silence_proposal']['apply_available']
+    assert caps['silence_proposal']['read_only'] and caps['silence_proposal']['apply_available']
     data = payload(edl); data['revision'] = 1
     assert client.post(base + pid + '/silence-proposal', json=data).status_code == 409
     data = payload(edl); data['analysis']['clock'] = 'timeline_seconds'

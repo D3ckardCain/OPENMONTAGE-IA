@@ -30,7 +30,7 @@ def request(path, data=None, timeout=120):
 
 class StudioProjectEdit(BaseTool):
     name = 'studio_project_edit'
-    version = '3.3.0'
+    version = '3.3.1'
     capability = 'video_post'
     provider = 'local'
     description = 'Read and edit the shared Studio manual project; no inference. Revision required for writes.'

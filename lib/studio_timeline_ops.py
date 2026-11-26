@@ -3,7 +3,7 @@ from copy import deepcopy
 import uuid
 
 CAPABILITIES = ['batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
-                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words']
+                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply']
 
 
 def assert_editable(edl, data):
@@ -141,12 +141,13 @@ def apply_timeline(edl, data):
             items[:] = [c for c in items if c not in selected]
             return True
         removed = []
-        time = 0
+        frame_cursor = 0
+        fps = edl['output']['fps']
         for item in items:
-            duration = edit.frames(item, edl['output']['fps']) / edl['output']['fps']
+            end_frame = frame_cursor + edit.frames(item, fps)
             if item in selected:
-                removed.append((time, time + duration))
-            time += duration
+                removed.append((frame_cursor / fps, end_frame / fps))
+            frame_cursor = end_frame
         if op == 'delete_keep_gap':
             for item, (start, end) in zip(selected, removed):
                 seconds = end - start

@@ -43,9 +43,11 @@ Entrega P0 E03/E04 [#130 propuesta de silencios](PROPUESTAS_SILENCIO_STUDIO_ES.m
 contrato numérico/API/agente compartidos, palabra/negación protegida, padding,
 cuantización hacia dentro, velocidad/repeticiones y rechazo de base obsoleta.
 23casos nuevos aislados aprobados; sin medición acústica, medios ni renders.
-No otro cutter/ASR/editor ni copia de FireCut. Aplicación y revisión sobre
-waveform aún no disponibles; multiguía rechazada explícitamente. Activación
-agrupada con#132, sin reinicio; recibos/AV español/sincronía al aplicar pendientes.
+No otro cutter/ASR/editor ni copia de FireCut. [Aplicación reversible](SILENCIOS_APLICACION_REVERSIBLE_ES.md) implementada: split/ripple
+común,21casos nuevos y copia portuguesa persistente con undo/redo/reapertura.
+Corregido marcador en fin exclusivo mediante límites enteros de frame.
+Waveform/escucha, recibos acústicos/multiguía y AV siguen pendientes; activación
+agrupada con#132 sin reiniciar. No repetir pruebas ni renders aprobados.
 
 Entrega P0 E04 [#129](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/129):
 [borrador de subtítulos desde palabras guardadas](SUBTITULOS_DESDE_PALABRAS_ES.md).

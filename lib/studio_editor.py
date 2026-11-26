@@ -329,6 +329,9 @@ def _apply_edit(edl, data):
         elif op == 'subtitle_from_words':
             from lib.studio_word_subtitles import apply
             apply(edl, data)
+        elif op == 'silence_apply':
+            from lib.studio_silence_proposal import apply
+            apply(edl, data)
         elif op == 'subtitles':
             edl['cues'] = parse_srt(data['srt'], duration(edl)) if data['srt'].strip() else []
         elif op in ('cue_update', 'cue_split', 'cue_merge', 'cue_offset'):

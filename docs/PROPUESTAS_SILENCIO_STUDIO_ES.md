@@ -1,5 +1,10 @@
 # Propuestas de silencio: contrato numérico compartido — #130
 
+Actualización: [aplicación reversible implementada](SILENCIOS_APLICACION_REVERSIBLE_ES.md).
+El endpoint de propuesta sigue sin escribir, pero el backend nuevo anuncia
+`apply_available=true` y comando `silence_apply`. Las referencias a aplicación
+no disponible más abajo describen la primera fase, conservada como historial.
+
 26-11-2026 UTC. Primera implementación P0 E03/E04 de la
 [evaluación registrada](EVALUACION_FIRECUT_ES.md), vinculada a #3/#92.
 No se instala FireCut, Auto-Editor ni otro motor. Código propio, costo$0.

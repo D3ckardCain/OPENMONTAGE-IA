@@ -5,13 +5,17 @@
 Solicitud vigente: agrupar, **sin reiniciar ahora**. #132 incluye adaptador
 HyperFrames0.3.1/GSAP local y transporte offline; #130 añade propuesta de silencio
 de solo lectura, ruta POST `silence-proposal`, capacidad explícita y herramienta
-del agente3.3.0. [Contrato y límites](PROPUESTAS_SILENCIO_STUDIO_ES.md).
+del agente3.3.1. [Contrato y límites](PROPUESTAS_SILENCIO_STUDIO_ES.md).
 
 En el futuro reinicio manual único, comprobar antes trabajos activos y copia
 de C:/OPENMONTAGE-IA con su .venv. Tras activarlo: identidad residente coherente,
-flag `silence_proposal.read_only=true`/`apply_available=false` y una consulta
+flag `silence_proposal.read_only=true`/`apply_available=true` y una consulta
 numérica en copia con revisión/huellas correctas; comparar bytes/revisión del
-proyecto antes/después. No aplicar cortes ni repetir23casos aprobados.
+proyecto antes/después. Aplicación reversible #130 ya comprobada en copia
+aislada: [evidencia y límites](SILENCIOS_APLICACION_REVERSIBLE_ES.md). El backend
+debe anunciar `apply_command=silence_apply`/herramienta3.3.1. No repetir los
+23casos de propuesta ni21casos nuevos de aplicación; no renders. Validación
+residente/visual permanece pendiente y no se infiere de los archivos del disco.
 
 Para #132 comprobar metadatos del adaptador nuevo, sin repetir doctor/render,
 síntesis ni sus pruebas aprobadas. El perfil del transporte es de proceso hijo:
