@@ -73,8 +73,8 @@ def test_subprocess_failure_is_explicit(project,monkeypatch):
 def test_new_manifest_and_director_are_valid():
     from lib.pipeline_loader import load_pipeline,get_stage_skill
     manifest=load_pipeline('blender-skills-pilot')
-    assert [s['name'] for s in manifest['stages']]==['scene_plan','assets','compose']
-    assert manifest['stages'][1]['human_approval_default']
+    assert [s['name'] for s in manifest['stages']]==['idea','scene_plan','assets','compose']
+    assert all(stage['human_approval_default'] for stage in manifest['stages'][:3])
     assert Path('skills/'+get_stage_skill(manifest,'assets')+'.md').is_file()
 
 

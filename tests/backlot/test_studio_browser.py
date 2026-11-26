@@ -700,7 +700,7 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         assert resumes==[{}]
         document_button=page.get_by_role('button',name='Leer README.md en el panel',exact=True)
         document_button.click()
-        page.get_by_text('Documento no disponible',exact=True).wait_for()
+        page.get_by_text('Solicitud rechazada (HTTP 400): Documento no disponible',exact=True).wait_for()
         assert document_button.is_enabled()
         document_button.click()
         page.locator('[data-remote-file-check] [data-update-document-text]').wait_for()
@@ -718,7 +718,7 @@ def test_update_file_remote_comparison_without_local_reads(staged_backlot_server
         assert page.locator('[data-remote-file-check]').count()==1
         assert 'El archivo remoto coincide' not in page.locator('[data-remote-file-check]').inner_text()
         button.click()
-        page.locator('#notice').get_by_text('Fuente no disponible',exact=True).wait_for()
+        page.locator('#notice').get_by_text('Solicitud rechazada (HTTP 400): Fuente no disponible',exact=True).wait_for()
         assert button.is_enabled()
         assert page.locator('[data-remote-file-check]').count()==0
         assert all('identifier=Org%2FVideo&index=0' in url for url in calls)

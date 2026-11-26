@@ -84,8 +84,8 @@ def plan(pid, edl, preview=False):
         x=str(round(width*layer['x']));y=str(round(height*layer['y']))
         if layer.get('motion'):
             m=layer['motion'];progress=f"clip((t-{layer['start_seconds']}+{m.get('phase_seconds',0)})/{m['duration_seconds']},0,1)"
-            x=f"{width}*({layer['x']}+{m['dx']}*{progress})";y=f"{height}*({layer['y']}+{m['dy']}*{progress})"
-        filters.append(f"[{base}][layer{index}]overlay=x='{x}':y='{y}':"
+            x=f"'{width}*({layer['x']}+{m['dx']}*{progress})'";y=f"'{height}*({layer['y']}+{m['dy']}*{progress})'"
+        filters.append(f"[{base}][layer{index}]overlay=x={x}:y={y}:"
                        f"eof_action=pass:repeatlast=0:enable='gte(t,{layer['start_seconds']})*lt(t,{end})'[{target}]")
         base=target
     audio = '[baseaudio]' + ''.join(f'[a{i}]' for i in range(len(edl['cuts']), len(tracks)))

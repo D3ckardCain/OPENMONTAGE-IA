@@ -42,3 +42,17 @@ first/middle/end images visually; compare with preflight and report limitations.
 Publish code/manual/numeric evidence in #117; generated media remain local.
 Register selector activation in the existing grouped activation document; do
 not restart Studio. No claim over all28skills, other engines, addons or formats.
+
+
+## idea and runtime contract
+
+Before scene_plan, produce the brief and render_runtime_selection decision.
+Present both Remotion and hyperframes when they are available, explaining why
+this bounded technical pilot constrains the engine rather than silently choosing.
+Keep full-run approval_policy explicit. Reuse an already approved pilot plan and
+its outputs; adding the formal idea checkpoint never authorizes rerendering.
+
+Here render_runtime="ffmpeg" packages the Blender/EEVEE frame sequence; Blender5.3
+is the scene renderer under test, not a replacement generative provider.
+Remotion/hyperframes would test different engines and cannot replace this pilot.
+Record those alternatives and the fixed engine constraint, preserve4.5 default.

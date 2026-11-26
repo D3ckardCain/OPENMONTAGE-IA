@@ -372,7 +372,7 @@ No nueva familia de backlog; PR#2 borrador y configuraciones intactas.
 
 ## Consolidación26-11-2026: cola funcional sin duplicados nuevos
 
-[Resultados y límites](COLA_AUTONOMA_20261126_ES.md):54 pruebas nuevas y QA
+[Resultados y límites](COLA_AUTONOMA_20261126_ES.md):56 pruebas nuevas y QA
 Chrome/API/media aislados. Extiende E04/E05/E08/E14/E16 sin otro editor/timeline,
 transcriptor/downloader/director:
 
@@ -393,3 +393,5 @@ transcriptor/downloader/director:
 
 Primero activar lote4750 cuando sea posible; rechazo de política no eludido.
 Escucha, español#107/#130, inferencia Qwen y GLB visual no se sustituyen por CI.
+
+[Correcci?n CI basada en logs y comprobaciones focalizadas](CI_COLA_20261126_ES.md).

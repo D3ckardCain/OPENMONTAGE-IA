@@ -359,7 +359,7 @@
       "error_remains_visible": true,
       "save_disabled_without_profiles": true
     },
-    "unique_new_pytest": 54,
+    "unique_new_pytest": 56,
     "prior_approved_suites_repeated": false,
     "ci": "Pending publication; do not infer pass",
     "listening": "Human pending; browser playback muted",
@@ -378,6 +378,64 @@
       "edit-qa107-pt-5f4e1409": true,
       "edit-qa129-pt-activation": true,
       "edit-ripple-live-5f4e64105603": true
+    },
+    "component_av_windows": {
+      "scope": "New own4s scene, no synthesis or approved pilot repeated; software measurements not human listening",
+      "layer_boxes_at_2_75_and_3_75": [
+        [
+          78,
+          90,
+          281,
+          205
+        ],
+        [
+          86,
+          96,
+          289,
+          211
+        ]
+      ],
+      "absolute_motion_visible": true,
+      "audio_alignment_windows": [
+        {
+          "output_seconds": 0.4,
+          "source_offset_ms": 5.125000000000004,
+          "pearson": 0.9875485873378157
+        },
+        {
+          "output_seconds": 3.0,
+          "source_offset_ms": 3.0000000000000027,
+          "pearson": 0.9893027759856782
+        }
+      ]
     }
-  }
+  },
+  "ci_initial": {
+    "head": "19347ce01591b206ae3f8a031523c08796cb62d2",
+    "main_run": 45766705792,
+    "failed": 14,
+    "passed": 3798,
+    "skipped": 44,
+    "xfailed": 3,
+    "subtests_passed": 40,
+    "browser_failed": 1,
+    "browser_passed": 42,
+    "fix_local_existing_focused_passed": 15,
+    "new_gate_cases_passed": 2,
+    "timeouts_or_tests_disabled": false
+  },
+  "planning_backfill": [
+    {
+      "project": "qa117-blender-skills-53",
+      "prior_checkpoints_unchanged": true,
+      "selection_unchanged": true,
+      "media_regenerated": false
+    },
+    {
+      "project": "qa132-hyperframes-offline",
+      "prior_checkpoints_unchanged": true,
+      "selection_unchanged": true,
+      "media_regenerated": false
+    }
+  ]
 }

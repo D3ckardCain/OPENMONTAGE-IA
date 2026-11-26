@@ -68,11 +68,11 @@ def test_setup_report_has_all_families_without_import_probes_or_model_loads(isol
     def forbidden(*args,**kwargs):raise AssertionError('Dependency probe must not run')
     monkeypatch.setattr(adapters,'dependency_probe',forbidden)
     result=setup.report()
-    assert result['total_families']==47 and result['prepared_recipes']==47
+    assert result['total_families']==48 and result['prepared_recipes']==48
     assert not any(row['dependency_probe_performed'] or row['installation_started'] or row['environment_created'] for row in result['models'])
     assert result['model_loads_started']==0
     setup.save_report()
-    assert studio.read_json(studio.CONFIG_DIR/'setup-report.json')['total_families']==47
+    assert studio.read_json(studio.CONFIG_DIR/'setup-report.json')['total_families']==48
 
 
 def test_framepack_config_is_created_from_existing_auxiliary_folders(isolated):
@@ -109,7 +109,7 @@ def test_magihuman_config_preserves_all_local_paths(isolated):
 def test_agent_can_read_setup_report_without_mutating_configuration(isolated):
     from tools.desktop.application_center import LocalSetupReport
     result=LocalSetupReport().execute({})
-    assert result.success and result.data['total_families']==47
+    assert result.success and result.data['total_families']==48
     assert not LocalSetupReport().execute({'run_models':True}).success
     assert not studio.CONFIG_DIR.exists()
 
@@ -129,7 +129,7 @@ def test_setup_api_routes_and_busy_configuration_guard(isolated,monkeypatch):
     from backlot.server import create_app
     from lib import production_agent,reference_analysis
     client=TestClient(create_app(),base_url='http://127.0.0.1')
-    assert client.get('/api/studio/setup').json()['total_families']==47
+    assert client.get('/api/studio/setup').json()['total_families']==48
     assert client.get('/api/studio/setup/runtime/framepack').json()['fields']['backbone_dir']
     assert client.post('/api/studio/setup/discover',json={'roots':[str(isolated)]}).json()['executed_files']==0
     assert client.post('/api/studio/setup/report',json={}).status_code==200

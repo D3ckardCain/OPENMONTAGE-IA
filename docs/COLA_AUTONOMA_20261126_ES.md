@@ -97,8 +97,8 @@ PR#2 borrador. Costo$0. ComfyUI, entornos y configuraciones existentes conservad
 
 ## Resultado conjunto posterior
 
-54 pruebas Python nuevas, ejecutadas por incrementos focalizados:9 evidencia
-vídeo,14 Qwen,9 referencias,13 componentes y9 GLB. No se repiten las21 de
+56 pruebas Python nuevas, ejecutadas por incrementos focalizados:9 evidencia
+vídeo,14 Qwen,9 referencias,13 componentes y9 GLB, más2gates de planificación. No se repiten las21 de
 silencios, suites aprobadas, ASR, voces españolas ni piloto Blender. CI remota
 se registra separadamente tras publicar, sin atribuirle comprobación local.
 
@@ -155,3 +155,5 @@ Prioridad restante: activación única4750; recursos/medición Qwen; recibo real
 #112; escucha y muestra española#107/#130; GLB propio#143; variantes AV de los
 componentes y revisión visual ampliada#145. No cerrar por CI, instalación,
 metadatos o simulaciones. Ver resultados estructurados para separar alcances.
+
+[Correcci?n CI basada en logs y comprobaciones focalizadas](CI_COLA_20261126_ES.md).
