@@ -58,3 +58,7 @@ Turbo: en proyectos y entornos QA existentes solo apareció un WAV>5s, la extrac
 Las curvas de posición, escala, giro, opacidad y Bézier de **capas** están publicadas en `ccb602c`, con14pruebas nuevas focalizadas y dos renders nuevos necesarios para la equivalencia preview/export. Ver `EDITOR_KEYFRAMES_TRANSFORMACION_ES.md`. No se declara todo #174 terminado. La única activación agrupada de4750 sigue pendiente de la acción manual documentada por el rechazo de política anterior; no se elude ni se repiten las validaciones aprobadas. PR#2 permanece en borrador.
 
 Artefactos: `DESCARGAS_COMPLETAS_RESULTADO_20261126.json`, `DESCARGAS_COMPLETAS_ARCHIVOS_20261126.csv`, `DESCARGAS_DUPLICADOS_20261126.csv` y `DESCARGAS_ANEXO_VOCES_DOCUMENTOS_20261126.json`.
+# Actualización posterior
+
+El índice MagiHuman Base ya está corregido y verificado contra su blob oficial. Quedan 9 rutas discrepantes / 8 referencias únicas pendientes; los contadores originales de este informe conservan el estado histórico previo. Véase [corrección y seguimiento de Wan VACE](CORRECCION_MAGIHUMAN_Y_WAN_VACE_ES.md).
+

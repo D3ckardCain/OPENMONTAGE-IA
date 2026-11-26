@@ -1,0 +1,120 @@
+{
+  "timestamp": 1795722893.283076,
+  "url": "https://huggingface.co/GAIR/daVinci-MagiHuman/resolve/7fe95e50c11bd92bdadf94cd51dbec18427f8e0c/base/model.safetensors.index.json",
+  "revision": "7fe95e50c11bd92bdadf94cd51dbec18427f8e0c",
+  "acquisition": "Recovered from bounded local shard headers; exact official Git blob identity confirmed; no network download",
+  "network_failure": "WinError 10013; no permissions changed",
+  "index": {
+    "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model.safetensors.index.json",
+    "bytes": 27480,
+    "sha256": "a5477affadbef4271e33c75a7b648a3f983b0e4409ca72e202ea31499d07cbce",
+    "official_git_blob": "09d2c7682f035305a65c1a0d040dbec884fc532b"
+  },
+  "shards": [
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model-00001-of-00007.safetensors",
+      "identity": [
+        4101616990,
+        3659174697239398,
+        4798025672,
+        1794128498954669700,
+        1794195901598862100
+      ],
+      "sha256": "a960919effe1ca65d3d4d3939feee4af3d272b3acc155da432551741fc769c73",
+      "hash_reused": true,
+      "tensors": 45,
+      "header_bytes": 5056
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model-00002-of-00007.safetensors",
+      "identity": [
+        4101616990,
+        3659174697239399,
+        4777051960,
+        1794129356255997700,
+        1794195948561814900
+      ],
+      "sha256": "7aa22eb2f724ea69c367694acd232258693637a1bf9cd03a561608f10c32dafa",
+      "hash_reused": true,
+      "tensors": 44,
+      "header_bytes": 4912
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model-00003-of-00007.safetensors",
+      "identity": [
+        4101616990,
+        3659174697239400,
+        4998672920,
+        1794130163014279400,
+        1794195996146875900
+      ],
+      "sha256": "4c5b6feb177f6cf71906ed05a256bfe8f0cd8a4b2a67414d99fe5bd4578801d2",
+      "hash_reused": true,
+      "tensors": 56,
+      "header_bytes": 6160
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model-00004-of-00007.safetensors",
+      "identity": [
+        4101616990,
+        3659174697239401,
+        4737735064,
+        1794130937148199400,
+        1794196056286501800
+      ],
+      "sha256": "6bb7d5cdb61d0636045afb83e13b9bd8b6a6289046c1b448918cca56928c35ab",
+      "hash_reused": true,
+      "tensors": 49,
+      "header_bytes": 5520
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model-00005-of-00007.safetensors",
+      "identity": [
+        4101616990,
+        3659174697239402,
+        4971519728,
+        1794131730975138800,
+        1794196106249744700
+      ],
+      "sha256": "652b2e12b9cc8686b04264d34945f32e659769ad1eb243121eacf7bf15c15d55",
+      "hash_reused": true,
+      "tensors": 66,
+      "header_bytes": 7400
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model-00006-of-00007.safetensors",
+      "identity": [
+        4101616990,
+        3659174697239403,
+        4554972288,
+        1794132836733268800,
+        1794196158164571500
+      ],
+      "sha256": "c194b6f0b53ab17ba235808f4d40ab1172c7f89655eb547173f701e1763773ec",
+      "hash_reused": true,
+      "tensors": 51,
+      "header_bytes": 5688
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model-00007-of-00007.safetensors",
+      "identity": [
+        4101616990,
+        3659174697239404,
+        1804067488,
+        1794132845184037700,
+        1794196193433781700
+      ],
+      "sha256": "1e9dddc6c00dd173977e47637787392ad48e7478c5e397dbd6489b33bbe5d63c",
+      "hash_reused": true,
+      "tensors": 20,
+      "header_bytes": 2200
+    }
+  ],
+  "tensors": 331,
+  "total_tensor_bytes": 30642008128,
+  "weight_bytes_hashed": 0,
+  "header_bytes_read": 36992,
+  "old_index_preserved": "C:\\OPENMONTAGE-IA\\.runtime\\qa\\full-downloads\\magihuman-base-index-before-distill.json",
+  "weights_loaded": false,
+  "fragments_modified": 0
+}
