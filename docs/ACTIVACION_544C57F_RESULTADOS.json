@@ -1,0 +1,180 @@
+{
+  "baseline_delivery": "544c57f2bad53b3b6c0f92407c0d0176aef39a81",
+  "port": 4750,
+  "server_pid": 138604,
+  "resident_source_sha256": "bca8fb3156d1cb4a5c102adadacaee6109a1988265edf69acf6ecbad1505207a",
+  "restart_required": false,
+  "server_restarted_by_agent": false,
+  "actual_chrome_panel": true,
+  "flows": {
+    "portuguese_existing_playback": {
+      "duration": 22.36,
+      "source": "http://127.0.0.1:4750/media/edit-qa544-silence/assets/editor-renders/4f4a67657f154e70aeb04af46fd60607/montage.mp4",
+      "time": 0.262966,
+      "muted": true,
+      "readyState": 4
+    },
+    "silence": {
+      "proposal_revision": 13,
+      "candidates": 6,
+      "selected_frames": [
+        63,
+        64
+      ],
+      "words": 116,
+      "cues": 20,
+      "audio_tracks": 3,
+      "titles": 3,
+      "layers": 3,
+      "undo_redo_reopen_exact": true,
+      "acoustic_analysis": false,
+      "new_export": false
+    },
+    "component_existing_playback": {
+      "duration": 4,
+      "source": "http://127.0.0.1:4750/media/edit-qa544-components/assets/editor-renders/c4b81e281cb84994b3f8d15a996fdbf9/montage.mp4",
+      "time": 0.262676,
+      "muted": true,
+      "readyState": 4
+    },
+    "components": {
+      "manual_transform": true,
+      "undo_redo_reopen_exact": true,
+      "existing_components": [
+        "evidence_card",
+        "comparison",
+        "collage"
+      ],
+      "new_export": false
+    },
+    "qwen": {
+      "profiles": 2,
+      "completed_receipt_recovered": true,
+      "muted_playback": true,
+      "duplicate_import_disabled": true,
+      "persistent_old_cancellation": true,
+      "no_new_requests": true,
+      "listening_verified": false
+    },
+    "hyperframes_existing_playback": {
+      "duration": 4,
+      "time": 0.278519,
+      "source": "http://127.0.0.1:4750/media/qa132-hyperframes-offline/renders/hyperframes-offline.mp4",
+      "muted": true
+    }
+  },
+  "component_forms": {
+    "port": 4750,
+    "actual_form_submissions": [
+      "evidence_card",
+      "comparison",
+      "collage"
+    ],
+    "undo_to_baseline_each": true,
+    "save_reopen_baseline": true,
+    "no_render": true,
+    "operations": [
+      "component_add",
+      "undo",
+      "component_add",
+      "undo",
+      "component_add",
+      "undo",
+      "save"
+    ]
+  },
+  "reference_agent": {
+    "server_port": 4750,
+    "initial_agent_command_committed_revision": 18,
+    "python_transport_result": "WinError10054 response reset after committed write; not resent",
+    "recovered_by_read": true,
+    "subsequent_agent_api_revisions": [
+      19,
+      20,
+      21
+    ],
+    "changed_only": [
+      "one"
+    ],
+    "unchanged": [
+      "two"
+    ],
+    "existing_saved_pts_reused": [
+      9.875,
+      10.5,
+      11.167
+    ],
+    "comparison_same_instant": 9.875,
+    "comparison_unchanged_pair": true,
+    "existing_marker_linked_as_qa_note": true,
+    "no_new_decoding": true,
+    "no_new_model_calls": true,
+    "no_new_resource_hashes": true,
+    "undo_redo_reopen_exact": true,
+    "original_reference_command_sent_once": true,
+    "human_review": false
+  },
+  "render_freshness": {
+    "silence": {
+      "current": false,
+      "status": "completed",
+      "duration": 22.36
+    },
+    "components": {
+      "current": true,
+      "status": "completed",
+      "duration": 4.0
+    }
+  },
+  "original_json_unchanged_counts": {
+    "silence": 6,
+    "components": 8,
+    "qwen": 17
+  },
+  "http_limit": "Python read reset and committed reference_plan response reset10054, no retry writes, cause unknown",
+  "hyperframes_generic_runtime": "catalog unavailable; existing private child profile retained, no config changes",
+  "piper112_eligible_requests": 0,
+  "human_listening_verified": false,
+  "new_synthesis_or_render_or_ci_or_resource_hashing": false,
+  "cost_usd": 0,
+  "silence_structural_sync": {
+    "cut_seconds": [
+      2.52,
+      2.56
+    ],
+    "removed_seconds": 0.04,
+    "independent_interval_multisets_match": {
+      "cues": 20,
+      "titles": 3,
+      "cuts": 4,
+      "audio_tracks": 3,
+      "layers": 3
+    },
+    "markers_mapped_exactly": true,
+    "all_116_source_words_unchanged": true,
+    "phonetic_review": false
+  },
+  "final_health": {
+    "health": {
+      "ok": true,
+      "app": "backlot"
+    },
+    "pid": 138604,
+    "restart_required": false,
+    "qwen_backend": "qwen-preview-v1",
+    "qwen": [
+      {
+        "id": "voice-design",
+        "ready": true,
+        "preview_available": true,
+        "problems": []
+      },
+      {
+        "id": "qwen-tts-17b-base",
+        "ready": true,
+        "preview_available": true,
+        "problems": []
+      }
+    ]
+  }
+}

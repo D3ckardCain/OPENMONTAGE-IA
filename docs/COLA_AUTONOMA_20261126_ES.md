@@ -2,9 +2,18 @@
 
 26-11-2026 UTC. [Evidencia breve](COLA_AUTONOMA_20261126_RESULTADOS.json).
 
-## Activación #130/#132
+**Actualización tras reinicio manual:** [activación real4750](ACTIVACION_544C57F_ES.md)
+y [resultados](ACTIVACION_544C57F_RESULTADOS.json). PID138604, identidad esperada
+residente/disco, sin reinicio requerido. Silencios, componentes, recuperación
+Qwen y referencias comprobados en copias. HyperFrames genérico sigue sin perfil
+heredado en el servidor; reproducción del render existente sí comprobada.
+El rechazo de reinicio y PID130700 inferiores son evidencia histórica anterior,
+superada por el reinicio manual del usuario, no por una evasión de política.
+HTTP10054 sigue observado en cliente Python; write recuperado sin reenviarlo.
 
-4750 responde, PID130700 sigue con identidad antigua/reinicio requerido.
+## Activación #130/#132: estado previo al reinicio manual
+
+En la entrega anterior4750 respondía con PID130700 e identidad antigua/reinicio requerido.
 Cola pausada/vacía, agentes/análisis y exportaciones consultados sin actividad;
 11proyectos inspeccionados. Artefactos de edición persistidos respaldados en
 `.runtime/qa/activation130132-snapshots`, sin modificar originales. No se afirma

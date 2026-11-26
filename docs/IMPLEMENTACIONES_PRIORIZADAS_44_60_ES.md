@@ -15,6 +15,16 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Actualización tras reinicio manual26-11-2026: [activación4750](ACTIVACION_544C57F_ES.md)
+comprobada, PID138604/identidad esperada/sin reinicio pendiente. Silencios y
+componentes reversibles, Qwen recuperado sin nueva síntesis y contrato de
+referencias por API del agente, en copias. No repetir CI/renders/hashes/modelos.
+Pendientes concretos: HTTP10054 en cliente Python (write ya guardado, no retry),
+selección explícita del perfil HyperFrames en el puente existente (catálogo
+genérico aún unavailable), #112 sin recibo Piper elegible y revisión humana/GLB.
+Los estados inferiores que piden activar4750 son históricos y quedan superados
+por esta comprobación; no se declara habilitado HyperFrames por reproducir un MP4.
+
 Actualización de cola26-11-2026 UTC: [#122 evidencia local](INSPECCION_VIDEO_LOCAL_ES.md)
 implementada sobre FrameSampler existente:3PTS reales/6palabras guardadas y caché
 sin nueva decodificación;9casos nuevos. [Resto de avances/bloqueos](COLA_AUTONOMA_20261126_ES.md):
@@ -404,8 +414,9 @@ Escucha, español audiovisual#107/#130 y GLB visual no se sustituyen por CI.
 
 ### Siguiente orden, sin duplicar entregas
 
-1. Activación única4750 y capacidades del lote, solo cuando se resuelva el
-   rechazo de política registrado; no intentar otro método de reinicio.
+1. Activación única4750 y capacidades del lote **comprobadas tras reinicio manual**.
+   Queda seleccionar el perfil HyperFrames en el puente existente, sin instalar
+   ni repetir el piloto; HTTP Python conserva seguimiento específico.
 2. #112: recuperar recibo **Piper** terminado elegible, si llega a existir por
    un trabajo necesario; Qwen no satisface ese contrato. No resintetizar por QA.
 3. Revisión humana de audio/pronunciación/naturalidad y español audiovisual

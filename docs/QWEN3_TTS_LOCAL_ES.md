@@ -125,8 +125,11 @@ Metadatos de recursos se revalidan sin releer pesos; recibos de runtime ligados
 a identidad de Python y METADATA de Torch. No hay fallback CPU/modelo ni red
 oculta. Si cambia el servidor con un worker sin reconciliar se informa
 interrupción, sin relanzarlo ni afirmar cierre; requiere inspección propia.
-La activación en Studio4750 sigue bloqueada por política de ejecución; las
-comprobaciones anteriores pertenecen a la instancia aislada, no a la del usuario.
+La activación estuvo bloqueada por política de ejecución; las comprobaciones
+anteriores pertenecen a la instancia aislada. Tras el reinicio manual del usuario,
+[4750 activa estos contratos](ACTIVACION_544C57F_ES.md): perfiles, recuperación,
+reproducción silenciada, bloqueo de importación duplicada y cancelación histórica
+persistida comprobados. No se repiten síntesis ni cancelación real ya aprobadas.
 
 Código funcional publicado en `4242eca`. CI principal45773151291 aprobada:
 3832passed/44skipped/3xfailed/40subtests,107,66s. Contratos e instalación Windows

@@ -537,5 +537,18 @@
     "main4750_pid": 130700,
     "main4750_health_ok": true,
     "main4750_restarted": false
+  },
+  "activation_followup_after_user_restart": {
+    "report": "ACTIVACION_544C57F_RESULTADOS.json",
+    "server_pid": 138604,
+    "restart_required": false,
+    "agent_restarted_server": false,
+    "approved_synthesis_render_ci_resource_hashes_repeated": false,
+    "limits": [
+      "Python HTTP10054 remains observed; committed write not resent",
+      "Generic HyperFrames status unavailable without inherited private profile",
+      "No eligible Piper112 request receipt",
+      "Human listening and own GLB remain pending"
+    ]
   }
 }
