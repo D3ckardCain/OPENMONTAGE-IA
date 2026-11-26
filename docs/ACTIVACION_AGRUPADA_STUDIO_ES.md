@@ -1,6 +1,15 @@
 # Activación agrupada de Studio
 
-## Estado vigente — #117 y #129
+## Estado vigente: lote #117/#129 activado
+
+[Resultados reales de la activación única](ACTIVACION_117_129_ES.md): PID130700,
+identidad residente=disco y restart_required=false. #129 revisión/aplicación,
+undo/redo/save/reopen pasaron en copia portuguesa con106ocurrencias/19cues;
+selector Blender habilitado,4.5 predeterminado conservado. No nuevo reinicio
+necesario por ese lote. Sin repetir ASR/síntesis/piloto ni afirmar exportación AV.
+#112 sin recibo elegible y acciones ocultas #113 siguen pendientes.
+
+## Historial del lote #117/#129 antes de activar
 
 [Preparación única comprobada y prueba portuguesa lista](ACTIVACION_117_129_ES.md):
 cola vacía/sin trabajos activos a01:12UTC, PID123920 todavía antiguo. Copia QA

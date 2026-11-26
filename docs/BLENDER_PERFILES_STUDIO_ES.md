@@ -1,5 +1,10 @@
 # Blender 4.5 LTS y5.3 portable: perfiles compartidos (#117)
 
+Actualización: [selector activado en4750](ACTIVACION_117_129_ES.md), PID130700,
+API contrato1 y control habilitado.4.5 sigue predeterminado; opción5.3 comprobada
+sin guardar cambio global ni lanzar Blender. Los párrafos siguientes conservan
+la evidencia histórica de provisión/pruebas aisladas, no el estado actual del panel.
+
 Implementación y pruebas locales25–26-11-2026 UTC. La selección cambia una ruta
 compartida por Studio y el agente; nunca abre otra versión como sustitución
 silenciosa. **El servidor4750 no se reinició**: su selector permanece bloqueado

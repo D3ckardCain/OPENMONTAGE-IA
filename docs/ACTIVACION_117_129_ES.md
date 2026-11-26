@@ -1,4 +1,42 @@
-# Activación única #117/#129 — preparación 26-11-2026
+# Activación única #117/#129 — resultados 26-11-2026
+
+## Estado actual: activado y comprobado en4750
+
+Tras el reinicio manual confirmado por el usuario, PID130700 carga identidad
+residente=disco `5876fee6a176112ac9f4c20192d34ee16b692d6d1a999d53a5c5bb54f63e4bcf`,
+`restart_required=false`, API protocolo1 y `subtitle_from_words` presente.
+UI `50f751ebab4ede241ed5d9228d2356132c2b61dcceef6719e2f3315cb849e169`.
+
+Validación en Chrome headless contra servidor real y proyecto QA separado:
+borrador portugués19cues/106ocurrencias de116palabras guardadas, revisión de todos
+los textos/tiempos con negaciones conservadas. Aplicar→revisión1; deshacer→2
+recupera exactamente EDL previo/24cues; rehacer→3 restaura19; guardar→4 y
+reabrir→4 conservan exactamente EDL/procedencia. Los cuatro POST se limitaron a
+esa copia. Texto SRT portugués y19cues visibles en timeline, captura inspeccionada.
+No nueva transcripción, traducción, síntesis, render, reproducción/escucha AV ni piloto.
+El visor sin render se presenta explícitamente así; no acredita resultado AV final.
+
+Selector Blender/API contrato1 habilitado:4.5.15 marcado como seleccionado,
+5.3.0 disponible. Se eligió5.3 únicamente en el desplegable, se comprobó botón
+habilitado y se volvió a4.5 sin guardar preferencia global ni abrir Blender.
+Se reutiliza prueba persistente aislada anterior; no se repitió. Captura del
+selector visible inspeccionada. Proyecto original, settings, applications y
+blender_profiles conservaron exactamente sus SHA256.
+
+El guion inicial completó todas las operaciones de subtítulos, pero agotó su
+espera de selector al omitir «Ver aplicaciones integrables». Se terminó solo
+esa parte con el control de carga correcto y cero POST; no fue fallo de Studio
+ni se repitieron ediciones. Cero errores JavaScript observados. Dos capturas y
+el informe completo permanecen locales; se publica únicamente
+[evidencia numérica](ACTIVACION_117_129_RESULTADOS.json), sin medios/transcripción.
+
+La comprobación cubre el ciclo manual pedido y activación del selector; no
+certifica las28skills, calidad artística, guardado global5.3 en esta sesión,
+exportación AV de nuevos cues ni escucha. #107 español, #112 sin recibo elegible
+y acciones ocultas #113 conservan sus pendientes. Agente:0reinicios, costo$0,
+sin instalar ni tocar ComfyUI; PR#2 borrador.
+
+## Historial: preparación anterior al reinicio
 
 Estado: **preparada, pendiente del reinicio manual**. No declarar panel/API
 activados por la presencia del código. Salud de4750 responde, pero PID123920

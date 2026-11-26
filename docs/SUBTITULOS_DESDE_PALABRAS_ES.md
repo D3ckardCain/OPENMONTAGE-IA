@@ -1,5 +1,10 @@
 # Borrador de subtítulos desde palabras guardadas — #129 / E04
 
+Actualización: [activado y comprobado en Studio4750](ACTIVACION_117_129_ES.md)
+en copia portuguesa, revisión/aplicación/undo/redo/save/reopen. El alcance
+sintético descrito abajo es histórico; la nueva prueba no incluye exportación
+AV ni escucha ni aprobación de la muestra española.
+
 Extiende #115 sin volver a transcribir. El montaje, los subtítulos y el historial
 siguen siendo los mismos para Studio y el agente. No hay nuevo motor ni instalación.
 

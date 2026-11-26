@@ -15,6 +15,19 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Actualización de activación #117/#129:
+[validación real en4750](ACTIVACION_117_129_ES.md), PID130700/coherente;
+subtítulos portugueses revisados/aplicados, undo/redo/save/reopen exactos en copia.
+Selector habilitado,4.5 predeterminado intacto. No repetir ASR/síntesis/piloto;
+exportación AV de los nuevos cues no comprobada, pendientes #107 español/#112/#113.
+
+Evaluación independiente [#131 Soundsible](EVALUACION_SOUNDSIBLE_ES.md): biblioteca
+y DJ beta0.40.0 fijados a3a619707…, MIT de software separado de música/pesos;
+model_path/session y launcher tienen efectos de descarga/instalación. Reutilizar
+music_library/audio_energy/audio_mixer/BMTS-Lite antes de nuevo analizador.
+E04/E06/E09 P1: beats/entradas/transiciones corregibles y prueba A/B futura;
+E01/E05: procedencia/caché/invalidación. Sin instalar ni generar música.
+
 Comparación independiente [#130 FireCut](EVALUACION_FIRECUT_ES.md): ampliar
 E03/E04 con propuesta revisable de silencios sobre waveform y E05 con recibos,
 sin otro cutter/ASR/editor. Prioridad siguiente: contrato numérico y protección
