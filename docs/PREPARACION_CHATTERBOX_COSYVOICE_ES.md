@@ -6,6 +6,14 @@ Sin síntesis, carga de pesos, inferencias, eliminación de variantes ni cambios
 en `.venv`/ComfyUI. Costo$0. #96 conserva su evaluación cerrada: esta preparación
 no vuelve a declarar esa evaluación pendiente ni acredita calidad de voz.
 
+**Actualización posterior a bcde8f9:** FDM terminó también decoder V3 y tokenizer
+es-MX. Verificados una vez: decoder1056381804bytes/SHA oficial correcto,
+2488tensores, cabecera317048bytes y offsets válidos; tokenizer69989bytes/Git blob
+oficial correcto. Ambos perfiles ahora pueden reutilizar las mismas rutas C:
+sin duplicar contenido. El tokenizer base D: y ve.pt siguen conservados; es-ES
+continúa .fdmdownload y no se lee. Los estados de cola iniciales inferiores son
+históricos. **Recursos verificados no levantan el bloqueo de loader/runtime.**
+
 ## Chatterbox: variantes explícitas y recursos reutilizados
 
 | Perfil | Revisión oficial | T3/bytes/SHA256 |
@@ -47,6 +55,18 @@ licencia separada del código del Space; no inferir permiso de redistribución
 de ese fork por la ficha MIT de los pesos. Tampoco usar sus muestras demo como
 referencias autorizadas propias. Compatibilidad/atribuciones del loader siguen
 por acreditar antes de instalarlo o cargar pesos.
+
+Se compararon únicamente las cabeceras de T3 base/regional: ambos292tensores,
+embeddings texto2454×1024 y habla8194×1024. No se volvió a hashear la base ni se
+cargaron pesos. La compatibilidad de esas formas no demuestra compatibilidad
+S3Gen end-to-end. Siguiente implementación acotada: adaptar el loader MIT
+existente para rutas T3/decoder explícitas y safetensors, exigir carga estricta
+de claves/formas (solo excepciones documentadas para buffers derivados), recursos
+locales y Perth, y cualificar dependencias Windows en el entorno aislado.
+No hace falta copiar el fork del Space para plantear esa adaptación propia;
+si se reutiliza su código, su licencia/atribuciones deben revisarse igualmente.
+No se instala una combinación de versiones contradictorias ni se afirma que la
+mera coincidencia de vocabularios resuelva ese trabajo.
 
 La ficha de ambos pesos regionales declara MIT; el upstream MIT y
 [Perth MIT](https://github.com/resemble-ai/Perth/blob/master/LICENSE) tienen

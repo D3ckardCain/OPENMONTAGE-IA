@@ -19,7 +19,8 @@ Entrega posterior a f1dddfa: [perfil HyperFrames persistente](HYPERFRAMES_PERFIL
 en puente nativo/launcher y panel, recursos existentes y probe CLI sin render.
 Once pruebas nuevas y una regresión focal; activación4750 se agrupa sin reiniciar.
 [Chatterbox/CosyVoice](PREPARACION_CHATTERBOX_COSYVOICE_ES.md): T3 es-MX terminado
-verificado una vez, tokenizer/ve existentes reutilizados; V3/esES y loader bloquean
+verificado una vez, decoder V3 y tokenizer terminados/verificados después,
+tokenizer/ve existentes reutilizados; esES y loader bloquean
 síntesis. CosyVoice ya tiene candidato completo por tamaños en D:, sin hashes
 masivos ni más descargas de pesos; nueve auxiliares mínimos preparados en C:.
 Ocho pruebas nuevas; no repetir CI, Qwen, pilotos o síntesis. HTTP10054 intacto.

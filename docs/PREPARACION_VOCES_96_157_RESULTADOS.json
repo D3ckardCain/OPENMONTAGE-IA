@@ -83,12 +83,13 @@
             "read": false
           },
           "decoder": {
-            "status": "download_incomplete",
+            "status": "verified_cached",
             "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\s3gen_v3.safetensors",
+            "bytes": 1056381804,
             "read": false
           },
           "tokenizer": {
-            "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox\\grapheme_mtl_merged_expanded_v1.json",
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\grapheme_mtl_merged_expanded_v1.json",
             "present": true,
             "verified_cached": true,
             "official_git_blob": "d27fb3f2fd38ca39b7bbfbf83a13b3c617e551df"
@@ -101,7 +102,6 @@
           },
           "shared_decoder_sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
           "problems": [
-            "Decoder V3 compartido: download_incomplete",
             "Loader regional V3 no acreditado: el from_local upstream revisado carga s3gen.pt, no s3gen_v3.safetensors",
             "Código alternativo del Space requiere revisión de licencia/atribuciones y compatibilidad Windows antes de instalar/cargar",
             "Perth/referencia autorizada y entorno de inferencia aún no acreditados"
@@ -121,17 +121,18 @@
           "preview_available": false,
           "inference_verified": false,
           "main": {
-            "status": "missing_or_queued",
+            "status": "download_incomplete",
             "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-es\\t3_es_es.safetensors",
             "read": false
           },
           "decoder": {
-            "status": "missing_or_queued",
-            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-es\\s3gen_v3.safetensors",
+            "status": "verified_cached",
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\s3gen_v3.safetensors",
+            "bytes": 1056381804,
             "read": false
           },
           "tokenizer": {
-            "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox\\grapheme_mtl_merged_expanded_v1.json",
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\grapheme_mtl_merged_expanded_v1.json",
             "present": true,
             "verified_cached": true,
             "official_git_blob": "d27fb3f2fd38ca39b7bbfbf83a13b3c617e551df"
@@ -144,8 +145,7 @@
           },
           "shared_decoder_sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
           "problems": [
-            "T3 regional: missing_or_queued",
-            "Decoder V3 compartido: missing_or_queued",
+            "T3 regional: download_incomplete",
             "Loader regional V3 no acreditado: el from_local upstream revisado carga s3gen.pt, no s3gen_v3.safetensors",
             "Código alternativo del Space requiere revisión de licencia/atribuciones y compatibilidad Windows antes de instalar/cargar",
             "Perth/referencia autorizada y entorno de inferencia aún no acreditados"
@@ -162,10 +162,71 @@
     "inference_dependencies_installed": false,
     "weights_loaded": false,
     "blockers": [
-      "decoder/esES unfinished",
-      "regional loader compatibility/license review",
+      "esES unfinished",
+      "regional loader strict ABI validation and source integration still pending",
       "Windows inference dependencies not qualified"
-    ]
+    ],
+    "finished_new_companions": [
+      {
+        "name": "s3gen_v3.safetensors",
+        "bytes": 1056381804,
+        "sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
+        "verified": true,
+        "hash_reused": false,
+        "weights_loaded": false,
+        "tensors": 2488,
+        "header_bytes": 317048,
+        "offsets_valid": true
+      },
+      {
+        "name": "grapheme_mtl_merged_expanded_v1.json",
+        "bytes": 69989,
+        "sha256": "69632f47220a788a52ce2661d096453c5655e9bf25289d89a8d832c46ee07dbf",
+        "verified": true,
+        "hash_reused": false,
+        "weights_loaded": false
+      }
+    ],
+    "final_download_state": [
+      {
+        "file": "t3_es_mx_latam.safetensors",
+        "finished": true,
+        "canonical_file": true,
+        "partial_exists": false
+      },
+      {
+        "file": "s3gen_v3.safetensors",
+        "finished": true,
+        "canonical_file": true,
+        "partial_exists": false
+      },
+      {
+        "file": "grapheme_mtl_merged_expanded_v1.json",
+        "finished": true,
+        "canonical_file": true,
+        "partial_exists": false
+      },
+      {
+        "file": "t3_es_es.safetensors",
+        "finished": false,
+        "canonical_file": false,
+        "partial_exists": true
+      }
+    ],
+    "t3_header_comparison": {
+      "base_and_regional_tensor_count": 292,
+      "text_embedding": [
+        2454,
+        1024
+      ],
+      "speech_embedding": [
+        8194,
+        1024
+      ],
+      "weights_loaded": false,
+      "base_hash_repeated": false,
+      "full_pipeline_compatibility_inferred": false
+    }
   },
   "cosyvoice": {
     "revision": "29e01c4e8d000f4bcd70751be16fa94bf3d85a18",
