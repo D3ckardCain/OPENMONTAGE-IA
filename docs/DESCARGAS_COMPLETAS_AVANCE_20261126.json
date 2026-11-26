@@ -1,0 +1,181 @@
+{
+  "recorded_at": 1795706679.2674012,
+  "status": "in_progress_not_final",
+  "catalog_references": 595,
+  "groups": 49,
+  "physical_paths": 651,
+  "snapshot_availability": [
+    {
+      "root": "C:\\OPENMONTAJE-IA",
+      "available": true,
+      "drive_exists": true
+    },
+    {
+      "root": "D:\\OPENMONTAJE-IA",
+      "available": true,
+      "drive_exists": true
+    },
+    {
+      "root": "E:\\OPENMONTAJE-IA",
+      "available": false,
+      "drive_exists": true
+    },
+    {
+      "root": "F:\\OPENMONTAJE-IA",
+      "available": true,
+      "drive_exists": true
+    }
+  ],
+  "initial_counts": {
+    "new_unverified": 501,
+    "cached_unchanged": 150
+  },
+  "initial_bytes": {
+    "new_unverified": 1369725927957,
+    "cached_unchanged": 56434346665
+  },
+  "progress": {
+    "started": 1795705613.2148917,
+    "updated": 1795706628.6735163,
+    "files_done": 493,
+    "files_total": 651,
+    "bytes_read": 70136677594,
+    "counts": {
+      "verified_cache_reused": 143,
+      "verified_new": 347,
+      "official_digest_unavailable": 2,
+      "different_content_not_corruption_claim": 1
+    }
+  },
+  "missing_catalog_rows": [
+    {
+      "repo": "alibaba-pai/Wan2.2-Fun-A14B-Control-Camera",
+      "path": "configuration.json",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/alibaba-pai--Wan2.2-Fun-A14B-Control-Camera/configuration.json",
+      "wrong_type": []
+    },
+    {
+      "repo": "alibaba-pai/Wan2.2-Fun-A14B-Control-Camera",
+      "path": "README_en.md",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/alibaba-pai--Wan2.2-Fun-A14B-Control-Camera/README_en.md",
+      "wrong_type": []
+    }
+  ],
+  "exceptions": [
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-VL-8B-Instruct\\tokenizer.json",
+      "identity": [
+        2728866502,
+        281474976712468,
+        7032403,
+        1794473406876210200,
+        1794473406375125800
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "git_blob_sha1": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421",
+      "status": "verified_new_official_git_blob",
+      "official_sha256_available": false,
+      "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "bytes_hashed": 7032403
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model.safetensors.index.json",
+      "sha256_reused": "9e5a9d081046ccfcb7d3875501f4fed9972021b57694f983374fabd067418c99",
+      "semantic_json_equal": false,
+      "changed_top_level_keys": [
+        "metadata",
+        "weight_map"
+      ],
+      "different_weight_map_entries": 331,
+      "example_differences": [
+        {
+          "name": "adapter.audio_embedder.bias",
+          "actual": "model-00001-of-00013.safetensors",
+          "official": "model-00001-of-00007.safetensors"
+        },
+        {
+          "name": "adapter.audio_embedder.weight",
+          "actual": "model-00001-of-00013.safetensors",
+          "official": "model-00004-of-00007.safetensors"
+        },
+        {
+          "name": "adapter.rope.bands",
+          "actual": "model-00013-of-00013.safetensors",
+          "official": "model-00006-of-00007.safetensors"
+        }
+      ],
+      "status": "different_index_content_requires_review",
+      "official_reference": "https://huggingface.co/GAIR/daVinci-MagiHuman/resolve/7fe95e50c11bd92bdadf94cd51dbec18427f8e0c/base/model.safetensors.index.json"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen2.5-VL-7B-Instruct\\tokenizer.json",
+      "identity": [
+        4101616990,
+        1125899906920855,
+        7031645,
+        1794007443024728600,
+        1794066343478748500
+      ],
+      "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "git_blob_sha1": "443909a61d429dff23010e5bddd28ff530edda00",
+      "status": "verified_new_official_git_blob",
+      "official_sha256_available": false,
+      "revision": "cc594898137f460bfe9f0759e9844b3ce807cfb5",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "bytes_hashed": 7031645
+    }
+  ],
+  "functional": {
+    "minilm": {
+      "family": "minilm",
+      "success": true,
+      "shape": [
+        3,
+        384
+      ],
+      "norms": [
+        1.0000000054331653,
+        0.9999999563516176,
+        0.9999999683759652
+      ],
+      "cosine_similar": 0.8462699992598003,
+      "cosine_unrelated": 0.18204790638977403,
+      "runtime_seconds_including_imports": 38.71456027030945,
+      "device": "cpu",
+      "network_blocked": true,
+      "mock": false,
+      "new_inferences": 1,
+      "model_revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+      "license": "Apache-2.0",
+      "weights_preverified": true,
+      "output": "projects/qa-full-downloads-20261126/artifacts/minilm/result.json",
+      "semantic_quality_generalized": false
+    },
+    "siglip": {
+      "status": "bounded_attempt_stopped",
+      "response_produced": false,
+      "reason": "Several minutes without response; only own QA Python processes stopped. Cause not established; not a model corruption claim."
+    }
+  },
+  "preserved": [
+    ".venv",
+    "ComfyUI",
+    "originals",
+    "existing environments"
+  ],
+  "large_qwen_issue82": "Resolved verified identity cache reused; no rehash or disk diagnosis",
+  "audio8": "No payload found in searched roots/FDM; separate fixed manifest; not loaded",
+  "limits": [
+    "Located does not mean verified",
+    "Verified weights do not establish runtime compatibility or quality",
+    "Reference groups overlap; paths are not distinct models",
+    "Hash scan still active; no final all-complete claim"
+  ]
+}
