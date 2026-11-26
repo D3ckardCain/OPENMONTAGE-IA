@@ -2,7 +2,7 @@
 from copy import deepcopy
 import uuid
 
-CAPABILITIES = ['layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
+CAPABILITIES = ['layer_transform_keyframes', 'layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
                 'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply', 'qwen_tts_plan', 'reference_plan', 'component_add', 'component_remove']
 
 

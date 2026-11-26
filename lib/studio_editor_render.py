@@ -76,9 +76,12 @@ def plan(pid, edl, preview=False):
         source_index=len(tracks)+index
         args += [*editor.INPUT_OPTIONS,'-i',str(editor.source(pid,layer['source_id']))]
         w,h=max(2,round(width*layer['width']/2)*2),max(2,round(height*layer['height']/2)*2)
+        from lib.studio_transform_keyframes import enhanced, filters as curve_filters
+        animated=enhanced(layer)
+        suffix,overlay=curve_filters(layer,width,height,fps,index) if animated else (f",format=rgba,colorchannelmixer=aa={layer['opacity']}",None)
         filters.append(f"[{source_index}:v:0]trim=start={layer['in_seconds']}:end={layer['out_seconds']},"
                        f"setpts=(PTS-STARTPTS)/{layer['speed']}+{layer['start_seconds']}/TB,"
-                       +transform_filter(w,h,{'fit':layer.get('fit','pad')})+f",setsar=1,fps={fps},format=rgba,colorchannelmixer=aa={layer['opacity']}[layer{index}]")
+                       +transform_filter(w,h,{'fit':layer.get('fit','pad')})+f",setsar=1,fps={fps}"+suffix+f"[layer{index}]")
         target='montage' if index==len(layers)-1 else f'composite{index}'
         end=layer['start_seconds']+(layer['out_seconds']-layer['in_seconds'])/layer['speed']
         x=str(round(width*layer['x']));y=str(round(height*layer['y']))
@@ -88,7 +91,8 @@ def plan(pid, edl, preview=False):
         elif layer.get('motion'):
             m=layer['motion'];progress=f"clip((t-{layer['start_seconds']}+{m.get('phase_seconds',0)})/{m['duration_seconds']},0,1)"
             x=f"'{width}*({layer['x']}+{m['dx']}*{progress})'";y=f"'{height}*({layer['y']}+{m['dy']}*{progress})'"
-        filters.append(f"[{base}][layer{index}]overlay=x={x}:y={y}:"
+        overlay=overlay if animated else f'overlay=x={x}:y={y}'
+        filters.append(f"[{base}][layer{index}]{overlay}:"
                        f"eof_action=pass:repeatlast=0:enable='gte(t,{layer['start_seconds']})*lt(t,{end})'[{target}]")
         base=target
     audio = '[baseaudio]' + ''.join(f'[a{i}]' for i in range(len(edl['cuts']), len(tracks)))
@@ -180,6 +184,9 @@ def _worker(pid, edl, job, args, filters):
         control.check()
         work.resolve().relative_to(project.resolve())
         work.mkdir(parents=True, exist_ok=False)
+        from lib.studio_transform_keyframes import enhanced, write_commands
+        for index,layer in enumerate(edl.get('layers',[])):
+            if enhanced(layer):write_commands(work,layer,job['width'],job['height'],edl['output']['fps'],index,control)
         used = {clip['source_id'] for clip in edl['cuts'] + edl['audio_tracks'] + edl.get('layers', []) if clip.get('kind') != 'gap'}
         for key in used:
             control.check()

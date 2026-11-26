@@ -1,7 +1,7 @@
 """Source-clock position curves for existing editable layers; no new timeline."""
 import math
 
-INTERPOLATIONS = ('linear', 'hold', 'smooth')
+INTERPOLATIONS = ('linear', 'hold', 'smooth', 'bezier')
 
 
 def validate(value, layer, source_duration):
@@ -14,7 +14,7 @@ def validate(value, layer, source_duration):
         raise ValueError('Keyframes: entre 2 y 32 puntos')
     result = []
     for point in points:
-        if not isinstance(point, dict) or set(point) != {'seconds', 'x', 'y', 'interpolation'}:
+        if not isinstance(point, dict) or set(point)-{'seconds','x','y','interpolation','control_points'} or not {'seconds','x','y','interpolation'} <= set(point):
             raise ValueError('Keyframe requiere seconds, x, y e interpolation')
         numbers = [point[k] for k in ('seconds', 'x', 'y')]
         if any(type(n) not in (int, float) or not math.isfinite(n) for n in numbers):
@@ -26,6 +26,8 @@ def validate(value, layer, source_duration):
             raise ValueError('Los keyframes sacarían la capa del lienzo')
         if point['interpolation'] not in INTERPOLATIONS:
             raise ValueError('Interpolación: linear, hold o smooth')
+        from lib.studio_transform_keyframes import controls
+        controls(point)
         result.append(dict(point))
     return {'clock': 'source_seconds', 'points': result}
 

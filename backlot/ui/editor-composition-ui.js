@@ -1,6 +1,7 @@
 // Real revisioned composition operations; render is required to see AV effects.
 import {videoDuration} from './editor-time.js';
 import {initializeLayerKeyframes} from './editor-layer-keyframes.js';
+import {initializeTransformKeyframes} from './editor-layer-transform-keyframes.js';
 export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,run,cursor}){
   const root=document.createElement('div');q('editor-inspector').append(root);
   root.innerHTML=`<details id="edit-transition-panel" hidden><summary>Transici&#243;n por negro</summary><form id="edit-transition-form"><label>Duraci&#243;n por lado (s)<input name="duration_seconds" type="number" min="0.017" max="2" step="0.001" value="0.25" required></label><button type="submit">Aplicar al corte anterior</button><button id="edit-transition-remove" type="button">Quitar transici&#243;n</button></form><p>Oscurece y aten&#250;a el final anterior y el inicio seleccionado. No solapa clips ni cambia tiempos. Fundido cruzado no disponible.</p></details>
@@ -9,6 +10,7 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
   const extras=document.createElement('div');extras.innerHTML='<label>Encaje<select name="fit"><option value="pad">Bandas</option><option value="crop">Llenar por recorte</option></select></label><label><input name="motion_enabled" type="checkbox"> Movimiento lineal por tiempo absoluto</label><label>Desplazamiento X<input name="motion_dx" type="number" min="-1" max="1" step=".01" value="0"></label><label>Desplazamiento Y<input name="motion_dy" type="number" min="-1" max="1" step=".01" value="0"></label><label>Duración del movimiento (s)<input name="motion_duration" type="number" min=".001" max="7200" step=".001" value="1"></label>';layerForm.append(extras);
   let transitionKey=null,layerKey=null;
   const keyframes=initializeLayerKeyframes({root,q,getEdl,getProject,has,run});
+  const transforms=initializeTransformKeyframes({root,q,getEdl,getProject,has,run});
   const values=(form,data)=>{for(const [k,v]of Object.entries(data))if(form.elements[k])form.elements[k].value=v;};
   function drawSelection(){
     let item;try{item=getSelection();}catch{/* no selection */}
@@ -30,7 +32,9 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
     q('edit-layer-raise').disabled=!layer||edl.layers.indexOf(layer)===edl.layers.length-1;
     q('edit-layer-form').querySelector('[type=submit]').disabled=!sources.length||videoDuration(edl)<=0;
     for(const name of ['x','y','motion_enabled','motion_dx','motion_dy','motion_duration'])q('edit-layer-form').elements[name].disabled=Boolean(layer?.position_keyframes);
+    q('edit-layer-form').elements.opacity.disabled=Boolean(layer?.transform_keyframes?.curves?.opacity);
     keyframes.draw();
+    transforms.draw();
   }
   function draw(){
     drawSelection();q('edit-layers-panel').hidden=!has('layers');const id=q('edit-layer-select').value;

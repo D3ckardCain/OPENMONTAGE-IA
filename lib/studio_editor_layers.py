@@ -17,6 +17,13 @@ def apply_composition(edl, data):
             seconds=int(seconds*fps+.5)/fps
             item['transition']={'type':kind,'duration_seconds':seconds}
         else:raise ValueError('Solo disponible: paso por negro sin solapamiento')
+    elif op=='layer_transform_keyframes':
+        from lib.studio_transform_keyframes import validate
+        layer=edit._item(edl.get('layers',[]),data['id'])
+        if layer.get('locked'):raise edit.Conflict('Capa bloqueada')
+        value=validate(data['keyframes'],edl['sources'][layer['source_id']]['duration'])
+        if value is None:layer.pop('transform_keyframes',None)
+        else:layer['transform_keyframes']=value
     elif op=='layer_position_keyframes':
         from lib.studio_layer_keyframes import validate
         layer=edit._item(edl.get('layers',[]),data['id'])
@@ -68,6 +75,8 @@ def apply_composition(edl, data):
 def validate_composition(edl):
     from lib import studio_editor as edit
     fps=edl['output']['fps'];cuts=edl['cuts']
+    from lib.studio_transform_keyframes import validate_budget
+    validate_budget(edl)
     if len(edl.get('layers', [])) > 4 or len(edl.get('titles', [])) > 20:
         raise ValueError('El montaje excedería el límite de4 capas o20 títulos; ajusta sus intervalos primero')
     for index,item in enumerate(cuts):
@@ -77,6 +86,9 @@ def validate_composition(edl):
         if incoming+outgoing>edit.frames(item,fps)/fps+1e-8:
             raise ValueError('Las transiciones exceden la duración del clip; acórtalas o quítalas primero')
     for layer in edl.get('layers',[]):
+        if layer.get('transform_keyframes'):
+            from lib.studio_transform_keyframes import validate
+            validate(layer['transform_keyframes'],edl['sources'][layer['source_id']]['duration'])
         if layer.get('position_keyframes'):
             from lib.studio_layer_keyframes import validate
             validate(layer['position_keyframes'],layer,edl['sources'][layer['source_id']]['duration'])

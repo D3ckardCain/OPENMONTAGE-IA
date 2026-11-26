@@ -1,6 +1,6 @@
 # #174 — keyframes de posición de capas: primera entrega P0
 
-Se reutilizan las capas, el historial y el render FFmpeg del proyecto compartido. No se crea otra timeline. Esta entrega cubre únicamente X/Y de capas visuales: escala, giro, opacidad animada, curvas Bézier y fundido cruzado siguen pendientes. El movimiento lineal anterior permanece disponible; activar keyframes sustituye ese movimiento de la misma capa, y no permite activar ambos a la vez.
+Se reutilizan las capas, el historial y el render FFmpeg del proyecto compartido. No se crea otra timeline. Esta primera entrega cubrió X/Y; la continuación [EDITOR_KEYFRAMES_TRANSFORMACION_ES.md](EDITOR_KEYFRAMES_TRANSFORMACION_ES.md) incorpora escala, giro, opacidad y Bézier para capas. Fundido cruzado y otras partes de #174 siguen pendientes. El movimiento lineal anterior permanece disponible; activar keyframes de posición lo sustituye en esa capa y no permite activar ambos a la vez.
 
 Selecciona una capa existente en el inspector y abre **Keyframes de posición de la capa**. Añade de 2 a 32 puntos con tiempo en la fuente, X/Y normalizados e interpolación hasta el siguiente punto: lineal, mantener o suave (smoothstep). Guarda o quita los keyframes. Dos curvas muestran X en azul e Y en naranja. Los puntos deben estar ordenados, dentro de la fuente y mantener la capa dentro del lienzo. Cambiar su tamaño vuelve a validar esos límites.
 
