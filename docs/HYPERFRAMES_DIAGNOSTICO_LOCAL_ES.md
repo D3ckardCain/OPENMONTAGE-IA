@@ -1,5 +1,9 @@
 # HyperFrames: diagnóstico local, staging y audio — #132
 
+Actualización26-11-2026 UTC: [preparación y piloto real](HYPERFRAMES_OFFLINE_PILOTO_ES.md).
+Las afirmaciones de ausencia de preparación/render siguientes describen la
+entrega anterior, no el estado actual.
+
 ## Cambio implementado
 
 Disponibilidad de `hyperframes_compose`/`video_compose` ya no ejecuta `npm view`,

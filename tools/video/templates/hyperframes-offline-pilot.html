@@ -1,0 +1,9 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; font-src 'self' data:; media-src 'self' blob:">
+<title>QA132 HyperFrames local</title><script src="assets/gsap.min.js"></script>
+<style>body{margin:0;color:#e6edf3;font-family:Arial,sans-serif}#root{position:relative;width:640px;height:360px;overflow:hidden}.clip{position:absolute;inset:0}#panel{position:absolute;inset:0;z-index:1}#fill{background:#0d1117}h1{font-size:30px;margin:36px}p{margin:36px;font-size:20px}#square{position:absolute;left:60px;top:190px;width:56px;height:56px;background:#58a6ff;border-radius:8px}#marker{position:absolute;left:36px;top:300px;width:200px;height:10px;background:#3fb950;opacity:0}</style></head>
+<body><div id="root" data-composition-id="qa132" data-width="640" data-height="360" data-duration="4">
+<div id="fill" class="clip" data-start="0" data-duration="4" data-track-index="0"></div>
+<section id="panel"><h1>HyperFrames · local</h1><p>Animación y audio existentes · QA132</p><div id="square"></div><div id="marker"></div></section>
+<audio id="voice" class="clip" src="assets/voice.wav" data-start="0.25" data-duration="__AUDIO_DURATION__" data-track-index="2" data-volume="1"></audio>
+</div><script>window.__timelines=window.__timelines||{};const tl=gsap.timeline({paused:true});tl.to('#square',{x:450,duration:3,ease:'none'},0.5);tl.to('#marker',{opacity:1,duration:0.001,ease:'none'},0.25);window.__timelines['qa132']=tl;</script></body></html>

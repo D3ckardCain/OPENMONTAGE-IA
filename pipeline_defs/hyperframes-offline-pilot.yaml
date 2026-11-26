@@ -1,0 +1,30 @@
+name: hyperframes-offline-pilot
+version: "1.0"
+description: Bounded local HyperFrames animation/audio validation, no inference.
+category: custom
+stability: beta
+default_checkpoint_policy: guided
+extensions:
+  custom_scripts: true
+  custom_tools: true
+stages:
+  - name: scene_plan
+    skill: qa/hyperframes-offline-pilot
+    produces: [scene_plan, decision_log]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+  - name: assets
+    skill: qa/hyperframes-offline-pilot
+    required_artifacts_in: [scene_plan]
+    produces: [asset_manifest]
+    tools_available: [hyperframes_offline_pilot]
+    checkpoint_required: true
+    human_approval_default: true
+  - name: compose
+    skill: qa/hyperframes-offline-pilot
+    required_artifacts_in: [asset_manifest]
+    produces: [render_report]
+    tools_available: [hyperframes_offline_pilot, hyperframes_compose]
+    checkpoint_required: true
+    human_approval_default: false

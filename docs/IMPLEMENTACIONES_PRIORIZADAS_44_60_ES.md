@@ -346,3 +346,13 @@ focalizados; no repetir suites anteriores. No certifica todas las skills ni
 calidad artística final. 4.5 sigue por defecto. Activación del selector/API y
 descubrimiento de herramienta agrupados para un futuro reinicio manual único;
 no se reinició4750. #112 y acciones ocultas#113 conservan sus pendientes.
+
+### HyperFrames #132 — piloto offline, 26-11-2026 UTC
+
+[Preparación y resultado real](HYPERFRAMES_OFFLINE_PILOTO_ES.md): CLI0.9.96 y
+GSAP3.14.2 aislados; Node/Chrome/FFmpeg existentes reutilizados. Render4s con
+animación y audio previo,96fotogramas, reproducción/seek/correlación250ms y
+cancelación del árbol propio comprobados. No se repiten ASR/TTS/pilotos anteriores.
+Cuatro pruebas Python nuevas y seis controles Node; sin suite completa/CI nueva.
+Pendientes: escucha humana, activación residente y scaffold genérico sin CDN.
+No nueva familia de backlog; PR#2 borrador y configuraciones intactas.
