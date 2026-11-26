@@ -144,6 +144,12 @@ def render_digest(edl, contract=RENDER_CONTRACT):
         if mix.get('normalize'):
             content['audio_mix']['target_lufs'] = mix['target_lufs']
     for clip in content['cuts'] + content['audio_tracks']:
+        from lib.studio_audio_processing import effective, RENDER_CONTRACT as audio_contract
+        processing=effective(clip.get('audio_processing'))
+        if processing:
+            clip['audio_processing']=processing
+            content['audio_processing_contract']=audio_contract
+        else:clip.pop('audio_processing',None)
         clip.pop('locked', None)
         if not clip.get('solo'):
             clip.pop('solo', None)
@@ -397,6 +403,8 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_audio_processing import validate as validate_processing
+    validate_processing(edl)
     from lib.studio_audio_balance import validate as validate_balance
     validate_balance(edl)
     from lib.studio_editor_layers import validate_composition

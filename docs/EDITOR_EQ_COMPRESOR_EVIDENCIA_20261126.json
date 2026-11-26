@@ -1,0 +1,125 @@
+{
+  "scope": "Per-clip EQ3/compressor/bypass; not complete Fairlight",
+  "new_focused_tests_passed": 6,
+  "synthetic_pcm": {
+    "case_count": 4,
+    "seconds_each": 0.5,
+    "sample_frames_each": 24000,
+    "gain_db_120": 5.998580615610994,
+    "gain_db_6000": -5.998831934007111,
+    "compressor_rms_ratio": 0.376838162583557,
+    "bypass_adds_no_filter": true,
+    "result_source": "stdout from one approved run of scripts.validate_studio_audio_processing; no repeated run"
+  },
+  "ui": {
+    "scope": "Real QA4769 copy of completed SFX project; only new EQ/compressor/bypass controls, no new render",
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "6f0cc4346172ea0176bffd1e1eb3774cfcfb909eb40d8b221d311651dd57bdd8",
+        "files": 46
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "6f0cc4346172ea0176bffd1e1eb3774cfcfb909eb40d8b221d311651dd57bdd8",
+        "files": 46
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "9f29fde7681e640be95c690b4ef5b3bbf2078d48a6fd47f4f7bad672ef2809be",
+        "files": 38
+      },
+      "restart_required": false,
+      "pid": 119732,
+      "loaded_at_utc": "2026-11-26T21:33:59.035810+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "audio_processing",
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "6f0cc4346172ea0176bffd1e1eb3774cfcfb909eb40d8b221d311651dd57bdd8"
+      }
+    },
+    "project_id": "edit-43cd66fe472f",
+    "apply_processing": true,
+    "bypass_restores_old_render_identity": true,
+    "undo_redo_save_reopen": true,
+    "clear_ignores_invalid_unsaved_draft": true,
+    "settings_preserved_under_bypass": true,
+    "existing_render_reused_by_identity": true,
+    "new_render": false,
+    "page_errors": [],
+    "processed_export_av_validation": "pending; separate real PCM filter checks completed",
+    "human_listening": false
+  },
+  "full_pcm_mix": {
+    "scope": "Full real-media mix graph to PCM with EQ/compressor active in memory only, compared against reused approved SFX export under bypass",
+    "audio_samples": 192000,
+    "seconds": 4,
+    "peak": 0.949999988079071,
+    "changed_clip_interval": [
+      1.0,
+      1.5271875000000001
+    ],
+    "change_energy_inside_vs_outside_interval": 200.6414337158203,
+    "project_not_modified": true,
+    "new_video_render": false,
+    "encoded_processed_mp4": "not generated",
+    "human_listening": false
+  },
+  "processed_mp4_export": "not generated or validated",
+  "human_listening": false,
+  "main4750_restarted": false,
+  "eight_pending_model_folders_accessed": false
+}
