@@ -129,6 +129,11 @@ def create_editor_router(body):
         from lib.studio_word_clock import project_report
         return invoke(project_report,pid,set_id)
 
+    @router.get('/{pid}/subtitle-draft')
+    def subtitle_draft(pid: str, set_id: str):
+        from lib.studio_word_subtitles import project_draft
+        return invoke(project_draft, pid, set_id)
+
     @router.post('/{pid}/subtitles/import')
     async def import_subtitles(pid: str, request: Request, filename: str, revision: int):
         origin = request.headers.get('origin')

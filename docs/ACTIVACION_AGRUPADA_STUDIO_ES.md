@@ -1,6 +1,6 @@
 # Activación agrupada de Studio
 
-## Estado vigente — piloto #117
+## Estado vigente — #117 y #129
 
 #112–#115 ya se activaron tras el reinicio manual; consultar
 [resultados de esa activación](ACTIVACION_112_115_RESULTADOS_ES.md).
@@ -8,7 +8,8 @@ Siguen pendientes únicamente la recuperación con recibo elegible de #112 y
 las acciones ocultas del agente de #113; no repetir síntesis ni pruebas aprobadas.
 
 El próximo lote incorpora el selector/API de perfiles Blender y el descubrimiento
-de `blender_skills_pilot`, junto con las próximas entregas. **No reiniciar ahora.**
+de `blender_skills_pilot`, junto con el borrador compartido de subtítulos #129.
+**No reiniciar ahora.**
 4.5.15 continúa como predeterminado; el piloto usó 5.3 expresamente y de forma
 aislada mediante el agente, no mediante el servidor residente.
 
@@ -18,6 +19,14 @@ Después: identidad compatible, contrato GET de perfiles, selector disponible,
 4.5 todavía seleccionado y nueva herramienta descubierta. No repetir el render
 ni las comprobaciones de provisión aprobadas. No cambiar perfiles automáticamente.
 [Piloto y límites](BLENDER_117_PILOTO_ES.md).
+
+Para #129, comprobar tras ese mismo reinicio la capacidad `subtitle_from_words`,
+GET `subtitle-draft` y el control de revisión/aplicación en una copia de prueba.
+No aplicar sobre originales ni repetir ASR/síntesis/renders. Usar palabras ya
+guardadas; si su cobertura/límites no permiten un borrador, registrar el bloqueo
+sin reconstruir palabras. [Contrato y pruebas](SUBTITULOS_DESDE_PALABRAS_ES.md).
+Ruido y borde del suelo del piloto quedan documentados como mejoras de acabado;
+no son una nueva tarea de render ni motivo para repetirlo.
 
 ## Historial de preparación anterior (no es el estado vigente)
 

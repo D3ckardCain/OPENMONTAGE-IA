@@ -1,0 +1,184 @@
+{
+  "issue": 129,
+  "date_utc": "2026-11-26",
+  "cost_usd": 0,
+  "scope": "new synthetic contracts and isolated browser only",
+  "pytest": {
+    "unique_passed": 15,
+    "initial_cases": 14,
+    "later_bound_guard": 1,
+    "full_suite_repeated": false
+  },
+  "browser": {
+    "scenarios_passed": 6,
+    "real_dom": true,
+    "synthetic_responses": true,
+    "page_errors": 0,
+    "live_studio_requests": 0
+  },
+  "preservation_unchanged": true,
+  "blender_default": "blender-4.5",
+  "studio_restarted": false,
+  "pilot_repeated": false,
+  "ci_claimed": false,
+  "activation_pending": true,
+  "syntax": "passed",
+  "synthetic_example": {
+    "contract": "studio-word-subtitles-v1",
+    "set_id": "set",
+    "ready": true,
+    "blockers": [],
+    "input_edl_sha256": "228af30b652b3a76da9246e6be79e48c153859eea3aabab4aa38fde712ae6fc2",
+    "word_data_sha256": "92774f652f117db547182366e7f88e89c9ddf5da9a94003b98e1600c9385768f",
+    "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "transcript_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "source_binding": "registered_metadata",
+    "source_file_rehashed": false,
+    "asr_provenance": {
+      "binding": "synthetic_no_model",
+      "time_offset": null,
+      "language": "es",
+      "model_size": null,
+      "coverage_evidence": null
+    },
+    "timebase": {
+      "clock": "frame_quantized_edl",
+      "unit": "seconds",
+      "output_fps": [
+        24,
+        1
+      ],
+      "intervals": "half_open"
+    },
+    "cues": [
+      {
+        "start_seconds": 0.0,
+        "end_seconds": 1.4,
+        "text": "No retires protección."
+      }
+    ],
+    "word_groups": [
+      [
+        {
+          "occurrence_id": "c:set:0",
+          "clip_id": "c",
+          "set_id": "set",
+          "word_index": 0,
+          "text": "No",
+          "source": {
+            "start_seconds": 0.0,
+            "end_seconds": 0.4,
+            "start_rational": [
+              0,
+              1
+            ],
+            "end_rational": [
+              2,
+              5
+            ]
+          },
+          "timeline": {
+            "start_seconds": 0.0,
+            "end_seconds": 0.4,
+            "start_rational": [
+              0,
+              1
+            ],
+            "end_rational": [
+              2,
+              5
+            ]
+          },
+          "speaker": null,
+          "language": "es",
+          "timing_status": "unknown",
+          "timing_evidence": "declared_not_independently_verified"
+        },
+        {
+          "occurrence_id": "c:set:1",
+          "clip_id": "c",
+          "set_id": "set",
+          "word_index": 1,
+          "text": "retires",
+          "source": {
+            "start_seconds": 0.5,
+            "end_seconds": 0.9,
+            "start_rational": [
+              1,
+              2
+            ],
+            "end_rational": [
+              9,
+              10
+            ]
+          },
+          "timeline": {
+            "start_seconds": 0.5,
+            "end_seconds": 0.9,
+            "start_rational": [
+              1,
+              2
+            ],
+            "end_rational": [
+              9,
+              10
+            ]
+          },
+          "speaker": null,
+          "language": "es",
+          "timing_status": "unknown",
+          "timing_evidence": "declared_not_independently_verified"
+        },
+        {
+          "occurrence_id": "c:set:2",
+          "clip_id": "c",
+          "set_id": "set",
+          "word_index": 2,
+          "text": "protección.",
+          "source": {
+            "start_seconds": 1.0,
+            "end_seconds": 1.4,
+            "start_rational": [
+              1,
+              1
+            ],
+            "end_rational": [
+              7,
+              5
+            ]
+          },
+          "timeline": {
+            "start_seconds": 1.0,
+            "end_seconds": 1.4,
+            "start_rational": [
+              1,
+              1
+            ],
+            "end_rational": [
+              7,
+              5
+            ]
+          },
+          "speaker": null,
+          "language": "es",
+          "timing_status": "unknown",
+          "timing_evidence": "declared_not_independently_verified"
+        }
+      ]
+    ],
+    "warnings": [
+      "Solo conversión de reloj; no ASR, alineación ni medición de audio nuevos.",
+      "Palabras completas conservadas; las cortadas/no positivas se reportan, no se reconstruyen.",
+      "Ausencia de palabras no prueba silencio ni contexto semántico completo.",
+      "Agrupación mecánica (hasta seis palabras); no revisión semántica ni calidad de lectura.",
+      "Tiempos SRT redondeados a milisegundos; los racionales originales quedan en procedencia.",
+      "No cambia el idioma del proyecto ni acredita silencio en huecos. Revisar antes de aplicar."
+    ]
+  },
+  "limits": [
+    "No live4750 panel or real new subtitle AV validation",
+    "No ASR, inference, installation or media generation",
+    "Origin snapshot is historical after manual edits; compare applied_cues_sha256",
+    "Partial/zero/overlap/uncovered-source/coverage inputs fail closed"
+  ]
+}

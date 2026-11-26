@@ -1,5 +1,6 @@
 // Existing ASR JSON and revisioned EDL commands only. No model calls.
-export function initializeCandidatesUI({q,getEdl,getProject,run,has,reviewSource,getRevision=()=>null,inspectWords}){
+import {appendSubtitleDraft} from './editor-word-subtitles.js';
+export function initializeCandidatesUI({q,getEdl,getProject,run,has,reviewSource,getRevision=()=>null,inspectWords,loadSubtitleDraft}){
   let imported=null,key=null;
   const make=(tag,text)=>{const node=document.createElement(tag);node.textContent=text;return node;};
   const form=q('edit-candidate-form'),field=name=>form.elements[name];
@@ -82,6 +83,7 @@ export function initializeCandidatesUI({q,getEdl,getProject,run,has,reviewSource
         };
         list.append(button,reportBox);
       }
+      if(has('subtitle_from_words')&&loadSubtitleDraft)appendSubtitleDraft({parent:list,dataset,getProject,getRevision,loadDraft:loadSubtitleDraft,run});
       for(const item of dataset.candidates){
         const card=make('article',''),details=make('details','');details.append(make('summary',`${item.status} · ${item.start_seconds.toFixed(3)}–${item.end_seconds.toFixed(3)}s · ${item.text}`));
         details.append(make('p','Motivo: '+item.reason),make('p','Antes: '+item.context_before),make('p','Selección exacta: '+item.text),make('p','Después: '+item.context_after),make('p',item.warnings.join(' ')));

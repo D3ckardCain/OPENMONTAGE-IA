@@ -326,6 +326,9 @@ def _apply_edit(edl, data):
             if fps not in (24, 25, 30, 60):
                 raise ValueError('FPS no admitidos')
             edl['output'] = {'ratio': data['ratio'], 'fps': fps, 'fit': 'pad'}
+        elif op == 'subtitle_from_words':
+            from lib.studio_word_subtitles import apply
+            apply(edl, data)
         elif op == 'subtitles':
             edl['cues'] = parse_srt(data['srt'], duration(edl)) if data['srt'].strip() else []
         elif op in ('cue_update', 'cue_split', 'cue_merge', 'cue_offset'):

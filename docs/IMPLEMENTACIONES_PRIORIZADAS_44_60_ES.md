@@ -15,6 +15,14 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Entrega P0 E04 [#129](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/129):
+[borrador de subtítulos desde palabras guardadas](SUBTITULOS_DESDE_PALABRAS_ES.md).
+Extiende #115 mediante su reloj existente, revisión/bases/hash y aplicación
+reversible compartida; no ASR nuevo ni otra familia de backlog.15pytest nuevos
+y6escenarios Chrome aislados aprobados. Activación agrupada con selector #117,
+sin reiniciar4750 ni repetir piloto/muestra portuguesa. Cobertura parcial o
+palabras cortadas bloquean el candidato completo. No afirmar validación AV.
+
 Nueva entrega P0 E04 [#115](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/115):
 [palabras en reloj del montaje](PALABRAS_RELOJ_MONTAJE_ES.md), inspección compartida
 UI/API/agente sin ASR/cues/export. Reutiliza frames del EDL, conserva procedencia,
