@@ -2,7 +2,9 @@
 import {videoDuration} from './editor-time.js';
 import {initializeAudioBalance} from './editor-audio-balance.js';
 import {initializeAudioProcessing} from './editor-audio-processing.js';
+import {initializeTrackMixer} from './editor-track-mixer.js';
 export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBalance=run,has,cursor}){
+  const mixerUI=initializeTrackMixer({host:q('edit-mix-panel'),getEdl,getProject,run:runBalance,has});
   const balanceUI=initializeAudioBalance({host:q('edit-mix-panel'),getEdl,getProject,getSelection,run:runBalance,has});
   const processingUI=initializeAudioProcessing({host:q('edit-mix-panel'),getEdl,getProject,getSelection,run:runBalance,has});
   const anchorLabel=document.createElement('label');anchorLabel.textContent='Ancla horizontal del componente (0–1) ';
@@ -30,6 +32,7 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBal
   }
   function duration(){return videoDuration(getEdl());}
   function draw(){
+    mixerUI.draw();
     drawSelection();q('edit-title-panel').hidden=!has('titles');q('edit-output-custom-panel').hidden=!has('output_custom');q('edit-mix-panel').hidden=!has('audio_mix');
     const selected=q('edit-title-select').value;
     q('edit-title-select').replaceChildren(new Option('Nuevo título',''),...(getEdl().titles||[]).map(t=>new Option(t.start_seconds.toFixed(3)+' s · '+t.text.slice(0,50),t.id)));

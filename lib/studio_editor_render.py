@@ -62,6 +62,8 @@ def plan(pid, edl, preview=False):
                            f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds}{vf},format=yuv420p'
                            + (f',settb=1/{fps},setpts=N' if cross else '') + f'[v{i}]')
         gain = 0 if clip['muted'] or (solo and not clip.get('solo')) else clip['gain']
+        from lib.studio_track_mixer import gain as lane_gain
+        strip_gain = lane_gain(edl, 'video' if is_video else 'audio')
         if info['audio']:
             af = (f'[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'
                   + VideoTrimmer._build_atempo_chain(speed) + f',aresample=48000,'
@@ -76,6 +78,8 @@ def plan(pid, edl, preview=False):
                 af += f',asetpts=N/SR/TB,apad,atrim=end_sample={round(seconds*48000)},asetpts=N/SR/TB'
             else:
                 af += f',apad,atrim=duration={seconds}'
+            if strip_gain != 1:
+                af += f',volume={strip_gain:.12g}'
         else:
             af = f'anullsrc=r=48000:cl=stereo,atrim=duration={seconds}'
         if is_video:

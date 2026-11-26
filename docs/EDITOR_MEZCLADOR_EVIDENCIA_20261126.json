@@ -1,0 +1,100 @@
+{
+  "scope": "Real UI/API on isolated4771 copied existing project; no render/playback/listening",
+  "project_id": "edit-43cd66fe472f",
+  "revision": 25,
+  "controls": [
+    "video_gain",
+    "audio_gain",
+    "audio_solo",
+    "audio_muted",
+    "reset"
+  ],
+  "undo_redo": true,
+  "reopen": true,
+  "reset_restores_baseline_digest": true,
+  "page_errors": [],
+  "main4750_checked": false,
+  "identity": {
+    "schema_version": 1,
+    "api_protocol": 1,
+    "revision_kind": "source_sha256_at_import",
+    "resident": {
+      "status": "available",
+      "sha256": "c75408655b543a2a6e23e521e814bef26f1067ea6cd0d432af079865c7add5ae",
+      "files": 47
+    },
+    "disk": {
+      "status": "available",
+      "sha256": "c75408655b543a2a6e23e521e814bef26f1067ea6cd0d432af079865c7add5ae",
+      "files": 47
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "8a6e8b62a74b8c892187f8807a9af2fbe39473e4f45a5451127ec17cef23af7f",
+      "files": 39
+    },
+    "restart_required": false,
+    "pid": 81136,
+    "loaded_at_utc": "2026-11-26T22:19:54.708442+00:00",
+    "editor": {
+      "version": "3.0",
+      "commands": [
+        "track_mixer",
+        "audio_processing",
+        "sfx_catalog",
+        "sfx_favorites",
+        "crossfade",
+        "audio_balance",
+        "layer_transform_keyframes",
+        "layer_position_keyframes",
+        "batch",
+        "duplicate",
+        "markers",
+        "flags",
+        "audio_trim_position",
+        "delete_keep_gap",
+        "ripple_delete",
+        "transform",
+        "titles",
+        "output_custom",
+        "audio_mix",
+        "transition",
+        "layers",
+        "clip_candidates",
+        "subtitle_language",
+        "subtitle_words",
+        "subtitle_from_words",
+        "silence_apply",
+        "qwen_tts_plan",
+        "reference_plan",
+        "component_add",
+        "component_remove"
+      ],
+      "render_cancel": true,
+      "shared_revision": true,
+      "silence_proposal": {
+        "contract": "studio-silence-proposal-v1",
+        "read_only": true,
+        "apply_available": true,
+        "apply_command": "silence_apply"
+      },
+      "qwen_preview": {
+        "contract": "qwen-preview-v1",
+        "real_native_worker": true,
+        "cancel_owned_worker": true,
+        "automatic_retry": false
+      },
+      "chatterbox_saved_samples": {
+        "contract": "chatterbox-saved-audio-v1",
+        "playback": true,
+        "generation": false
+      },
+      "api_protocol": 1,
+      "backend_build": "c75408655b543a2a6e23e521e814bef26f1067ea6cd0d432af079865c7add5ae"
+    }
+  },
+  "new_focused_cases_passed": 13,
+  "qa4771": "closed after completed new UI checks",
+  "audio_render_validation": "pending; graph-only checks are not audiovisual validation",
+  "human_listening": false
+}

@@ -153,6 +153,11 @@ def render_digest(edl, contract=RENDER_CONTRACT):
         clip.pop('locked', None)
         if not clip.get('solo'):
             clip.pop('solo', None)
+    from lib.studio_track_mixer import effective as effective_mixer
+    mixer = effective_mixer(edl)
+    if mixer:
+        content['track_mixer'] = mixer
+        content['track_mixer_contract'] = 'logical-lanes-v1'
     used = {c['source_id'] for c in content['cuts'] + content['audio_tracks'] + content.get('layers', []) if c.get('kind') != 'gap'}
     content['sources'] = {key: {name: edl['sources'][key].get(name) for name in ('path', 'sha256', 'kind', 'audio')}
                           for key in sorted(used)}
@@ -403,6 +408,8 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_track_mixer import normalize as normalize_mixer
+    normalize_mixer(edl.get('track_mixer', {}))
     from lib.studio_audio_processing import validate as validate_processing
     validate_processing(edl)
     from lib.studio_audio_balance import validate as validate_balance
