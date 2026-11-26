@@ -65,6 +65,7 @@ Pruebas técnicas propias en Studio aislado4764, proyecto
 
 Base utilizó exclusivamente la muestra VoiceDesign propia como referencia
 sintética autorizada, con su texto, SHA256 y recibo. No se clonó una persona.
+Las dos cargas reales aceptaron el tokenizer compartido por enlace duro.
 WAV PCM16 mono, señal finita/no vacía y procedencia comprobadas. Chrome real:
 recuperar recibo → cargar parámetros explícitamente → reproducir silenciado →
 registrar sin duplicar → guardar plan → recargar/reabrir dos fuentes y plan.
@@ -126,3 +127,8 @@ oculta. Si cambia el servidor con un worker sin reconciliar se informa
 interrupción, sin relanzarlo ni afirmar cierre; requiere inspección propia.
 La activación en Studio4750 sigue bloqueada por política de ejecución; las
 comprobaciones anteriores pertenecen a la instancia aislada, no a la del usuario.
+
+Código funcional publicado en `4242eca`. CI principal45773151291 aprobada:
+3832passed/44skipped/3xfailed/40subtests,107,66s. Contratos e instalación Windows
+y Linux del push45773142874 aprobados;43regresiones de navegador aprobadas.
+El resultado del workflow PR paralelo se registra en el informe de CI.

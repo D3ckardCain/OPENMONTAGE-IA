@@ -20,7 +20,11 @@ implementada sobre FrameSampler existente:3PTS reales/6palabras guardadas y cach
 sin nueva decodificación;9casos nuevos. [Resto de avances/bloqueos](COLA_AUTONOMA_20261126_ES.md):
 panel130 aislado funcional; activación4750 bloqueada por política, no eludida;
 112 sin recibo elegible,113 acciones visibles comprobadas en escenario explícito;
-149 tokenizer reutilizado y pesos nuevos pendientes de FDM. No repetir renders.
+149 pesos completos verificados, tokenizer reutilizado, CUDA y dos muestras
+reales VoiceDesign/Base comprobadas en instancia aislada, incluida cancelación
+real y recuperación sin repetición. Escucha y activación4750 pendientes.
+Los párrafos históricos inferiores conservan su fecha/alcance y no prevalecen
+sobre esta actualización. No repetir renders ni síntesis aprobados.
 
 
 Entrega P0 E01/#132 [diagnóstico](HYPERFRAMES_DIAGNOSTICO_LOCAL_ES.md) y
@@ -372,14 +376,16 @@ No nueva familia de backlog; PR#2 borrador y configuraciones intactas.
 
 ## Consolidación26-11-2026: cola funcional sin duplicados nuevos
 
-[Resultados y límites](COLA_AUTONOMA_20261126_ES.md):56 pruebas nuevas y QA
+[Resultados y límites](COLA_AUTONOMA_20261126_ES.md):74 pruebas nuevas y QA
 Chrome/API/media aislados. Extiende E04/E05/E08/E14/E16 sin otro editor/timeline,
 transcriptor/downloader/director:
 
 - #122: PTS reales, contacto, caché por contenido/intervalo y transcripción
   guardada. Extracción local acreditada, no análisis completo del vídeo.
-- #149: pesos1.7B correctos, tokenizer compartido y runtime aislado; plan
-  Audio/agente. CPU bloqueada por RAM; síntesis/cancelación/CUDA8GB pendientes.
+- #149: pesos1.7B correctos, tokenizer compartido y runtime aislado; plan y
+  preescucha Audio/agente. CPU bloqueada por RAM; CUDA BF16 real comprobado con
+  muestras españolas de1,92s/2,80s, registro/persistencia y cancelación tras
+  pasadas del modelo. No prueba ajuste de cualquier carga en8GB ni naturalidad.
 - #145: scene_plan/referencias y marcadores, revisión por escena modificada y
   comparación del mismo instante declarada; no generación automática integral.
 - #146/#147: tarjeta, comparativa y collage propios en títulos/capas existentes;
@@ -392,6 +398,26 @@ transcriptor/downloader/director:
   #112 sin recibo Piper elegible, no nueva síntesis para fabricar evidencia.
 
 Primero activar lote4750 cuando sea posible; rechazo de política no eludido.
-Escucha, español#107/#130, inferencia Qwen y GLB visual no se sustituyen por CI.
+Escucha, español audiovisual#107/#130 y GLB visual no se sustituyen por CI.
 
-[Correcci?n CI basada en logs y comprobaciones focalizadas](CI_COLA_20261126_ES.md).
+[Corrección CI basada en logs y comprobaciones focalizadas](CI_COLA_20261126_ES.md).
+
+### Siguiente orden, sin duplicar entregas
+
+1. Activación única4750 y capacidades del lote, solo cuando se resuelva el
+   rechazo de política registrado; no intentar otro método de reinicio.
+2. #112: recuperar recibo **Piper** terminado elegible, si llega a existir por
+   un trabajo necesario; Qwen no satisface ese contrato. No resintetizar por QA.
+3. Revisión humana de audio/pronunciación/naturalidad y español audiovisual
+   #107/#130; las herramientas solo acreditan señal, tiempos y reproducción.
+4. #143: inspección/importación visual al disponer de GLB propio identificado;
+   #145: revisión visual ampliada del contrato por planos modificados;
+   #146/#147: variantes audiovisuales completas cuando haya necesidad concreta.
+5. #144: conservar FFmpeg mientras no exista operación útil demostrada;
+   #148: mantener preparación Windows/CLI como decisión pendiente, sin toolchain
+   grande ni compilación automática. Ninguna nueva infraestructura justificada.
+
+Código de la cola:10a8483/19347ce/16842e6/4242eca. CI16842e6 comprobada verde;
+CI4242eca principal aprobada (3832passed) y push/43browser aprobados. Workflow
+PR paralelo45773151258 pendiente de preparar Chromium a07:17UTC, sin declarar
+éxito global. Ver [evidencia](CI_COLA_20261126_ES.md); separada de activación y escucha.

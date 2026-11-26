@@ -508,5 +508,30 @@
       "result_published": false
     },
     "new_offline_tests": 18
+  },
+  "ci_qwen_verified": {
+    "head": "4242eca215b72effdc8a9e5777602e27a08a4a46",
+    "main_run": 45773151291,
+    "conclusion": "success",
+    "passed": 3832,
+    "skipped": 44,
+    "xfailed": 3,
+    "subtests_passed": 40,
+    "seconds": 107.66,
+    "contracts_push_run": 45773142874,
+    "browser_push_passed": 43,
+    "contracts_pr_run": 45773151258,
+    "contracts_pr_conclusion": "pending Chromium preparation in browser139750353550; other jobs success; not retried",
+    "contracts_pr_observed_at": "2026-11-26T07:17:00Z"
+  },
+  "isolated_server_final": {
+    "port": 4764,
+    "pid": 143860,
+    "stopped_when_idle": true,
+    "backend_source_sha256": "bca8fb3156d1cb4a5c102adadacaee6109a1988265edf69acf6ecbad1505207a",
+    "restart_required_before_stop": false,
+    "main4750_pid": 130700,
+    "main4750_health_ok": true,
+    "main4750_restarted": false
   }
 }
