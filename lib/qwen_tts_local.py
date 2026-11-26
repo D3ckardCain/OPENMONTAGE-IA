@@ -11,9 +11,11 @@ MODEL_ROOT = Path('C:/OPENMONTAJE-IA/DESCARGAS_MODELOS')
 HASH_CACHE = ROOT / '.runtime/qwen-tts/verified-models.json'
 PROFILES = {
     'voice-design': dict(folder='Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign', model_type='voice_design',
+                         revision='5ecdb67327fd37bb2e042aab12ff7391903235d3',
                          function='voice_design', main_bytes=3833402552,
                          main_sha256='391e8db219f292c515297cdceeb43e4eae67cdde35fa57e79a6a8a532fca0522'),
     'qwen-tts-17b-base': dict(folder='Qwen--Qwen3-TTS-12Hz-1.7B-Base', model_type='base',
+                            revision='fd4b254389122332181a7c3db7f27e918eec64e3',
                             function='authorized_voice_clone', main_bytes=3857413744,
                             main_sha256='38fc7fc51c5e776e840414b6fd443962e9411b9654888fd7913e4da643cb857c'),
 }
@@ -71,9 +73,10 @@ def catalog():
         rows.append(dict(id=family, title=spec['folder'], function=spec['function'],
             native_tool='model_' + family.replace('-', '_'), languages=list(QWEN),
             diagnostic=diagnostic, inference_verified=False,
-            preview_available=False, preview_limit='Preescucha/cancelación real pendientes de recursos y runtime completos; no se habilita botón ficticio.',
+            preview_available=diagnostic['ready'],
+            preview_limit='Preescucha real con worker local y cancelación propia; disponibilidad no acredita naturalidad ni ajuste para cualquier duración.',
             license='Apache-2.0 model card; rights to reference voice separate'))
-    return dict(contract='qwen-local-profiles-v1', profiles=rows, model_loaded=False,
+    return dict(contract='qwen-local-profiles-v1', preview_backend='qwen-preview-v1', profiles=rows, model_loaded=False,
         note='RAM/VRAM deben evaluarse antes de cargar; tamaño en disco no acredita compatibilidad8GB.')
 
 
@@ -85,6 +88,15 @@ def save_plan(edl, data):
     if not isinstance(text, str) or not text.strip() or len(text) > 1000:raise ValueError('Texto requerido1–1000caracteres')
     value = dict(profile=family, function=PROFILES[family]['function'], language=language, text=text,
                  synthesized=False, contract='qwen-request-plan-v1')
+    if 'device' in data:
+        if data['device'] not in ('cpu', 'cuda'):
+            raise ValueError('Dispositivo Qwen desconocido')
+        value['device'] = data['device']
+    for key, low, high in [('max_new_tokens', 8, 256), ('seed', 0, 2147483647)]:
+        if key in data:
+            if type(data[key]) is not int or not low <= data[key] <= high:
+                raise ValueError('Parámetro Qwen fuera de límites: ' + key)
+            value[key] = data[key]
     if family == 'voice-design':
         instruction = data.get('instruction')
         if not isinstance(instruction, str) or not instruction.strip() or len(instruction) > 2000:

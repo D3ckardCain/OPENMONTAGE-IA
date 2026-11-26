@@ -13,8 +13,8 @@ API_PROTOCOL = 1
 def fingerprint(root: Path, ui: bool = False) -> dict:
     """Bounded code reads; unreadable inputs never become a matching build."""
     patterns = ('backlot/ui/*.js', 'backlot/ui/*.css', 'backlot/ui/studio.html') if ui else (
-        'backlot/*.py', 'lib/studio*.py', 'lib/production_studio.py',
-        'lib/qwen_tts_local.py', 'lib/model_adapters.py', 'lib/model_adapter_worker.py',
+        'backlot/*.py', 'lib/studio*.py', 'lib/production_studio.py', 'lib/production_queue.py',
+        'lib/qwen_tts_local.py', 'lib/qwen_tts_runtime.py', 'lib/model_adapters.py', 'lib/model_adapter_worker.py',
         'lib/model_languages.py', 'docs/models/qwen17.json',
     )
     digest = hashlib.sha256()
@@ -42,6 +42,8 @@ EDITOR_CAPABILITIES = {
     'version': '3.0', 'commands': tuple(CAPABILITIES),
     'render_cancel': True, 'shared_revision': True,
     'silence_proposal': {'contract': 'studio-silence-proposal-v1', 'read_only': True, 'apply_available': True, 'apply_command': 'silence_apply'},
+    'qwen_preview': {'contract': 'qwen-preview-v1', 'real_native_worker': True,
+                     'cancel_owned_worker': True, 'automatic_retry': False},
 }
 
 

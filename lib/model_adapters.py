@@ -199,7 +199,7 @@ def dependency_probe(python,modules,mtime,source_dir=''):
     except Exception:return {m:False for m in modules}
 
 
-def diagnostics(family,probe=True):
+def diagnostics(family,probe=True,device=None):
     s=spec(family);cfg=configuration(family)
     result={**s,'configuration':cfg,'inference_verified':False,'problems':[]}
     if s['backend']=='comfyui':
@@ -271,8 +271,15 @@ def diagnostics(family,probe=True):
         result['qwen_resources']=resources(family,model)
         result['problems'].extend(result['qwen_resources']['problems'])
         from lib.qwen_tts_local import cpu_memory_preflight
+        from lib.qwen_tts_runtime import prepared,preflight
+        selected=device or ('cuda' if prepared(python)['available'] else 'cpu')
+        if selected not in ('cpu','cuda'):raise ValueError('Dispositivo Qwen no disponible')
+        result['device']=selected
         result['cpu_memory_preflight']=cpu_memory_preflight(model)
-        if not result['cpu_memory_preflight']['allowed']:result['problems'].append('RAM libre insuficiente para la ruta CPU FP32 actual; no se acredita carga CUDA/8GB ni se cambia el motor automaticamente')
+        if selected=='cuda':
+            result['cuda_memory_preflight']=preflight(python,model)
+            if not result['cuda_memory_preflight']['allowed']:result['problems'].append(result['cuda_memory_preflight'].get('reason','CUDA no preparado'))
+        elif not result['cpu_memory_preflight']['allowed']:result['problems'].append('RAM libre insuficiente para la ruta CPU FP32 actual; no se cambia el motor automaticamente')
     result['ready']=model is not None and not result['problems']
     if model is not None:
         from lib.model_validation import current_evidence
@@ -331,7 +338,7 @@ class LocalModelAdapter(BaseTool):
 
     def estimate_cost(self,inputs):return 0.0
 
-    def execute(self,inputs):
+    def execute(self,inputs,*,control=None):
         from jsonschema import validate
         try:
             validate(inputs,self.input_schema)
@@ -342,7 +349,9 @@ class LocalModelAdapter(BaseTool):
                 absent=[key for key in REQUIRED[self.family] if not inputs.get(key)]
                 if absent:raise ValueError('Entradas requeridas por el workflow: '+', '.join(absent))
             output=Path(inputs['output_dir']).resolve();output.mkdir(parents=True,exist_ok=True)
-            info=diagnostics(self.family)
+            inputs=dict(inputs)
+            info=diagnostics(self.family,device=inputs.get('device')) if self.family in ('voice-design','qwen-tts-17b-base') else diagnostics(self.family)
+            if self.family in ('voice-design','qwen-tts-17b-base'):inputs.setdefault('device',info.get('device','cpu'))
             if not info['ready']:return ToolResult(success=False,error='; '.join(info['problems']),data={'adapter':info})
             if self.family=='kokoro':
                 voice=Path(inputs.get('voice','af_heart'))
@@ -362,12 +371,26 @@ class LocalModelAdapter(BaseTool):
                 if ffmpeg and Path(ffmpeg).is_file():env['PATH']=str(Path(ffmpeg).parent)+os.pathsep+env.get('PATH','');env['IMAGEIO_FFMPEG_EXE']=ffmpeg
                 if inputs.get('device','cpu')=='cpu':env['CUDA_VISIBLE_DEVICES']=''
                 worker=Path(__file__).with_name('model_adapter_worker.py')
-                result=subprocess.run([info['python_executable'],str(worker),str(request),str(response)],env=env,capture_output=True,text=True,timeout=inputs.get('timeout',1800))
+                command=[info['python_executable'],'-B',str(worker),str(request),str(response)]
+                if control is None:
+                    result=subprocess.run(command,env=env,capture_output=True,text=True,timeout=inputs.get('timeout',1800))
+                else:
+                    payload=studio.read_json(request);payload['progress_path']=str(output/'progress.json');studio.save_json(request,payload)
+                    if self.family in ('voice-design','qwen-tts-17b-base'):
+                        from lib.qwen_tts_runtime import controlled_command
+                        command,env=controlled_command(info['python_executable'],command[1:],env)
+                    from lib.studio_render_process import execute as controlled_execute
+                    result=controlled_execute(command,output,control,timeout=inputs.get('timeout',1800),env=env)
+                    result.stderr=result.stderr.decode('utf-8','replace')
                 (output/('adapter-'+self.family+'-runtime.log')).write_text((getattr(result,'stdout','') or '')[-1000000:]+'\n'+(result.stderr or '')[-1000000:],encoding='utf-8')
                 if not response.is_file():raise RuntimeError('El runtime no devolvió un resultado: '+result.stderr[-1000:])
                 data=studio.read_json(response)
                 if not data.get('success'):raise RuntimeError(data.get('error','Inferencia fallida'))
                 if result.returncode:raise RuntimeError('El proceso terminó con error después de escribir la respuesta')
+            if self.family in ('voice-design','qwen-tts-17b-base'):
+                from lib.qwen_tts_local import resources
+                if not resources(self.family,info['model_dir'])['resources_verified']:
+                    raise ValueError('Recursos Qwen cambiaron durante el trabajo; no se acredita la salida')
             for filename in data.get('outputs',[]):
                 p=Path(filename).resolve();p.relative_to(output)
                 if not p.is_file() or not p.stat().st_size:raise ValueError('Salida declarada ausente o vacía')

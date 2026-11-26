@@ -502,7 +502,7 @@ cropPreview=initializeCropPreview({q,getEdl:edl,getSelection:selected,sourceUrl}
 compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
 componentsUI=initializeComponentsUI({host:q('edit-sources').parentElement,getEdl:edl,getProject:()=>project,has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),editTitle:id=>effectsUI.selectTitle(id),editLayer:id=>compositionUI.selectLayer(id)});
 const piperPanel=initializePiperUI({host:q('edit-waveform-status').parentElement,getProject:()=>project,getRevision:()=>state.revision,reopen});
-qwenPanel=initializeQwenUI({host:q('edit-waveform-status').parentElement,getEdl:edl,getProject:()=>project,run:(op,params)=>task(()=>command(op,params),true)});
+qwenPanel=initializeQwenUI({host:q('edit-waveform-status').parentElement,getEdl:edl,getProject:()=>project,getRevision:()=>state.revision,run:(op,params)=>task(()=>command(op,params),true),registerPreview:relative=>task(async()=>{requireProject();if(Object.values(edl().sources).some(s=>s.path===relative))return;state=await api(base()+'/register',{revision:state.revision,relative_path:relative});invalidate();draw();},true)});
 initializeEditorLayout();
 showWorkspace();task(async()=>{try{await loadCapabilities();await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});
 

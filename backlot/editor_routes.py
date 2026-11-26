@@ -35,6 +35,44 @@ def create_editor_router(body):
         from lib.qwen_tts_local import catalog
         return invoke(catalog)
 
+    @router.post('/{pid}/qwen/preview')
+    async def qwen_preview(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_qwen_jobs import start
+        data = await body(request, 12000)
+        return await run_in_threadpool(invoke, start, pid, data)
+
+    @router.post('/{pid}/agent-qwen/preview')
+    async def agent_qwen_preview(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_qwen_jobs import start
+        data = await body(request, 12000)
+        return await run_in_threadpool(invoke, start, pid, data, 'agent')
+
+    @router.get('/{pid}/qwen/requests/{request_id}')
+    def qwen_status(pid: str, request_id: str):
+        from lib.studio_qwen_jobs import status
+        return invoke(status, pid, request_id)
+
+    @router.get('/{pid}/qwen/requests')
+    def qwen_requests(pid: str):
+        from lib.studio_qwen_jobs import requests
+        return invoke(requests, pid)
+
+    @router.post('/{pid}/qwen/requests/{request_id}/cancel')
+    async def qwen_cancel(pid: str, request_id: str, request: Request):
+        if await body(request):
+            raise HTTPException(400, 'Cancelar no admite otras entradas')
+        from lib.studio_qwen_jobs import cancel
+        return invoke(cancel, pid, request_id)
+
+    @router.post('/{pid}/agent-qwen/requests/{request_id}/cancel')
+    async def agent_qwen_cancel(pid: str, request_id: str, request: Request):
+        if await body(request):
+            raise HTTPException(400, 'Cancelar no admite otras entradas')
+        from lib.studio_qwen_jobs import cancel
+        return invoke(cancel, pid, request_id, 'agent')
+
     @router.post('/{pid}/piper/preview')
     async def piper_preview(pid: str, request: Request):
         from starlette.concurrency import run_in_threadpool

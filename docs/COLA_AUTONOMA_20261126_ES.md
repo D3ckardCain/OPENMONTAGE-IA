@@ -156,4 +156,23 @@ Prioridad restante: activación única4750; recursos/medición Qwen; recibo real
 componentes y revisión visual ampliada#145. No cerrar por CI, instalación,
 metadatos o simulaciones. Ver resultados estructurados para separar alcances.
 
-[Correcci?n CI basada en logs y comprobaciones focalizadas](CI_COLA_20261126_ES.md).
+[Corrección CI basada en logs y comprobaciones focalizadas](CI_COLA_20261126_ES.md).
+
+## Continuación Qwen149 y CI
+
+Los tres workflows de `16842e6` terminaron correctamente: CI45767931949,
+contratos PR45767931925 y contratos push45767925629. CI principal:
+3814passed/44skipped/3xfailed/40subtests. Esto acredita ese commit, no los
+cambios posteriores ni la activación4750.
+
+Se resolvió el bloqueo CPU de Qwen preparando CUDA12.4 en el mismo entorno
+aislado. [Manual y evidencia Qwen](QWEN3_TTS_LOCAL_ES.md): muestras españolas
+reales VoiceDesign1,92s y Base2,80s con referencia sintética propia; registro,
+recuperación y persistencia desde panel real. Cancelación real tras3pasadas,
+worker cerrado y GPU liberada, sin repetir síntesis al recuperar.
+18casos nuevos focalizados;74casos Python nuevos acumulados en la cola.
+No se repitieron ASR/Piper/pilotos/renders aprobados ni hashes de pesos grandes.
+
+Pendientes vigentes: activación4750 rechazada por política; escucha humana;
+español audiovisual107/130; recibo Piper112 no elegible (Qwen no lo sustituye);
+GLB propio143 y validación AV ampliada de formatos/componentes. PR2 borrador.

@@ -437,5 +437,76 @@
       "selection_unchanged": true,
       "media_regenerated": false
     }
-  ]
+  ],
+  "ci_fix_verified": {
+    "head": "16842e67b05153ed08657033a393bc5d78c4e8d0",
+    "main_run": 45767931949,
+    "conclusion": "success",
+    "passed": 3814,
+    "skipped": 44,
+    "xfailed": 3,
+    "subtests_passed": 40,
+    "contracts_pr": 45767931925,
+    "contracts_push": 45767925629
+  },
+  "qwen_cuda_continuation": {
+    "scope": "Real isolated Studio4764, not main4750 activation or human listening",
+    "runtime": "same isolated environment, torch/torchaudio2.6.0+cu124; qwen-tts0.1.1; BF16 eager",
+    "model_hashes_reread": false,
+    "main_venv_or_comfyui_changed": false,
+    "samples": [
+      {
+        "profile": "voice-design",
+        "request_id": "681c005bf9184ba49594d6d398466dfd",
+        "relative_path": "assets/audio/qwen/681c005bf9184ba49594d6d398466dfd/voice.wav",
+        "wave_sha256": "e5452241e5543ab2832d5f04c8fcbf22235365b5b738174a4dea0cf13c40d724",
+        "duration_seconds": 1.92,
+        "sample_rate": 24000,
+        "listening_verified": false,
+        "execution": {
+          "device": "cuda",
+          "dtype": "torch.bfloat16",
+          "forward_count": 25,
+          "gpu_peak_allocated_bytes": 4243039232,
+          "gpu_peak_reserved_bytes": 4336910336
+        }
+      },
+      {
+        "profile": "qwen-tts-17b-base",
+        "request_id": "8677f86b65724f399f2b2569c9d0cf8d",
+        "relative_path": "assets/audio/qwen/8677f86b65724f399f2b2569c9d0cf8d/voice.wav",
+        "wave_sha256": "2cf0fd9049da487ee6b85971178eca09dbd034d4da8791faa20b5865d2ce3ee5",
+        "duration_seconds": 2.8,
+        "sample_rate": 24000,
+        "listening_verified": false,
+        "execution": {
+          "device": "cuda",
+          "dtype": "torch.bfloat16",
+          "forward_count": 36,
+          "gpu_peak_allocated_bytes": 4387419136,
+          "gpu_peak_reserved_bytes": 4435476480
+        },
+        "url": "/media/edit-1f9afbe37f35/assets/audio/qwen/8677f86b65724f399f2b2569c9d0cf8d/voice.wav"
+      }
+    ],
+    "base_reference": "new own synthetic VoiceDesign sample; explicit authorization, no external person",
+    "ui": {
+      "actual_chrome": true,
+      "muted_playback": true,
+      "registered_without_duplication": true,
+      "plans_and_sources_reopened": true,
+      "listening_verified": false
+    },
+    "cancel": {
+      "request_id": "7b0ea5b4ee174870b054ede0a8c34843",
+      "real_forward_count": 3,
+      "worker_pid": 141272,
+      "worker_exited": true,
+      "inference_stop_confirmed": true,
+      "gpu_memory_used_after_mib": 0,
+      "recovered_without_rerun": true,
+      "result_published": false
+    },
+    "new_offline_tests": 18
+  }
 }

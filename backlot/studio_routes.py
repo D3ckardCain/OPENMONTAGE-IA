@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse,FileResponse
 from starlette.background import BackgroundTask
 from lib import production_studio as studio
 from lib import production_agent as agent
+from lib import studio_editor
 
 
 def create_studio_router():
@@ -135,7 +136,7 @@ def create_studio_router():
     async def settings(request:Request):
         data=await body(request)
         with agent.ACTIVE_LOCK:
-            if agent.ACTIVE:raise HTTPException(409,'Detén la producción antes de cambiar el runtime')
+            if agent.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Detén la producción antes de cambiar el runtime')
             return invoke(studio.configure,data)
     @router.post('/api/studio/projects')
     async def create(request:Request):return invoke(studio.create_production,await body(request))
@@ -164,7 +165,7 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'language'}:raise HTTPException(400,'Indica solo language')
         with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que termine la tarea local')
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Espera a que termine la tarea local')
             return invoke(confirm,pid,data['language'])
     @router.get('/api/studio/language-requirements/{pid}')
     def language_requirements(pid:str):
@@ -576,7 +577,7 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'profile_id'} or not isinstance(data['profile_id'],str):raise HTTPException(400,'Indica profile_id')
         with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar herramientas')
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar herramientas')
             return invoke(blender_profiles.select,data['profile_id'])
     @router.post('/api/studio/applications/krita/inspect')
     async def krita_document_inspect(request:Request):
@@ -608,7 +609,7 @@ def create_studio_router():
         from lib import reference_analysis
         data=await body(request)
         with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar herramientas')
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar herramientas')
             return invoke(configure,identifier,data)
     @router.post('/api/studio/applications/{identifier}/launch')
     async def application_launch(identifier:str,request:Request):
@@ -632,7 +633,7 @@ def create_studio_router():
         # Reserve the producer task slot, but do not start an AI agent. Locks
         # protect only the reservation, never a potentially long disk copy.
         with agent.ACTIVE_LOCK,reference_analysis.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de recuperar la entrega')
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Espera a que terminen las tareas antes de recuperar la entrega')
             agent.ACTIVE[pid]=(None,token)
         try:
             return await asyncio.to_thread(lambda:invoke(retry_verified_delivery,pid))
@@ -649,7 +650,7 @@ def create_studio_router():
         from lib import reference_analysis
         data=await body(request)
         with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar el almacenamiento')
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar el almacenamiento')
             return invoke(configure,studio.REPO_ROOT,data,studio.save_json)
     @router.post('/api/studio/inventories')
     async def inventory(request:Request):return invoke(studio.import_inventory,await body(request,32000000))
@@ -753,14 +754,14 @@ def create_studio_router():
         from lib import reference_analysis
         data=await body(request)
         with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar el motor')
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar el motor')
             return invoke(save_runtime_settings,family,data)
     @router.post('/api/studio/adapters/{family}')
     async def bind_adapter(family:str,request:Request):
         from lib.model_adapters import configure
         data=await body(request)
         with agent.ACTIVE_LOCK:
-            if agent.ACTIVE:raise HTTPException(409,'Detén la producción antes de cambiar adaptadores')
+            if agent.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Detén la producción antes de cambiar adaptadores')
             return invoke(configure,family,data)
     @router.get('/api/studio/workflow-recipes')
     def workflow_recipes():
@@ -772,7 +773,7 @@ def create_studio_router():
         data=await body(request)
         from lib import reference_analysis
         with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
-            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas locales antes de preparar workflows')
+            if agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING:raise HTTPException(409,'Espera a que terminen las tareas locales antes de preparar workflows')
             return invoke(prepare,family,data)
     @router.get('/api/studio/validations')
     def validations():

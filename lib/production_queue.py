@@ -253,8 +253,9 @@ def inspect():
         active=WORKER is not None
         items=[dict(item) for item in value['items']]
     from lib import reference_analysis
-    with agent.ACTIVE_LOCK,reference_analysis.LOCK:
-        local_task_active=bool(agent.ACTIVE or reference_analysis.ACTIVE)
+    from lib import studio_editor
+    with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+        local_task_active=bool(agent.ACTIVE or reference_analysis.ACTIVE or studio_editor.EXPORTING)
     storage=readiness(studio.REPO_ROOT,studio.PROJECTS_DIR)
     queue_problems=[]
     if local_task_active:queue_problems.append('Espera a que termine la producción, análisis o entrega local activa')

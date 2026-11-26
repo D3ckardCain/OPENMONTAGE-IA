@@ -51,8 +51,18 @@ def torch_setup(data):
     return torch,device,torch.float32 if device=='cpu' else torch.float16
 
 
+def progress(request,phase,**values):
+    value=request.get('progress_path')
+    if not value:return
+    path=Path(value).resolve();path.relative_to(Path(request['output_dir']).resolve())
+    temporary=path.with_suffix('.tmp')
+    temporary.write_text(json.dumps(dict(phase=phase,worker_pid=os.getpid(),**values)),encoding='utf-8')
+    os.replace(temporary,path)
+
+
 def run(request):
     family=request['family'];m=Path(request['model_dir']);data=request['inputs'];out=Path(request['output_dir'])
+    progress(request,'starting')
     if family=='qwen-tts-17b-base':
         if data.get('reference_authorized') is not True:raise ValueError('Se requiere autorización explícita de la voz de referencia')
         config=json.loads((m/'config.json').read_text(encoding='utf-8'))
@@ -87,7 +97,7 @@ def run(request):
         import soundfile as sf
         if hasattr(value,'detach'):value=value.detach().cpu().numpy()
         value=np.asarray(value).squeeze()
-        if value.ndim!=1 or not value.size:raise ValueError('La voz no produjo audio mono válido')
+        if value.ndim!=1 or not value.size or not np.isfinite(value).all():raise ValueError('La voz no produjo audio mono válido')
         path=out/'voice.wav';sf.write(str(path),value,int(sr),subtype='PCM_16')
         return {'success':True,'outputs':[str(path)],'sample_rate':int(sr),'duration_seconds':len(value)/int(sr)}
     if family=='faster-whisper':
@@ -138,11 +148,36 @@ def run(request):
         return audio(torch.cat(chunks),24000)
     if family in ('qwen-tts','voice-design'):
         from qwen_tts import Qwen3TTSModel
-        model=Qwen3TTSModel.from_pretrained(str(m),device_map=device,dtype=dtype,local_files_only=True,attn_implementation='eager')
+        if device=='cuda' and request['family'] in ('voice-design','qwen-tts-17b-base'):
+            if not torch.cuda.is_bf16_supported():raise ValueError('Qwen CUDA BF16 no disponible; no se cambia a CPU')
+            free,total=torch.cuda.mem_get_info()
+            required_memory=sum((m/name).stat().st_size for name in ['model.safetensors','speech_tokenizer/model.safetensors'])+1024**3
+            if free<required_memory:raise ValueError('VRAM libre insuficiente antes de cargar; no se usa otro modelo')
+            dtype=torch.bfloat16;torch.cuda.reset_peak_memory_stats()
+        if 'seed' in data:torch.manual_seed(data['seed'])
+        progress(request,'loading',device=device,dtype=str(dtype))
+        model=Qwen3TTSModel.from_pretrained(str(m),device_map=device,dtype=dtype,local_files_only=True,attn_implementation='eager',low_cpu_mem_usage=True)
+        progress(request,'loaded',device=device,dtype=str(dtype),forward_count=0)
+        counter={'forwards':0};handle=None
+        if request.get('progress_path'):
+            def forward_observed(module,inputs,output):
+                counter['forwards']+=1
+                if device=='cuda' and counter['forwards']==1:torch.cuda.synchronize()
+                progress(request,'generating',forward_count=counter['forwards'],device=device,
+                         gpu_peak_allocated_bytes=torch.cuda.max_memory_allocated() if device=='cuda' else None)
+            handle=model.model.talker.register_forward_hook(forward_observed)
         args={'text':required(data,'text'),'language':qwen_language(required(data,'language')),'max_new_tokens':data.get('max_new_tokens',2048)}
-        if family=='voice-design':values,sr=model.generate_voice_design(**args,instruct=required(data,'instruction'))
-        else:values,sr=model.generate_voice_clone(**args,ref_audio=local_file(data,'reference_audio'),ref_text=required(data,'reference_text'))
-        return audio(values[0],sr)
+        try:
+            if family=='voice-design':values,sr=model.generate_voice_design(**args,instruct=required(data,'instruction'))
+            else:values,sr=model.generate_voice_clone(**args,ref_audio=local_file(data,'reference_audio'),ref_text=required(data,'reference_text'))
+        finally:
+            if handle is not None:handle.remove()
+        result=audio(values[0],sr)
+        result.update(device=device,dtype=str(dtype),forward_count=counter['forwards'],
+                      gpu_peak_allocated_bytes=torch.cuda.max_memory_allocated() if device=='cuda' else None,
+                      gpu_peak_reserved_bytes=torch.cuda.max_memory_reserved() if device=='cuda' else None)
+        progress(request,'completed',forward_count=counter['forwards'],device=device)
+        return result
     if family=='chatterbox':
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
         model=ChatterboxMultilingualTTS.from_local(m,device=device)
