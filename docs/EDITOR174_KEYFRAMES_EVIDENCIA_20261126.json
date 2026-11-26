@@ -161,5 +161,20 @@
     },
     "widthEditable": true,
     "scope": "Only control exclusion changed after isolated API/panel validation; no backend/render changes"
+  },
+  "main_activation_attempt": {
+    "status": "blocked_by_execution_policy",
+    "action": "Stop only Studio153088/4750 and start same .venv from project",
+    "policy_message": "blocked by policy",
+    "command_executed": false,
+    "worker_active": false,
+    "local_task_active": false,
+    "queue": "paused_empty",
+    "saved_json_backed_up_and_unchanged": 224,
+    "health_after": true,
+    "pid_after": 153088,
+    "restart_required_after": true,
+    "manual": "docs/ACTIVACION_EDITOR174_MANUAL_ES.md",
+    "workaround_attempted": false
   }
 }
