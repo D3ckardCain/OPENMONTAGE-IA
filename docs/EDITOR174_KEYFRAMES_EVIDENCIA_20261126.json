@@ -109,5 +109,28 @@
     "main_server_activation": false,
     "backend_contract_tested_separately": true
   },
-  "activation": "pending grouped; no additional Studio restart"
+  "activation": "pending grouped; no additional Studio restart",
+  "real_isolated_studio": {
+    "base": "http://127.0.0.1:4766",
+    "project": "edit-65bae2512c9e",
+    "isolated_projects": "C:\\OPENMONTAGE-IA\\projects\\qa174-isolated-root",
+    "isolated_configuration": true,
+    "resident": {
+      "status": "available",
+      "sha256": "3619bef131adba6e0af8311bb4f8140419535f0c70bef09a94e8d1737b8c63a2",
+      "files": 40
+    },
+    "real_api": true,
+    "real_panel": true,
+    "apply": true,
+    "undo_redo": true,
+    "save_reopen": true,
+    "agent_write_visible_and_user_undo": true,
+    "uncertain_write_recovered_without_retry": null,
+    "original_stat_unchanged": true,
+    "errors": [],
+    "main4750_restarted": false,
+    "new_render": false,
+    "human_audiovisual_review": false
+  }
 }

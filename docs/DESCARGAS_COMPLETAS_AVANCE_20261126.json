@@ -1,5 +1,5 @@
 {
-  "recorded_at": 1795707308.855846,
+  "recorded_at": 1795708086.4589145,
   "status": "in_progress_not_final",
   "catalog_references": 595,
   "groups": 49,
@@ -36,13 +36,13 @@
   },
   "progress": {
     "started": 1795705613.2148917,
-    "updated": 1795707281.678413,
-    "files_done": 510,
+    "updated": 1795708072.2536633,
+    "files_done": 527,
     "files_total": 651,
-    "bytes_read": 115753222460,
+    "bytes_read": 175085886300,
     "counts": {
-      "verified_cache_reused": 145,
-      "verified_new": 361,
+      "verified_cache_reused": 148,
+      "verified_new": 375,
       "official_digest_unavailable": 2,
       "different_content_not_corruption_claim": 2
     }
@@ -162,7 +162,8 @@
       "status": "bounded_attempt_stopped",
       "response_produced": false,
       "reason": "Several minutes without response; only own QA Python processes stopped. Cause not established; not a model corruption claim.",
-      "followup": "90s watchdog reached torch linear forward. Limiting QA CPU threads to2 did not complete within90s either; owned workers exited. No further retries or corruption claim."
+      "followup": "90s watchdog reached torch linear forward. Limiting QA CPU threads to2 did not complete within90s either; owned workers exited. No further retries or corruption claim.",
+      "cuda_followup": "Existing unmodified Qwen environment, RTX4060 with7.45GB free before loading, conservative4.08GB margin passed.90s watchdog expired inside model.to(cuda), not a completed inference. Worker exited; no immediate retries."
     },
     "silero": {
       "family": "silero",
@@ -178,6 +179,15 @@
       "revision": "e71cae966052b992a7eca6b17738916ce0eca4ec",
       "license": "MIT",
       "scope": "Silence smoke test only; not speech accuracy or approved silence edit retest"
+    },
+    "grounding_dino": {
+      "status": "bounded_cpu_forward_timeout_90s",
+      "response_produced": false,
+      "weights_hash_reused": true,
+      "runtime_environment": "native-analysis isolated",
+      "network_blocked": true,
+      "worker_exited": true,
+      "cause_established": false
     }
   },
   "preserved": [
@@ -231,6 +241,29 @@
     }
   ],
   "located_references_after_aux_completion": 595,
+  "editor174_real_isolated_validation": {
+    "base": "http://127.0.0.1:4766",
+    "project": "edit-65bae2512c9e",
+    "isolated_projects": "C:\\OPENMONTAGE-IA\\projects\\qa174-isolated-root",
+    "isolated_configuration": true,
+    "resident": {
+      "status": "available",
+      "sha256": "3619bef131adba6e0af8311bb4f8140419535f0c70bef09a94e8d1737b8c63a2",
+      "files": 40
+    },
+    "real_api": true,
+    "real_panel": true,
+    "apply": true,
+    "undo_redo": true,
+    "save_reopen": true,
+    "agent_write_visible_and_user_undo": true,
+    "uncertain_write_recovered_without_retry": null,
+    "original_stat_unchanged": true,
+    "errors": [],
+    "main4750_restarted": false,
+    "new_render": false,
+    "human_audiovisual_review": false
+  },
   "new_differences": [
     {
       "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model.safetensors.index.json",

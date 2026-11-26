@@ -20,6 +20,8 @@ SigLIP: intento aislado con imagen sintética propia, CPU y red bloqueada. No te
 
 El seguimiento acotado de SigLIP llegó a `torch.nn.Linear.forward` y agotó 90 segundos. Limitar a dos hilos CPU tampoco produjo respuesta en 90 segundos. Se conserva como bloqueo funcional observado; no se siguen lanzando reintentos.
 
+Una prueba GPU posterior usó el entorno Qwen existente sin modificarlo, con7,45GB VRAM libre y margen conservador4,08GB. También agotó90s, esta vez dentro de `model.to(cuda)`, antes de acreditar inferencia. Grounding DINO agotó90s dentro de su forward CPU. Los workers propios finalizaron. Son límites observados; no se estableció causa ni corrupción y no se repiten intentos inmediatos. El inventario de bytes sigue activo, por lo que no se atribuye el comportamiento a contención sin comprobarlo.
+
 Silero VAD, revisión `e71cae966052b992a7eca6b17738916ce0eca4ec`, MIT: mismo entorno aislado, ONNX Runtime1.32.0 desde wheel ya existente, sin red ni Torch. Dos segundos de silencio digital mono16kHz produjeron cero ventanas de voz en0,58s. Se registró el adaptador existente sin cambiar otros ajustes. Es una prueba funcional de silencio, no una medición de precisión ni repetición de #130.
 
 La copia antigua D: de VoiceDesign1.7B conserva el hash distinto previamente cacheado. Se detectó por caché sin releer pesos; no confundirla con la copia C: usada por las validaciones aprobadas. No se movió ni sustituyó.
