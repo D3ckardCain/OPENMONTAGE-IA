@@ -30,6 +30,11 @@ def create_editor_router(body):
         from lib.studio_piper import catalog
         return invoke(catalog)
 
+    @router.get('/qwen/profiles')
+    def qwen_profiles():
+        from lib.qwen_tts_local import catalog
+        return invoke(catalog)
+
     @router.post('/{pid}/piper/preview')
     async def piper_preview(pid: str, request: Request):
         from starlette.concurrency import run_in_threadpool

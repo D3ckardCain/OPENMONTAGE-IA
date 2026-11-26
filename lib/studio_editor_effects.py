@@ -48,7 +48,10 @@ def apply_effect(edl, data):
                     raise ValueError('Límite de esta entrega: 20 títulos')
                 titles.append({'id': uuid.uuid4().hex, **value})
             else:
-                edit._item(titles, data['id']).update(value)
+                item=edit._item(titles, data['id']);item.update(value)
+                if 'anchor_x' in data:
+                    if not item.get('component_layout'):raise ValueError('Ancla horizontal disponible en componentes')
+                    item['component_layout']['anchor_x']=edit.number(data['anchor_x'],0,1)
     elif op == 'output_custom':
         width, height, fps = data.get('width'), data.get('height'), data.get('fps')
         if any(type(v) is not int for v in (width, height, fps)) or not 64 <= width <= 3840 or not 64 <= height <= 3840 or width % 2 or height % 2 or width*height > 3840*2160 or not 1 <= fps <= 60:
@@ -59,8 +62,10 @@ def apply_effect(edl, data):
         name = data.get('preset_name', '')
         if not isinstance(name, str) or len(name) > 120:
             raise ValueError('Nombre de preset demasiado largo')
+        background=edl['output'].get('background')
         edl['output'] = {'ratio': 'custom', 'width': width, 'height': height, 'fps': fps,
                          'fit': 'pad', 'platform': platform, 'preset_name': name}
+        if background:edl['output']['background']=background
     elif op == 'audio_mix':
         normalize = data.get('normalize', False)
         if type(normalize) is not bool:

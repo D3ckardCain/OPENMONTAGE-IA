@@ -3,13 +3,15 @@
 Actualización26-11-2026 UTC: reinicio autorizado comprobado necesario, sin trabajos
 activos; orden de detener solo Studio rechazada por política (`blocked by policy`).
 No se intentó otro método. [Evidencia, controles nuevos y paso manual](COLA_AUTONOMA_20261126_ES.md).
-El lote incorpora también el panel real de silencios y FrameSampler0.2.0/#122.
-La validación en4761 es aislada y no acredita activación4750.
+El lote incorpora panel de silencios, FrameSampler0.2.0/#122, perfiles/planes
+Qwen, componentes/collage y contrato de referencias. Agente3.4.0. La validación
+final Chrome/API/media en4764 aislado no acredita activación4750.
 
 
 ## Próximo lote pendiente: #132 + #130
 
-Solicitud vigente: agrupar, **sin reiniciar ahora**. #132 incluye adaptador
+Solicitud vigente: agrupar; reinicio autorizado pero rechazado por política,
+sin eludirlo. #132 incluye adaptador
 HyperFrames0.3.1/GSAP local y transporte offline; #130 añade propuesta de silencio
 de solo lectura, ruta POST `silence-proposal`, capacidad explícita y herramienta
 del agente3.3.1. [Contrato y límites](PROPUESTAS_SILENCIO_STUDIO_ES.md).
@@ -30,8 +32,9 @@ Studio no lo hereda por leer un JSON, y paquete preparado no equivale a runtime
 disponible en el servidor. No cambiar PATH/configuración global ni afirmar carga
 por existir los archivos. La escucha humana permanece pendiente.
 
-Este plan no ejecuta comprobaciones ni acredita activación. #112 sin recibo
-elegible, acciones ocultas#113 y validación española#107 conservan sus pendientes.
+Este plan no acredita activación4750. #112 sin recibo elegible y español#107
+conservan pendientes. Acciones antes ocultas#113 comprobadas en escenario
+explícito permitido, sin agente real ni repetir formularios.
 
 ## Estado vigente: lote #117/#129 activado
 

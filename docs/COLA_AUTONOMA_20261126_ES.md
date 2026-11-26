@@ -94,3 +94,64 @@ transformaciones sin World Labs/FAL. No generar/exportar un objeto solo para
 fabricar esa prueba ni repetir el piloto Blender5.3;4.5 permanece predeterminado.
 
 PR#2 borrador. Costo$0. ComfyUI, entornos y configuraciones existentes conservados.
+
+## Resultado conjunto posterior
+
+54 pruebas Python nuevas, ejecutadas por incrementos focalizados:9 evidencia
+vídeo,14 Qwen,9 referencias,13 componentes y9 GLB. No se repiten las21 de
+silencios, suites aprobadas, ASR, voces españolas ni piloto Blender. CI remota
+se registra separadamente tras publicar, sin atribuirle comprobación local.
+
+Chrome/API reales en **4764 aislado**, residente=disco
+`576872d95e31a36a2dd77d04984cdea3c797d13cc217086074d1b5d8dec72f63`,
+30archivos: selección/transformación manual de capa, undo/redo/save/reopen,
+exportación y reproducción sin errores JS. Instancias QA propias previas
+identificadas/cerradas, no PID130700/4750. No acredita activación del usuario.
+
+#130: propuesta/revisión/aplicación y sincronización pasaron sobre copia. Muestra
+portuguesa final22,36s,559frames,540×960,H264/AAC48k,19subtítulos quemados y116
+palabras guardadas; corte9frames257–266. Chrome reprodujo atravesando10,28s y
+decodificación completa sin errores. Correlación de ventanas audio0,861/0,976,
+desfase aproximado5,75/6,25ms en copia con pista técnica duplicada/limiter; no
+medición universal ni escucha. Protección numérica ASR no certifica ausencia
+fonética de palabras cortadas. Intervalo acústico sintético; español y silencio
+real medido pendientes. La copia QA tenía títulos técnicos sin estilo y texto
+mal codificado: corregidos por API desde UTF-8 original antes de acreditar la
+misma muestra final. No atribuir defectos de fixture al original. Las8EDL
+originales coinciden byte a byte con sus snapshots iniciales.
+
+#132: render previo reutilizado sin repetirlo; perfil de proceso hijo no se
+hereda al Studio normal automáticamente. Activación4750 y escucha pendientes.
+
+#149: [modelos completos y runtime aislado](QWEN3_TTS_LOCAL_ES.md). FDM terminó
+durante la cola; pesos nuevos verificados una vez, tokenizer compartido,
+auxiliares identificados y nombres canónicos recuperados. Importación/pip check
+pasan. CPU FP32 rechazada antes de cargar por RAM libre insuficiente; CUDA/8GB
+no acreditados. Plan Audio/agente y persistencia sí pasan. No síntesis española,
+escucha o cancelación real atribuidas a la preparación.
+
+#145: [contrato inicial compartido](PLAN_REFERENCIAS_LOCAL_ES.md) reutiliza
+scene_plan/marcadores, hashes/PTS/cobertura parcial y revisión solo de escenas
+modificadas. API real reutilizó recibo #122 sin nueva extracción. No director
+automático integral ni nuevo diseñador visual de storyboard.
+
+#146/#147: [componentes y collage propios](COMPONENTES_EDITABLES_LOCALES_ES.md),
+una escena QA4s/96frames con vídeo Blender y WAV Piper existentes; tiempos
+separados evitan competencia. Edición/undo/persistencia/exportación/reproducción
+reales;4ratios con pruebas raster estáticas. Escucha y variantes AV completas
+pendientes. No integración total de candidatos ni segmentación automática.
+
+#117/#143: [inspector GLB acotado](INSPECCION_GLB_LOCAL_ES.md), sin Blender ni
+payload de malla. Importación visual pendiente de GLB propio;4.5 predeterminado,
+sin repetir piloto5.3. #144/#148 mantienen decisiones de no instalar por inercia:
+MoviePy sin ventaja inmediata, Chimera requiere preparación Windows considerable.
+
+#113: criterio antes oculto comprobado en escenario explícito permitido de
+acciones visibles/contraste/foco/teclado, combinado con activación real previa.
+Puede cerrarse ese alcance; no WCAG global. #112 sigue sin recibo Piper elegible:
+un render FFmpeg o plan Qwen no es recibo recuperable de síntesis.
+
+Prioridad restante: activación única4750; recursos/medición Qwen; recibo real
+#112; escucha y muestra española#107/#130; GLB propio#143; variantes AV de los
+componentes y revisión visual ampliada#145. No cerrar por CI, instalación,
+metadatos o simulaciones. Ver resultados estructurados para separar alcances.

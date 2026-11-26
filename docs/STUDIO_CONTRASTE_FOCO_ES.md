@@ -1,5 +1,13 @@
 # E02: contraste y foco de controles de Studio (#113)
 
+Actualización26-11-2026: las acciones antes ocultas pasaron en escenario
+explícito permitido, HTML/CSS reales y acciones visibles, sin JS de producción:
+contraste12,8804:1, foco sólido2px y Enter/Espacio con contadores locales.
+Se combina con la activación4750 ya registrada y su recorrido real previo;
+no se repiten formularios/viewports ni se inicia agente real. Criterios de
+este issue acreditados en su alcance acotado; no conformidad WCAG global.
+Evidencia: [cola conjunta](COLA_AUTONOMA_20261126_RESULTADOS.json).
+
 Entrega independiente de #112, desde las evaluaciones fijadas #45/#58 y el
 backlog E02. No se instalaron Taste, Impeccable, detectores, hooks ni frameworks.
 Se reutilizan HTML/CSS, Chrome y Playwright ya disponibles. Coste operativo $0.

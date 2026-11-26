@@ -369,3 +369,27 @@ cancelación del árbol propio comprobados. No se repiten ASR/TTS/pilotos anteri
 Cuatro pruebas Python nuevas y seis controles Node; sin suite completa/CI nueva.
 Pendientes: escucha humana, activación residente y scaffold genérico sin CDN.
 No nueva familia de backlog; PR#2 borrador y configuraciones intactas.
+
+## Consolidación26-11-2026: cola funcional sin duplicados nuevos
+
+[Resultados y límites](COLA_AUTONOMA_20261126_ES.md):54 pruebas nuevas y QA
+Chrome/API/media aislados. Extiende E04/E05/E08/E14/E16 sin otro editor/timeline,
+transcriptor/downloader/director:
+
+- #122: PTS reales, contacto, caché por contenido/intervalo y transcripción
+  guardada. Extracción local acreditada, no análisis completo del vídeo.
+- #149: pesos1.7B correctos, tokenizer compartido y runtime aislado; plan
+  Audio/agente. CPU bloqueada por RAM; síntesis/cancelación/CUDA8GB pendientes.
+- #145: scene_plan/referencias y marcadores, revisión por escena modificada y
+  comparación del mismo instante declarada; no generación automática integral.
+- #146/#147: tarjeta, comparativa y collage propios en títulos/capas existentes;
+  fase absoluta/undo/persistencia y escena propia con audio previo. Variantes
+  AV/escucha pendientes, no integración total de productos externos.
+- #117/#143: inspección GLB metadata; importación real requiere GLB propio.
+  4.5 predeterminado. #144 sin mejora inmediata frente a FFmpeg y #148 exige
+  preparación Windows considerable; decisiones sin instalaciones innecesarias.
+- #113 acciones antes ocultas comprobadas en escenario explícito permitido;
+  #112 sin recibo Piper elegible, no nueva síntesis para fabricar evidencia.
+
+Primero activar lote4750 cuando sea posible; rechazo de política no eludido.
+Escucha, español#107/#130, inferencia Qwen y GLB visual no se sustituyen por CI.

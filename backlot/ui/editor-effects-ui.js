@@ -1,6 +1,8 @@
 // Forms persist only through the same revisioned commands as the agent.
 import {videoDuration} from './editor-time.js';
 export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,has,cursor}){
+  const anchorLabel=document.createElement('label');anchorLabel.textContent='Ancla horizontal del componente (0–1) ';
+  const anchor=document.createElement('input');anchor.name='anchor_x';anchor.type='number';anchor.min='0';anchor.max='1';anchor.step='.01';anchor.value='.5';anchorLabel.append(anchor);anchorLabel.hidden=true;q('edit-title-form').append(anchorLabel);
   let transformKey=null,titleKey=null,outputKey=null,mixKey=null;
   const defaults={fit:'pad',rotation:0,zoom:1,focus_x:.5,focus_y:.5,flip_h:false,flip_v:false};
   const values=(form,data)=>{for(const [key,value] of Object.entries(data)){const field=form.elements[key];if(field)field.type==='checkbox'?field.checked=Boolean(value):field.value=value;}};
@@ -15,8 +17,9 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,has,cu
   }
   function drawTitle(force=false){
     const titles=getEdl().titles||[],id=q('edit-title-select').value,title=titles.find(t=>t.id===id),end=duration();
+    anchorLabel.hidden=!title?.component_layout;
     const key=JSON.stringify([getProject(),title||null,end]);
-    if(force||key!==titleKey){values(q('edit-title-form'),title||{text:'',start_seconds:Math.min(cursor(),Math.max(0,end-.001)),end_seconds:Math.min(end,cursor()+2),size:64,position:'center'});titleKey=key;}
+    if(force||key!==titleKey){values(q('edit-title-form'),title||{text:'',start_seconds:Math.min(cursor(),Math.max(0,end-.001)),end_seconds:Math.min(end,cursor()+2),size:64,position:'center'});anchor.value=title?.component_layout?.anchor_x??.5;titleKey=key;}
     q('edit-title-remove').disabled=!title;q('edit-title-form').querySelector('button[type=submit]').disabled=end<=0;
   }
   function duration(){return videoDuration(getEdl());}
@@ -34,7 +37,7 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,has,cu
   q('edit-transform-reset').onclick=()=>run('transform',{id:getSelection().id,...defaults});
   q('edit-title-select').onchange=()=>drawTitle(true);
   q('edit-title-cursor').onclick=()=>values(q('edit-title-form'),{start_seconds:Math.min(cursor(),Math.max(0,duration()-.001)),end_seconds:Math.min(duration(),cursor()+2)});
-  q('edit-title-form').onsubmit=async event=>{event.preventDefault();const f=event.target,id=q('edit-title-select').value,old=new Set((getEdl().titles||[]).map(t=>t.id)),data={text:f.elements.text.value,position:f.elements.position.value};for(const k of ['start_seconds','end_seconds','size'])data[k]=numeric(f,k);if(id)data.id=id;await run(id?'title_update':'title_add',data);if(!id){const title=(getEdl().titles||[]).find(t=>!old.has(t.id));if(title){q('edit-title-select').value=title.id;drawTitle(true);}}};
+  q('edit-title-form').onsubmit=async event=>{event.preventDefault();const f=event.target,id=q('edit-title-select').value,old=new Set((getEdl().titles||[]).map(t=>t.id)),data={text:f.elements.text.value,position:f.elements.position.value};for(const k of ['start_seconds','end_seconds','size'])data[k]=numeric(f,k);if(id){data.id=id;if(getEdl().titles.find(t=>t.id===id)?.component_layout)data.anchor_x=Number(anchor.value);}await run(id?'title_update':'title_add',data);if(!id){const title=(getEdl().titles||[]).find(t=>!old.has(t.id));if(title){q('edit-title-select').value=title.id;drawTitle(true);}}};
   q('edit-title-remove').onclick=()=>run('title_remove',{id:q('edit-title-select').value});
   q('edit-output-custom-form').onsubmit=event=>{event.preventDefault();const f=event.target;run('output_custom',{width:numeric(f,'width'),height:numeric(f,'height'),fps:numeric(f,'fps'),platform:f.elements.platform.value,preset_name:f.elements.preset_name.value});};
   q('edit-mix-form').onsubmit=event=>{event.preventDefault();const f=event.target;run('audio_mix',{normalize:f.elements.normalize.checked,target_lufs:numeric(f,'target_lufs'),gain:numeric(f,'gain')});};

@@ -53,6 +53,18 @@ def torch_setup(data):
 
 def run(request):
     family=request['family'];m=Path(request['model_dir']);data=request['inputs'];out=Path(request['output_dir'])
+    if family=='qwen-tts-17b-base':
+        if data.get('reference_authorized') is not True:raise ValueError('Se requiere autorización explícita de la voz de referencia')
+        config=json.loads((m/'config.json').read_text(encoding='utf-8'))
+        if config.get('tts_model_type')!='base' or config.get('tts_model_size')!='1b7':raise ValueError('Se requiere checkpoint Base1.7B, no CustomVoice/0.6B')
+        family='qwen-tts'
+    if family=='voice-design':
+        config=json.loads((m/'config.json').read_text(encoding='utf-8'))
+        if config.get('tts_model_type')!='voice_design' or config.get('tts_model_size')!='1b7':raise ValueError('Se requiere checkpoint VoiceDesign1.7B, no CustomVoice')
+    if request['family'] in ('voice-design','qwen-tts-17b-base') and data.get('device','cpu')=='cpu':
+        import psutil
+        required_ram=2*sum((m/name).stat().st_size for name in ['model.safetensors','speech_tokenizer/model.safetensors'])+1024**3
+        if psutil.virtual_memory().available<required_ram:raise ValueError('RAM libre insuficiente para Qwen1.7B CPU FP32; no se cargaron pesos. Se requiere mas margen o validar un runtime CUDA separado.')
     if request.get('source_dir'):
         source=Path(request['source_dir']);sys.path.insert(0,str(source));sys.path.insert(0,str(source/'third_party'/'Matcha-TTS'))
     if not m.is_dir():raise ValueError('Carpeta de pesos ausente')

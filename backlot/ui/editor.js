@@ -1,4 +1,6 @@
 import { initializePiperUI } from './editor-piper-ui.js';
+import { initializeQwenUI } from './editor-qwen.js';
+import { initializeComponentsUI } from './editor-components.js';
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
@@ -15,7 +17,7 @@ let preview = null, sourceKey = null, renderTimer = null, pending = false, works
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
 let compositionUI=null;
-let candidatesUI=null,cropPreview=null;
+let candidatesUI=null,cropPreview=null,qwenPanel=null,componentsUI=null;
 let cancelSupported=false,renderAttempt=null;
 const capabilities=new Set(),selectedIds=new Set();
 async function loadCapabilities(){
@@ -368,7 +370,7 @@ function pruneSelection(){
   if(!items.some(c=>c.id===selection.id))selection=selectedIds.size?{...selection,id:[...selectedIds][0]}:null;
 }
 function draw() {
-  candidatesUI?.draw();cropPreview?.selectionChanged();
+  candidatesUI?.draw();cropPreview?.selectionChanged();qwenPanel?.draw();componentsUI?.draw();
   q('edit-revision').textContent = 'Revisión ' + state.revision + ' · guardado local';
   q('edit-undo').disabled = !state.undo.length; q('edit-redo').disabled = !state.redo.length;
   const list = q('edit-sources'); list.replaceChildren();
@@ -498,7 +500,9 @@ effectsUI=initializeEffectsUI({q,getEdl:edl,getProject:()=>project,getSelection:
 candidatesUI=initializeCandidatesUI({q,getEdl:edl,getProject:()=>project,getRevision:()=>state?.revision,inspectWords:setId=>api(base()+'/subtitle-words?set_id='+encodeURIComponent(setId)),loadSubtitleDraft:setId=>api(base()+'/subtitle-draft?set_id='+encodeURIComponent(setId)),loadSilenceProposal:proposal=>api(base()+'/silence-proposal',proposal),run:(op,params)=>task(()=>command(op,params),true),has:name=>capabilities.has(name),reviewSource:showSource});
 cropPreview=initializeCropPreview({q,getEdl:edl,getSelection:selected,sourceUrl});
 compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
+componentsUI=initializeComponentsUI({host:q('edit-sources').parentElement,getEdl:edl,getProject:()=>project,has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),editTitle:id=>effectsUI.selectTitle(id),editLayer:id=>compositionUI.selectLayer(id)});
 const piperPanel=initializePiperUI({host:q('edit-waveform-status').parentElement,getProject:()=>project,getRevision:()=>state.revision,reopen});
+qwenPanel=initializeQwenUI({host:q('edit-waveform-status').parentElement,getEdl:edl,getProject:()=>project,run:(op,params)=>task(()=>command(op,params),true)});
 initializeEditorLayout();
 showWorkspace();task(async()=>{try{await loadCapabilities();await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});
 

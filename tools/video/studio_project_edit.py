@@ -30,16 +30,16 @@ def request(path, data=None, timeout=120):
 
 class StudioProjectEdit(BaseTool):
     name = 'studio_project_edit'
-    version = '3.3.1'
+    version = '3.4.0'
     capability = 'video_post'
     provider = 'local'
     description = 'Read and edit the shared Studio manual project; no inference. Revision required for writes.'
     install_instructions = 'Inicia la instancia actualizada de Studio local (BACKLOT_PORT o 4750); no requiere modelos ni paquetes nuevos.'
-    capabilities = ['read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal']
+    capabilities = ['read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'qwen_profiles']
     side_effects = ['Writes the selected manual project through the running local Studio server']
     not_good_for = ['Starting inference', 'Editing production pipeline artifacts', 'Editing while Studio is stopped']
     input_schema = {'type': 'object', 'required': ['project_id', 'action'], 'properties': {
-        'project_id': {'type': 'string'}, 'action': {'enum': ['read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal']},
+        'project_id': {'type': 'string'}, 'action': {'enum': ['read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'qwen_profiles']},
         'proposal': {'type': 'object', 'description': 'Read-only silence proposal with revision, EDL/word hashes and explicit source-clock analysis. Does not analyze media or apply cuts.'},
         'set_id': {'type': 'string'},
         'command': {'type': 'object'}, 'relative_path': {'type': 'string'}, 'revision': {'type': 'integer'},
@@ -59,6 +59,8 @@ class StudioProjectEdit(BaseTool):
             action = inputs['action']
             if action == 'capabilities':
                 value = request('capabilities')
+            elif action == 'qwen_profiles':
+                value = request('qwen/profiles')
             elif action == 'read':
                 value = request(path)
             elif action == 'subtitle_words':

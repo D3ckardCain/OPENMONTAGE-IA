@@ -14,6 +14,8 @@ def fingerprint(root: Path, ui: bool = False) -> dict:
     """Bounded code reads; unreadable inputs never become a matching build."""
     patterns = ('backlot/ui/*.js', 'backlot/ui/*.css', 'backlot/ui/studio.html') if ui else (
         'backlot/*.py', 'lib/studio*.py', 'lib/production_studio.py',
+        'lib/qwen_tts_local.py', 'lib/model_adapters.py', 'lib/model_adapter_worker.py',
+        'lib/model_languages.py', 'docs/models/qwen17.json',
     )
     digest = hashlib.sha256()
     try:

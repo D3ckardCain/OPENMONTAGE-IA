@@ -36,7 +36,7 @@ def plan(pid, edl, preview=False):
         gap = clip.get('kind') == 'gap'
         info = {'audio': False} if gap else edl['sources'][clip['source_id']]
         if gap:
-            args += ['-f', 'lavfi', '-i', f"color=c=black:s={width}x{height}:r={fps}:d={clip['gap_duration']}"]
+            args += ['-f', 'lavfi', '-i', f"color=c={edl['output'].get('background','black')}:s={width}x{height}:r={fps}:d={clip['gap_duration']}"]
         else:
             path = editor.source(pid, clip['source_id'])
             args += [*editor.INPUT_OPTIONS, '-i', str(path)]
@@ -78,10 +78,14 @@ def plan(pid, edl, preview=False):
         w,h=max(2,round(width*layer['width']/2)*2),max(2,round(height*layer['height']/2)*2)
         filters.append(f"[{source_index}:v:0]trim=start={layer['in_seconds']}:end={layer['out_seconds']},"
                        f"setpts=(PTS-STARTPTS)/{layer['speed']}+{layer['start_seconds']}/TB,"
-                       +transform_filter(w,h,None)+f",setsar=1,fps={fps},format=rgba,colorchannelmixer=aa={layer['opacity']}[layer{index}]")
+                       +transform_filter(w,h,{'fit':layer.get('fit','pad')})+f",setsar=1,fps={fps},format=rgba,colorchannelmixer=aa={layer['opacity']}[layer{index}]")
         target='montage' if index==len(layers)-1 else f'composite{index}'
         end=layer['start_seconds']+(layer['out_seconds']-layer['in_seconds'])/layer['speed']
-        filters.append(f"[{base}][layer{index}]overlay=x={round(width*layer['x'])}:y={round(height*layer['y'])}:"
+        x=str(round(width*layer['x']));y=str(round(height*layer['y']))
+        if layer.get('motion'):
+            m=layer['motion'];progress=f"clip((t-{layer['start_seconds']}+{m.get('phase_seconds',0)})/{m['duration_seconds']},0,1)"
+            x=f"{width}*({layer['x']}+{m['dx']}*{progress})";y=f"{height}*({layer['y']}+{m['dy']}*{progress})"
+        filters.append(f"[{base}][layer{index}]overlay=x='{x}':y='{y}':"
                        f"eof_action=pass:repeatlast=0:enable='gte(t,{layer['start_seconds']})*lt(t,{end})'[{target}]")
         base=target
     audio = '[baseaudio]' + ''.join(f'[a{i}]' for i in range(len(edl['cuts']), len(tracks)))
@@ -182,7 +186,11 @@ def _worker(pid, edl, job, args, filters):
         video_label = '[montage]'
         for index, title in enumerate(edl.get('titles', [])):
             name = f'title-{index}.ass'
-            (work / name).write_text(_ass([title], job['width'], job['height'], title), encoding='utf-8')
+            if title.get('component_layout'):
+                from lib.studio_components import title_ass
+                ass=title_ass(title,job['width'],job['height'])
+            else:ass=_ass([title], job['width'], job['height'], title)
+            (work / name).write_text(ass, encoding='utf-8')
             next_label = f'[title{index}]'
             filters.append(f'{video_label}ass={name}{next_label}')
             video_label = next_label

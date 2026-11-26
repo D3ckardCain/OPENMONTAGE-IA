@@ -32,6 +32,7 @@ REQUIRED={
  'ocr-latin':['input_path'],'ocr-det':['input_path'],'m2m100':['text','source_language','language'],'madlad':['text','language'],
  'kokoro':['text','voice'],'qwen-tts':['text','voice','language'],
  'voice-design':['text','instruction','language'],'aligner':['input_path','text','language'],
+ 'qwen-tts-17b-base':['text','language','reference_audio','reference_text','reference_authorized'],
  'chatterbox':['text'],'cosyvoice':['text','reference_audio','reference_text'],
 }
 

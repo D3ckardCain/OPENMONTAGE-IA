@@ -253,5 +253,231 @@
     "FDM completion/correct target paths for main weights and queued auxiliaries",
     "Check each new completed main weight once against official SHA256",
     "Missing dependency/runtime and cancellation/inference validation"
-  ]
+  ],
+  "current_status": "Both1.7B models complete and verified; earlier unfinished observations are historical",
+  "final_layout": [
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\config.json",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\identified-download-layout\\config.voicedesign-misplaced.json"
+    },
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\model.safetensors\\config.json",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\config.json"
+    },
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\model.safetensors\\generation_config.json",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\identified-download-layout\\generation_config.base-download.json"
+    },
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\merges (1).txt",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\merges.txt"
+    },
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\tokenizer_config (1).json",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\tokenizer_config.json"
+    },
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\vocab (1).json",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\vocab.json"
+    },
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\model (1).safetensors",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\model.safetensors"
+    },
+    {
+      "action": "rename_identified_without_overwrite",
+      "old": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\model (1).safetensors",
+      "new": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\model.safetensors"
+    },
+    {
+      "action": "identified_tokenizer_duplicate_replaced_with_hardlink",
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\model (2).safetensors",
+      "content_shared_with": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\speech_tokenizer\\model.safetensors"
+    },
+    {
+      "action": "removed_own_redundant_verified_hardlink_alias",
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\model (2).safetensors",
+      "canonical": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base\\speech_tokenizer\\model.safetensors",
+      "other_originals_preserved": true
+    }
+  ],
+  "final_diagnostics": {
+    "contract": "qwen-local-profiles-v1",
+    "profiles": [
+      {
+        "id": "voice-design",
+        "title": "Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+        "function": "voice_design",
+        "native_tool": "model_voice_design",
+        "languages": [
+          "en",
+          "es",
+          "zh",
+          "ja",
+          "ko",
+          "de",
+          "fr",
+          "ru",
+          "pt",
+          "it"
+        ],
+        "diagnostic": {
+          "family": "voice-design",
+          "backend": "native",
+          "capability": "tts",
+          "dependencies": {
+            "torch": true,
+            "qwen_tts": true,
+            "soundfile": true
+          },
+          "configuration": {
+            "model_dir": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+            "python_executable": "C:\\OPENMONTAGE-IA\\.runtime\\qwen-tts\\venv\\Scripts\\python.exe"
+          },
+          "inference_verified": false,
+          "problems": [
+            "RAM libre insuficiente para la ruta CPU FP32 actual; no se acredita carga CUDA/8GB ni se cambia el motor automaticamente"
+          ],
+          "model_dir": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+          "suspicious_files": [],
+          "missing_files": [],
+          "optional_missing_files": [],
+          "python_executable": "C:\\OPENMONTAGE-IA\\.runtime\\qwen-tts\\venv\\Scripts\\python.exe",
+          "required_modules": [
+            "torch",
+            "qwen_tts",
+            "soundfile"
+          ],
+          "qwen_resources": {
+            "profile": "voice-design",
+            "function": "voice_design",
+            "resources_verified": true,
+            "checked_weights": [
+              {
+                "path": "model.safetensors",
+                "status": "verified_cached",
+                "expected_sha256": "391e8db219f292c515297cdceeb43e4eae67cdde35fa57e79a6a8a532fca0522",
+                "bytes": 3833402552
+              },
+              {
+                "path": "speech_tokenizer/model.safetensors",
+                "status": "verified_cached",
+                "expected_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+                "bytes": 682293092
+              }
+            ],
+            "problems": [],
+            "weights_read": false,
+            "automatic_download": false
+          },
+          "cpu_memory_preflight": {
+            "device": "cpu",
+            "available_bytes": 3827617792,
+            "estimated_fp32_weight_floor_bytes": 9031391288,
+            "required_with_minimum_headroom_bytes": 10105133112,
+            "allowed": false,
+            "estimate_not_peak_measurement": true,
+            "model_loaded": false
+          },
+          "ready": false
+        },
+        "inference_verified": false,
+        "preview_available": false,
+        "preview_limit": "Preescucha/cancelación real pendientes de recursos y runtime completos; no se habilita botón ficticio.",
+        "license": "Apache-2.0 model card; rights to reference voice separate"
+      },
+      {
+        "id": "qwen-tts-17b-base",
+        "title": "Qwen--Qwen3-TTS-12Hz-1.7B-Base",
+        "function": "authorized_voice_clone",
+        "native_tool": "model_qwen_tts_17b_base",
+        "languages": [
+          "en",
+          "es",
+          "zh",
+          "ja",
+          "ko",
+          "de",
+          "fr",
+          "ru",
+          "pt",
+          "it"
+        ],
+        "diagnostic": {
+          "family": "qwen-tts-17b-base",
+          "backend": "native",
+          "capability": "tts",
+          "dependencies": {
+            "torch": true,
+            "qwen_tts": true,
+            "soundfile": true
+          },
+          "configuration": {
+            "model_dir": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base",
+            "python_executable": "C:\\OPENMONTAGE-IA\\.runtime\\qwen-tts\\venv\\Scripts\\python.exe"
+          },
+          "inference_verified": false,
+          "problems": [
+            "RAM libre insuficiente para la ruta CPU FP32 actual; no se acredita carga CUDA/8GB ni se cambia el motor automaticamente"
+          ],
+          "model_dir": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-Base",
+          "suspicious_files": [],
+          "missing_files": [],
+          "optional_missing_files": [],
+          "python_executable": "C:\\OPENMONTAGE-IA\\.runtime\\qwen-tts\\venv\\Scripts\\python.exe",
+          "required_modules": [
+            "torch",
+            "qwen_tts",
+            "soundfile"
+          ],
+          "qwen_resources": {
+            "profile": "qwen-tts-17b-base",
+            "function": "authorized_voice_clone",
+            "resources_verified": true,
+            "checked_weights": [
+              {
+                "path": "model.safetensors",
+                "status": "verified_cached",
+                "expected_sha256": "38fc7fc51c5e776e840414b6fd443962e9411b9654888fd7913e4da643cb857c",
+                "bytes": 3857413744
+              },
+              {
+                "path": "speech_tokenizer/model.safetensors",
+                "status": "verified_cached",
+                "expected_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+                "bytes": 682293092
+              }
+            ],
+            "problems": [],
+            "weights_read": false,
+            "automatic_download": false
+          },
+          "cpu_memory_preflight": {
+            "device": "cpu",
+            "available_bytes": 3827388416,
+            "estimated_fp32_weight_floor_bytes": 9079413672,
+            "required_with_minimum_headroom_bytes": 10153155496,
+            "allowed": false,
+            "estimate_not_peak_measurement": true,
+            "model_loaded": false
+          },
+          "ready": false
+        },
+        "inference_verified": false,
+        "preview_available": false,
+        "preview_limit": "Preescucha/cancelación real pendientes de recursos y runtime completos; no se habilita botón ficticio.",
+        "license": "Apache-2.0 model card; rights to reference voice separate"
+      }
+    ],
+    "model_loaded": false,
+    "note": "RAM/VRAM deben evaluarse antes de cargar; tamaño en disco no acredita compatibilidad8GB."
+  },
+  "new_downloads_by_agent": "Only small Base README; all new weights were user/FDM downloads; dependencies isolated separately"
 }

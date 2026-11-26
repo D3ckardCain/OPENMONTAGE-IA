@@ -8,7 +8,7 @@ KOKORO={'en':'a','es':'e','fr':'f','hi':'h','it':'i','pt':'p','ja':'j','zh':'z'}
 def binding(family,language):
     if not isinstance(language,str) or not language.strip():raise ValueError('Indica el idioma objetivo')
     value=language.strip().lower().replace('_','-');base=value.split('-')[0]
-    if family in ('qwen-tts','voice-design','aligner'):
+    if family in ('qwen-tts','qwen-tts-17b-base','voice-design','aligner'):
         named={name.lower():name for name in QWEN.values()}
         if value in named:return named[value]
         if base in QWEN:return QWEN[base]
@@ -22,7 +22,7 @@ def binding(family,language):
 
 
 def validate_request(family,data):
-    if family not in ('kokoro','qwen-tts','voice-design','aligner'):return
+    if family not in ('kokoro','qwen-tts','qwen-tts-17b-base','voice-design','aligner'):return
     language=data.get('language','en' if family=='kokoro' else '')
     target=binding(family,language)
     if family=='kokoro':

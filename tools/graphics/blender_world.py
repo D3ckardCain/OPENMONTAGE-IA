@@ -64,7 +64,7 @@ def first_missing_frame(output_prefix: str | Path, start_frame: int, end_frame: 
 
 class BlenderWorld(BaseTool):
     name = "blender_world"
-    version = "0.4.0"
+    version = "0.4.1"
     tier = ToolTier.GENERATE
     capability = "3d_world_rendering"
     provider = "blender"
@@ -106,7 +106,8 @@ class BlenderWorld(BaseTool):
         "type": "object",
         "required": ["operation"],
         "properties": {
-            "operation": {"type": "string", "enum": ["doctor", "build", "render_still", "render_animation"]},
+            "operation": {"type": "string", "enum": ["doctor", "build", "render_still", "render_animation", "inspect_glb"]},
+            "asset_path": {"type":"string","description":"Existing local GLB; inspect metadata without launching Blender or changing its profile."},
             "profile_id": {"type":"string","description":"Registered Studio Blender profile; absent uses the same active binding."},
             "world_spec": {"type": "object"},
             "output_path": {"type": "string"},
@@ -143,6 +144,11 @@ class BlenderWorld(BaseTool):
         return 30.0
 
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
+        if inputs.get('operation')=='inspect_glb':
+            try:
+                from lib.glb_inspection import inspect
+                return ToolResult(success=True,data=inspect(inputs['asset_path']))
+            except (ValueError,TypeError,KeyError,OSError) as exc:return ToolResult(success=False,error='Inspección GLB: '+str(exc))
         from lib import blender_profiles
         try:
             profile=blender_profiles.resolve(inputs.get('profile_id'))

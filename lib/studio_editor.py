@@ -127,6 +127,10 @@ def render_digest(edl, contract=RENDER_CONTRACT):
     output = edl['output']
     width, height = (output['width'], output['height']) if output.get('ratio') == 'custom' else PRESETS[output['ratio']]
     content['output'] = {'width': width, 'height': height, 'fps': output['fps'], 'fit': output['fit']}
+    if output.get('background'):content['output']['background']=output['background']
+    if any(t.get('component_layout') for t in edl.get('titles',[])):
+        from lib.studio_components import RENDER_CONTRACT as component_contract
+        content['component_render_contract']=component_contract
     if edl.get('titles'):
         content['titles'] = deepcopy(edl['titles'])
     if edl.get('layers'):
@@ -325,13 +329,24 @@ def _apply_edit(edl, data):
             fps = data.get('fps', 24)
             if fps not in (24, 25, 30, 60):
                 raise ValueError('FPS no admitidos')
+            background=edl['output'].get('background')
             edl['output'] = {'ratio': data['ratio'], 'fps': fps, 'fit': 'pad'}
+            if background:edl['output']['background']=background
         elif op == 'subtitle_from_words':
             from lib.studio_word_subtitles import apply
             apply(edl, data)
         elif op == 'silence_apply':
             from lib.studio_silence_proposal import apply
             apply(edl, data)
+        elif op == 'qwen_tts_plan':
+            from lib.qwen_tts_local import save_plan
+            save_plan(edl, data)
+        elif op == 'reference_plan':
+            from lib.studio_reference_plan import apply
+            apply(edl, data)
+        elif op in ('component_add','component_remove'):
+            from lib.studio_components import apply
+            apply(edl,data)
         elif op == 'subtitles':
             edl['cues'] = parse_srt(data['srt'], duration(edl)) if data['srt'].strip() else []
         elif op in ('cue_update', 'cue_split', 'cue_merge', 'cue_offset'):

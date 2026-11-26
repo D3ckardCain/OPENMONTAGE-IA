@@ -26,7 +26,7 @@ def apply_composition(edl, data):
             layers.insert(index,layers.pop(layers.index(item)))
         else:
             old={} if op=='layer_add' else edit._item(layers,data['id'])
-            value={**old,**{k:data[k] for k in ('source_id','in_seconds','out_seconds','start_seconds','speed','x','y','width','height','opacity') if k in data}}
+            value={**old,**{k:data[k] for k in ('source_id','in_seconds','out_seconds','start_seconds','speed','x','y','width','height','opacity','fit','motion') if k in data}}
             source=edl['sources'][value['source_id']]
             if source['kind']!='video':raise ValueError('Capa visual requiere una fuente de vídeo registrada')
             value['source']=source['path']
@@ -38,6 +38,15 @@ def apply_composition(edl, data):
                 value[k]=edit.number(value.get(k,default),low,1)
             if value['x']+value['width']>1.000001 or value['y']+value['height']>1.000001:
                 raise ValueError('La capa debe quedar dentro del lienzo')
+            if value.get('fit','pad') not in ('pad','crop'):raise ValueError('Encaje de capa no admitido')
+            if value.get('motion') is not None:
+                motion=value['motion']
+                if not isinstance(motion,dict):raise ValueError('Movimiento de capa no válido')
+                motion={k:edit.number(motion.get(k,default),low,high) for k,default,low,high in
+                        [('dx',0,-1,1),('dy',0,-1,1),('duration_seconds',1,.001,7200),('phase_seconds',0,0,7200)]}
+                if not 0<=value['x']+motion['dx']<=1-value['width'] or not 0<=value['y']+motion['dy']<=1-value['height']:
+                    raise ValueError('El movimiento sacaría la capa del lienzo')
+                value['motion']=motion
             if op=='layer_add':
                 if len(layers)>=4:raise ValueError('Límite de esta entrega:4 capas visuales')
                 layers.append({**value,'id':uuid.uuid4().hex})

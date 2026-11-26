@@ -3,7 +3,7 @@ from copy import deepcopy
 import uuid
 
 CAPABILITIES = ['batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
-                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply']
+                'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply', 'qwen_tts_plan', 'reference_plan', 'component_add', 'component_remove']
 
 
 def assert_editable(edl, data):
@@ -77,6 +77,8 @@ def _ripple_sources(items, removed, minimum=.001):
                 piece['fade_in'] = max(0, clip['fade_in']-(a-start))
             if 'fade_out' in clip:
                 piece['fade_out'] = max(0, clip['fade_out']-(end-b))
+            if clip.get('motion'):
+                piece['motion']={**clip['motion'],'phase_seconds':clip['motion'].get('phase_seconds',0)+(a-start)}
             result.append(piece)
     return result
 

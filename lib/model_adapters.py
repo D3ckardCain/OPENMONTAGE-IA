@@ -37,6 +37,7 @@ NATIVE={
  'smolvlm':('image_analysis',['torch','transformers','PIL']),
  'parakeet':('transcription',['torch','transformers','soundfile']),
  'qwen-tts':('tts',['torch','qwen_tts','soundfile']),
+ 'qwen-tts-17b-base':('tts',['torch','qwen_tts','soundfile']),
  'voice-design':('tts',['torch','qwen_tts','soundfile']),
  'aligner':('forced_alignment',['torch','qwen_asr']),
  'chatterbox':('tts',['torch','chatterbox','soundfile']),
@@ -71,6 +72,11 @@ def spec(family):
 
 def configuration(family):
     defaults={'workflow_path':str(studio.REPO_ROOT/'tools/_comfyui/workflows/wan22-t2v-4step.json'),'output_node':'16'} if family=='wan' else {}
+    if family in ('voice-design','qwen-tts-17b-base'):
+        from lib.qwen_tts_local import MODEL_ROOT, PROFILES
+        defaults={'model_dir':str(MODEL_ROOT/PROFILES[family]['folder'])}
+        isolated=studio.REPO_ROOT/'.runtime/qwen-tts/venv/Scripts/python.exe'
+        if isolated.is_file():defaults['python_executable']=str(isolated)
     saved=studio.settings().get('adapter_settings',{}).get(family,{})
     if family=='wan' and not saved.get('workflow_path') and not saved.get('preset'):defaults['preset']='wan22-14b-t2v-4step'
     if family=='wan' and saved.get('preset'):
@@ -260,6 +266,13 @@ def diagnostics(family,probe=True):
     result['python_executable']=python;result['dependencies']=available
     result['required_modules']=list(modules)
     if probe and model is not None and not all(available.values()):result['problems'].append('Dependencias Python ausentes: '+', '.join(m for m,ok in available.items() if not ok))
+    if model is not None and family in ('voice-design','qwen-tts-17b-base'):
+        from lib.qwen_tts_local import resources
+        result['qwen_resources']=resources(family,model)
+        result['problems'].extend(result['qwen_resources']['problems'])
+        from lib.qwen_tts_local import cpu_memory_preflight
+        result['cpu_memory_preflight']=cpu_memory_preflight(model)
+        if not result['cpu_memory_preflight']['allowed']:result['problems'].append('RAM libre insuficiente para la ruta CPU FP32 actual; no se acredita carga CUDA/8GB ni se cambia el motor automaticamente')
     result['ready']=model is not None and not result['problems']
     if model is not None:
         from lib.model_validation import current_evidence
@@ -290,6 +303,7 @@ class LocalModelAdapter(BaseTool):
         'project_id':{'type':'string'},'image_sha256':{'type':'string','pattern':'^[a-f0-9]{64}$'},'server_image':{'type':'string','maxLength':1000},
         'server_audio':{'type':'string','maxLength':1000},'server_image_2':{'type':'string','maxLength':1000},
         'reference_text':{'type':'string'},'language':{'type':'string'},'source_language':{'type':'string'},'voice':{'type':'string'},
+        'reference_authorized':{'type':'boolean'},
         'instruction':{'type':'string'},'labels':{'type':'array','items':{'type':'string'},'maxItems':100},'texts':{'type':'array','items':{'type':'string'},'maxItems':100},
         'device':{'enum':['cpu','cuda']},'max_new_tokens':{'type':'integer','minimum':1,'maximum':8192},'speed':{'type':'number','minimum':0.5,'maximum':2},
         'threshold':{'type':'number','minimum':0,'maximum':1},'timeout':{'type':'integer','minimum':10,'maximum':14400},
