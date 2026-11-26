@@ -1,0 +1,131 @@
+{
+  "activation": {
+    "pid": 130700,
+    "required": true,
+    "active_jobs": false,
+    "snapshots_saved": true,
+    "restart": "Rejected blocked by policy; no alternate kill attempted",
+    "resident_verified": false
+  },
+  "silence_ui": {
+    "scope": "Actual updated panel and real HTTP at isolated4761, not resident4750; existing Portuguese QA copy, synthetic interval not acoustic measurement",
+    "proposal_candidates": 7,
+    "apply_enabled_after_review": true,
+    "source_words_preserved": 116,
+    "selected_frames": [
+      [
+        257,
+        266
+      ]
+    ],
+    "undo_exact": true,
+    "redo_exact": true,
+    "reopen_exact": true,
+    "revision": 4,
+    "posts": [
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/silence-proposal",
+        "operation": "proposal"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "silence_apply"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "undo"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "redo"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "save"
+      }
+    ],
+    "errors": []
+  },
+  "agent113": {
+    "issue": 113,
+    "scope": "Explicit offline visible-agent-action scenario using actual markup/CSS; no production JS, requests aborted, not an active job",
+    "viewport": [
+      1280,
+      900
+    ],
+    "actions": [
+      {
+        "action": "start",
+        "text": "Iniciar / reanudar agentes",
+        "color": "rgb(230, 237, 243)",
+        "background": "rgb(33, 38, 45)",
+        "outline": "rgb(88, 166, 255)",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "focused": true,
+        "visible": true,
+        "contrast": 12.880440753133499,
+        "keyboard": "Enter/Space local counters only"
+      },
+      {
+        "action": "stop",
+        "text": "Detener entre acciones",
+        "color": "rgb(230, 237, 243)",
+        "background": "rgb(33, 38, 45)",
+        "outline": "rgb(88, 166, 255)",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "focused": true,
+        "visible": true,
+        "contrast": 12.880440753133499,
+        "keyboard": "Enter/Space local counters only"
+      },
+      {
+        "action": "approve",
+        "text": "Aprobar etapa y continuar",
+        "color": "rgb(230, 237, 243)",
+        "background": "rgb(33, 38, 45)",
+        "outline": "rgb(88, 166, 255)",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "focused": true,
+        "visible": true,
+        "contrast": 12.880440753133499,
+        "keyboard": "Enter/Space local counters only"
+      }
+    ]
+  },
+  "piper112": {
+    "eligible_records": 0,
+    "new_synthesis": false,
+    "result": "pending_no_eligible_receipt"
+  },
+  "watch122": {
+    "cache_reused": true,
+    "hash_reused": true,
+    "no_subprocess_on_reuse": true,
+    "real_pts": [
+      9.875,
+      10.5,
+      11.167
+    ],
+    "transcript_words": 6,
+    "asr_executed": false,
+    "source_unchanged": true
+  },
+  "moviepy": {
+    "installed": "1.0.3 in isolated MuseTalk",
+    "evaluated": "2.2.0 API incompatible",
+    "decision": "No demonstrated improvement over existing FFmpeg; no install/update"
+  },
+  "chimera": {
+    "rust_cargo_bun_on_path": false,
+    "windows_release_in_evaluation": false,
+    "decision": "Defer large toolchain/build; CLI WAV candidate, no Spanish text support claimed"
+  },
+  "glb143": {
+    "existing_owned_glb_found_in_reviewed_roots": false,
+    "scope": "projects, assets, local_library; not global absence",
+    "decision": "No asset generated merely for test; import/inspection blocked on an existing authorized artifact"
+  }
+}

@@ -15,6 +15,14 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Actualización de cola26-11-2026 UTC: [#122 evidencia local](INSPECCION_VIDEO_LOCAL_ES.md)
+implementada sobre FrameSampler existente:3PTS reales/6palabras guardadas y caché
+sin nueva decodificación;9casos nuevos. [Resto de avances/bloqueos](COLA_AUTONOMA_20261126_ES.md):
+panel130 aislado funcional; activación4750 bloqueada por política, no eludida;
+112 sin recibo elegible,113 acciones visibles comprobadas en escenario explícito;
+149 tokenizer reutilizado y pesos nuevos pendientes de FDM. No repetir renders.
+
+
 Entrega P0 E01/#132 [diagnóstico](HYPERFRAMES_DIAGNOSTICO_LOCAL_ES.md) y
 [piloto offline real](HYPERFRAMES_OFFLINE_PILOTO_ES.md): catálogo sin instalación,
 doctor JSON, staging por contenido y volumen0. CLI0.9.96/GSAP3.14.2 preparados

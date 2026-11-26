@@ -1,5 +1,12 @@
 # Activación agrupada de Studio
 
+Actualización26-11-2026 UTC: reinicio autorizado comprobado necesario, sin trabajos
+activos; orden de detener solo Studio rechazada por política (`blocked by policy`).
+No se intentó otro método. [Evidencia, controles nuevos y paso manual](COLA_AUTONOMA_20261126_ES.md).
+El lote incorpora también el panel real de silencios y FrameSampler0.2.0/#122.
+La validación en4761 es aislada y no acredita activación4750.
+
+
 ## Próximo lote pendiente: #132 + #130
 
 Solicitud vigente: agrupar, **sin reiniciar ahora**. #132 incluye adaptador
