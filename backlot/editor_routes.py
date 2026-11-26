@@ -40,6 +40,12 @@ def create_editor_router(body):
         from lib.voice_preparation import catalog
         return invoke(catalog)
 
+    @router.get('/chatterbox/profiles/{profile_id}/sample')
+    def chatterbox_sample(profile_id: str):
+        from lib.voice_preparation import cached_sample
+        path,_=invoke(cached_sample,profile_id)
+        return FileResponse(path,media_type='audio/wav',filename=profile_id+'.wav')
+
     @router.get('/cosyvoice/preparation')
     def cosyvoice_preparation():
         from lib.voice_preparation import cosyvoice3

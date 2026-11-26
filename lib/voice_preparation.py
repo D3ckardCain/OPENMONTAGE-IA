@@ -176,6 +176,36 @@ def regional_qualification(row,runtime):
     except (OSError,ValueError,TypeError,KeyError,AttributeError):return None
 
 
+def cached_sample(profile_id):
+    """Recover an existing WAV independently of GPU/model availability."""
+    if profile_id not in PROFILES and profile_id!='chatterbox-turbo-en':raise FileNotFoundError('Perfil de muestra desconocido')
+    try:
+        if not QUALIFICATIONS.is_file() or QUALIFICATIONS.stat().st_size>32768:raise ValueError('Recibo ausente')
+        row=json.loads(QUALIFICATIONS.read_text(encoding='utf-8'))[profile_id]
+        path=Path(row['output']).resolve()
+        path.relative_to((ROOT/'projects').resolve())
+        if path.suffix.lower()!='.wav' or not path.is_file() or identity(path)!=row['output_identity'] or row.get('success') is not True:
+            raise ValueError('La muestra no coincide con su recibo')
+        return path,dict(profile_id=profile_id,duration_seconds=row['duration_seconds'],sample_rate=row['sample_rate'],
+                         origin='existing_completed_sample',new_synthesis=False,human_listening_performed=False)
+    except (OSError,ValueError,KeyError,TypeError,AttributeError) as exc:
+        raise FileNotFoundError('Muestra guardada no disponible: '+str(exc)) from exc
+
+
+def saved_samples():
+    """Completed receipts only; Turbo may appear later without another UI update."""
+    result=[]
+    labels={key:spec['locale'] for key,spec in PROFILES.items()}
+    labels['chatterbox-turbo-en']='en · Turbo'
+    for key,locale in labels.items():
+        try:
+            _,sample=cached_sample(key)
+            result.append(dict(id=key,locale=locale,cached_sample={**sample,'available':True,
+                'url':'/api/studio/editor/chatterbox/profiles/'+key+'/sample'}))
+        except FileNotFoundError:pass
+    return result
+
+
 def catalog():
     runtime=chatterbox_runtime()
     try:
@@ -224,9 +254,13 @@ def catalog():
             row.update(ready=True,inference_verified=True,qualification=qualification,problems=[],
                        execution_scope='CUDA bounded Spanish sample, authorized reference required; regional Audio preview controls pending',
                        python_executable=str(ROOT/'.runtime/chatterbox/venv/Scripts/python.exe'))
+        try:
+            _,sample=cached_sample(key)
+            row['cached_sample']={**sample,'available':True,'url':'/api/studio/editor/chatterbox/profiles/'+key+'/sample'}
+        except FileNotFoundError:row['cached_sample']={'available':False}
         rows.append(row)
-    return {'contract':'chatterbox-regional-preparation-v1','profiles':rows,
-        'note':'Cada perfil distingue recursos, inferencia medida y controles de preescucha pendientes. Una muestra no acredita naturalidad. Sin fallback V2/Turbo inglés.'}
+    return {'contract':'chatterbox-regional-preparation-v1','profiles':rows,'samples':saved_samples(),
+        'note':'Reproduce muestras existentes sin sintetizar. La generación regional desde Audio sigue pendiente. Una muestra no acredita naturalidad. Sin fallback V2/Turbo inglés.'}
 
 
 def guard_request(inputs):

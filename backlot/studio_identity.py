@@ -47,6 +47,8 @@ EDITOR_CAPABILITIES = {
     'silence_proposal': {'contract': 'studio-silence-proposal-v1', 'read_only': True, 'apply_available': True, 'apply_command': 'silence_apply'},
     'qwen_preview': {'contract': 'qwen-preview-v1', 'real_native_worker': True,
                      'cancel_owned_worker': True, 'automatic_retry': False},
+    'chatterbox_saved_samples': {'contract': 'chatterbox-saved-audio-v1',
+                                 'playback': True, 'generation': False},
 }
 
 
