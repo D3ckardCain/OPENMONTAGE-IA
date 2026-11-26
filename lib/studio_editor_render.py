@@ -13,6 +13,7 @@ from tools.audio.audio_mixer import AudioMixer
 from lib.studio_render_process import CONTROLS, Control, Cancelled, execute
 from lib.studio_editor_layers import transition_filters
 from lib.studio_subtitle_language import metadata_args
+from lib.studio_audio_balance import filter_suffix as balance_filter
 
 
 def plan(pid, edl, preview=False):
@@ -53,7 +54,8 @@ def plan(pid, edl, preview=False):
         if info['audio']:
             af = (f'[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'
                   + VideoTrimmer._build_atempo_chain(speed) + f',aresample=48000,'
-                  f'aformat=sample_fmts=fltp:channel_layouts=stereo,volume={gain}')
+                  'aformat=sample_fmts=fltp:channel_layouts=stereo'
+                  + balance_filter(clip) + f',volume={gain}')
             if clip['fade_in']:
                 af += f",afade=t=in:st=0:d={min(seconds, clip['fade_in'])}"
             if clip['fade_out']:

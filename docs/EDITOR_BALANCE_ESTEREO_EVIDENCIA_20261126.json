@@ -1,0 +1,79 @@
+{
+  "scope": "clip stereo balance; not full Fairlight or all 174",
+  "tests": {
+    "new_passed": 5,
+    "command": "pytest tests/backlot/test_studio_audio_balance.py -q -p no:cacheprovider",
+    "new_failed_before_execution": [
+      "Studio and global Python: pytest absent",
+      "QA Python: FastAPI absent"
+    ],
+    "existing_environments_reused": true,
+    "environments_modified": false
+  },
+  "pcm": {
+    "scenario": "New synthetic 40 ms stereo PCM signal per distinct balance; no voice or video",
+    "ffmpeg": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\FFmpeg\\ffmpeg-9.0.2-essentials_build\\bin\\ffmpeg.exe",
+    "results": {
+      "0": {
+        "samples_per_channel": 1920,
+        "left_gain": 1,
+        "right_gain": 1,
+        "maximum_error": 0.0
+      },
+      "-1": {
+        "samples_per_channel": 1920,
+        "left_gain": 1,
+        "right_gain": 0,
+        "maximum_error": 0.0
+      },
+      "1": {
+        "samples_per_channel": 1920,
+        "left_gain": 0,
+        "right_gain": 1,
+        "maximum_error": 0.0
+      },
+      "0.5": {
+        "samples_per_channel": 1920,
+        "left_gain": 0.5,
+        "right_gain": 1,
+        "maximum_error": 0.0
+      }
+    },
+    "approved_tests_repeated": false,
+    "human_listening": false
+  },
+  "browser": {
+    "scenario": "Actual Chrome control interaction; explicit synthetic EDL and simulated transport, not main Studio API",
+    "capability_hidden": true,
+    "keyboard": true,
+    "save": true,
+    "centre": true,
+    "lock": true,
+    "duplicate_submit_blocked": true,
+    "uncertain_error_preserves_draft": true,
+    "automatic_retry": false,
+    "calls": [
+      {
+        "op": "audio_balance",
+        "id": "clip-qa",
+        "track": "audio",
+        "balance": 0.5
+      },
+      {
+        "op": "audio_balance",
+        "id": "clip-qa",
+        "track": "audio",
+        "balance": 0
+      },
+      {
+        "op": "audio_balance",
+        "id": "clip-qa",
+        "track": "audio",
+        "balance": -0.6
+      }
+    ],
+    "page_errors": []
+  },
+  "main_studio_activation": "pending_grouped_manual",
+  "human_listening": false
+}

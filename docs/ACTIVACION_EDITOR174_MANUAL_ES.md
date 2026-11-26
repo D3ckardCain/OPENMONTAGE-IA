@@ -2,7 +2,7 @@
 
 La política de ejecución rechazó el comando que detenía exclusivamente Studio PID153088 en4750 y lo arrancaba desde `C:\OPENMONTAGE-IA\.venv`. Mensaje disponible: `blocked by policy`, sin razón adicional. La acción no se ejecutó; no se intentó otra vía. El servidor QA4766 ya está cerrado. El verificador de archivos y su finalizador son procesos independientes que deben conservarse.
 
-Antes del rechazo: worker inactivo, tarea local inactiva, cola pausada sin elementos. Se guardaron224 JSON de proyectos/configuración en una copia privada. El paquete se amplió después y debe activarse **una sola vez completo**, no por cada commit: sourceSHA256 esperado `bdb481c5d7a4728257f3808076236a155c920685c9709055a926d21dd1e1eaaa`,41archivos; capabilities `layer_position_keyframes` y `layer_transform_keyframes`. La identidad UI se informa por separado. Las comprobaciones de trabajos deben ser actuales antes de ejecutar el bloque manual.
+Antes del rechazo: worker inactivo, tarea local inactiva, cola pausada sin elementos. Se guardaron224 JSON de proyectos/configuración en una copia privada. El paquete se amplió después y debe activarse **una sola vez completo**, no por cada commit: sourceSHA256 esperado `51f520aa1d98f98e5e9364ccaddd870fb89145a76fdb81e83f66cd206c95fe87`,42archivos; capabilities `layer_position_keyframes`, `layer_transform_keyframes` y `audio_balance`. La identidad UI se informa por separado. Las comprobaciones de trabajos deben ser actuales antes de ejecutar el bloque manual.
 
 ## Paso manual exacto
 
@@ -33,4 +33,4 @@ Invoke-RestMethod http://127.0.0.1:4750/api/studio/identity -TimeoutSec 10
 Invoke-RestMethod http://127.0.0.1:4750/api/studio/editor/capabilities -TimeoutSec 10
 ```
 
-Debe aparecer saludOK, `restart_required:false`, el sourceSHA256 esperado y ambas capabilities. Eso acredita activación de backend, no escucha humana ni nueva exportación. No repetir las pruebas, renders o ciclos QA ya aprobados; solo comprobar presencia y funcionamiento pendiente en el panel principal con una copia.
+Debe aparecer saludOK, `restart_required:false`, el sourceSHA256 esperado y las tres capabilities. Eso acredita activación de backend, no escucha humana ni nueva exportación. No repetir las pruebas, renders o ciclos QA ya aprobados; solo comprobar presencia y funcionamiento pendiente en el panel principal con una copia.

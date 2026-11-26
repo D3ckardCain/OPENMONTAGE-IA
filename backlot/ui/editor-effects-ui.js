@@ -1,6 +1,8 @@
 // Forms persist only through the same revisioned commands as the agent.
 import {videoDuration} from './editor-time.js';
-export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,has,cursor}){
+import {initializeAudioBalance} from './editor-audio-balance.js';
+export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBalance=run,has,cursor}){
+  const balanceUI=initializeAudioBalance({host:q('edit-mix-panel'),getEdl,getProject,getSelection,run:runBalance,has});
   const anchorLabel=document.createElement('label');anchorLabel.textContent='Ancla horizontal del componente (0–1) ';
   const anchor=document.createElement('input');anchor.name='anchor_x';anchor.type='number';anchor.min='0';anchor.max='1';anchor.step='.01';anchor.value='.5';anchorLabel.append(anchor);anchorLabel.hidden=true;q('edit-title-form').append(anchorLabel);
   let transformKey=null,titleKey=null,outputKey=null,mixKey=null;
@@ -10,6 +12,7 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,has,cu
   function syncCrop(){const f=q('edit-transform-form');for(const key of ['zoom','focus_x','focus_y'])f.elements[key].disabled=f.elements.fit.value!=='crop';}
   function drawSelection(){
     let item;try{item=getSelection();}catch{/* no clip */}
+    balanceUI.draw(item);
     const enabled=has('transform')&&item?.track==='video'&&item.clip.kind!=='gap';q('edit-transform-panel').hidden=!enabled;
     const form=q('edit-transform-form');form.querySelector('fieldset').disabled=!enabled||Boolean(item?.clip.locked);
     const key=JSON.stringify([getProject(),item?.id,item?.clip.transform,item?.clip.locked]);
@@ -41,5 +44,5 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,has,cu
   q('edit-title-remove').onclick=()=>run('title_remove',{id:q('edit-title-select').value});
   q('edit-output-custom-form').onsubmit=event=>{event.preventDefault();const f=event.target;run('output_custom',{width:numeric(f,'width'),height:numeric(f,'height'),fps:numeric(f,'fps'),platform:f.elements.platform.value,preset_name:f.elements.preset_name.value});};
   q('edit-mix-form').onsubmit=event=>{event.preventDefault();const f=event.target;run('audio_mix',{normalize:f.elements.normalize.checked,target_lufs:numeric(f,'target_lufs'),gain:numeric(f,'gain')});};
-  return {draw,drawSelection,selectTitle(id){q('edit-title-panel').open=true;q('edit-title-select').value=id;drawTitle(true);q('edit-title-form').elements.text.focus();},reset(){transformKey=titleKey=outputKey=mixKey=null;}};
+  return {draw,drawSelection,selectTitle(id){q('edit-title-panel').open=true;q('edit-title-select').value=id;drawTitle(true);q('edit-title-form').elements.text.focus();},reset(){balanceUI.reset();transformKey=titleKey=outputKey=mixKey=null;}};
 }

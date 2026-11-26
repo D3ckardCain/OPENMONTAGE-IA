@@ -394,6 +394,8 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_audio_balance import validate as validate_balance
+    validate_balance(edl)
     from lib.studio_editor_layers import validate_composition
     validate_composition(edl)
     if len(edl['cuts']) + len(edl['audio_tracks']) > 200 or duration(edl) > 7200:
