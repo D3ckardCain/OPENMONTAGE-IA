@@ -36,3 +36,5 @@ Panel/API reales en copia aislada 4773: guardar, selección de música, bypass p
 [Evidencia técnica](EDITOR_DUCKING_EVIDENCIA_20261126.json). Pendientes: activación y controles en4750 tras confirmación del reinicio; escucha humana y prueba audiovisual codificada específica de ducking. La única escucha humana solicitada sigue siendo la página A/B existente de EQ, sin añadir otra.
 
 Referencia técnica: [documentación oficial de sidechaincompress de FFmpeg](https://ffmpeg.org/ffmpeg-filters.html#sidechaincompress). Sin servicios de pago ni dependencias nuevas. PR#2 permanece en borrador.
+
+Actualizacion posterior: [validacion codificada de ducking y SFX sin marcar completada](EDITOR_DUCKING_MP4_ES.md). [Medicion de mezcla final](EDITOR_MEDICION_MEZCLA_FINAL_ES.md) implementada por separado. Siguen pendientes activacion4750 y escucha humana.

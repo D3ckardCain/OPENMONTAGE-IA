@@ -25,6 +25,27 @@ def create_editor_router(body):
     def capabilities():
         return editor_capabilities()
 
+    @router.post('/{pid}/mix-meter')
+    async def mix_meter(pid: str, request: Request):
+        from lib.studio_mix_meter import start
+        return invoke(start,pid,await body(request,4000))
+
+    @router.post('/{pid}/agent-mix-meter')
+    async def agent_mix_meter(pid: str, request: Request):
+        from lib.studio_mix_meter import start
+        return invoke(start,pid,await body(request,4000),'agent')
+
+    @router.get('/{pid}/mix-meter/requests/{request_id}')
+    def mix_meter_status(pid: str, request_id: str):
+        from lib.studio_mix_meter import status
+        return invoke(status,pid,request_id)
+
+    @router.post('/{pid}/mix-meter/requests/{request_id}/cancel')
+    async def cancel_mix_meter(pid: str, request_id: str, request: Request):
+        if await body(request):raise HTTPException(400,'Cancelar no admite otras entradas')
+        from lib.studio_mix_meter import cancel
+        return invoke(cancel,pid,request_id)
+
     @router.get('/sfx')
     def sfx_catalog(q: str='', category: str='', offset: int=0, limit: int=24, favorites: bool=False, project_id: str=''):
         from lib.studio_sfx_catalog import catalog

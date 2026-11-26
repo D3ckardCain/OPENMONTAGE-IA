@@ -1,0 +1,227 @@
+{
+  "new_focused_cases_passed": 16,
+  "real_measurement": {
+    "request_id": "qa174-final-mix-first",
+    "intent": "61b75bb4e26c2d3adc0e2cb9a11ec1c05e8c2b9a86d323f81b7bd8be14d7bd2b",
+    "contract": "encoded-final-mix-meter-v1",
+    "status": "completed",
+    "source": {
+      "path": "assets/editor-renders/33c5165343f54c6e9272759c5e0c3a0b/montage.mp4",
+      "sha256": "03d76c5b5b36221424a8cdcd6d413ace2dd105a97fb8d1d1a8804c51a3bfb3bb",
+      "identity": {
+        "bytes": 175091,
+        "mtime_ns": 1795734933207735100,
+        "device": 314632661,
+        "inode": 18858823439792410
+      },
+      "render_sha256": "f3a9a9e73c331ef62601f2bc6754da48694878276a36aac3526a0cee93d54267",
+      "preview": false
+    },
+    "engine": {
+      "path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\FFmpeg\\ffmpeg-9.0.2-essentials_build\\bin\\ffmpeg.exe",
+      "identity": {
+        "bytes": 105423872,
+        "mtime_ns": 1789794737406582500,
+        "device": 2728866502,
+        "inode": 281474976743708
+      }
+    },
+    "coverage": {
+      "start_seconds": 0.0,
+      "duration_seconds": 4.0,
+      "total_seconds": 4.0,
+      "partial": false,
+      "clock": "encoded render seconds"
+    },
+    "origin": "user",
+    "created_at": "2026-11-26T23:20:02.268209+00:00",
+    "cache_hit": false,
+    "metrics": {
+      "rms_dbfs": -36.540406,
+      "sample_peak_dbfs": -20.925137,
+      "true_peak_dbfs": -20.9,
+      "integrated_lufs": -33.7,
+      "loudness_range_lu": 0.4,
+      "samples_per_channel": 192000,
+      "loudness_below_gate": false,
+      "sample_peak_at_or_above_full_scale": false,
+      "true_peak_above_full_scale": false
+    },
+    "completed_at": "2026-11-26T23:20:04.565450+00:00",
+    "current": true
+  },
+  "cached_array_crosscheck": {
+    "scope": "Independent RMS/sample-peak check using valid cached decoded MP4 array; no new decode",
+    "rms_dbfs": -36.54040645543497,
+    "sample_peak_dbfs": -20.92513712273776,
+    "meter_rms_dbfs": -36.540406,
+    "meter_sample_peak_dbfs": -20.925137,
+    "tolerance_db": 0.001
+  },
+  "real_ui": {
+    "scope": "Real UI4774 on copy, cached existing final-mix measurement only; no repeated decode/render",
+    "lost_response_recovered": true,
+    "post_count": 1,
+    "cache_hit": true,
+    "reopen_receipt": true,
+    "stale_render_marked": true,
+    "page_errors": [],
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "95a0375f7a3c710458c8f38b69e0ba989c6b70078b145bafe319881301617848",
+        "files": 49
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "95a0375f7a3c710458c8f38b69e0ba989c6b70078b145bafe319881301617848",
+        "files": 49
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "0e8d6fdbf20eec70ae4d5d9a147cbaa2bbda92ad78d2255bd2a51ec181a81837",
+        "files": 41
+      },
+      "restart_required": false,
+      "pid": 10820,
+      "loaded_at_utc": "2026-11-26T23:23:49.139269+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "mix_meter",
+          "audio_ducking",
+          "track_mixer",
+          "audio_processing",
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "95a0375f7a3c710458c8f38b69e0ba989c6b70078b145bafe319881301617848"
+      }
+    },
+    "measurement": {
+      "request_id": "80361f06-ec47-4d19-9760-c149858fbf0a",
+      "intent": "dfcdcb7a20fc6ccb97941c885f5fea580f9da8dc7807e9e62a408a83e433c5fd",
+      "contract": "encoded-final-mix-meter-v1",
+      "status": "completed",
+      "source": {
+        "path": "assets/editor-renders/33c5165343f54c6e9272759c5e0c3a0b/montage.mp4",
+        "sha256": "03d76c5b5b36221424a8cdcd6d413ace2dd105a97fb8d1d1a8804c51a3bfb3bb",
+        "identity": {
+          "bytes": 175091,
+          "mtime_ns": 1795734933207735000,
+          "device": 314632661,
+          "inode": 18858823439792410
+        },
+        "render_sha256": "f3a9a9e73c331ef62601f2bc6754da48694878276a36aac3526a0cee93d54267",
+        "preview": false
+      },
+      "engine": {
+        "path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\FFmpeg\\ffmpeg-9.0.2-essentials_build\\bin\\ffmpeg.exe",
+        "identity": {
+          "bytes": 105423872,
+          "mtime_ns": 1789794737406582500,
+          "device": 2728866502,
+          "inode": 281474976743708
+        }
+      },
+      "coverage": {
+        "start_seconds": 0,
+        "duration_seconds": 4,
+        "total_seconds": 4,
+        "partial": false,
+        "clock": "encoded render seconds"
+      },
+      "origin": "user",
+      "created_at": "2026-11-26T23:24:06.589990+00:00",
+      "cache_hit": true,
+      "metrics": {
+        "rms_dbfs": -36.540406,
+        "sample_peak_dbfs": -20.925137,
+        "true_peak_dbfs": -20.9,
+        "integrated_lufs": -33.7,
+        "loudness_range_lu": 0.4,
+        "samples_per_channel": 192000,
+        "loudness_below_gate": false,
+        "sample_peak_at_or_above_full_scale": false,
+        "true_peak_above_full_scale": false
+      },
+      "completed_at": "2026-11-26T23:20:04.565450+00:00",
+      "current": true
+    },
+    "main4750_checked": false,
+    "human_listening": false,
+    "post_ui_changes": "Resource guard startup/cleanup and measurement_origin field verified in focused cases; final confirmed-error UI path verified separately with explicit simulated409. No repeated live audio read."
+  },
+  "qa4774": "closed",
+  "expected_activation": {
+    "backend": {
+      "status": "available",
+      "sha256": "d9838282b1f73383452a866414d90ca3635f98c4c39256277b8af13a83d72942",
+      "files": 49
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "14f71fa542ab9c3a9801cd23811f91de4a7275c3785a96fb8e0769d47bbc4340",
+      "files": 41
+    }
+  },
+  "main4750_checked": false,
+  "human_listening": false,
+  "simulated_confirmed_http_error_ui": {
+    "scope": "Explicit simulated HTTP409 UI fixture only, not live Studio",
+    "confirmed_error_preserved": true,
+    "draft_preserved": true,
+    "posts": 1,
+    "automatic_retry": false,
+    "page_errors": []
+  }
+}

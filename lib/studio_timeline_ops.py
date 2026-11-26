@@ -2,7 +2,7 @@
 from copy import deepcopy
 import uuid
 
-CAPABILITIES = ['audio_ducking', 'track_mixer', 'audio_processing', 'sfx_catalog', 'sfx_favorites', 'crossfade', 'audio_balance', 'layer_transform_keyframes', 'layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
+CAPABILITIES = ['mix_meter', 'audio_ducking', 'track_mixer', 'audio_processing', 'sfx_catalog', 'sfx_favorites', 'crossfade', 'audio_balance', 'layer_transform_keyframes', 'layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
                 'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply', 'qwen_tts_plan', 'reference_plan', 'component_add', 'component_remove']
 
 
