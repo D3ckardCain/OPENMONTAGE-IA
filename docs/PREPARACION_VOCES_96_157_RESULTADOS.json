@@ -518,5 +518,14 @@
     "main_venv_modified": false,
     "comfyui_modified": false,
     "qwen_environment_modified": false
+  },
+  "later_completed_downloads_and_functional_samples": {
+    "report": "docs/DESCARGAS_VOCES_96_157_INVENTARIO_20261126.json",
+    "new_unique_focused_tests": 10,
+    "spanish_real_samples": 2,
+    "cosy_load_blocked": "CPU memory headroom and separate Windows dependencies",
+    "previous_dependency_failure_resolved_for_chatterbox": true,
+    "main_4750_activation": "pending",
+    "human_listening": "pending"
   }
 }

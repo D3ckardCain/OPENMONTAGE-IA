@@ -188,6 +188,26 @@ def run(request):
         progress(request,'completed',forward_count=counter['forwards'],device=device)
         return result
     if family=='chatterbox':
+        if data.get('regional_profile'):
+            try:from lib.chatterbox_regional_runtime import load_profile,generate_bounded
+            except ImportError:from chatterbox_regional_runtime import load_profile,generate_bounded
+            if 'seed' in data:torch.manual_seed(data['seed'])
+            progress(request,'loading',device=device)
+            model,loaded=load_profile(data['regional_profile'],device)
+            try:from lib.hyperframes_staging import identity
+            except ImportError:from hyperframes_staging import identity
+            reference=Path(local_file(data,'reference_audio'));reference_identity=identity(reference)
+            progress(request,'generating',device=device)
+            value=generate_bounded(model,required(data,'text'),reference,
+                                   max_new_tokens=data.get('max_new_tokens',160))
+            if identity(reference)!=reference_identity:raise ValueError('La referencia cambió durante la síntesis; salida no acreditada')
+            result=audio(value,model.sr)
+            result['provenance']=dict(regional_profile=data['regional_profile'],load=loaded,
+                reference_audio=str(reference),reference_identity=reference_identity,reference_authorized=True,
+                source_revision='ab55923c27757c90cfcc407baa57dc25a7d25217',
+                max_new_tokens=data.get('max_new_tokens',160),watermark=True)
+            progress(request,'completed',device=device)
+            return result
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
         model=ChatterboxMultilingualTTS.from_local(m,device=device)
         args={'language_id':required(data,'language')}

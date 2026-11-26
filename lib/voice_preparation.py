@@ -1,5 +1,6 @@
 """Read-only regional voice preparation. No imports of Torch, YAML execution or Hub."""
 import json
+import hashlib
 from importlib import metadata
 from pathlib import Path
 try:
@@ -11,6 +12,7 @@ ROOT=Path(__file__).resolve().parents[1]
 MODEL_ROOT=Path('C:/OPENMONTAJE-IA/DESCARGAS_MODELOS')
 CACHE=ROOT/'.runtime/voice-resources/verified-files.json'
 SHARED=ROOT/'.backlot/studio/voice_resources.json'
+QUALIFICATIONS=ROOT/'.runtime/chatterbox/qualifications.json'
 PROFILES={
  'chatterbox-es-mx-latam':dict(folder='ResembleAI--Chatterbox-Multilingual-es-mx-latam',locale='es-MX/es-419',
    revision='27e595bf2fe7be0533ca299d9afafcde08b7cca7',filename='t3_es_mx_latam.safetensors',bytes=2143990280,
@@ -33,6 +35,51 @@ COSY_WEIGHTS={
 COSY_AUX=['config.json','configuration.json','cosyvoice3.yaml',
  'CosyVoice-BlankEN/config.json','CosyVoice-BlankEN/generation_config.json',
  'CosyVoice-BlankEN/merges.txt','CosyVoice-BlankEN/tokenizer_config.json','CosyVoice-BlankEN/vocab.json']
+COSY_AUX_BLOBS={
+ 'config.json':'9e26dfeeb6e641a33dae4961196235bdb965b21b',
+ 'configuration.json':'5e812fae901c12933ac69ebf3eb79d0eb49bbab4',
+ 'cosyvoice3.yaml':'2eda7e5007d99f6b17fbe7bd751cf54e3cde29ea',
+ 'CosyVoice-BlankEN/config.json':'463b055262b6c66c4629a74a4b300bfe2ed31d3c',
+ 'CosyVoice-BlankEN/generation_config.json':'dfc11073787daf1b0f9c0f1499487ab5f4c93738',
+ 'CosyVoice-BlankEN/merges.txt':'90d3d82d027eadcc6a5e77c38eb82d43fc51b53b',
+ 'CosyVoice-BlankEN/tokenizer_config.json':'ff55d7b9eb1384e5d4d7e75dc0f564c1a8833d6e',
+ 'CosyVoice-BlankEN/vocab.json':'4783fe10ac3adce15ac8f358ef5462739852c569',
+}
+
+
+def cached_auxiliaries(folder):
+    """Receipt and current identity, without reading or executing YAML/model content."""
+    try:
+        if not CACHE.is_file() or CACHE.stat().st_size>1000000:return False
+        rows=json.loads(CACHE.read_text(encoding='utf-8'))
+        for name,blob in COSY_AUX_BLOBS.items():
+            path=Path(folder)/name
+            if not path.is_file() or Path(str(path)+'.fdmdownload').exists():return False
+            row=rows.get(str(path.resolve()),{})
+            if row.get('identity')!=identity(path) or row.get('git_blob_sha1')!=blob:return False
+        return True
+    except (OSError,ValueError,TypeError,AttributeError):return False
+
+
+def cosyvoice_cpu_preflight(available_bytes=None):
+    """Conservative allocation estimate, not a measurement of model peak usage."""
+    if available_bytes is None:
+        import os
+        if os.name=='nt':
+            import ctypes
+            class Memory(ctypes.Structure):
+                _fields_=[('length',ctypes.c_ulong),('load',ctypes.c_ulong)]+[
+                    (name,ctypes.c_ulonglong) for name in ('total','available','page_total','page_available','virtual_total','virtual_available','extended')]
+            memory=Memory();memory.length=ctypes.sizeof(memory)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(memory)):available_bytes=memory.available
+    pt=sum(size for name,(size,_) in COSY_WEIGHTS.items() if name.endswith('.pt'))
+    onnx=sum(size for name,(size,_) in COSY_WEIGHTS.items() if name.endswith('.onnx'))
+    blank=COSY_WEIGHTS['CosyVoice-BlankEN/model.safetensors'][0]
+    required=2*pt+onnx+blank+1024**3
+    return dict(available_physical_bytes=available_bytes,estimated_required_available_bytes=required,
+                estimate_basis='2x PT checkpoint bytes + ONNX + transient BlankEN + 1GiB margin',
+                headroom_ok=available_bytes>=required if available_bytes is not None else None,
+                peak_measured=False,weights_loaded=False)
 
 
 def chatterbox_runtime(site=None):
@@ -40,13 +87,15 @@ def chatterbox_runtime(site=None):
     site=Path(site) if site else ROOT/'.runtime/chatterbox/venv/Lib/site-packages'
     expected={'torch':'2.6.0','torchaudio':'2.6.0','transformers':'5.2.0',
               'diffusers':'0.29.0','safetensors':'0.5.3','resemble-perth':'1.0.1'}
-    installed={}
+    installed={};observed={}
     if site.is_dir():
         for dist in metadata.distributions(path=[str(site)]):
             name=(dist.metadata.get('Name') or '').lower().replace('_','-')
             if name in expected:installed[name]=dist.version
+            if name in ('s3tokenizer','numpy','librosa','tokenizers','conformer','pyloudnorm','omegaconf','chatterbox-tts'):
+                observed[name]=dist.version
     matching=all(installed.get(name,'').split('+')[0]==version for name,version in expected.items())
-    return dict(expected=expected,installed=installed,declared_core_versions_present=matching,
+    return dict(expected=expected,installed=installed,observed=observed,declared_core_versions_present=matching,
                 imports_verified=False,loader_verified=False,weights_loaded=False,
                 inspection='isolated_distribution_metadata_only')
 
@@ -59,6 +108,9 @@ def cosyvoice3(folder=None):
     missing=[name for name in COSY_AUX if not (folder/name).is_file()]
     problems.extend('Auxiliar ausente: '+name for name in missing)
     problems.append('Runtime Windows independiente no acreditado; no cargar YAML/pt ni reutilizar dependencias Qwen incompatibles')
+    cpu_preflight=cosyvoice_cpu_preflight()
+    if cpu_preflight['headroom_ok'] is False:
+        problems.append('RAM CPU disponible inferior al margen conservador estimado de '+str(cpu_preflight['estimated_required_available_bytes'])+' bytes; no cargar pesos')
     candidates=[]
     if discover and SHARED.is_file() and SHARED.stat().st_size<=16000:
         try:
@@ -67,6 +119,8 @@ def cosyvoice3(folder=None):
                 found={name:verified_file(Path(selected)/name,*value) for name,value in COSY_WEIGHTS.items()}
                 candidates.append(dict(path=selected,weights=found,
                     all_expected_sizes_present=all(r['status'] in ('verified_cached','unverified_or_changed') for r in found.values()),
+                    all_weights_verified=all(r['status']=='verified_cached' for r in found.values()),
+                    auxiliaries_verified=cached_auxiliaries(selected),
                     inference_verified=False))
         except (OSError,ValueError,TypeError):pass
     return dict(contract='cosyvoice3-standard-preparation-v1',revision='29e01c4e8d000f4bcd70751be16fa94bf3d85a18',
@@ -74,7 +128,10 @@ def cosyvoice3(folder=None):
        excluded_alternatives=['llm.rl.pt','flow.decoder.estimator.fp32.onnx','speech_tokenizer_v3.batch.onnx'],
        model_license_label='Apache-2.0',commercial_scope='unresolved_academic_examples_disclaimer_discussion19',
        evaluation_load_performed=False,yaml_executed=False,weights_read=False,problems=problems,
-       existing_candidates=candidates,new_weight_downloads_recommended=False)
+       all_weights_verified=all(r['status']=='verified_cached' for r in weights.values()),
+       auxiliaries_verified=cached_auxiliaries(folder),
+       existing_candidates=candidates,new_weight_downloads_recommended=False,
+       cpu_preflight=cpu_preflight)
 
 
 def verified_file(path,expected_bytes,sha):
@@ -92,6 +149,31 @@ def verified_file(path,expected_bytes,sha):
         return dict(status=status,path=str(path),bytes=value[2],read=False)
     except (OSError,ValueError,TypeError,AttributeError):
         return dict(status='verification_cache_unavailable',path=str(path),read=False)
+
+
+def regional_signature(row,runtime):
+    """Bind actual QA to resources and code metadata; never hash model content."""
+    paths=[Path(row[k]['path']) for k in ('main','decoder','tokenizer','voice_encoder')]
+    paths.append(ROOT/'lib/chatterbox_regional_runtime.py')
+    paths.append(ROOT/'.runtime/chatterbox/venv/Scripts/python.exe')
+    code=ROOT/'.runtime/chatterbox/venv/Lib/site-packages/chatterbox'
+    paths.extend(sorted(code.rglob('*.py')) if code.is_dir() else [])
+    payload=dict(profile_id=row['id'],model_revision=row['revision'],
+                 source_revision='ab55923c27757c90cfcc407baa57dc25a7d25217',
+                 installed=runtime['installed'],observed=runtime.get('observed',{}),files=[[str(p.resolve()),identity(p)] for p in paths])
+    return hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
+
+
+def regional_qualification(row,runtime):
+    try:
+        if not runtime['declared_core_versions_present'] or not QUALIFICATIONS.is_file() or QUALIFICATIONS.stat().st_size>32768:return None
+        value=json.loads(QUALIFICATIONS.read_text(encoding='utf-8')).get(row['id'])
+        if not value or value.get('signature')!=regional_signature(row,runtime):return None
+        output=Path(value['output'])
+        if not output.is_file() or identity(output)!=value['output_identity']:return None
+        if value.get('success') is not True:return None
+        return value
+    except (OSError,ValueError,TypeError,KeyError,AttributeError):return None
 
 
 def catalog():
@@ -128,16 +210,23 @@ def catalog():
         problems.extend(['Loader regional V3 no acreditado: el from_local upstream revisado carga s3gen.pt, no s3gen_v3.safetensors',
             'Código alternativo del Space requiere revisión de licencia/atribuciones y compatibilidad Windows antes de instalar/cargar',
             'Perth/referencia autorizada y entorno de inferencia aún no acreditados'])
-        rows.append(dict(id=key,locale=spec['locale'],language_id='es',revision=spec['revision'],license='MIT model card',
+        row=dict(id=key,locale=spec['locale'],language_id='es',revision=spec['revision'],license='MIT model card',
             ready=False,preview_available=False,inference_verified=False,main=main,decoder=decoder_info,
             tokenizer=dict(path=str(token),present=token.is_file(),verified_cached=cached_token(token),official_git_blob=TOKENIZER_BLOB),
             voice_encoder=ve,
             shared_decoder_sha256=DECODER['sha256'],problems=problems,
             isolated_python_prepared=(ROOT/'.runtime/chatterbox/venv/Scripts/python.exe').is_file(),
             inference_dependencies_installed=runtime['declared_core_versions_present'],
-            runtime_preparation=runtime,automatic_download=False,weights_read=False))
+            runtime_preparation=runtime,automatic_download=False,weights_read=False)
+        qualification=regional_qualification(row,runtime)
+        resources_ok=all(row[k]['status']=='verified_cached' for k in ('main','decoder','voice_encoder')) and row['tokenizer']['verified_cached']
+        if qualification and resources_ok:
+            row.update(ready=True,inference_verified=True,qualification=qualification,problems=[],
+                       execution_scope='CUDA bounded Spanish sample, authorized reference required; regional Audio preview controls pending',
+                       python_executable=str(ROOT/'.runtime/chatterbox/venv/Scripts/python.exe'))
+        rows.append(row)
     return {'contract':'chatterbox-regional-preparation-v1','profiles':rows,
-        'note':'Preparación y diagnóstico; ninguna voz regional operativa acreditada. No usar el loader V2 ni Turbo inglés como fallback.'}
+        'note':'Cada perfil distingue recursos, inferencia medida y controles de preescucha pendientes. Una muestra no acredita naturalidad. Sin fallback V2/Turbo inglés.'}
 
 
 def guard_request(inputs):
@@ -146,4 +235,12 @@ def guard_request(inputs):
     if inputs.get('language') not in ('es','Spanish','es-ES','es-MX','es-419'):
         raise ValueError('Perfil regional español; no cambia a inglés')
     row=next(row for row in catalog()['profiles'] if row['id']==key)
-    raise ValueError('Chatterbox regional no preparado: '+'; '.join(row['problems']))
+    if not row['ready']:raise ValueError('Chatterbox regional no preparado: '+'; '.join(row['problems']))
+    if inputs.get('reference_authorized') is not True:raise ValueError('La referencia de voz requiere autorización explícita')
+    if not inputs.get('reference_audio') or not Path(inputs['reference_audio']).is_file() or not Path(inputs['reference_audio']).stat().st_size:raise ValueError('Falta audio de referencia local autorizado')
+    if inputs.get('device')!='cuda':raise ValueError('El perfil regional acreditado requiere CUDA; no cambia a CPU')
+    if not isinstance(inputs.get('text'),str) or not inputs['text'].strip() or len(inputs['text'])>240:
+        raise ValueError('La muestra regional requiere entre 1 y 240 caracteres')
+    limit=inputs.get('max_new_tokens',160)
+    if type(limit) is not int or not 32<=limit<=512:raise ValueError('Presupuesto regional entre 32 y 512 tokens')
+    return row

@@ -296,7 +296,7 @@ def diagnostics(family,probe=True,device=None):
 
 
 class LocalModelAdapter(BaseTool):
-    version='0.1.0'
+    version='0.1.1'
     runtime=ToolRuntime.LOCAL_GPU
     tier=ToolTier.GENERATE
     determinism=Determinism.STOCHASTIC
@@ -318,16 +318,26 @@ class LocalModelAdapter(BaseTool):
         'server_audio':{'type':'string','maxLength':1000},'server_image_2':{'type':'string','maxLength':1000},
         'reference_text':{'type':'string'},'language':{'type':'string'},'source_language':{'type':'string'},'voice':{'type':'string'},
         'reference_authorized':{'type':'boolean'},
+        'regional_profile':{'enum':['chatterbox-es-mx-latam','chatterbox-es-es']},
         'instruction':{'type':'string'},'labels':{'type':'array','items':{'type':'string'},'maxItems':100},'texts':{'type':'array','items':{'type':'string'},'maxItems':100},
         'device':{'enum':['cpu','cuda']},'max_new_tokens':{'type':'integer','minimum':1,'maximum':8192},'speed':{'type':'number','minimum':0.5,'maximum':2},
         'threshold':{'type':'number','minimum':0,'maximum':1},'timeout':{'type':'integer','minimum':10,'maximum':14400},
         'workflow_json':{'type':'object'},'output_node':{'type':'string'},'bindings':{'type':'object'},'resume_prompt_id':{'type':'string'}}}
 
     def get_status(self):
+        if self.family=='chatterbox':
+            from lib.voice_preparation import catalog
+            if any(row['ready'] for row in catalog()['profiles']):return ToolStatus.AVAILABLE
         return ToolStatus.AVAILABLE if diagnostics(self.family)['ready'] else ToolStatus.UNAVAILABLE
 
     def get_info(self):
         result=super().get_info();result['adapter']=diagnostics(self.family);result['usage_manual']='docs/ADAPTADORES_MODELOS_ES.md'
+        if self.family=='chatterbox':
+            from lib.voice_preparation import catalog
+            result['regional_profiles']=catalog()
+            result['regional_execution_contract']=dict(explicit_profile_required=True,device='cuda',
+                authorized_reference_required=True,text_max_characters=240,max_new_tokens=[32,512],
+                audio_preview_controls='pending',legacy_configuration_preserved=True)
         from lib.workflow_preparation import recipes
         result['workflow_recipe']=next(row for row in recipes() if row['family']==self.family)
         if self.family in ('longcat','longcat-avatar','magihuman','framepack','wan-camera','wan-control','wan-s2v'):
@@ -348,9 +358,10 @@ class LocalModelAdapter(BaseTool):
     def execute(self,inputs,*,control=None):
         from jsonschema import validate
         try:
+            regional=None
             if self.family=='chatterbox' and inputs.get('regional_profile'):
                 from lib.voice_preparation import guard_request
-                guard_request(inputs)
+                regional=guard_request(inputs)
             validate(inputs,self.input_schema)
             from lib.model_languages import validate_request
             validate_request(self.family,inputs)
@@ -360,7 +371,12 @@ class LocalModelAdapter(BaseTool):
                 if absent:raise ValueError('Entradas requeridas por el workflow: '+', '.join(absent))
             output=Path(inputs['output_dir']).resolve();output.mkdir(parents=True,exist_ok=True)
             inputs=dict(inputs)
-            info=diagnostics(self.family,device=inputs.get('device')) if self.family in ('voice-design','qwen-tts-17b-base') else diagnostics(self.family)
+            if regional:
+                inputs['language']='es'
+                info=dict(ready=True,backend='native',python_executable=regional['python_executable'],
+                          model_dir=str(Path(regional['main']['path']).parent),problems=[],regional_profile=regional['id'])
+            else:
+                info=diagnostics(self.family,device=inputs.get('device')) if self.family in ('voice-design','qwen-tts-17b-base') else diagnostics(self.family)
             if self.family in ('voice-design','qwen-tts-17b-base'):inputs.setdefault('device',info.get('device','cpu'))
             if not info['ready']:return ToolResult(success=False,error='; '.join(info['problems']),data={'adapter':info})
             if self.family=='kokoro':
@@ -375,8 +391,11 @@ class LocalModelAdapter(BaseTool):
             else:
                 request=output/('adapter-'+self.family+'-request.json');response=output/('adapter-'+self.family+'-response.json')
                 response.unlink(missing_ok=True)
-                studio.save_json(request,{'family':self.family,'model_dir':info['model_dir'],'inputs':inputs,'output_dir':str(output),'source_dir':configuration(self.family).get('source_dir',''),'runtime_config':configuration(self.family).get('runtime_config','')})
+                studio.save_json(request,{'family':self.family,'model_dir':info['model_dir'],'inputs':inputs,'output_dir':str(output),'source_dir':'' if regional else configuration(self.family).get('source_dir',''),'runtime_config':'' if regional else configuration(self.family).get('runtime_config','')})
                 env={**os.environ,'HF_HUB_OFFLINE':'1','TRANSFORMERS_OFFLINE':'1','HF_DATASETS_OFFLINE':'1','HF_HUB_DISABLE_TELEMETRY':'1','TOKENIZERS_PARALLELISM':'false'}
+                if regional:
+                    env.pop('PYTHONPATH',None);env.pop('PYTHONHOME',None)
+                    env['PYTHONNOUSERSITE']='1'
                 ffmpeg=studio.settings().get('ffmpeg_path')
                 if ffmpeg and Path(ffmpeg).is_file():env['PATH']=str(Path(ffmpeg).parent)+os.pathsep+env.get('PATH','');env['IMAGEIO_FFMPEG_EXE']=ffmpeg
                 if inputs.get('device','cpu')=='cpu':env['CUDA_VISIBLE_DEVICES']=''
@@ -401,6 +420,7 @@ class LocalModelAdapter(BaseTool):
                 from lib.qwen_tts_local import resources
                 if not resources(self.family,info['model_dir'])['resources_verified']:
                     raise ValueError('Recursos Qwen cambiaron durante el trabajo; no se acredita la salida')
+            if regional:guard_request(inputs)
             for filename in data.get('outputs',[]):
                 p=Path(filename).resolve();p.relative_to(output)
                 if not p.is_file() or not p.stat().st_size:raise ValueError('Salida declarada ausente o vacía')

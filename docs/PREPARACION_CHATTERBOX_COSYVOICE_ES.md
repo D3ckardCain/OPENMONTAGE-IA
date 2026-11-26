@@ -172,3 +172,15 @@ adaptación estricta del loader MIT antes de habilitar las voces regionales.
 La pila propuesta fija Perth1.0.1; el manifest upstream usa master, por lo
 que esta elección también requiere comprobar compatibilidad, sin quitar la
 marca de agua. No se modificaron `.venv`, ComfyUI ni el entorno Qwen.
+
+### Estado posterior: muestras españolas completadas
+
+El bloqueo de dependencias descrito arriba es un registro histórico. La
+continuación completó la pila española aislada con caché y reanudaciones
+acotadas; ambos perfiles pasaron carga estricta y una muestra sintética real.
+Véase [manual y límites de la entrega](CHATTERBOX_REGIONALES_PRUEBA_LOCAL_ES.md)
+y `DESCARGAS_VOCES_96_157_INVENTARIO_20261126.json` para el inventario actualizado.
+No se repitieron muestras anteriores, CI ni hashes de identidades ya válidas.
+CosyVoice queda bloqueado para carga CPU por memoria y preparación Windows;
+los recursos existentes sí están verificados. Activación4750 y escucha humana
+siguen separadas de las pruebas aisladas.

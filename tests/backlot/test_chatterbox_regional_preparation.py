@@ -109,3 +109,36 @@ def test_verified_shared_tokenizer_preferred_without_copy_or_new_hash(resources,
     result=voices.catalog()['profiles']
     assert all(row['tokenizer']['path']==str(shared) and row['tokenizer']['verified_cached'] for row in result)
     assert all(not row['ready'] for row in result)
+
+
+def test_cosy_auxiliary_receipts_bound_to_identity_without_yaml_read(tmp_path,monkeypatch):
+    cache=tmp_path/'cache.json';monkeypatch.setattr(voices,'CACHE',cache)
+    yaml=tmp_path/'cosyvoice3.yaml';yaml.write_text('!not-executed fixture')
+    monkeypatch.setattr(voices,'COSY_AUX_BLOBS',{'cosyvoice3.yaml':'fixed-official-blob'})
+    cache.write_text(json.dumps({str(yaml.resolve()):{'identity':identity(yaml),'git_blob_sha1':'fixed-official-blob'}}))
+    original=Path.open
+    def guard(path,*args,**kwargs):
+        assert path!=yaml,'Diagnostic must not read or execute YAML'
+        return original(path,*args,**kwargs)
+    with monkeypatch.context() as context:
+        context.setattr(Path,'open',guard)
+        assert voices.cached_auxiliaries(tmp_path)
+    yaml.write_text('changed fixture')
+    assert not voices.cached_auxiliaries(tmp_path)
+
+
+def test_cosy_verified_resources_still_do_not_accredit_inference(tmp_path,monkeypatch):
+    monkeypatch.setattr(voices,'verified_file',lambda *a,**kw:{'status':'verified_cached'})
+    monkeypatch.setattr(voices,'cached_auxiliaries',lambda folder:True)
+    row=voices.cosyvoice3(tmp_path)
+    assert row['all_weights_verified'] and row['auxiliaries_verified']
+    assert not row['ready'] and not row['evaluation_load_performed']
+    assert not row['yaml_executed'] and not row['weights_read']
+
+
+def test_cosy_cpu_preflight_has_conservative_headroom_without_weight_reads():
+    low=voices.cosyvoice_cpu_preflight(5*1024**3)
+    high=voices.cosyvoice_cpu_preflight(16*1024**3)
+    assert not low['headroom_ok'] and high['headroom_ok']
+    assert low['estimated_required_available_bytes']==high['estimated_required_available_bytes']
+    assert not low['weights_loaded'] and not low['peak_measured']
