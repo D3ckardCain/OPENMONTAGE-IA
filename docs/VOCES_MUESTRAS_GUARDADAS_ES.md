@@ -2,8 +2,10 @@
 
 Continuación de #96 y c4161e9. No se repiten las síntesis españolas.
 
-En Audio, abre **Voces Chatterbox · muestras guardadas**, pulsa **Consultar
-muestras existentes** y elige es-MX/LatAm o es-ES. El reproductor usa los WAV
+En Audio, abre **Voces Chatterbox · muestras guardadas** y pulsa **Reproducir**
+en la tarjeta es-MX/LatAm o es-ES. La ventana usa tarjetas, no combobox, según
+#174. **Actualizar muestras** vuelve a consultar archivos, no genera voz.
+El reproductor usa los WAV
 ya comprobados de2,32s y2,20s, sin importar Torch ni cargar pesos. La selección
 se conserva localmente al reabrir. Escucha humana/calidad sigue pendiente.
 La creación de nuevas tomas desde este panel continúa separada y pendiente;
@@ -28,8 +30,18 @@ trabajos activos, conservar estado y detener/arrancar únicamente4750 desde
 `C:\OPENMONTAGE-IA` con `.venv`. Antes de actuar, inspección del servidor:
 PID138604, cola pausada/vacía, worker y tarea local inactivos;48 archivos de
 estado guardados en copia privada, ningún estado persistente activo.
-Resultado del reinicio/activación se documentará después de ejecutarlo;
-esta preparación y las pruebas aisladas no acreditan aún activación4750.
+Se ejecutó UN reinicio autorizado: PID138604 detenido y Studio iniciado con
+`.venv` desde el mismo proyecto. PID activo153088, salud correcta, huella
+residente=disco y `restart_required=false`. Capacidad de muestras guardadas
+activa; HyperFrames disponible mediante perfil persistente/ejecución CLI ya
+acreditada. No se repitieron probe/doctor/render ni se usó perfil QA al arrancar.
+Los48 estados guardados permanecen idénticos tras la activación.
+
+En4750 se comprobó reproducción real de los dos WAV, recuperación al recargar,
+ventana visual con tarjetas, foco de teclado, Esc que cierra/pausa y GitHub Dark.
+Solo GET, errores de página0, sin síntesis ni escucha humana. El ajuste de
+tarjetas fue estático del panel y no necesitó otro reinicio del backend.
+Datos en `ACTIVACION_MUESTRAS_HYPERFRAMES_20261126.json`.
 
 Turbo continúa necesitando identificar una referencia local autorizada >5s.
 Las muestras sintéticas encontradas son más cortas; se solicitó la ruta y su

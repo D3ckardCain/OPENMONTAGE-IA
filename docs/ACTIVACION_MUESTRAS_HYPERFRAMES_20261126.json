@@ -1,0 +1,116 @@
+{
+  "code_commit": "c54bc15915a17acb9e7ff9393cdec22f30e343ff",
+  "date": "2026-11-26",
+  "restart_count": 1,
+  "before": {
+    "pid": 138604,
+    "worker_active": false,
+    "local_task_active": false,
+    "queue_empty": true,
+    "queue_paused": true
+  },
+  "state_backup": {
+    "project_files": 48,
+    "post_restart_byte_comparison_unchanged": 48,
+    "personal_configuration_untouched": true
+  },
+  "after": {
+    "pid": 153088,
+    "health": {
+      "ok": true,
+      "app": "backlot"
+    },
+    "source": {
+      "status": "available",
+      "sha256": "7170b5b46b64ad33c3c46df533d96ac5087b9841748ee414139ca9120a0b361e",
+      "files": 39
+    },
+    "restart_required": false,
+    "capability": {
+      "contract": "chatterbox-saved-audio-v1",
+      "playback": true,
+      "generation": false
+    }
+  },
+  "hyperframes": {
+    "runtime_available": true,
+    "availability_basis": "selected_profile_cli_execution",
+    "panel": {
+      "active_port": 4750,
+      "profile_restored_in_actual_panel": true,
+      "runtime_available": true,
+      "availability_basis": "selected_profile_cli_execution",
+      "save_enabled_with_current_compatibility": true,
+      "new_probe": false,
+      "new_render": false,
+      "writes": []
+    }
+  },
+  "existing_audio": {
+    "base": "http://127.0.0.1:4750",
+    "existing_samples_only": true,
+    "playback": [
+      {
+        "id": "chatterbox-es-mx-latam",
+        "duration": 2.32,
+        "currentTime": 0.164608,
+        "readyState": 4,
+        "source": "http://127.0.0.1:4750/api/studio/editor/chatterbox/profiles/chatterbox-es-mx-latam/sample",
+        "paused": false
+      },
+      {
+        "id": "chatterbox-es-es",
+        "duration": 2.2,
+        "currentTime": 0.165123,
+        "readyState": 4,
+        "source": "http://127.0.0.1:4750/api/studio/editor/chatterbox/profiles/chatterbox-es-es/sample",
+        "paused": false
+      }
+    ],
+    "selection_restored": true,
+    "unknown_sample404": true,
+    "writes": [],
+    "errors": [],
+    "human_listening": false,
+    "new_synthesis": false
+  },
+  "visual_voice_window": {
+    "base": "http://127.0.0.1:4750",
+    "dialog": true,
+    "cards": true,
+    "no_combobox": true,
+    "playback": [
+      {
+        "id": "chatterbox-es-mx-latam",
+        "duration": 2.32,
+        "currentTime": 0.161051,
+        "paused": false
+      },
+      {
+        "id": "chatterbox-es-es",
+        "duration": 2.2,
+        "currentTime": 0.155927,
+        "paused": false
+      }
+    ],
+    "keyboard_focus_inside": true,
+    "escape_closes_and_pauses": true,
+    "selection_restored": true,
+    "github_dark_background": "rgb(13, 17, 23)",
+    "errors": [],
+    "writes": [],
+    "new_synthesis": false,
+    "human_listening": false
+  },
+  "new_unit_tests": 4,
+  "approved_syntheses_repeated": false,
+  "model_hashes_repeated": false,
+  "ci_repeated": false,
+  "grouped_activation": "Completed using .venv from C:/OPENMONTAGE-IA, normal startup; no inherited QA profile required",
+  "turbo": "Blocked until path/provenance of authorized existing reference>5s; question pending, no repeat short-input run",
+  "cosyvoice": "Deferred for resources, no load",
+  "audio8_175": "Appended after current task by later user instruction",
+  "editor_174": "Appended after current task; cards/no combobox respected here",
+  "human_listening": false,
+  "pr2": "draft, do not merge"
+}
