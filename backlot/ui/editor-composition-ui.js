@@ -7,6 +7,20 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
   root.innerHTML=`<details id="edit-transition-panel" hidden><summary>Transici&#243;n por negro</summary><form id="edit-transition-form"><label>Duraci&#243;n por lado (s)<input name="duration_seconds" type="number" min="0.017" max="2" step="0.001" value="0.25" required></label><button type="submit">Aplicar al corte anterior</button><button id="edit-transition-remove" type="button">Quitar transici&#243;n</button></form><p>Oscurece y aten&#250;a el final anterior y el inicio seleccionado. No solapa clips ni cambia tiempos. Fundido cruzado no disponible.</p></details>
   <details id="edit-layers-panel" hidden><summary>Capas de v&#237;deo</summary><label>Capa<select id="edit-layer-select"></select></label><form id="edit-layer-form"><label>Fuente de v&#237;deo<select name="source_id" required></select></label><label>Entrada de fuente (s)<input name="in_seconds" type="number" min="0" step="0.001" required></label><label>Salida de fuente (s)<input name="out_seconds" type="number" min="0.001" step="0.001" required></label><label>Inicio en montaje (s)<input name="start_seconds" type="number" min="0" step="0.001" required></label><label>Velocidad<input name="speed" type="number" min="0.25" max="4" step="0.05" required></label><label>X (0&#8211;1)<input name="x" type="number" min="0" max="1" step="0.01" required></label><label>Y (0&#8211;1)<input name="y" type="number" min="0" max="1" step="0.01" required></label><label>Anchura (0&#8211;1)<input name="width" type="number" min="0.05" max="1" step="0.01" required></label><label>Altura (0&#8211;1)<input name="height" type="number" min="0.05" max="1" step="0.01" required></label><label>Opacidad<input name="opacity" type="number" min="0" max="1" step="0.05" required></label><button type="submit">Guardar capa</button><button id="edit-layer-cursor" type="button">Inicio en cursor</button></form><button id="edit-layer-remove" type="button">Quitar capa</button><button id="edit-layer-lower" type="button">Bajar capa</button><button id="edit-layer-raise" type="button">Subir capa</button><p>Hasta4 capas dentro de la duraci&#243;n del montaje. Encaje seleccionable y movimiento lineal; solo imagen. Su audio se a&#241;ade por la pista de audio. Prepara vista previa para comprobar composici&#243;n.</p></details>`;
   const layerForm=q('edit-layer-form');
+  q('edit-transition-panel').querySelector('summary').textContent='Transición entre clips';
+  const transitionForm=q('edit-transition-form'),typeLabel=document.createElement('label'),typeSelect=document.createElement('select');
+  typeLabel.append('Tipo de transición ',typeSelect);typeSelect.name='transition_type';
+  typeSelect.append(new Option('Paso por negro','dip_black'),new Option('Fundido cruzado con margen de fuente','crossfade'));
+  transitionForm.prepend(typeLabel);
+  function transitionHelp(){
+    const cross=typeSelect.value==='crossfade',field=transitionForm.elements.duration_seconds,fps=getEdl().output.fps;
+    field.parentElement.firstChild.textContent=cross?'Duración total del solape (s) ':'Duración por lado (s) ';
+    field.min=String((cross?2:1)/fps);
+    q('edit-transition-panel').querySelector('p').textContent=cross?
+      'Solape centrado en el corte: mitad antes y mitad después, con vídeo y audio reales fuera de los recortes. Redondea a un número par de fotogramas. Conserva duración y pistas; requiere margen de ambas fuentes. Revisa las palabras durante el solape.':
+      'Oscurece y atenúa el final anterior y el inicio seleccionado. No solapa clips ni cambia tiempos.';
+  }
+  typeSelect.onchange=transitionHelp;
   const extras=document.createElement('div');extras.innerHTML='<label>Encaje<select name="fit"><option value="pad">Bandas</option><option value="crop">Llenar por recorte</option></select></label><label><input name="motion_enabled" type="checkbox"> Movimiento lineal por tiempo absoluto</label><label>Desplazamiento X<input name="motion_dx" type="number" min="-1" max="1" step=".01" value="0"></label><label>Desplazamiento Y<input name="motion_dy" type="number" min="-1" max="1" step=".01" value="0"></label><label>Duración del movimiento (s)<input name="motion_duration" type="number" min=".001" max="7200" step=".001" value="1"></label>';layerForm.append(extras);
   let transitionKey=null,layerKey=null;
   const keyframes=initializeLayerKeyframes({root,q,getEdl,getProject,has,run});
@@ -16,9 +30,14 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
     let item;try{item=getSelection();}catch{/* no selection */}
     const supported=has('transition')&&item?.track==='video'&&getEdl().cuts.indexOf(item.clip)>0;
     q('edit-transition-panel').hidden=!supported;
-    const key=JSON.stringify([getProject(),item?.id,item?.clip.transition]);
-    if(key!==transitionKey){values(q('edit-transition-form'),{duration_seconds:item?.clip.transition?.duration_seconds??.25});transitionKey=key;}
-    q('edit-transition-remove').disabled=!item?.clip.transition;
+    typeSelect.options[1].disabled=!has('crossfade');
+    const previous=supported?getEdl().cuts[getEdl().cuts.indexOf(item.clip)-1]:null;
+    const locked=Boolean(item?.clip.locked||previous?.locked);
+    const key=JSON.stringify([getProject(),item?.id,item?.clip.transition,getEdl().output.fps]);
+    if(key!==transitionKey){values(transitionForm,{duration_seconds:item?.clip.transition?.duration_seconds??.25});typeSelect.value=item?.clip.transition?.type??'dip_black';transitionKey=key;transitionHelp();}
+    typeSelect.disabled=locked;transitionForm.elements.duration_seconds.disabled=locked;
+    transitionForm.querySelector('[type=submit]').disabled=locked;
+    q('edit-transition-remove').disabled=!item?.clip.transition||locked;
   }
   function drawLayer(force=false){
     const edl=getEdl(),id=q('edit-layer-select').value,layer=edl.layers?.find(l=>l.id===id),sources=Object.entries(edl.sources).filter(([,s])=>s.kind==='video');
@@ -41,7 +60,7 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
     q('edit-layer-select').replaceChildren(new Option('Nueva capa',''),...(getEdl().layers||[]).map((l,i)=>new Option((i+1)+' · '+l.start_seconds.toFixed(3)+' s',l.id)));
     q('edit-layer-select').value=id;drawLayer();
   }
-  q('edit-transition-form').onsubmit=e=>{e.preventDefault();run('transition',{id:getSelection().id,type:'dip_black',duration_seconds:Number(e.target.elements.duration_seconds.value)});};
+  q('edit-transition-form').onsubmit=e=>{e.preventDefault();run('transition',{id:getSelection().id,type:typeSelect.value,duration_seconds:Number(e.target.elements.duration_seconds.value)});};
   q('edit-transition-remove').onclick=()=>run('transition',{id:getSelection().id,type:'none'});
   q('edit-layer-select').onchange=()=>drawLayer(true);
   q('edit-layer-cursor').onclick=()=>{q('edit-layer-form').elements.start_seconds.value=cursor();};

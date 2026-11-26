@@ -16,7 +16,10 @@ def apply_composition(edl, data):
             fps=edl['output']['fps'];seconds=edit.number(data['duration_seconds'],1/fps,2)
             seconds=int(seconds*fps+.5)/fps
             item['transition']={'type':kind,'duration_seconds':seconds}
-        else:raise ValueError('Solo disponible: paso por negro sin solapamiento')
+        elif kind=='crossfade':
+            from lib.studio_crossfade import set_transition
+            set_transition(edl,item,data['duration_seconds'])
+        else:raise ValueError('Transición no admitida: paso por negro o fundido cruzado')
     elif op=='layer_transform_keyframes':
         from lib.studio_transform_keyframes import validate
         layer=edit._item(edl.get('layers',[]),data['id'])
@@ -75,13 +78,15 @@ def apply_composition(edl, data):
 def validate_composition(edl):
     from lib import studio_editor as edit
     fps=edl['output']['fps'];cuts=edl['cuts']
+    from lib.studio_crossfade import footprint, validate as validate_crossfade
+    validate_crossfade(edl)
     from lib.studio_transform_keyframes import validate_budget
     validate_budget(edl)
     if len(edl.get('layers', [])) > 4 or len(edl.get('titles', [])) > 20:
         raise ValueError('El montaje excedería el límite de4 capas o20 títulos; ajusta sus intervalos primero')
     for index,item in enumerate(cuts):
-        incoming=item.get('transition',{}).get('duration_seconds',0)
-        outgoing=cuts[index+1].get('transition',{}).get('duration_seconds',0) if index+1<len(cuts) else 0
+        incoming=footprint(item)
+        outgoing=footprint(cuts[index+1]) if index+1<len(cuts) else 0
         if index==0 and incoming:raise ValueError('Quita la transición del primer clip antes de reordenar/borrar')
         if incoming+outgoing>edit.frames(item,fps)/fps+1e-8:
             raise ValueError('Las transiciones exceden la duración del clip; acórtalas o quítalas primero')
@@ -98,8 +103,11 @@ def validate_composition(edl):
 
 
 def transition_filters(cuts,index,seconds):
-    incoming=cuts[index].get('transition',{}).get('duration_seconds',0)
-    outgoing=cuts[index+1].get('transition',{}).get('duration_seconds',0) if index+1<len(cuts) else 0
+    def dip(clip):
+        value=clip.get('transition',{})
+        return value.get('duration_seconds',0) if value.get('type')=='dip_black' else 0
+    incoming=dip(cuts[index])
+    outgoing=dip(cuts[index+1]) if index+1<len(cuts) else 0
     video=audio=''
     for name,start,duration in [('in',0,incoming),('out',seconds-outgoing,outgoing)]:
         if duration:

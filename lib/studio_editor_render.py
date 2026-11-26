@@ -28,6 +28,10 @@ def plan(pid, edl, preview=False):
             scale = min(1, 960/max(width, height))
             width, height = max(2, round(width*scale/2)*2), max(2, round(height*scale/2)*2)
     fps = edl['output']['fps']
+    from lib.studio_crossfade import cross_seconds, handles, join, validate as validate_crossfade
+    cross = any(cross_seconds(clip) for clip in edl['cuts'])
+    if cross:
+        validate_crossfade(edl)
     args = []
     filters = []
     labels = []
@@ -46,10 +50,16 @@ def plan(pid, edl, preview=False):
         is_video = i < len(edl['cuts'])
         if is_video:
             seconds = editor.frames(clip, fps) / fps
+            if cross:
+                before, after = handles(edl, i)
+                start -= before * speed
+                end += after * speed
+                seconds += before + after
             vf, af_transition = transition_filters(edl['cuts'], i, seconds)
             filters.append(f'[{i}:v:0]trim=start={start}:end={end},setpts=(PTS-STARTPTS)/{speed},'
                            + transform_filter(width, height, clip.get('transform')) + f',setsar=1,fps={fps},'
-                           f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds}{vf},format=yuv420p[v{i}]')
+                           f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds}{vf},format=yuv420p'
+                           + (f',settb=1/{fps},setpts=N' if cross else '') + f'[v{i}]')
         gain = 0 if clip['muted'] or (solo and not clip.get('solo')) else clip['gain']
         if info['audio']:
             af = (f'[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'
@@ -61,7 +71,10 @@ def plan(pid, edl, preview=False):
             if clip['fade_out']:
                 fade = min(seconds, clip['fade_out'])
                 af += f',afade=t=out:st={seconds-fade}:d={fade}'
-            af += f',apad,atrim=duration={seconds}'
+            if cross and is_video:
+                af += f',asetpts=N/SR/TB,apad,atrim=end_sample={round(seconds*48000)},asetpts=N/SR/TB'
+            else:
+                af += f',apad,atrim=duration={seconds}'
         else:
             af = f'anullsrc=r=48000:cl=stereo,atrim=duration={seconds}'
         if is_video:
@@ -73,7 +86,10 @@ def plan(pid, edl, preview=False):
             labels.append(f'[v{i}][a{i}]')
     layers=edl.get('layers', [])
     base='basevideo' if layers else 'montage'
-    filters.append(''.join(labels) + f"concat=n={len(edl['cuts'])}:v=1:a=1[{base}][baseaudio]")
+    if cross:
+        join(edl, filters, base)
+    else:
+        filters.append(''.join(labels) + f"concat=n={len(edl['cuts'])}:v=1:a=1[{base}][baseaudio]")
     for index,layer in enumerate(layers):
         source_index=len(tracks)+index
         args += [*editor.INPUT_OPTIONS,'-i',str(editor.source(pid,layer['source_id']))]

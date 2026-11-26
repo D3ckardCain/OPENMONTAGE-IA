@@ -1,0 +1,313 @@
+{
+  "scope": "centred source-handle crossfades for base clips; main activation pending",
+  "new_focused_tests_unique_passed": 9,
+  "first_test_expectation_failure": "Full graph equality included intentionally different preview/export dimensions; only failed case rerun after correction",
+  "media": {
+    "scenario": "Final corrected new real 4s export with two centred crossfades and a hard cut; two preceding failed timing attempts retained",
+    "render": {
+      "status": "completed",
+      "attempt": "8992b95851af421eb8d267e8f252d5f9",
+      "revision": 23,
+      "origin": "user",
+      "edit_sha256": "d8a3601a0fe0ea841c34d99c215f1b666bc0022be9fa295a3aee4c358348feec",
+      "render_sha256": "193dc91dbc2899e3c527a708aab51c39d35a1e15169fdca420522136563df000",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-26T20:44:38.854383+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-26T20:44:39.243780+00:00",
+      "path": "assets/editor-renders/8992b95851af421eb8d267e8f252d5f9/montage.mp4",
+      "url": "/media/edit-553cb3fdce3b/assets/editor-renders/8992b95851af421eb8d267e8f252d5f9/montage.mp4",
+      "sha256": "dbdd07b708f546b78612c5ae7341ff9cdb84c05959e1d378f74d5b75c3f50f5a",
+      "bytes": 118860,
+      "duration": 4.0,
+      "subtitle_mode": "mov_text",
+      "source_sha256": {
+        "a049c3a25f604ef9a38cd170da666a40": "e5452241e5543ab2832d5f04c8fcbf22235365b5b738174a4dea0cf13c40d724",
+        "7723100f54b14ddea839d688313814a4": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683"
+      }
+    },
+    "video_frames": 32,
+    "pts": [
+      0.0,
+      0.125,
+      0.25,
+      0.375,
+      0.5,
+      0.625,
+      0.75,
+      0.875,
+      1.0,
+      1.125,
+      1.25,
+      1.375,
+      1.5,
+      1.625,
+      1.75,
+      1.875,
+      2.0,
+      2.125,
+      2.25,
+      2.375,
+      2.5,
+      2.625,
+      2.75,
+      2.875,
+      3.0,
+      3.125,
+      3.25,
+      3.375,
+      3.5,
+      3.625,
+      3.75,
+      3.875
+    ],
+    "audio_duration": 4,
+    "subtitle_srt": "1\n00:00:00,250 --> 00:00:01,250\nTeste de solape, sem alterar os tempos.\n\n2\n00:00:02,750 --> 00:00:03,750\nCamadas e legendas conservadas.\n\n",
+    "independent_voice_alignment": {
+      "method": "Decode export minus PCM background from same sources with only independent voice muted in memory; compare preserved voice segment after existing atempo/resampling. No new MP4 or source writes.",
+      "correlation": 0.9969251451227185,
+      "lag_seconds": 0.0,
+      "expected_start_seconds": 1,
+      "background_samples": 192000,
+      "export_decoded_samples": 192000,
+      "residual_rms": 0.008311953395605087,
+      "output_sha256": "dbdd07b708f546b78612c5ae7341ff9cdb84c05959e1d378f74d5b75c3f50f5a",
+      "output_identity": [
+        118860,
+        1795725879192872900
+      ]
+    },
+    "original_unchanged_by_metadata": true,
+    "human_listening": false,
+    "main4750_untouched": true
+  },
+  "blend": {
+    "midpoint_seconds": 1,
+    "source_seconds": [
+      2,
+      0.5
+    ],
+    "expected_mix": [
+      0.5,
+      0.5
+    ],
+    "regions_yxyx": [
+      [
+        195,
+        240,
+        70,
+        115
+      ],
+      [
+        195,
+        240,
+        295,
+        340
+      ]
+    ],
+    "mae_8bit_rgb": [
+      0.7009053497942387,
+      0.8843621399176955
+    ],
+    "threshold": 3,
+    "method": "Final decoded export compared against half-sum of two decoded existing-source frames, excluding title/layer regions. No additional render."
+  },
+  "continuous_audio_pts": {
+    "frames": 149,
+    "contiguous": true,
+    "samples": 192000,
+    "seconds": 4.0
+  },
+  "browser_playback": {
+    "scope": "Real Studio4767 existing completed export through show montage and play controls; no intercepted API",
+    "playback": {
+      "src": "http://127.0.0.1:4767/media/edit-553cb3fdce3b/assets/editor-renders/8992b95851af421eb8d267e8f252d5f9/montage.mp4",
+      "duration": 4,
+      "time": 1.149463,
+      "width": 640,
+      "height": 360,
+      "decoded_frames": 13,
+      "audio_decoded_bytes": 35013,
+      "error": null
+    },
+    "page_errors": [],
+    "new_render": false,
+    "human_listening": false
+  },
+  "ui_cycle": {
+    "scenario": "Real isolated Studio 4767 API and Chrome; own existing video and saved synthetic voice copies",
+    "project_id": "edit-553cb3fdce3b",
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "0df4a55d464a79a1c21ca71bd46bc13c2572f822b49918caefa76f71cac1f8f8",
+        "files": 43
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "0df4a55d464a79a1c21ca71bd46bc13c2572f822b49918caefa76f71cac1f8f8",
+        "files": 43
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "3bec458f7a5cd810b371f2bea9d32eb502c2af6effa099cbcb1adaff330bb51f",
+        "files": 36
+      },
+      "restart_required": false,
+      "pid": 141284,
+      "loaded_at_utc": "2026-11-26T20:37:12.429051+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "0df4a55d464a79a1c21ca71bd46bc13c2572f822b49918caefa76f71cac1f8f8"
+      }
+    },
+    "transition_cuts": [
+      1,
+      3
+    ],
+    "hard_cut": 2,
+    "other_tracks_unchanged": true,
+    "undo_redo_reopen": true,
+    "render_sha256": "7f895583d6294b5100de5ac898016c1e3bbef0bf3f7ae4c31dd11eaee18f00cf",
+    "page_errors": []
+  },
+  "failed_render_attempts": [
+    "a85f025038f6400987ba26f52359b112",
+    "f8b3d4aedd164386825abbabb8062d63"
+  ],
+  "initial_audio_duration": 3.983604,
+  "final_audio_duration": 4,
+  "main_studio_restart": false,
+  "models_touched": false,
+  "inventory_restarted": false,
+  "human_listening": false,
+  "ui_cycle_stage": "Before sample-clock correction; unchanged UI controls. Playback/AV evidence and final identity refer to corrected engine.",
+  "final_qa_identity": {
+    "schema_version": 1,
+    "api_protocol": 1,
+    "revision_kind": "source_sha256_at_import",
+    "resident": {
+      "status": "available",
+      "sha256": "ea2c039886301028f6e2ea3ba214205b37dc8f1bb0300960d19ea461c962d66b",
+      "files": 43
+    },
+    "disk": {
+      "status": "available",
+      "sha256": "ea2c039886301028f6e2ea3ba214205b37dc8f1bb0300960d19ea461c962d66b",
+      "files": 43
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "3bec458f7a5cd810b371f2bea9d32eb502c2af6effa099cbcb1adaff330bb51f",
+      "files": 36
+    },
+    "restart_required": false,
+    "pid": 17772,
+    "loaded_at_utc": "2026-11-26T20:44:28.937971+00:00",
+    "editor": {
+      "version": "3.0",
+      "commands": [
+        "crossfade",
+        "audio_balance",
+        "layer_transform_keyframes",
+        "layer_position_keyframes",
+        "batch",
+        "duplicate",
+        "markers",
+        "flags",
+        "audio_trim_position",
+        "delete_keep_gap",
+        "ripple_delete",
+        "transform",
+        "titles",
+        "output_custom",
+        "audio_mix",
+        "transition",
+        "layers",
+        "clip_candidates",
+        "subtitle_language",
+        "subtitle_words",
+        "subtitle_from_words",
+        "silence_apply",
+        "qwen_tts_plan",
+        "reference_plan",
+        "component_add",
+        "component_remove"
+      ],
+      "render_cancel": true,
+      "shared_revision": true,
+      "silence_proposal": {
+        "contract": "studio-silence-proposal-v1",
+        "read_only": true,
+        "apply_available": true,
+        "apply_command": "silence_apply"
+      },
+      "qwen_preview": {
+        "contract": "qwen-preview-v1",
+        "real_native_worker": true,
+        "cancel_owned_worker": true,
+        "automatic_retry": false
+      },
+      "chatterbox_saved_samples": {
+        "contract": "chatterbox-saved-audio-v1",
+        "playback": true,
+        "generation": false
+      },
+      "api_protocol": 1,
+      "backend_build": "ea2c039886301028f6e2ea3ba214205b37dc8f1bb0300960d19ea461c962d66b"
+    }
+  }
+}

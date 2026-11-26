@@ -124,6 +124,9 @@ def render_digest(edl, contract=RENDER_CONTRACT):
     """AV identity excludes markers, edit locks and unused-source provenance."""
     content = {key: deepcopy(edl[key]) for key in ('cuts', 'audio_tracks', 'cues', 'output', 'subtitle_style')}
     content['render_contract'] = contract
+    if any(c.get('transition', {}).get('type') == 'crossfade' for c in edl['cuts']):
+        from lib.studio_crossfade import RENDER_CONTRACT as crossfade_contract
+        content['crossfade_render_contract'] = crossfade_contract
     output = edl['output']
     width, height = (output['width'], output['height']) if output.get('ratio') == 'custom' else PRESETS[output['ratio']]
     content['output'] = {'width': width, 'height': height, 'fps': output['fps'], 'fit': output['fit']}

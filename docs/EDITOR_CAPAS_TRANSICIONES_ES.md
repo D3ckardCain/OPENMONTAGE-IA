@@ -1,5 +1,7 @@
 # Capas visuales y transición manual por negro (#92)
 
+Actualización #174: [fundido cruzado real con margen de fuente](EDITOR_FUNDIDO_CRUZADO_ES.md) y [keyframes de capas](EDITOR_KEYFRAMES_TRANSFORMACION_ES.md) ya están implementados y validados en QA aislado, pendientes de activación principal agrupada. Los límites indicados abajo sobre su ausencia corresponden a la entrega histórica del paso por negro.
+
 Entrega sobre el mismo EDL, revisión y undo/redo de Studio/agente. Los controles
 están condicionados por las capacidades del servidor actualizado. No se activan
 por cambiar solo el catálogo ni se simulan con CSS.
