@@ -486,5 +486,37 @@
   "synthesis_calls": 0,
   "model_loads": 0,
   "http10054": "unchanged documented; recover state before retry writes",
-  "cost_usd": 0
+  "cost_usd": 0,
+  "isolated_runtime_followup": {
+    "date": "2026-11-26",
+    "source_revision": "ab55923c27757c90cfcc407baa57dc25a7d25217",
+    "gpu_wheels_reused_from_cache_via_hardlink": [
+      "torch2.6.0+cu124",
+      "torchaudio2.6.0+cu124"
+    ],
+    "inference_install_completed": false,
+    "pip": "24.0",
+    "setuptools": "65.5.0",
+    "first_failure": "build dependency subprocess TLS issuer certificate",
+    "single_followup": "PIP_USE_FEATURE=truststore, TLS verified; retries=0",
+    "final_failure": "ReadTimeoutError files.pythonhosted.org downloading transformers5.2.0",
+    "import_check": {
+      "imports": [
+        {
+          "module": "torch",
+          "import_ok": false,
+          "error": "ModuleNotFoundError: No module named 'torch'",
+          "seconds": 0.0
+        }
+      ],
+      "models_loaded": false,
+      "synthesis": false,
+      "offline": true
+    },
+    "new_focused_tests_passed": 2,
+    "approved_tests_repeated": false,
+    "main_venv_modified": false,
+    "comfyui_modified": false,
+    "qwen_environment_modified": false
+  }
 }

@@ -146,3 +146,29 @@ Agrupar activación de estas rutas con HyperFrames; no se reinició4750. PR2
 borrador, CI no repetida. Quedan descarga V3/es-ES, loader regional compatible
 y licencias del código alternativo, cualificación Windows/dependencias y revisión
 humana. Ninguna instalación, hash o muestra aprobados se repitieron.
+
+### Continuación del entorno aislado (26 noviembre)
+
+Se preparó el código MIT upstream fijado en
+`ab55923c27757c90cfcc407baa57dc25a7d25217` (sin ejecutar el fork del Space).
+Los wheels oficiales Torch/torchaudio2.6.0+cu124 ya existentes en la caché local
+se reutilizaron mediante enlaces duros dentro del entorno Chatterbox; no se
+descargó otra copia de esos binarios. El entorno solo tiene pip24.0 y
+setuptools65.5.0: **la instalación de inferencia no terminó**.
+
+El primer intento falló en el subproceso de build de antlr4 por la cadena de
+certificados. Un único intento con `PIP_USE_FEATURE=truststore` heredado por
+ese subproceso superó ese punto manteniendo TLS. Terminó con
+`ReadTimeoutError` en files.pythonhosted.org al descargar Transformers5.2.0,
+con reintentos desactivados. No se continuó reintentando ni se cambió la red.
+No se cargaron pesos ni se ejecutó síntesis. El diagnóstico comprueba solo
+metadatos de distribuciones del entorno aislado: versiones presentes **no**
+acreditan importaciones, loader V3, memoria ni inferencia.
+
+Dos pruebas nuevas pasan: entorno ausente y metadatos CUDA con versión local
+`+cu124`, sin importar Torch. Se suman a las ocho pruebas ya registradas, que
+no se repitieron. Sigue pendiente completar dependencias y acreditar una
+adaptación estricta del loader MIT antes de habilitar las voces regionales.
+La pila propuesta fija Perth1.0.1; el manifest upstream usa master, por lo
+que esta elección también requiere comprobar compatibilidad, sin quitar la
+marca de agua. No se modificaron `.venv`, ComfyUI ni el entorno Qwen.

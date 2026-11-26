@@ -1,5 +1,6 @@
 """Read-only regional voice preparation. No imports of Torch, YAML execution or Hub."""
 import json
+from importlib import metadata
 from pathlib import Path
 try:
     from lib.hyperframes_staging import identity
@@ -32,6 +33,22 @@ COSY_WEIGHTS={
 COSY_AUX=['config.json','configuration.json','cosyvoice3.yaml',
  'CosyVoice-BlankEN/config.json','CosyVoice-BlankEN/generation_config.json',
  'CosyVoice-BlankEN/merges.txt','CosyVoice-BlankEN/tokenizer_config.json','CosyVoice-BlankEN/vocab.json']
+
+
+def chatterbox_runtime(site=None):
+    """Inspect isolated distribution metadata only; installation is not qualification."""
+    site=Path(site) if site else ROOT/'.runtime/chatterbox/venv/Lib/site-packages'
+    expected={'torch':'2.6.0','torchaudio':'2.6.0','transformers':'5.2.0',
+              'diffusers':'0.29.0','safetensors':'0.5.3','resemble-perth':'1.0.1'}
+    installed={}
+    if site.is_dir():
+        for dist in metadata.distributions(path=[str(site)]):
+            name=(dist.metadata.get('Name') or '').lower().replace('_','-')
+            if name in expected:installed[name]=dist.version
+    matching=all(installed.get(name,'').split('+')[0]==version for name,version in expected.items())
+    return dict(expected=expected,installed=installed,declared_core_versions_present=matching,
+                imports_verified=False,loader_verified=False,weights_loaded=False,
+                inspection='isolated_distribution_metadata_only')
 
 
 def cosyvoice3(folder=None):
@@ -78,6 +95,7 @@ def verified_file(path,expected_bytes,sha):
 
 
 def catalog():
+    runtime=chatterbox_runtime()
     try:
         if SHARED.is_file() and SHARED.stat().st_size>16000:raise ValueError('Registro compartido fuera de presupuesto')
         shared=json.loads(SHARED.read_text(encoding='utf-8')) if SHARED.is_file() else {}
@@ -116,7 +134,8 @@ def catalog():
             voice_encoder=ve,
             shared_decoder_sha256=DECODER['sha256'],problems=problems,
             isolated_python_prepared=(ROOT/'.runtime/chatterbox/venv/Scripts/python.exe').is_file(),
-            inference_dependencies_installed=False,automatic_download=False,weights_read=False))
+            inference_dependencies_installed=runtime['declared_core_versions_present'],
+            runtime_preparation=runtime,automatic_download=False,weights_read=False))
     return {'contract':'chatterbox-regional-preparation-v1','profiles':rows,
         'note':'Preparación y diagnóstico; ninguna voz regional operativa acreditada. No usar el loader V2 ni Turbo inglés como fallback.'}
 

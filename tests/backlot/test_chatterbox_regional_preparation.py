@@ -8,6 +8,25 @@ from lib import voice_preparation as voices
 from lib.hyperframes_staging import identity
 
 
+def test_runtime_metadata_missing_keeps_inference_unqualified(tmp_path):
+    row=voices.chatterbox_runtime(tmp_path/'absent')
+    assert row['installed']=={}
+    assert not row['declared_core_versions_present']
+    assert not row['imports_verified']
+
+
+def test_runtime_metadata_accepts_cuda_suffix_without_importing_models(tmp_path):
+    expected=voices.chatterbox_runtime(tmp_path)['expected']
+    for name,version in expected.items():
+        if name in ('torch','torchaudio'):version+='+cu124'
+        dist=tmp_path/(name.replace('-','_')+'-'+version+'.dist-info')
+        dist.mkdir()
+        (dist/'METADATA').write_text('Metadata-Version: 2.1\nName: '+name+'\nVersion: '+version+'\n')
+    row=voices.chatterbox_runtime(tmp_path)
+    assert row['declared_core_versions_present']
+    assert not row['loader_verified'] and not row['weights_loaded']
+
+
 @pytest.fixture
 def resources(tmp_path,monkeypatch):
     monkeypatch.setattr(voices,'MODEL_ROOT',tmp_path)
