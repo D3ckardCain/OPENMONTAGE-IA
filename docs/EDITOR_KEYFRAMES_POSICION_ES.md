@@ -4,6 +4,8 @@ Se reutilizan las capas, el historial y el render FFmpeg del proyecto compartido
 
 Selecciona una capa existente en el inspector y abre **Keyframes de posición de la capa**. Añade de 2 a 32 puntos con tiempo en la fuente, X/Y normalizados e interpolación hasta el siguiente punto: lineal, mantener o suave (smoothstep). Guarda o quita los keyframes. Dos curvas muestran X en azul e Y en naranja. Los puntos deben estar ordenados, dentro de la fuente y mantener la capa dentro del lienzo. Cambiar su tamaño vuelve a validar esos límites.
 
+Con una curva activa se deshabilitan los X/Y estáticos y el movimiento lineal anterior, para que no parezcan controles de la posición animada. Al quitar la curva vuelven a habilitarse. El tamaño sigue editable y sujeto a validación. Esta exclusión se comprobó en un escenario de formulario nativo en navegador, sin escrituras API ni repetir el ciclo ya aprobado.
+
 Prepara la vista previa para comprobar la composición. Se usa el mismo grafo de render al previsualizar y exportar; no se promete vista interactiva sin preparar. Los puntos usan segundos absolutos de la fuente: recortar o dividir una capa mediante ripple conserva su fase al mapear `fuente = entrada + (montaje − inicio) × velocidad`. Se mantiene el valor exterior a los extremos y no se extrapola fuera del lienzo.
 
 ## Agente y persistencia

@@ -29,6 +29,7 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
     q('edit-layer-remove').disabled=!layer;q('edit-layer-lower').disabled=!layer||edl.layers.indexOf(layer)===0;
     q('edit-layer-raise').disabled=!layer||edl.layers.indexOf(layer)===edl.layers.length-1;
     q('edit-layer-form').querySelector('[type=submit]').disabled=!sources.length||videoDuration(edl)<=0;
+    for(const name of ['x','y','motion_enabled','motion_dx','motion_dy','motion_duration'])q('edit-layer-form').elements[name].disabled=Boolean(layer?.position_keyframes);
     keyframes.draw();
   }
   function draw(){
