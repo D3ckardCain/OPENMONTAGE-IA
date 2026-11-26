@@ -181,5 +181,6 @@ Código funcional `4242eca`: CI45773151291 aprobada con3832passed/44skipped/
 3xfailed/40subtests. Push45773142874: contratos/instalación Windows/Linux y
 43regresiones de navegador aprobados. [Detalle](CI_COLA_20261126_ES.md).
 Servidor QA4764 detenido tras finalizar trabajos;4750 sigue PID130700/saludOK.
-Workflow PR paralelo45773151258 pendiente de preparar Chromium a07:17UTC;
-no declarado verde, no relanzado. Código validado por CI principal y push.
+Workflow PR paralelo45773151258 también terminó **success**;43pruebas browser
+aprobadas en76,94s. La preparación pendiente a07:17UTC terminó por sí sola,
+sin relanzar ni modificar límites/red. CI principal y ambos contratos verdes.

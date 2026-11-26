@@ -419,5 +419,6 @@ Escucha, español audiovisual#107/#130 y GLB visual no se sustituyen por CI.
 
 Código de la cola:10a8483/19347ce/16842e6/4242eca. CI16842e6 comprobada verde;
 CI4242eca principal aprobada (3832passed) y push/43browser aprobados. Workflow
-PR paralelo45773151258 pendiente de preparar Chromium a07:17UTC, sin declarar
-éxito global. Ver [evidencia](CI_COLA_20261126_ES.md); separada de activación y escucha.
+PR paralelo45773151258 finalizado **success**,43browser aprobados; la
+preparación pendiente a07:17UTC terminó sin intervención. Ver
+[evidencia](CI_COLA_20261126_ES.md); separada de activación y escucha.

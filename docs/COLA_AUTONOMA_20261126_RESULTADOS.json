@@ -521,8 +521,12 @@
     "contracts_push_run": 45773142874,
     "browser_push_passed": 43,
     "contracts_pr_run": 45773151258,
-    "contracts_pr_conclusion": "pending Chromium preparation in browser139750353550; other jobs success; not retried",
-    "contracts_pr_observed_at": "2026-11-26T07:17:00Z"
+    "contracts_pr_conclusion": "success",
+    "contracts_pr_observed_at": "2026-11-26T07:17:00Z",
+    "contracts_pr_browser_passed": 43,
+    "contracts_pr_browser_seconds": 76.94,
+    "all_three_workflows_success": true,
+    "reruns_or_timeout_changes": false
   },
   "isolated_server_final": {
     "port": 4764,
