@@ -27,4 +27,8 @@ def environment(profile, network_log):
         NODE_OPTIONS='--require="' + str(guard) + '"',
         OPENMONTAGE_HF_NETWORK_LOG=str(Path(network_log).resolve()),
     )
+    # The prepared npm layout contains GSAP beside HyperFrames. An explicit
+    # override supports a different prepared layout; missing resources fail at scaffold.
+    gsap = Path(profile['gsap_package_dir']) if profile.get('gsap_package_dir') else paths['package_dir'].parent / 'gsap'
+    env['HYPERFRAMES_GSAP_PACKAGE_DIR'] = str(gsap.resolve())
     return env

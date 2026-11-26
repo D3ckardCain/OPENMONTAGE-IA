@@ -50,7 +50,7 @@ _AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"}
 
 class HyperFramesCompose(BaseTool):
     name = "hyperframes_compose"
-    version = "0.3.0"
+    version = "0.3.1"
     tier = ToolTier.CORE
     capability = "video_post"
     provider = "hyperframes"
@@ -147,6 +147,10 @@ class HyperFramesCompose(BaseTool):
                     "`projects/<name>/hyperframes/`. Required for every op "
                     "except doctor."
                 ),
+            },
+            "local_gsap_package_dir": {
+                "type": "string",
+                "description": "Prepared gsap3.14.2 package. Verify pinned hash and stage local JS/license; never download or fall back to CDN on failure. Also accepts explicit HYPERFRAMES_GSAP_PACKAGE_DIR in the child profile.",
             },
             "output_path": {
                 "type": "string",
@@ -380,10 +384,21 @@ class HyperFramesCompose(BaseTool):
 
         width, height, fps = self._resolve_dimensions(profile_name, inputs.get("fps", 30))
 
+        # Explicit resource selection is binding. Verify before creating the workspace.
+        gsap_dir = inputs.get('local_gsap_package_dir') or os.environ.get('HYPERFRAMES_GSAP_PACKAGE_DIR')
+        inspected_gsap = None
+        if gsap_dir:
+            from lib.hyperframes_resources import inspect_gsap
+            inspected_gsap = inspect_gsap(gsap_dir)
+
         workspace.mkdir(parents=True, exist_ok=True)
         (workspace / "compositions").mkdir(exist_ok=True)
         assets_dir = workspace / "assets"
         assets_dir.mkdir(exist_ok=True)
+        gsap_resource = None
+        if inspected_gsap:
+            from lib.hyperframes_resources import stage_gsap
+            gsap_resource = stage_gsap(inspected_gsap, workspace)
 
         # Resolve asset IDs → file paths + copy into workspace.
         resolved_cuts, asset_copies = self._resolve_and_stage_assets(
@@ -432,6 +447,7 @@ class HyperFramesCompose(BaseTool):
             css_vars=css_vars,
             title=edit_decisions.get("metadata", {}).get("title")
             or f"OpenMontage {edit_decisions.get('renderer_family', 'composition')}",
+            gsap_src=gsap_resource['src'] if gsap_resource else 'https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js',
         )
         (workspace / "index.html").write_text(html, encoding="utf-8")
 
@@ -446,6 +462,7 @@ class HyperFramesCompose(BaseTool):
                 "total_duration_seconds": total_duration,
                 "cut_count": len(resolved_cuts),
                 "asset_copies": asset_copies,
+                "gsap_resource": gsap_resource,
             },
             artifacts=[str(workspace / "index.html")],
         )
@@ -1003,6 +1020,7 @@ class HyperFramesCompose(BaseTool):
         total_duration: float,
         css_vars: dict[str, str],
         title: str,
+        gsap_src: str = 'https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js',
     ) -> str:
         """Emit a HyperFrames-contract-compliant index.html.
 
@@ -1074,7 +1092,7 @@ class HyperFramesCompose(BaseTool):
     .clip.text-card h1 {{ font-family: var(--font-heading); font-weight: 700; font-size: 96px; line-height: 1.1; margin: 0; color: var(--color-fg); }}
     .clip.text-card .subtitle {{ font-size: 36px; margin-top: 24px; color: var(--color-accent); }}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="{self._escape_attr(gsap_src)}"></script>
 </head>
 <body>
   <div data-composition-id="root" data-start="0" data-duration="{self._f(total_duration)}" data-width="{width}" data-height="{height}">

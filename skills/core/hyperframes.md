@@ -28,6 +28,16 @@ This file teaches the bridge between the two.
 
 ## Local availability contract (#132)
 
+Offline preparation/pilot: `docs/HYPERFRAMES_OFFLINE_PILOTO_ES.md`. The existing
+adapter0.3.1 accepts `local_gsap_package_dir` or explicit child environment
+`HYPERFRAMES_GSAP_PACKAGE_DIR`. It validates reviewed GSAP3.14.2/JS SHA256,
+stages JS and package/license metadata through the shared content cache, and
+fails without CDN fallback when that local resource is invalid. The offline
+registry transport selects the already prepared sibling GSAP package; no npm.
+Unconfigured legacy scaffolds still use CDN; registry blocks and third-party
+subcompositions are separate network/licensing decisions, not covered by this
+local JS option. Do not repeat the completed4s pilot or previous ASR/TTS tests.
+
 Catalog/status reads never invoke npm, npx or the CLI. Prepare the published
 `hyperframes` package explicitly in an isolated directory, reviewed version
 0.9.96, then declare `HYPERFRAMES_PACKAGE_DIR` and an existing

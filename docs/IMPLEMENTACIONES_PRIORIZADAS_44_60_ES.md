@@ -15,14 +15,16 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
-Entrega P0 E01/#132 [HyperFrames local](HYPERFRAMES_DIAGNOSTICO_LOCAL_ES.md):
-catálogo sin npm/npx/CLI/descargas, paquete revisado y requisitos explícitos,
-doctor JSON requerido vs opcional e invalidación. E05/E06: staging común por
-contenido sin colisiones; volumen0 conservado y fades no implementados rechazados.
-23casos nuevos/5adaptados focalizados aprobados; no suites antiguas completas.
-Pendientes P1: recursos offline reproducibles y render/seek/cancel/escucha reales.
-Consulta real no encontró preparación en rutas revisadas, no ausencia global.
-Sin instalaciones/reinicios/ComfyUI;4.5 predeterminado/PR#2 borrador conservados.
+Entrega P0 E01/#132 [diagnóstico](HYPERFRAMES_DIAGNOSTICO_LOCAL_ES.md) y
+[piloto offline real](HYPERFRAMES_OFFLINE_PILOTO_ES.md): catálogo sin instalación,
+doctor JSON, staging por contenido y volumen0. CLI0.9.96/GSAP3.14.2 preparados
+una vez; Node/Chrome/FFmpeg existentes. Render4s con audio previo, reproducción,
+seek, desfase250ms y cancelación del árbol propio comprobados. Escucha humana,
+activación residente y recursos externos de terceros conservan límites.
+Adaptador0.3.1 añade GSAP local verificado al scaffold, sin CDN fallback cuando
+se selecciona;5pruebas nuevas, sin repetir el piloto. No representa auditoría
+offline de cualquier HTML/subcomposición ni instalación de bloques de registro.
+PR#2 borrador; sin reinicios/ComfyUI/cambios de configuración.
 
 Actualización de activación #117/#129:
 [validación real en4750](ACTIVACION_117_129_ES.md), PID130700/coherente;

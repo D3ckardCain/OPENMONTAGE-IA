@@ -97,3 +97,31 @@ abierto. No reinicios, cambios ComfyUI, originales o configuraciones. PR#2 borra
 
 Vista local: `projects/qa132-hyperframes-offline/review.html`.
 MP4/audio/capturas/paquetes y perfil privado no se suben a GitHub.
+
+## Siguiente entrega: GSAP local en scaffold, adaptador0.3.1
+
+Ya implementada y [probada de forma focalizada](HYPERFRAMES_132_GSAP_LOCAL_RESULTADOS.json):
+`scaffold_workspace`/`render` aceptan `local_gsap_package_dir` o la variable
+del hijo `HYPERFRAMES_GSAP_PACKAGE_DIR`. El transporte offline selecciona el
+GSAP ya preparado junto al paquete HyperFrames; el perfil puede declarar
+`gsap_package_dir` si su distribución local es diferente. No instala nada.
+
+Se exigen package.json/name/versión3.14.2/licencia y JS con SHA256
+`c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280`.
+Manifest limitado100KB y JS2MB. Fallo de recurso explícito bloquea antes de crear
+workspace, sin CDN fallback. Staging común conserva JS, encabezado y metadata de
+licencia por contenido, con `.openmontage-gsap.json`; repetir scaffold reutiliza
+la misma copia. Se comprueban hashes también después de copiar.
+
+Cinco pruebas nuevas: recurso/atribución/reutilización, hash incorrecto,
+ausencia, versión incompatible y selección compartida desde el entorno hijo.
+El GSAP preparado real y su selección por perfil se verificaron en solo lectura.
+No se volvió a renderizar: no se atribuye QA audiovisual del piloto al scaffold.
+
+Sin selección local explícita/perfil, el modo previo conserva CDN por
+compatibilidad; no es offline. El registro de bloques aún apunta a main y
+`add_block` sigue siendo una operación explícita separada que puede usar red.
+Fuentes, medios externos y subcomposiciones requieren revisión propia. Esta
+entrega elimina la dependencia CDN de GSAP cuando se selecciona local, sin
+afirmar que cualquier HTML sea autónomo u offline. Activación de imports en
+Studio se agrupa con próximas entregas, sin reiniciar ahora.
