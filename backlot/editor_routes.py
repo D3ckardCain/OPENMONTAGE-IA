@@ -134,6 +134,11 @@ def create_editor_router(body):
         from lib.studio_word_subtitles import project_draft
         return invoke(project_draft, pid, set_id)
 
+    @router.post('/{pid}/silence-proposal')
+    async def silence_proposal(pid: str, request: Request):
+        from lib.studio_silence_proposal import project_draft
+        return invoke(project_draft, pid, await body(request, 150_000))
+
     @router.post('/{pid}/subtitles/import')
     async def import_subtitles(pid: str, request: Request, filename: str, revision: int):
         origin = request.headers.get('origin')

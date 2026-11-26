@@ -39,6 +39,7 @@ STARTED = datetime.now(timezone.utc).isoformat()
 EDITOR_CAPABILITIES = {
     'version': '3.0', 'commands': tuple(CAPABILITIES),
     'render_cancel': True, 'shared_revision': True,
+    'silence_proposal': {'contract': 'studio-silence-proposal-v1', 'read_only': True, 'apply_available': False},
 }
 
 

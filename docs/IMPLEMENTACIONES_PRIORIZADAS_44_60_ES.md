@@ -39,12 +39,13 @@ music_library/audio_energy/audio_mixer/BMTS-Lite antes de nuevo analizador.
 E04/E06/E09 P1: beats/entradas/transiciones corregibles y prueba A/B futura;
 E01/E05: procedencia/caché/invalidación. Sin instalar ni generar música.
 
-Comparación independiente [#130 FireCut](EVALUACION_FIRECUT_ES.md): ampliar
-E03/E04 con propuesta revisable de silencios sobre waveform y E05 con recibos,
-sin otro cutter/ASR/editor. Prioridad siguiente: contrato numérico y protección
-de palabras/sincronía antes de medición/aplicación AV; E07 repeticiones y E09
-multicámara posteriores. Gratis parcial no acredita suite offline/$0; no instalar
-ni copiar recursos propietarios. Evaluación documental, integración no realizada.
+Entrega P0 E03/E04 [#130 propuesta de silencios](PROPUESTAS_SILENCIO_STUDIO_ES.md):
+contrato numérico/API/agente compartidos, palabra/negación protegida, padding,
+cuantización hacia dentro, velocidad/repeticiones y rechazo de base obsoleta.
+23casos nuevos aislados aprobados; sin medición acústica, medios ni renders.
+No otro cutter/ASR/editor ni copia de FireCut. Aplicación y revisión sobre
+waveform aún no disponibles; multiguía rechazada explícitamente. Activación
+agrupada con#132, sin reinicio; recibos/AV español/sincronía al aplicar pendientes.
 
 Entrega P0 E04 [#129](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/129):
 [borrador de subtítulos desde palabras guardadas](SUBTITULOS_DESDE_PALABRAS_ES.md).

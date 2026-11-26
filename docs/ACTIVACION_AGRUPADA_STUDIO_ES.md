@@ -1,5 +1,27 @@
 # Activación agrupada de Studio
 
+## Próximo lote pendiente: #132 + #130
+
+Solicitud vigente: agrupar, **sin reiniciar ahora**. #132 incluye adaptador
+HyperFrames0.3.1/GSAP local y transporte offline; #130 añade propuesta de silencio
+de solo lectura, ruta POST `silence-proposal`, capacidad explícita y herramienta
+del agente3.3.0. [Contrato y límites](PROPUESTAS_SILENCIO_STUDIO_ES.md).
+
+En el futuro reinicio manual único, comprobar antes trabajos activos y copia
+de C:/OPENMONTAGE-IA con su .venv. Tras activarlo: identidad residente coherente,
+flag `silence_proposal.read_only=true`/`apply_available=false` y una consulta
+numérica en copia con revisión/huellas correctas; comparar bytes/revisión del
+proyecto antes/después. No aplicar cortes ni repetir23casos aprobados.
+
+Para #132 comprobar metadatos del adaptador nuevo, sin repetir doctor/render,
+síntesis ni sus pruebas aprobadas. El perfil del transporte es de proceso hijo:
+Studio no lo hereda por leer un JSON, y paquete preparado no equivale a runtime
+disponible en el servidor. No cambiar PATH/configuración global ni afirmar carga
+por existir los archivos. La escucha humana permanece pendiente.
+
+Este plan no ejecuta comprobaciones ni acredita activación. #112 sin recibo
+elegible, acciones ocultas#113 y validación española#107 conservan sus pendientes.
+
 ## Estado vigente: lote #117/#129 activado
 
 [Resultados reales de la activación única](ACTIVACION_117_129_ES.md): PID130700,
