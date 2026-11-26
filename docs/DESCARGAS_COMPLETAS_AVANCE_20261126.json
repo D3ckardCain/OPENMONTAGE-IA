@@ -1,6 +1,6 @@
 {
   "recorded_at": 1795708086.4589145,
-  "status": "in_progress_not_final",
+  "status": "Historical provisional snapshot, superseded by final report",
   "catalog_references": 595,
   "groups": 49,
   "physical_paths": 651,
@@ -336,5 +336,6 @@
       "git_blob_sha1": null,
       "structure": null
     }
-  ]
+  ],
+  "final_report": "docs/DESCARGAS_COMPLETAS_RESULTADO_20261126.json"
 }

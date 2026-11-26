@@ -25,6 +25,8 @@ Stop-Process -Id $studioListener.OwningProcess
 
 Después, en otra consola, comprobación de solo lectura:
 
+Recarga también la pestaña de Studio una vez (Ctrl+F5) para cargar los módulos del panel actualizado. El inventario/hashes ya están terminados y no necesitan otro reinicio ni repetición.
+
 ```powershell
 Invoke-RestMethod http://127.0.0.1:4750/api/health -TimeoutSec 10
 Invoke-RestMethod http://127.0.0.1:4750/api/studio/identity -TimeoutSec 10

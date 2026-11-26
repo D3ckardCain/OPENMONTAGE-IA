@@ -144,9 +144,9 @@
       }
     },
     "subtitle_text_and_times_identical": true,
-    "subtitles": "1\n00:00:00,250 --> 00:00:01,500\nTeste sintÃ©tico de curvas.\n\n2\n00:00:01,750 --> 00:00:03,750\nEscala, giro e transparÃªncia.\n\n",
+    "subtitles": "1\n00:00:00,250 --> 00:00:01,500\nTeste sintÃƒÂ©tico de curvas.\n\n2\n00:00:01,750 --> 00:00:03,750\nEscala, giro e transparÃƒÂªncia.\n\n",
     "rotation_opacity_commands_identical": true,
-    "geometry": "Same source clock/curves; scale/anchor raster rounding bounded by2pixels. Different resolutions are not bit-identical.",
+    "geometry": "Same source clock and curves; even-dimension raster rounding can accumulate at larger scales. Different resolutions are not bit-identical. SSIM proves the tested sample only.",
     "new_renders": 2,
     "approved_old_renders_repeated": false,
     "human_listening": false

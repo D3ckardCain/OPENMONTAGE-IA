@@ -1,5 +1,7 @@
 # Revisión completa de descargas — 26 noviembre 2026
 
+Este corte provisional quedó sustituido por el [informe final](INVENTARIO_HASHES_FINAL_20261126_ES.md), con todos los hashes terminados, recuperación de los34fallos iniciales y discrepancias completas. Se conserva a continuación como evidencia histórica; no describe una tarea que siga ejecutándose.
+
 Se cruzaron los cuatro inventarios guardados (base, adicionales, MADLAD y Qwen17), no solamente las tres últimas voces: 595 referencias, 49 grupos, 651 rutas físicas candidatas. Los grupos comparten archivos y no equivalen a 49 instalaciones independientes. Se localizaron 593 referencias. El inventario detallado y su avance están en `DESCARGAS_COMPLETAS_AVANCE_20261126.json`; es un corte provisional, no una certificación final.
 
 C:, D: y F: contienen recursos. E: existe pero no contiene la raíz esperada. En F: aparecen recursos antes inventariados bajo E:. No se modificaron rutas de configuración automáticamente. La caché solo se reutiliza con identidad de volumen/archivo, tamaño y tiempos de modificación/creación coincidentes. El Qwen de #82 permanece resuelto: no se volvió a leer ni se abrió otro diagnóstico de disco.
