@@ -1,0 +1,509 @@
+{
+  "timestamp": 1795723280.6398716,
+  "official_metadata": "Saved official metadata at fixed revisions; no new network access",
+  "identity_validation": "Volume/device, file identity, size, mtime_ns, ctime_ns unchanged before reuse",
+  "summary": {
+    "longcat_shard_paths_checked": 12,
+    "longcat_officially_identified_paths": 10,
+    "longcat_unidentified_paths": 2,
+    "longcat_single_correct_shards": 0,
+    "longcat_multi_correct_shards": 5,
+    "longcat_missing_unique_shards": 7,
+    "wan_missing_unique_weights": 1,
+    "total_missing_unique_contents": 8,
+    "missing_bytes": 108880610864,
+    "new_hashes": 0,
+    "model_content_reads": 0,
+    "downloads": 0,
+    "model_moves": 0,
+    "model_deletions": 0
+  },
+  "existing_longcat_sources": [
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00001-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660623,
+        10718471704,
+        1794082822890049600,
+        1794113381152293300
+      ],
+      "sha256": "035aa9dc5c89093ae599c0ca97e0e458810ea27bfaa20e72f4834445f24f2773",
+      "hash_reused": true,
+      "official_variant_matches": [],
+      "classification": "unidentified_at_pinned_revision_not_corruption_proof"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00002-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660624,
+        10707244312,
+        1794084239243571900,
+        1794113520022203000
+      ],
+      "sha256": "1b9f0be46dda53ed6675145d2c36f700c0bc8d0afd7f1862bdf37a38ae739dd6",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00002-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00003-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660625,
+        10640118144,
+        1794085629777724500,
+        1794113658603903300
+      ],
+      "sha256": "d399a783eac783650badfa55bbda2c07180b8dd6f4246b5c7b202cf1de3091f4",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00003-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00004-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660626,
+        10707244640,
+        1794087552437984400,
+        1794113813074077200
+      ],
+      "sha256": "d062b5be0390982f357c9cec60193602254f2d337947d4104e2f319b82843876",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00004-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00005-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660627,
+        10665318256,
+        1794089079699077600,
+        1794113938899021600
+      ],
+      "sha256": "13470f851b0fcd3e5141746601a8b5e05d01854579d03080a99db05e1b29a970",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00005-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00006-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660628,
+        10048417104,
+        1794090462586025700,
+        1794114081317580300
+      ],
+      "sha256": "25a74791743e648094db3689f007470ab9955793d0fcfddc1aba8f8ba4bf53b2",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00006-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00001-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4503599627371273,
+        10718471704,
+        1794082822890049600,
+        1794112779510407200
+      ],
+      "sha256": "035aa9dc5c89093ae599c0ca97e0e458810ea27bfaa20e72f4834445f24f2773",
+      "hash_reused": true,
+      "official_variant_matches": [],
+      "classification": "unidentified_at_pinned_revision_not_corruption_proof"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00002-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4503599627371274,
+        10707244312,
+        1794084239243571900,
+        1794112894536861200
+      ],
+      "sha256": "1b9f0be46dda53ed6675145d2c36f700c0bc8d0afd7f1862bdf37a38ae739dd6",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00002-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00003-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660619,
+        10640118144,
+        1794085629777724500,
+        1794112973925015100
+      ],
+      "sha256": "d399a783eac783650badfa55bbda2c07180b8dd6f4246b5c7b202cf1de3091f4",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00003-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00004-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660620,
+        10707244640,
+        1794087552437984400,
+        1794113053995508500
+      ],
+      "sha256": "d062b5be0390982f357c9cec60193602254f2d337947d4104e2f319b82843876",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00004-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00005-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660621,
+        10665318256,
+        1794089079699077600,
+        1794113159142711500
+      ],
+      "sha256": "13470f851b0fcd3e5141746601a8b5e05d01854579d03080a99db05e1b29a970",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00005-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00006-of-00006.safetensors",
+      "identity": [
+        4101616990,
+        4222124650660622,
+        10048417104,
+        1794090462586025700,
+        1794113265126421900
+      ],
+      "sha256": "25a74791743e648094db3689f007470ab9955793d0fcfddc1aba8f8ba4bf53b2",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "avatar_multi/diffusion_pytorch_model-00006-of-00006.safetensors"
+      ],
+      "classification": "identified_official_variant"
+    }
+  ],
+  "official_contents": [
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "bytes": 10718471704,
+      "sha256": "e065fdebd25e3aace72c228a36e6da99ef7d90262458dd082835446bbc6fb9d7",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00001-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00002-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00002-of-00006.safetensors",
+      "bytes": 10707244312,
+      "sha256": "c983697c66644cb18f22136597e6488282d0b6a11344c7d97384f39a40af5522",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00002-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00003-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00003-of-00006.safetensors",
+      "bytes": 10640118144,
+      "sha256": "ecadc8f493ebb5fa9e12af6d495d2e9e3462f49bda0b0e93b87d65d0d08a8df9",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00003-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00004-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00004-of-00006.safetensors",
+      "bytes": 10707244640,
+      "sha256": "d9d55f6e892b38f19a80494ca4dfbb5e4c2a1468bcd133211070742da79d36dd",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00004-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00005-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00005-of-00006.safetensors",
+      "bytes": 10665318256,
+      "sha256": "a17d6702d4f1f864dcf7fefe5374cff2bd2b717bfde5cd6777be450bb24b2b9f",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00005-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00006-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00006-of-00006.safetensors",
+      "bytes": 10048417104,
+      "sha256": "c2e3116c0a88638abad265546825749514780539d0d1a5275ce8280a55aecc8a",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00006-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_multi/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_multi/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "bytes": 10718471704,
+      "sha256": "e02cec39c5897baee8934633e93bebdb2b5c877bf0ad0f2e7e273ad312537ed8",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00001-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_multi/diffusion_pytorch_model-00002-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_multi/diffusion_pytorch_model-00002-of-00006.safetensors",
+      "bytes": 10707244312,
+      "sha256": "1b9f0be46dda53ed6675145d2c36f700c0bc8d0afd7f1862bdf37a38ae739dd6",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00002-of-00006.safetensors",
+      "status": "verified_local_content_reuse_no_download",
+      "valid_local_candidates": [
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00002-of-00006.safetensors",
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00002-of-00006.safetensors"
+      ],
+      "existing_destination_matches": true
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_multi/diffusion_pytorch_model-00003-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_multi/diffusion_pytorch_model-00003-of-00006.safetensors",
+      "bytes": 10640118144,
+      "sha256": "d399a783eac783650badfa55bbda2c07180b8dd6f4246b5c7b202cf1de3091f4",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00003-of-00006.safetensors",
+      "status": "verified_local_content_reuse_no_download",
+      "valid_local_candidates": [
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00003-of-00006.safetensors",
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00003-of-00006.safetensors"
+      ],
+      "existing_destination_matches": true
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_multi/diffusion_pytorch_model-00004-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_multi/diffusion_pytorch_model-00004-of-00006.safetensors",
+      "bytes": 10707244640,
+      "sha256": "d062b5be0390982f357c9cec60193602254f2d337947d4104e2f319b82843876",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00004-of-00006.safetensors",
+      "status": "verified_local_content_reuse_no_download",
+      "valid_local_candidates": [
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00004-of-00006.safetensors",
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00004-of-00006.safetensors"
+      ],
+      "existing_destination_matches": true
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_multi/diffusion_pytorch_model-00005-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_multi/diffusion_pytorch_model-00005-of-00006.safetensors",
+      "bytes": 10665318256,
+      "sha256": "13470f851b0fcd3e5141746601a8b5e05d01854579d03080a99db05e1b29a970",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00005-of-00006.safetensors",
+      "status": "verified_local_content_reuse_no_download",
+      "valid_local_candidates": [
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00005-of-00006.safetensors",
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00005-of-00006.safetensors"
+      ],
+      "existing_destination_matches": true
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_multi/diffusion_pytorch_model-00006-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_multi/diffusion_pytorch_model-00006-of-00006.safetensors",
+      "bytes": 10048417104,
+      "sha256": "25a74791743e648094db3689f007470ab9955793d0fcfddc1aba8f8ba4bf53b2",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00006-of-00006.safetensors",
+      "status": "verified_local_content_reuse_no_download",
+      "valid_local_candidates": [
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00006-of-00006.safetensors",
+        "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00006-of-00006.safetensors"
+      ],
+      "existing_destination_matches": true
+    },
+    {
+      "repo": "alibaba-pai/Wan2.2-VACE-Fun-A14B",
+      "revision": "4438caabbfdd7437bbb0283d86cb200d1b7223ba",
+      "file": "high_noise_model/diffusion_pytorch_model.safetensors",
+      "url": "https://huggingface.co/alibaba-pai/Wan2.2-VACE-Fun-A14B/resolve/4438caabbfdd7437bbb0283d86cb200d1b7223ba/high_noise_model/diffusion_pytorch_model.safetensors",
+      "bytes": 34675325000,
+      "sha256": "66c61b736c5674deeeef17861e494d3652cc9b1463a9656bf18c2c72d2c5f007",
+      "destination_folder": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-VACE-Fun-A14B\\high_noise_model",
+      "destination_file": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-VACE-Fun-A14B\\high_noise_model\\diffusion_pytorch_model.official-4438caab.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    }
+  ],
+  "missing_contents": [
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "bytes": 10718471704,
+      "sha256": "e065fdebd25e3aace72c228a36e6da99ef7d90262458dd082835446bbc6fb9d7",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00001-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00002-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00002-of-00006.safetensors",
+      "bytes": 10707244312,
+      "sha256": "c983697c66644cb18f22136597e6488282d0b6a11344c7d97384f39a40af5522",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00002-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00003-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00003-of-00006.safetensors",
+      "bytes": 10640118144,
+      "sha256": "ecadc8f493ebb5fa9e12af6d495d2e9e3462f49bda0b0e93b87d65d0d08a8df9",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00003-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00004-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00004-of-00006.safetensors",
+      "bytes": 10707244640,
+      "sha256": "d9d55f6e892b38f19a80494ca4dfbb5e4c2a1468bcd133211070742da79d36dd",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00004-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00005-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00005-of-00006.safetensors",
+      "bytes": 10665318256,
+      "sha256": "a17d6702d4f1f864dcf7fefe5374cff2bd2b717bfde5cd6777be450bb24b2b9f",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00005-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_single/diffusion_pytorch_model-00006-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_single/diffusion_pytorch_model-00006-of-00006.safetensors",
+      "bytes": 10048417104,
+      "sha256": "c2e3116c0a88638abad265546825749514780539d0d1a5275ce8280a55aecc8a",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_single\\diffusion_pytorch_model-00006-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "meituan-longcat/LongCat-Video-Avatar",
+      "revision": "e25e0323d9956e1b03f033828314e7a9214d8fcb",
+      "file": "avatar_multi/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "url": "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar/resolve/e25e0323d9956e1b03f033828314e7a9214d8fcb/avatar_multi/diffusion_pytorch_model-00001-of-00006.safetensors",
+      "bytes": 10718471704,
+      "sha256": "e02cec39c5897baee8934633e93bebdb2b5c877bf0ad0f2e7e273ad312537ed8",
+      "destination_folder": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi",
+      "destination_file": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\meituan-longcat--LongCat-Video-Avatar\\avatar_multi\\diffusion_pytorch_model-00001-of-00006.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    },
+    {
+      "repo": "alibaba-pai/Wan2.2-VACE-Fun-A14B",
+      "revision": "4438caabbfdd7437bbb0283d86cb200d1b7223ba",
+      "file": "high_noise_model/diffusion_pytorch_model.safetensors",
+      "url": "https://huggingface.co/alibaba-pai/Wan2.2-VACE-Fun-A14B/resolve/4438caabbfdd7437bbb0283d86cb200d1b7223ba/high_noise_model/diffusion_pytorch_model.safetensors",
+      "bytes": 34675325000,
+      "sha256": "66c61b736c5674deeeef17861e494d3652cc9b1463a9656bf18c2c72d2c5f007",
+      "destination_folder": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-VACE-Fun-A14B\\high_noise_model",
+      "destination_file": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-VACE-Fun-A14B\\high_noise_model\\diffusion_pytorch_model.official-4438caab.safetensors",
+      "status": "no_valid_copy_in_verified_inventory",
+      "valid_local_candidates": [],
+      "existing_destination_matches": false
+    }
+  ],
+  "limits": [
+    "No model loaded or runtime compatibility claimed",
+    "Unknown shard 1 digest is not evidence of corruption",
+    "No missing copy assertion outside the verified inventory",
+    "Destination folders are a plan only; no file or folder changed in model volumes"
+  ]
+}
