@@ -1,0 +1,1226 @@
+{
+  "issue": 117,
+  "date": "2026-11-26",
+  "project": "qa117-blender-skills-53",
+  "blender": "5.3.0",
+  "default_profile": "blender-4.5",
+  "cost_usd": 0,
+  "studio_restarted": false,
+  "preservation_unchanged": true,
+  "tests": {
+    "new_unique_cases_passed": 12,
+    "full_suite_repeated": false,
+    "ci_claimed": false
+  },
+  "final_review": {
+    "version": "1.0",
+    "output_path": "renders/blender-skills-pilot.mp4",
+    "status": "pass",
+    "checks": {
+      "technical_probe": {
+        "valid_container": true,
+        "duration_seconds": 3,
+        "resolution": "640x360",
+        "fps": 24,
+        "has_audio": false,
+        "codec": "h264",
+        "file_size_bytes": 86319,
+        "issues": []
+      },
+      "visual_spotcheck": {
+        "frames_sampled": 4,
+        "frame_paths": [
+          "assets/images/encoded_01.png",
+          "assets/images/encoded_02.png",
+          "assets/images/encoded_frame53.png",
+          "assets/images/encoded_03.png"
+        ],
+        "black_frames_detected": false,
+        "missing_assets": false,
+        "broken_overlays": false,
+        "unreadable_text": false,
+        "issues": [
+          "Preview noise at 16 samples; floor back edge visible; not a seamless loop."
+        ]
+      },
+      "audio_spotcheck": {
+        "narration_present": false,
+        "music_present": false,
+        "unexpected_silence": false,
+        "issues": [
+          "Silent technical pilot by design; no listening assessment."
+        ]
+      },
+      "promise_preservation": {
+        "delivery_promise_honored": true,
+        "renderer_family_used": "animation-first",
+        "render_runtime_used": "ffmpeg",
+        "runtime_swap_detected": false,
+        "runtime_swap_check": "Blender EEVEE generates frames; FFmpeg only packages them, as explicitly approved.",
+        "silent_downgrade_detected": false,
+        "issues": []
+      },
+      "subtitle_check": {
+        "subtitles_expected": false,
+        "subtitles_present": false,
+        "issues": []
+      }
+    },
+    "issues_found": [
+      "Preview noise at 16 samples; floor back edge visible; not a seamless loop.",
+      "Chrome reported one discarded playback frame; encoded file contains and decodes all 72 frames.",
+      "Three meshes pass pinned upstream render QA; no UV maps intentional for procedural materials; floor boundary intentional.",
+      "Not certification of all Blender-Skills, Cycles, exports or add-on geometry operations."
+    ],
+    "recommended_action": "present_to_user",
+    "metadata": {
+      "scene_renderer": "Blender 5.3.0 EEVEE",
+      "human_visual_approval": false,
+      "cost_usd": 0
+    }
+  },
+  "build": {
+    "version": "5.3.0",
+    "engine": "BLENDER_EEVEE",
+    "fps": 24,
+    "frame_range": [
+      1,
+      72
+    ],
+    "resolution": [
+      640,
+      360
+    ],
+    "objects": 7,
+    "meshes": 3,
+    "materials": 3,
+    "actions": 1,
+    "lights": [
+      {
+        "name": "L_PilotKey",
+        "type": "AREA",
+        "watts": 900.0
+      },
+      {
+        "name": "L_PilotFill",
+        "type": "AREA",
+        "watts": 300.0
+      },
+      {
+        "name": "L_PilotRim",
+        "type": "AREA",
+        "watts": 1100.0
+      }
+    ],
+    "mesh_qa": [
+      {
+        "object": "SM_PilotCube",
+        "vertices": 96,
+        "triangles": 188,
+        "boundary_edges": 0,
+        "nonmanifold_nonboundary": 0,
+        "degenerate_faces": 0,
+        "volume": 7.941702527336538,
+        "materials": 1,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "min_world_z": 0.0,
+        "finite": true
+      },
+      {
+        "object": "SM_PilotSphere",
+        "vertices": 482,
+        "triangles": 960,
+        "boundary_edges": 0,
+        "nonmanifold_nonboundary": 0,
+        "degenerate_faces": 0,
+        "volume": 1.4138244627028036,
+        "materials": 1,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions": [
+          1.3999991416931152,
+          1.3999994993209839,
+          1.399999976158142
+        ],
+        "min_world_z": 0.0,
+        "finite": true
+      },
+      {
+        "object": "SM_PilotFloor",
+        "vertices": 4,
+        "triangles": 2,
+        "boundary_edges": 4,
+        "nonmanifold_nonboundary": 0,
+        "degenerate_faces": 0,
+        "volume": 0.0,
+        "materials": 1,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions": [
+          24.0,
+          24.0,
+          0.0
+        ],
+        "min_world_z": 0.0,
+        "finite": true
+      }
+    ],
+    "external_images": [],
+    "accepted_limits": [
+      "Floor is intentionally open with four boundary edges",
+      "Procedural materials intentionally need no UV maps",
+      "Render-oriented pilot, not a game/print asset or28skills certification"
+    ],
+    "contract": "blender-skills-pilot-v1",
+    "source": "Own procedural geometry/materials, no remote assets",
+    "skills_revision": "1a1cc6c49312f9f370aae86f52b7b907f29c94f6",
+    "animation_curves": 3,
+    "blend_sha256": "2bb1d95a01ac199dea027f66e214d9d794e90e05ea8f01c70b68b13e9229019a"
+  },
+  "media": {
+    "output": "C:\\OPENMONTAGE-IA\\projects\\qa117-blender-skills-53\\renders\\blender-skills-pilot.mp4",
+    "sha256": "bd4d905105fc4c2c9cbb70e802a15b4ae359944a5350b3f76945f48c208d877f",
+    "bytes": 86319,
+    "probe": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "codec_tag": "0x31637661",
+          "mime_codec_string": "avc1.64001e",
+          "width": 640,
+          "height": 360,
+          "coded_width": 640,
+          "coded_height": 368,
+          "has_b_frames": 2,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "level": 30,
+          "color_range": "tv",
+          "color_transfer": "iec61966-2-1",
+          "color_primaries": "bt709",
+          "chroma_location": "left",
+          "field_order": "progressive",
+          "refs": 4,
+          "is_avc": "true",
+          "nal_length_size": "4",
+          "id": "0x1",
+          "r_frame_rate": "24/1",
+          "avg_frame_rate": "24/1",
+          "time_base": "1/12288",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 36864,
+          "duration": "3.000000",
+          "bit_rate": "225578",
+          "bits_per_raw_sample": "8",
+          "nb_frames": "72",
+          "nb_read_frames": "72",
+          "extradata_size": 51,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "VideoHandler",
+            "encoder": "Lavc63.1.102 libx264"
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\OPENMONTAGE-IA\\projects\\qa117-blender-skills-53\\renders\\blender-skills-pilot.mp4",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "3.000000",
+        "size": "86319",
+        "bit_rate": "230184",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    },
+    "decode_errors": ""
+  },
+  "inspect": {
+    "version": "5.3.0",
+    "engine": "BLENDER_EEVEE",
+    "fps": 24,
+    "frame_range": [
+      1,
+      72
+    ],
+    "resolution": [
+      640,
+      360
+    ],
+    "objects": 7,
+    "meshes": 3,
+    "materials": 3,
+    "actions": 1,
+    "lights": [
+      {
+        "name": "L_PilotKey",
+        "type": "AREA",
+        "watts": 900.0
+      },
+      {
+        "name": "L_PilotFill",
+        "type": "AREA",
+        "watts": 300.0
+      },
+      {
+        "name": "L_PilotRim",
+        "type": "AREA",
+        "watts": 1100.0
+      }
+    ],
+    "mesh_qa": [
+      {
+        "object": "SM_PilotCube",
+        "vertices": 96,
+        "triangles": 188,
+        "boundary_edges": 0,
+        "nonmanifold_nonboundary": 0,
+        "degenerate_faces": 0,
+        "volume": 7.941702527336538,
+        "materials": 1,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "min_world_z": 0.0,
+        "finite": true
+      },
+      {
+        "object": "SM_PilotSphere",
+        "vertices": 482,
+        "triangles": 960,
+        "boundary_edges": 0,
+        "nonmanifold_nonboundary": 0,
+        "degenerate_faces": 0,
+        "volume": 1.4138244627028036,
+        "materials": 1,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions": [
+          1.3999991416931152,
+          1.3999994993209839,
+          1.399999976158142
+        ],
+        "min_world_z": 0.0,
+        "finite": true
+      },
+      {
+        "object": "SM_PilotFloor",
+        "vertices": 4,
+        "triangles": 2,
+        "boundary_edges": 4,
+        "nonmanifold_nonboundary": 0,
+        "degenerate_faces": 0,
+        "volume": 0.0,
+        "materials": 1,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "dimensions": [
+          24.0,
+          24.0,
+          0.0
+        ],
+        "min_world_z": 0.0,
+        "finite": true
+      }
+    ],
+    "external_images": [],
+    "accepted_limits": [
+      "Floor is intentionally open with four boundary edges",
+      "Procedural materials intentionally need no UV maps",
+      "Render-oriented pilot, not a game/print asset or28skills certification"
+    ],
+    "contract": "blender-skills-pilot-v1",
+    "reopened": true,
+    "poses": [
+      {
+        "frame": 1,
+        "rotation_z": 0.0
+      },
+      {
+        "frame": 36,
+        "rotation_z": 0.800000011920929
+      },
+      {
+        "frame": 72,
+        "rotation_z": 1.7999999523162842
+      }
+    ],
+    "blend_saved": false
+  },
+  "image-review": {
+    "frames_checked": 72,
+    "unique_rgb_frames": 57,
+    "sample_temporal_mean_absolute_rgb_difference": [
+      3.6197815393518518,
+      2.942293113425926
+    ],
+    "encoded_vs_png_mean_absolute_rgb_difference": [
+      1.2779557291666668,
+      1.3249638310185186,
+      1.2867708333333334
+    ],
+    "sample_frame_numbers": [
+      1,
+      36,
+      72
+    ],
+    "checks": "PNG completeness/variation/not black; independently extracted encoded MP4 samples",
+    "frame_measurements": [
+      {
+        "frame": 1,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 2,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 3,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 4,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 5,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 6,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 7,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 8,
+        "rgb_sha256": "6ba9d44a3a031c037be8fab2a296815aaaa97ba48c23960363f959c9841d2b51",
+        "mean_rgb": [
+          112.77870659722223,
+          108.48211805555556,
+          113.78247395833333
+        ]
+      },
+      {
+        "frame": 9,
+        "rgb_sha256": "c6b3002c1363767b681128650ee92cd17712f889306fb34e50e7eb28e62ca2b5",
+        "mean_rgb": [
+          112.77740017361111,
+          108.48285590277777,
+          113.78391059027778
+        ]
+      },
+      {
+        "frame": 10,
+        "rgb_sha256": "f621e9a3f37b02a718e53034591b668e6b09b7e0296595f71c70bc5a98a2e3e6",
+        "mean_rgb": [
+          112.77493055555556,
+          108.48519965277778,
+          113.78891927083333
+        ]
+      },
+      {
+        "frame": 11,
+        "rgb_sha256": "3ef0fd2df74a89973b5877a24df6c06b000e6dbe9cfdf0cf8abbc58992cb1847",
+        "mean_rgb": [
+          112.77026475694444,
+          108.48979600694445,
+          113.79877170138889
+        ]
+      },
+      {
+        "frame": 12,
+        "rgb_sha256": "667e08565fdb354b5fd1988d88b528a9913abfabd6cb575bc9bf22f2e543a60f",
+        "mean_rgb": [
+          112.76339409722222,
+          108.49555989583334,
+          113.81081597222222
+        ]
+      },
+      {
+        "frame": 13,
+        "rgb_sha256": "ef023c20d06f57265c4c451af50a8902dcb7a1f5abda2d887d44979578adbe60",
+        "mean_rgb": [
+          112.7568359375,
+          108.50448784722222,
+          113.82890190972222
+        ]
+      },
+      {
+        "frame": 14,
+        "rgb_sha256": "cba400170675065c6ef380c18a3c6eeac7a9abedd45625c6c96f5359503411ee",
+        "mean_rgb": [
+          112.74427083333333,
+          108.51481770833334,
+          113.85178385416667
+        ]
+      },
+      {
+        "frame": 15,
+        "rgb_sha256": "99c573beff098195c763dd63d5ad32a4dc100a6b131b5a852faefabcb0cbaf16",
+        "mean_rgb": [
+          112.72644097222222,
+          108.52379340277778,
+          113.875234375
+        ]
+      },
+      {
+        "frame": 16,
+        "rgb_sha256": "04bae64b9c7b2361e377e4934a4979228f2515dc5ab677a2410dbfe1ae09cd82",
+        "mean_rgb": [
+          112.70689236111112,
+          108.53799479166666,
+          113.90801215277777
+        ]
+      },
+      {
+        "frame": 17,
+        "rgb_sha256": "5bbd029c66625a7b6a8096683540829e9c91cac8475b8537d0665bf7189909fc",
+        "mean_rgb": [
+          112.68512152777778,
+          108.55631076388889,
+          113.94838975694445
+        ]
+      },
+      {
+        "frame": 18,
+        "rgb_sha256": "e044faac056346de4ab9e788fe025303efc6863616bff3c1b890eacd0bd76074",
+        "mean_rgb": [
+          112.65909288194445,
+          108.57677083333333,
+          113.99369357638889
+        ]
+      },
+      {
+        "frame": 19,
+        "rgb_sha256": "c8ec2027cca1052be8f9befee6c2aea70f3522e37af478bdfab8903ca166e68a",
+        "mean_rgb": [
+          112.62938802083333,
+          108.60387152777778,
+          114.05187934027778
+        ]
+      },
+      {
+        "frame": 20,
+        "rgb_sha256": "3c0e1e098b24b3d9c249cb042c9793335e38e47cb3dec08e026ebbad2aa75835",
+        "mean_rgb": [
+          112.59260416666666,
+          108.63646701388889,
+          114.11965277777777
+        ]
+      },
+      {
+        "frame": 21,
+        "rgb_sha256": "ad0834144b3f5f8c91f8de3cc20acbcf788ffba444f29ae4573c59310d86936d",
+        "mean_rgb": [
+          112.54865451388889,
+          108.67456597222223,
+          114.19866319444445
+        ]
+      },
+      {
+        "frame": 22,
+        "rgb_sha256": "2f389acbac33d2bdb65a8ee42ce2592d2a144f299a23ddc23af6da80e113b964",
+        "mean_rgb": [
+          112.48768663194444,
+          108.70898003472222,
+          114.27917100694444
+        ]
+      },
+      {
+        "frame": 23,
+        "rgb_sha256": "78fad3bf03280afeb889eab306194a45bdf49a42f9d7c452908b7c947c920e91",
+        "mean_rgb": [
+          112.42286458333334,
+          108.75225694444444,
+          114.375
+        ]
+      },
+      {
+        "frame": 24,
+        "rgb_sha256": "b4eb5cae54e88545a25805c24f87b82a69026c8aa1df0891227799d0c51acf93",
+        "mean_rgb": [
+          112.33751736111111,
+          108.79029079861111,
+          114.46942274305556
+        ]
+      },
+      {
+        "frame": 25,
+        "rgb_sha256": "e73ec7ec13935f0b519148666001ee8b9a17da2d104f3fb63511880d3eb65101",
+        "mean_rgb": [
+          112.23553385416666,
+          108.8316970486111,
+          114.57400173611111
+        ]
+      },
+      {
+        "frame": 26,
+        "rgb_sha256": "ec02f133b78231cb3bdcd6a6221358fc5cb10b87f6d7e4c7e91bfd85a50a6a3b",
+        "mean_rgb": [
+          112.10908854166667,
+          108.8709982638889,
+          114.68519965277778
+        ]
+      },
+      {
+        "frame": 27,
+        "rgb_sha256": "f25d154ceed1fab534324927556c57f95b5ef0729877035d6e42c89722ec8659",
+        "mean_rgb": [
+          111.96008246527778,
+          108.91004340277777,
+          114.80375
+        ]
+      },
+      {
+        "frame": 28,
+        "rgb_sha256": "9c58888a12f08f805c5689004ded27383945d33afca80d1c94acc3171dd0bbed",
+        "mean_rgb": [
+          111.79444010416667,
+          108.95484375,
+          114.93629340277778
+        ]
+      },
+      {
+        "frame": 29,
+        "rgb_sha256": "bfa2de1b1cd3436a23b85ecfff3118161c43bb36b3be804fc328a7ab88e74698",
+        "mean_rgb": [
+          111.61914496527778,
+          109.01061631944444,
+          115.09030815972223
+        ]
+      },
+      {
+        "frame": 30,
+        "rgb_sha256": "bec2eb871dadd1cabc4880c9c8d114077b9357b68986021fdf6cd2e54b4c7512",
+        "mean_rgb": [
+          111.440546875,
+          109.08901041666667,
+          115.28023871527778
+        ]
+      },
+      {
+        "frame": 31,
+        "rgb_sha256": "c685ef7eedf967161a46653002f4cbe6d31bbbbea2b57193f9f6a21db4386e82",
+        "mean_rgb": [
+          111.34276041666666,
+          109.01969184027777,
+          115.24667100694444
+        ]
+      },
+      {
+        "frame": 32,
+        "rgb_sha256": "b192e64844b55c75926cacfdbcc084833a91d4270698bca57cf1edff43590a09",
+        "mean_rgb": [
+          111.24064670138888,
+          108.97319878472223,
+          115.24943576388888
+        ]
+      },
+      {
+        "frame": 33,
+        "rgb_sha256": "75d55e06307f20b139735a9b64afc2f15b571051a6a367b24fe1a97aca91a5d9",
+        "mean_rgb": [
+          111.15862413194445,
+          108.96215711805556,
+          115.29368055555555
+        ]
+      },
+      {
+        "frame": 34,
+        "rgb_sha256": "09abab0f58db416f55dbbbbf3d8d7814a81ee8cdfc776673e08c2594656d8e70",
+        "mean_rgb": [
+          111.12578125,
+          108.94640625,
+          115.30918402777777
+        ]
+      },
+      {
+        "frame": 35,
+        "rgb_sha256": "6c4d60b1291580c5e3c4a81f4d2ce8a7cee36b257bf312c597b37d8924b4aca4",
+        "mean_rgb": [
+          111.20110243055555,
+          108.82930121527778,
+          115.14464409722223
+        ]
+      },
+      {
+        "frame": 36,
+        "rgb_sha256": "5ac0716e6fc6fb2080f2d12aff0160c45427b15773cbc0bb33f7f31003f4a0ff",
+        "mean_rgb": [
+          111.30984809027778,
+          108.73211805555556,
+          114.98420138888889
+        ]
+      },
+      {
+        "frame": 37,
+        "rgb_sha256": "d2fb2bc245e5fb9c5ccfeb5b5b7284fac33821acfdef0fd3387a0e3b23f41a1b",
+        "mean_rgb": [
+          111.45022135416667,
+          108.65230034722222,
+          114.82407986111112
+        ]
+      },
+      {
+        "frame": 38,
+        "rgb_sha256": "22db523f029bee995fcb1a0e707248700259242b844591415a83d79b071a24fa",
+        "mean_rgb": [
+          111.62168402777777,
+          108.59853298611111,
+          114.676328125
+        ]
+      },
+      {
+        "frame": 39,
+        "rgb_sha256": "298be38da7c4fcccff841db55680af23c519f113213d3914436413a0257c3437",
+        "mean_rgb": [
+          111.80171006944444,
+          108.54691840277778,
+          114.52080295138889
+        ]
+      },
+      {
+        "frame": 40,
+        "rgb_sha256": "932c3448b8d41781f031b597f505c66f5c384164f6e5197b229e66843a1af5d5",
+        "mean_rgb": [
+          111.98149739583333,
+          108.49225260416667,
+          114.35161892361111
+        ]
+      },
+      {
+        "frame": 41,
+        "rgb_sha256": "4978f014c22065280f526b698389044c6b2d4df93910e5be9862385af38641a7",
+        "mean_rgb": [
+          112.15371527777778,
+          108.43732204861111,
+          114.17780815972222
+        ]
+      },
+      {
+        "frame": 42,
+        "rgb_sha256": "0b4b4da6561ce3fffdb9e37304cf94473ab17143cff9e9b1c989c4d0e17593ae",
+        "mean_rgb": [
+          112.3013888888889,
+          108.37797309027778,
+          114.00489149305555
+        ]
+      },
+      {
+        "frame": 43,
+        "rgb_sha256": "cb861e5b91380bdb4e4064713a851cd156528d427f77de4fcf5e802acf271e80",
+        "mean_rgb": [
+          112.39672309027777,
+          108.3001388888889,
+          113.82769965277778
+        ]
+      },
+      {
+        "frame": 44,
+        "rgb_sha256": "440b5953a5afb50e487cbaa46c1f01b44bffbb8b03626061f8d4bb780a7e010c",
+        "mean_rgb": [
+          112.47253472222222,
+          108.23816840277777,
+          113.680703125
+        ]
+      },
+      {
+        "frame": 45,
+        "rgb_sha256": "bc81a0158de961b41bfa87e96b1390ed836977ef33539cc1500990c1084862cb",
+        "mean_rgb": [
+          112.5306076388889,
+          108.19892361111111,
+          113.57464409722222
+        ]
+      },
+      {
+        "frame": 46,
+        "rgb_sha256": "793b97d12e85abb5ec77f8f0984ffed58386b594c745b59abeac7499f6d2f0a7",
+        "mean_rgb": [
+          112.5736111111111,
+          108.17849826388888,
+          113.50053385416666
+        ]
+      },
+      {
+        "frame": 47,
+        "rgb_sha256": "7bbc228fd752dfa82f51b4b5389563ccb7ea0b6adc81125f85762fd7d66c10af",
+        "mean_rgb": [
+          112.61603298611111,
+          108.18342881944444,
+          113.46764756944444
+        ]
+      },
+      {
+        "frame": 48,
+        "rgb_sha256": "caf7288e1841b58d4080c095d3258fc3f5f125a9656a21c4590ab7acbf38c14d",
+        "mean_rgb": [
+          112.62931423611111,
+          108.18681857638889,
+          113.44986979166667
+        ]
+      },
+      {
+        "frame": 49,
+        "rgb_sha256": "84bd25b22f6dc3841188730d5bc2efabca5b21b6225ad26751152e7cb3a6b8c1",
+        "mean_rgb": [
+          112.64266493055555,
+          108.21465711805556,
+          113.46881510416667
+        ]
+      },
+      {
+        "frame": 50,
+        "rgb_sha256": "743dc436a4bf6557c48fe17248f326b0e62f020b44bc115faaaa71079ccadf5b",
+        "mean_rgb": [
+          112.66513888888889,
+          108.26448350694444,
+          113.52358940972222
+        ]
+      },
+      {
+        "frame": 51,
+        "rgb_sha256": "68736cde52e32505fd1fe0f0f2633aa06beb755ecfab243c1c465544d8cba758",
+        "mean_rgb": [
+          112.69487413194445,
+          108.33225694444444,
+          113.60393663194445
+        ]
+      },
+      {
+        "frame": 52,
+        "rgb_sha256": "d6da5bff3fd111311942709da7d4fbf7ec54ccce1549de5d663efb1ffd32a740",
+        "mean_rgb": [
+          112.74234809027777,
+          108.41865885416667,
+          113.7058984375
+        ]
+      },
+      {
+        "frame": 53,
+        "rgb_sha256": "8f2bb8b7cba0a5457461fb33fb3ae87c19aff8c7fd0e045ef14ca4f966606721",
+        "mean_rgb": [
+          112.76824652777778,
+          108.48911458333333,
+          113.79910590277778
+        ]
+      },
+      {
+        "frame": 54,
+        "rgb_sha256": "d5571744fb590fe868e19557f5f108e5c11ed307de2eb4743bcabff6fa5df712",
+        "mean_rgb": [
+          112.74261284722222,
+          108.51565972222222,
+          113.85437934027777
+        ]
+      },
+      {
+        "frame": 55,
+        "rgb_sha256": "5e0645721de96eb300c2b86868dc040e343b10eb1642a56e1316873ae2fac892",
+        "mean_rgb": [
+          112.707421875,
+          108.53776909722222,
+          113.90720486111111
+        ]
+      },
+      {
+        "frame": 56,
+        "rgb_sha256": "261f773cf507b7e81b3b4c7d02234e58bfeb7e48fc56d24deccbdca6ac7c55c2",
+        "mean_rgb": [
+          112.6753125,
+          108.56405381944444,
+          113.96555989583334
+        ]
+      },
+      {
+        "frame": 57,
+        "rgb_sha256": "b0dc3dc45de3a766220e95d9376e630244ee445cf7668b435af5a46893bf335a",
+        "mean_rgb": [
+          112.64359375,
+          108.59059895833333,
+          114.0240625
+        ]
+      },
+      {
+        "frame": 58,
+        "rgb_sha256": "bd87281ed8e5d212cc7f047212d525dfad539aaa61caa36c9164256c913b7f4e",
+        "mean_rgb": [
+          112.61418836805555,
+          108.61955729166667,
+          114.0836154513889
+        ]
+      },
+      {
+        "frame": 59,
+        "rgb_sha256": "b4954eedb4ca9e13ca18c50377e774775a3889ba42483cf1b5b605cb81f6d2ca",
+        "mean_rgb": [
+          112.58399739583334,
+          108.64542100694445,
+          114.13756944444444
+        ]
+      },
+      {
+        "frame": 60,
+        "rgb_sha256": "ce72b341cf02661053885a92479e33db2dbc621ac54157939ad0e40cc8d16782",
+        "mean_rgb": [
+          112.55596354166667,
+          108.66717881944444,
+          114.18422309027778
+        ]
+      },
+      {
+        "frame": 61,
+        "rgb_sha256": "e800711cc42234562f1cbe3803bfc8f05bb498dfcc29d54420348ccb90b1a516",
+        "mean_rgb": [
+          112.53197916666667,
+          108.6849609375,
+          114.22295572916667
+        ]
+      },
+      {
+        "frame": 62,
+        "rgb_sha256": "38ba89a5f41a4a914ffa85f5fe93c3f3c54c37334ff58b9ac52eeae65e62b5ae",
+        "mean_rgb": [
+          112.5120876736111,
+          108.69669270833333,
+          114.2498828125
+        ]
+      },
+      {
+        "frame": 63,
+        "rgb_sha256": "8da2a9b9e7949a39e01809b42bb0abb35bb55c3eebf405276dec8a5f5f6ba673",
+        "mean_rgb": [
+          112.49745225694444,
+          108.70343315972222,
+          114.26644965277778
+        ]
+      },
+      {
+        "frame": 64,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 65,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 66,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 67,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 68,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 69,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 70,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 71,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      },
+      {
+        "frame": 72,
+        "rgb_sha256": "b4f03224d71ac53b4c9c0720680f2ff0bc94addbc2dbd203c1d68bc1f5810323",
+        "mean_rgb": [
+          112.49337673611112,
+          108.70553385416666,
+          114.27148871527778
+        ]
+      }
+    ]
+  },
+  "playback": {
+    "duration": 3,
+    "currentTime": 3,
+    "width": 640,
+    "height": 360,
+    "readyState": 4,
+    "ended": true,
+    "error": null,
+    "playback": {
+      "totalVideoFrames": 72,
+      "droppedVideoFrames": 1
+    },
+    "errors": [],
+    "scope": "Real local MP4 playback in headless Chrome; no listening/human review claimed"
+  },
+  "skills_qa": {
+    "contract": "blender-skills-pilot-v1",
+    "revision": "1a1cc6c49312f9f370aae86f52b7b907f29c94f6",
+    "source_blobs": {
+      "qa_check.py": "a4f94b4e8b96dfe3ecf820aa841bcde4dc788994",
+      "_bpyx.py": "201c7fc7ac3706e46f79ec69a0f41372882e92a3"
+    },
+    "reports": {
+      "SM_PilotCube": {
+        "ok": true,
+        "pass": true,
+        "errors": [],
+        "warnings": [
+          "SM_PilotCube: no UV map"
+        ],
+        "ground_z": 0.0,
+        "zfighting": [],
+        "floating": [],
+        "back_to_back": [],
+        "enclosed": [],
+        "objects": {
+          "SM_PilotCube": {
+            "verts": 96,
+            "faces": 98,
+            "tris": 188,
+            "ngons": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "wire_edges": 0,
+            "loose_verts": 0,
+            "degenerate_faces": 0,
+            "zero_length_edges": 0,
+            "inconsistent_normals_edges": 0,
+            "duplicate_verts": 0,
+            "islands": 1,
+            "inside_out_islands": 0,
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "materials": 1,
+            "uv_maps": 0
+          }
+        }
+      },
+      "SM_PilotSphere": {
+        "ok": true,
+        "pass": true,
+        "errors": [],
+        "warnings": [
+          "SM_PilotSphere: no UV map"
+        ],
+        "ground_z": 0.0,
+        "zfighting": [],
+        "floating": [],
+        "back_to_back": [],
+        "enclosed": [],
+        "objects": {
+          "SM_PilotSphere": {
+            "verts": 482,
+            "faces": 512,
+            "tris": 960,
+            "ngons": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "wire_edges": 0,
+            "loose_verts": 0,
+            "degenerate_faces": 0,
+            "zero_length_edges": 0,
+            "inconsistent_normals_edges": 0,
+            "duplicate_verts": 0,
+            "islands": 1,
+            "inside_out_islands": 0,
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "materials": 1,
+            "uv_maps": 0
+          }
+        }
+      },
+      "SM_PilotFloor": {
+        "ok": true,
+        "pass": true,
+        "errors": [],
+        "warnings": [
+          "SM_PilotFloor: no UV map"
+        ],
+        "ground_z": 0.0,
+        "zfighting": [],
+        "floating": [],
+        "back_to_back": [],
+        "enclosed": [],
+        "objects": {
+          "SM_PilotFloor": {
+            "verts": 4,
+            "faces": 1,
+            "tris": 2,
+            "ngons": 0,
+            "boundary_edges": 4,
+            "nonmanifold_edges": 0,
+            "wire_edges": 0,
+            "loose_verts": 0,
+            "degenerate_faces": 0,
+            "zero_length_edges": 0,
+            "inconsistent_normals_edges": 0,
+            "duplicate_verts": 0,
+            "islands": 1,
+            "inside_out_islands": 0,
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "materials": 1,
+            "uv_maps": 0
+          }
+        }
+      }
+    },
+    "accepted_warnings": "UV maps absent intentionally for procedural materials; open floor is environmental, not a printable asset",
+    "blend_saved": false,
+    "scope": "Pinned upstream checker run locally per independent mesh; no other candidate scripts executed"
+  }
+}

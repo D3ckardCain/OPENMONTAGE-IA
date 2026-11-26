@@ -1,4 +1,25 @@
-# Activación agrupada pendiente de Studio
+# Activación agrupada de Studio
+
+## Estado vigente — piloto #117
+
+#112–#115 ya se activaron tras el reinicio manual; consultar
+[resultados de esa activación](ACTIVACION_112_115_RESULTADOS_ES.md).
+Siguen pendientes únicamente la recuperación con recibo elegible de #112 y
+las acciones ocultas del agente de #113; no repetir síntesis ni pruebas aprobadas.
+
+El próximo lote incorpora el selector/API de perfiles Blender y el descubrimiento
+de `blender_skills_pilot`, junto con las próximas entregas. **No reiniciar ahora.**
+4.5.15 continúa como predeterminado; el piloto usó 5.3 expresamente y de forma
+aislada mediante el agente, no mediante el servidor residente.
+
+Antes de la futura activación manual única: comprobar que no haya trabajos
+activos y confirmar la copia de C:\OPENMONTAGE-IA y su Python .venv.
+Después: identidad compatible, contrato GET de perfiles, selector disponible,
+4.5 todavía seleccionado y nueva herramienta descubierta. No repetir el render
+ni las comprobaciones de provisión aprobadas. No cambiar perfiles automáticamente.
+[Piloto y límites](BLENDER_117_PILOTO_ES.md).
+
+## Historial de preparación anterior (no es el estado vigente)
 
 Actualización: el lote #111 se verificó directamente en4750/PID125660,
 resident=disk=e68adc7a05b647f5d49b31b293b2d093a2c024d06ce5ee51b5e7d2c72fecc647,

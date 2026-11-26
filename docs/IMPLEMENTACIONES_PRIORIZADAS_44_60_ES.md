@@ -296,3 +296,16 @@ por registro/catálogo; ninguna orden de reinicio ejecutada.14pruebas nuevas,
 tres verificaciones de delta y sintaxis focalizada; no repetir suites aprobadas.
 Pendientes: activación agrupada, uso real de complementos/28skills y QA creativo;
 #112 y acciones ocultas#113 permanecen pendientes. Coste$0/PR#2 borrador.
+
+### Piloto funcional #117 — 26-11-2026 UTC
+
+Se amplía la evidencia de E01/E06/E10/E11 sin crear otra familia de backlog:
+[piloto real y manual](BLENDER_117_PILOTO_ES.md),
+[resultados numéricos](BLENDER_117_PILOTO_20261126.json).
+Blender5.3/EEVEE generó una escena propia editable con materiales, tres luces
+y animación de tres segundos; MP4 decodificado completo y revisado visualmente.
+QA fijado de Blender-Skills pasó en las tres mallas. Doce casos nuevos
+focalizados; no repetir suites anteriores. No certifica todas las skills ni
+calidad artística final. 4.5 sigue por defecto. Activación del selector/API y
+descubrimiento de herramienta agrupados para un futuro reinicio manual único;
+no se reinició4750. #112 y acciones ocultas#113 conservan sus pendientes.
