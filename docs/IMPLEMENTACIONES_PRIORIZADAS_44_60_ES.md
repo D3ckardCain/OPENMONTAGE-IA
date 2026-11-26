@@ -15,6 +15,13 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Comparación independiente [#130 FireCut](EVALUACION_FIRECUT_ES.md): ampliar
+E03/E04 con propuesta revisable de silencios sobre waveform y E05 con recibos,
+sin otro cutter/ASR/editor. Prioridad siguiente: contrato numérico y protección
+de palabras/sincronía antes de medición/aplicación AV; E07 repeticiones y E09
+multicámara posteriores. Gratis parcial no acredita suite offline/$0; no instalar
+ni copiar recursos propietarios. Evaluación documental, integración no realizada.
+
 Entrega P0 E04 [#129](https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/129):
 [borrador de subtítulos desde palabras guardadas](SUBTITULOS_DESDE_PALABRAS_ES.md).
 Extiende #115 mediante su reloj existente, revisión/bases/hash y aplicación

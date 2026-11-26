@@ -2,6 +2,10 @@
 
 ## Estado vigente — #117 y #129
 
+[Preparación única comprobada y prueba portuguesa lista](ACTIVACION_117_129_ES.md):
+cola vacía/sin trabajos activos a01:12UTC, PID123920 todavía antiguo. Copia QA
+separada lista; **reinicio manual y validación del lote aún pendientes**.
+
 #112–#115 ya se activaron tras el reinicio manual; consultar
 [resultados de esa activación](ACTIVACION_112_115_RESULTADOS_ES.md).
 Siguen pendientes únicamente la recuperación con recibo elegible de #112 y
