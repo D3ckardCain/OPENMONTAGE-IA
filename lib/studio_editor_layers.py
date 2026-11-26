@@ -17,6 +17,15 @@ def apply_composition(edl, data):
             seconds=int(seconds*fps+.5)/fps
             item['transition']={'type':kind,'duration_seconds':seconds}
         else:raise ValueError('Solo disponible: paso por negro sin solapamiento')
+    elif op=='layer_position_keyframes':
+        from lib.studio_layer_keyframes import validate
+        layer=edit._item(edl.get('layers',[]),data['id'])
+        if layer.get('locked'):raise edit.Conflict('Capa bloqueada')
+        value=validate(data['keyframes'],layer,edl['sources'][layer['source_id']]['duration'])
+        if value is None:layer.pop('position_keyframes',None)
+        else:
+            layer['position_keyframes']=value
+            layer.pop('motion',None)
     elif op in ('layer_add','layer_update','layer_remove','layer_move'):
         layers=edl.setdefault('layers',[])
         if op=='layer_remove':layers.remove(edit._item(layers,data['id']))
@@ -40,6 +49,7 @@ def apply_composition(edl, data):
                 raise ValueError('La capa debe quedar dentro del lienzo')
             if value.get('fit','pad') not in ('pad','crop'):raise ValueError('Encaje de capa no admitido')
             if value.get('motion') is not None:
+                if value.get('position_keyframes'):raise ValueError('Quita los keyframes antes de activar movimiento lineal')
                 motion=value['motion']
                 if not isinstance(motion,dict):raise ValueError('Movimiento de capa no válido')
                 motion={k:edit.number(motion.get(k,default),low,high) for k,default,low,high in
@@ -67,6 +77,9 @@ def validate_composition(edl):
         if incoming+outgoing>edit.frames(item,fps)/fps+1e-8:
             raise ValueError('Las transiciones exceden la duración del clip; acórtalas o quítalas primero')
     for layer in edl.get('layers',[]):
+        if layer.get('position_keyframes'):
+            from lib.studio_layer_keyframes import validate
+            validate(layer['position_keyframes'],layer,edl['sources'][layer['source_id']]['duration'])
         seconds=(layer['out_seconds']-layer['in_seconds'])/layer['speed']
         if seconds<1/fps or layer['start_seconds']+seconds>edit.duration(edl)+.001:
             raise ValueError('La capa debe caber en la duración del montaje; ajusta su intervalo primero')

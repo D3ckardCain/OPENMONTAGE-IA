@@ -1,0 +1,113 @@
+{
+  "contract_tests": {
+    "new_unique_passed": 9,
+    "changed_case_rerun": 1,
+    "full_suite": false,
+    "ci_repeated": false
+  },
+  "ffmpeg": {
+    "success": true,
+    "engine": "Existing FFmpeg",
+    "synthetic": true,
+    "frames": 8,
+    "positions": [
+      {
+        "t": 0.0,
+        "x": 0,
+        "y": 0,
+        "width": 80,
+        "height": 44
+      },
+      {
+        "t": 0.25,
+        "x": 24,
+        "y": 14,
+        "width": 80,
+        "height": 44
+      },
+      {
+        "t": 0.5,
+        "x": 80,
+        "y": 44,
+        "width": 80,
+        "height": 44
+      },
+      {
+        "t": 0.75,
+        "x": 134,
+        "y": 74,
+        "width": 80,
+        "height": 44
+      },
+      {
+        "t": 1.0,
+        "x": 160,
+        "y": 90,
+        "width": 80,
+        "height": 44
+      },
+      {
+        "t": 1.25,
+        "x": 160,
+        "y": 90,
+        "width": 80,
+        "height": 44
+      },
+      {
+        "t": 1.5,
+        "x": 160,
+        "y": 90,
+        "width": 80,
+        "height": 44
+      },
+      {
+        "t": 1.75,
+        "x": 160,
+        "y": 90,
+        "width": 80,
+        "height": 44
+      }
+    ],
+    "source_clock": true,
+    "smooth_midpoint_checked": true,
+    "hold_checked": true,
+    "audio_generated": false,
+    "pilot_repeated": false
+  },
+  "browser": {
+    "scenario": "Explicit isolated browser harness, native module and controls; backend callback simulated",
+    "controls": true,
+    "curves": 2,
+    "save_payload": {
+      "op": "layer_position_keyframes",
+      "data": {
+        "id": "layer",
+        "keyframes": {
+          "clock": "source_seconds",
+          "points": [
+            {
+              "seconds": 1,
+              "x": 0,
+              "y": 0,
+              "interpolation": "smooth"
+            },
+            {
+              "seconds": 5,
+              "x": 0.5,
+              "y": 0.5,
+              "interpolation": "linear"
+            }
+          ]
+        }
+      }
+    },
+    "remove": true,
+    "add_delete_point": true,
+    "keyboard_focus": true,
+    "errors": [],
+    "writes": [],
+    "main_server_activation": false,
+    "backend_contract_tested_separately": true
+  },
+  "activation": "pending grouped; no additional Studio restart"
+}

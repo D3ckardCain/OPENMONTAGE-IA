@@ -1,5 +1,5 @@
 {
-  "recorded_at": 1795706679.2674012,
+  "recorded_at": 1795707308.855846,
   "status": "in_progress_not_final",
   "catalog_references": 595,
   "groups": 49,
@@ -36,15 +36,15 @@
   },
   "progress": {
     "started": 1795705613.2148917,
-    "updated": 1795706628.6735163,
-    "files_done": 493,
+    "updated": 1795707281.678413,
+    "files_done": 510,
     "files_total": 651,
-    "bytes_read": 70136677594,
+    "bytes_read": 115753222460,
     "counts": {
-      "verified_cache_reused": 143,
-      "verified_new": 347,
+      "verified_cache_reused": 145,
+      "verified_new": 361,
       "official_digest_unavailable": 2,
-      "different_content_not_corruption_claim": 1
+      "different_content_not_corruption_claim": 2
     }
   },
   "missing_catalog_rows": [
@@ -161,7 +161,23 @@
     "siglip": {
       "status": "bounded_attempt_stopped",
       "response_produced": false,
-      "reason": "Several minutes without response; only own QA Python processes stopped. Cause not established; not a model corruption claim."
+      "reason": "Several minutes without response; only own QA Python processes stopped. Cause not established; not a model corruption claim.",
+      "followup": "90s watchdog reached torch linear forward. Limiting QA CPU threads to2 did not complete within90s either; owned workers exited. No further retries or corruption claim."
+    },
+    "silero": {
+      "family": "silero",
+      "success": true,
+      "synthetic_silence_seconds": 2,
+      "sample_rate": 16000,
+      "speech_windows": 0,
+      "network_blocked": true,
+      "device": "cpu",
+      "new_inferences": 1,
+      "torch_loaded": false,
+      "runtime_seconds": 0.5779999999795109,
+      "revision": "e71cae966052b992a7eca6b17738916ce0eca4ec",
+      "license": "MIT",
+      "scope": "Silence smoke test only; not speech accuracy or approved silence edit retest"
     }
   },
   "preserved": [
@@ -177,5 +193,115 @@
     "Verified weights do not establish runtime compatibility or quality",
     "Reference groups overlap; paths are not distinct models",
     "Hash scan still active; no final all-complete claim"
+  ],
+  "new_small_auxiliaries": [
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-Fun-A14B-Control-Camera\\configuration.json",
+      "bytes": 1121,
+      "revision": "da1f119dcf5626b2fa41219ce42ac175752f3892",
+      "url": "https://huggingface.co/alibaba-pai/Wan2.2-Fun-A14B-Control-Camera/resolve/da1f119dcf5626b2fa41219ce42ac175752f3892/configuration.json",
+      "official_git_blob": "f8c46894c46931a3c9c6cc1abd49aa037a0792ec",
+      "official_sha256_available": false,
+      "sha256": "0459fd62549fa78e18181a0892aed1d60d430c8f4eacc6509a75e2f813476e76",
+      "identity": [
+        2728866502,
+        2251799813954826,
+        1121,
+        1795707062206076400,
+        1795707062062241100
+      ],
+      "status": "New small auxiliary verified once; no overwrite"
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-Fun-A14B-Control-Camera\\README_en.md",
+      "bytes": 17401,
+      "revision": "da1f119dcf5626b2fa41219ce42ac175752f3892",
+      "url": "https://huggingface.co/alibaba-pai/Wan2.2-Fun-A14B-Control-Camera/resolve/da1f119dcf5626b2fa41219ce42ac175752f3892/README_en.md",
+      "official_git_blob": "2b243d1a59497ae73420029f1bbd88ab7224a2b4",
+      "official_sha256_available": false,
+      "sha256": "0bef774c4a0e7e008376f2ad99412c883ae31a153e2b7912b660d95c57964b62",
+      "identity": [
+        2728866502,
+        3096224744086795,
+        17401,
+        1795707063199162800,
+        1795707063199162800
+      ],
+      "status": "New small auxiliary verified once; no overwrite"
+    }
+  ],
+  "located_references_after_aux_completion": 595,
+  "new_differences": [
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model.safetensors.index.json",
+      "identity": [
+        4101616990,
+        3659174697239405,
+        27480,
+        1794132845459975300,
+        1794196207312900700
+      ],
+      "hash_read": true,
+      "references": [
+        {
+          "repo": "GAIR/daVinci-MagiHuman",
+          "revision": "7fe95e50c11bd92bdadf94cd51dbec18427f8e0c",
+          "path": "base/model.safetensors.index.json",
+          "bytes": 27480,
+          "sha256": null,
+          "git_blob": "09d2c7682f035305a65c1a0d040dbec884fc532b",
+          "reference": "official_fixed_revision_metadata",
+          "matches": false
+        }
+      ],
+      "status": "different_content_not_corruption_claim",
+      "bytes_hashed": 27480,
+      "sha256": "9e5a9d081046ccfcb7d3875501f4fed9972021b57694f983374fabd067418c99",
+      "git_blob_sha1": "650d3c0f922f5c3f4e94e424eca5364cee27913e",
+      "structure": {
+        "kind": "json",
+        "valid": true,
+        "code_executed": false
+      }
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\model.safetensors",
+      "identity": [
+        2728866502,
+        281474976721724,
+        3833402552,
+        1794552758251768500,
+        1794551714072272600
+      ],
+      "hash_read": false,
+      "references": [
+        {
+          "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+          "revision": "5ecdb67327fd37bb2e042aab12ff7391903235d3",
+          "path": "model.safetensors",
+          "bytes": 3833402552,
+          "sha256": "391e8db219f292c515297cdceeb43e4eae67cdde35fa57e79a6a8a532fca0522",
+          "git_blob": "efa387326985d203594f4b672e25f973525f377c",
+          "reference": "official_fixed_revision_metadata",
+          "matches": false
+        },
+        {
+          "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+          "revision": "5ecdb67327fd37bb2e042aab12ff7391903235d3",
+          "path": "model.safetensors",
+          "bytes": 3833402552,
+          "sha256": "391e8db219f292c515297cdceeb43e4eae67cdde35fa57e79a6a8a532fca0522",
+          "git_blob": "efa387326985d203594f4b672e25f973525f377c",
+          "reference": "official_fixed_revision_metadata",
+          "matches": false
+        }
+      ],
+      "status": "different_content_not_corruption_claim",
+      "cached_from": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\model.safetensors",
+      "cache_source": ".runtime\\qwen-tts\\verified-models.json",
+      "sha256": "38b1d5971bdbd982b561cccec982669a53b0537c3cf5e9bd4778ed07bb2f5137",
+      "git_blob_sha1": null,
+      "structure": null
+    }
   ]
 }

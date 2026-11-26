@@ -82,7 +82,10 @@ def plan(pid, edl, preview=False):
         target='montage' if index==len(layers)-1 else f'composite{index}'
         end=layer['start_seconds']+(layer['out_seconds']-layer['in_seconds'])/layer['speed']
         x=str(round(width*layer['x']));y=str(round(height*layer['y']))
-        if layer.get('motion'):
+        if layer.get('position_keyframes'):
+            from lib.studio_layer_keyframes import overlay_position
+            x,y=overlay_position(layer,width,height)
+        elif layer.get('motion'):
             m=layer['motion'];progress=f"clip((t-{layer['start_seconds']}+{m.get('phase_seconds',0)})/{m['duration_seconds']},0,1)"
             x=f"'{width}*({layer['x']}+{m['dx']}*{progress})'";y=f"'{height}*({layer['y']}+{m['dy']}*{progress})'"
         filters.append(f"[{base}][layer{index}]overlay=x={x}:y={y}:"
