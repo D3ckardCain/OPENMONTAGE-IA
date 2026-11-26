@@ -49,13 +49,14 @@ class ApplicationOpenProjectFile(BaseTool):
     user_visible_verification=['The application opening is not an exported or completed production artifact.']
     input_schema={'type':'object','additionalProperties':False,'required':['application','project_id','file'],
         'properties':{'application':{'enum':[key for key,row in applications.CATALOG.items() if row['mode']=='desktop']},
-                      'project_id':{'type':'string'},'file':{'type':'string','minLength':1}}}
+                      'project_id':{'type':'string'},'file':{'type':'string','minLength':1},'profile_id':{'type':'string'}}}
     def get_status(self):return ToolStatus.AVAILABLE if any(a['file_found'] and a['mode']=='desktop' for a in applications.catalog()) else ToolStatus.UNAVAILABLE
     def estimate_cost(self,inputs):return 0.0
     def execute(self,inputs):
         from jsonschema import validate
         try:
             validate(inputs,self.input_schema)
-            result=applications.launch(inputs['application'],inputs['project_id'],inputs['file'])
+            if 'profile_id' in inputs:result=applications.launch(inputs['application'],inputs['project_id'],inputs['file'],inputs['profile_id'])
+            else:result=applications.launch(inputs['application'],inputs['project_id'],inputs['file'])
             return ToolResult(success=True,data={**result,'production_completed':False,'cost_usd':0})
         except Exception as exc:return ToolResult(success=False,error=str(exc)[:1500])

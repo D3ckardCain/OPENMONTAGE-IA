@@ -13,7 +13,7 @@ const assert=require('assert/strict');
   const settings={ollama_url:'http://127.0.0.1:11434',comfyui_url:'http://127.0.0.1:8188',model:'fixture-local',resource_roots:['D:\\Rutas con espacios\\áéíóúñ','C:\\Otra carpeta'],ffmpeg_path:'',ffprobe_path:'',yt_dlp_path:'',deno_path:''};
   const bootstrap={settings,pipelines:[{name:'framework-smoke',stages:[]}],projects:[]};
   let mode={kind:'http',status:400},posts=0,failBootstrap=false,releaseHeld;
-  const allowed=new Set(['studio.js','studio-http.js','studio-production-forms.js','studio-form-request.js','studio.css','editor.css']);
+  const allowed=new Set(['studio.js','studio-http.js','studio-production-forms.js','studio-blender-profiles-ui.js','studio-form-request.js','studio.css','editor.css']);
   await page.route('**/*',async route=>{
    const request=route.request(),url=new URL(request.url());
    if(url.origin!=='http://127.0.0.1:4776'){report.unexpected.push(url.href);return route.abort();}

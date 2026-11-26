@@ -30,7 +30,12 @@ _PORTABLE_BLENDER = (
 _RUNTIME_SCRIPT = Path(__file__).resolve().parent / "templates" / "blender-world-runtime.py"
 
 
-def find_blender() -> Path | None:
+def find_blender(profile_id: str | None = None) -> Path | None:
+    from lib import blender_profiles
+    profile=blender_profiles.resolve(profile_id)
+    if profile:
+        path=Path(profile['executable'])
+        return path.resolve() if path.is_file() else None
     from lib.external_applications import configuration, CATALOG
     application = configuration().get('blender', {}).get('executable')
     if application:
@@ -59,7 +64,7 @@ def first_missing_frame(output_prefix: str | Path, start_frame: int, end_frame: 
 
 class BlenderWorld(BaseTool):
     name = "blender_world"
-    version = "0.3.0"
+    version = "0.4.0"
     tier = ToolTier.GENERATE
     capability = "3d_world_rendering"
     provider = "blender"
@@ -102,6 +107,7 @@ class BlenderWorld(BaseTool):
         "required": ["operation"],
         "properties": {
             "operation": {"type": "string", "enum": ["doctor", "build", "render_still", "render_animation"]},
+            "profile_id": {"type":"string","description":"Registered Studio Blender profile; absent uses the same active binding."},
             "world_spec": {"type": "object"},
             "output_path": {"type": "string"},
             "blend_path": {"type": "string"},
@@ -128,7 +134,8 @@ class BlenderWorld(BaseTool):
     quality_score = 0.94
 
     def get_status(self) -> ToolStatus:
-        return ToolStatus.AVAILABLE if find_blender() and _RUNTIME_SCRIPT.is_file() else ToolStatus.UNAVAILABLE
+        try:return ToolStatus.AVAILABLE if find_blender() and _RUNTIME_SCRIPT.is_file() else ToolStatus.UNAVAILABLE
+        except ValueError:return ToolStatus.UNAVAILABLE
 
     def estimate_runtime(self, inputs: dict[str, Any]) -> float:
         if inputs.get("operation") == "render_animation":
@@ -136,25 +143,38 @@ class BlenderWorld(BaseTool):
         return 30.0
 
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
-        blender = find_blender()
+        from lib import blender_profiles
+        try:
+            profile=blender_profiles.resolve(inputs.get('profile_id'))
+            blender = find_blender(inputs.get('profile_id'))
+            environment=blender_profiles.environment(profile)
+        except ValueError as exc:return ToolResult(success=False,error=str(exc))
         if not blender:
             return ToolResult(success=False, error="Blender not found. " + self.install_instructions)
         operation = str(inputs.get("operation") or "")
         if operation == "doctor":
-            process = subprocess.run(
-                [str(blender), "--background", "--python-expr", "import bpy; print('OPENMONTAGE_BLENDER=' + bpy.app.version_string)"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
-            )
-            ok = process.returncode == 0 and "OPENMONTAGE_BLENDER=" in process.stdout
+            try:
+                process = subprocess.run(
+                    [str(blender), "--background", *(['--offline-mode'] if profile else []), "--disable-autoexec", "--python-exit-code", "1", "--python-expr", "import bpy,json,sys; print('OPENMONTAGE_BLENDER=' + bpy.app.version_string); print('OPENMONTAGE_PROFILE=' + json.dumps({'version':'.'.join(map(str,bpy.app.version)), 'python':sys.version.split()[0], 'user_resources':bpy.utils.resource_path('USER')}))"],
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,env=environment,
+                )
+                probe=next((line.split('=',1)[1] for line in process.stdout.splitlines() if line.startswith('OPENMONTAGE_PROFILE=')),None)
+                details=json.loads(probe) if probe else {}
+                ok = process.returncode == 0 and "OPENMONTAGE_BLENDER=" in process.stdout and (not profile or details.get('version')==profile['version'])
+                if profile and profile['user_resources']:
+                    ok=ok and bool(details.get('user_resources')) and Path(details['user_resources']).resolve()==Path(profile['user_resources']).resolve()
+            except (OSError,subprocess.TimeoutExpired,ValueError) as exc:return ToolResult(success=False,error='Blender diagnosis failed: '+str(exc)[:1000])
             return ToolResult(
                 success=ok,
-                data={"blender_path": str(blender), "version_line": next((line for line in process.stdout.splitlines() if line.startswith("OPENMONTAGE_BLENDER=")), "")},
-                error=None if ok else (process.stderr or process.stdout)[-1000:],
-                model="blender-4.5-lts",
+                data={"blender_path": str(blender), "profile_id":profile['id'] if profile else None, **details,"version_line": next((line for line in process.stdout.splitlines() if line.startswith("OPENMONTAGE_BLENDER=")), "")},
+                error=None if ok else 'Blender version/profile mismatch or startup failure: '+(process.stderr or process.stdout)[-1000:],
+                model='blender-'+details.get('version','unverified'),
             )
 
         if operation not in {"build", "render_still", "render_animation"}:
             return ToolResult(success=False, error=f"Unknown operation: {operation}")
+        if profile and tuple(int(p) for p in profile['version'].split('.')[:2]) not in ((4,5),(5,3)):
+            return ToolResult(success=False,error='Blender profile is not supported by this adapter; no version fallback')
         if not isinstance(inputs.get("world_spec"), dict):
             return ToolResult(success=False, error="world_spec is required")
         output_raw = inputs.get("output_path")
@@ -169,7 +189,7 @@ class BlenderWorld(BaseTool):
         spec_path.write_text(json.dumps(inputs["world_spec"], indent=2), encoding="utf-8")
 
         command = [
-            str(blender), "--background", "--python", str(_RUNTIME_SCRIPT), "--",
+            str(blender), "--background", "--disable-autoexec", "--python-exit-code", "1", "--python", str(_RUNTIME_SCRIPT), "--",
             "--operation", operation,
             "--spec", str(spec_path),
             "--blend", str(blend_path),
@@ -179,6 +199,9 @@ class BlenderWorld(BaseTool):
             "--fps", str(int(inputs.get("fps", 30))),
             "--duration", str(float(inputs.get("duration_seconds", 60))),
         ]
+        if profile:
+            command.insert(2,'--offline-mode')
+            command.extend(['--expected-version',profile['version']])
         requested_start = int(inputs.get("start_frame", 1))
         requested_end = int(inputs.get("end_frame") or round(
             float(inputs.get("duration_seconds", 60)) * int(inputs.get("fps", 30))
@@ -199,7 +222,7 @@ class BlenderWorld(BaseTool):
                         "start_frame": requested_start,
                         "end_frame": requested_end,
                     },
-                    model="blender-4.5-lts-eevee-next",
+                    model='blender-'+(profile['version'] if profile else 'configured')+'-eevee',
                 )
             effective_start = missing
         if inputs.get("start_frame") is not None or operation == "render_animation":
@@ -215,7 +238,7 @@ class BlenderWorld(BaseTool):
         try:
             process = subprocess.run(
                 command, capture_output=True, text=True, encoding="utf-8", errors="replace",
-                timeout=max(120, int(self.estimate_runtime(inputs) * 2.5)),
+                timeout=max(120, int(self.estimate_runtime(inputs) * 2.5)),env=environment,
             )
         except Exception as exc:
             return ToolResult(success=False, error=f"Blender invocation failed: {exc}")
@@ -234,6 +257,7 @@ class BlenderWorld(BaseTool):
             success=True,
             data={
                 "blender_path": str(blender),
+                "profile_id":profile['id'] if profile else None,
                 "blend_path": str(blend_path),
                 "output": str(output_raw or ""),
                 "report": str(report_path),
@@ -244,5 +268,5 @@ class BlenderWorld(BaseTool):
             artifacts=artifacts,
             duration_seconds=round(time.time() - started, 2),
             seed=inputs["world_spec"].get("seed"),
-            model="blender-4.5-lts-eevee-next",
+            model='blender-'+(profile['version'] if profile else 'configured')+'-eevee',
         )

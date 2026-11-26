@@ -38,6 +38,14 @@ def catalog():
             result.append({'id':key,**item,'executable':executable,'configured':bool(executable),
                 'file_found':bool(path and path.is_file()),'integration':'managed_pipeline' if item['mode']=='managed_cli' else 'managed_scene_workflow_and_project_file_handoff' if item.get('automation_tools') else 'project_file_handoff',
                 'inference_verified':False,'running_managed_process':bool(child and child.poll() is None)})
+            if key=='blender':
+                from lib import blender_profiles
+                try:
+                    result[-1]['profiles']=blender_profiles.catalog()
+                    result[-1]['profile_contract']=1
+                    result[-1]['running_managed_process']=any(proc.poll() is None for name,proc in CHILDREN.items() if name=='blender' or name.startswith('blender:'))
+                except ValueError as exc:
+                    result[-1]['profile_error']=str(exc)
     return result
 
 
@@ -56,16 +64,27 @@ def configure(identifier,data):
     return {'saved':True,'launched':False}
 
 
-def launch(identifier,project_id,relative_file=None):
+def launch(identifier,project_id,relative_file=None,profile_id=None):
     if identifier not in CATALOG:raise ValueError('Aplicación desconocida')
     if CATALOG[identifier]['mode']=='managed_cli':raise ValueError('Esta herramienta se utiliza mediante los flujos del Estudio, no se abre una consola independiente')
     project=studio.project_path(project_id).resolve()
     cfg=configuration().get(identifier,{})
     path=Path(cfg.get('executable',''))
-    if not path.is_absolute() or not path.is_file():raise ValueError('Configura primero la aplicación instalada')
-    if path.name.casefold() not in {n.casefold() for n in CATALOG[identifier]['executables']}:raise ValueError('Ejecutable no admitido')
     arguments=[str(path)]
     process_options={}
+    profile=None
+    if identifier=='blender':
+        from lib import blender_profiles
+        profile=blender_profiles.resolve(profile_id)
+        if profile:
+            path=Path(profile['executable'])
+            if not path.is_file():raise ValueError('Ejecutable del perfil Blender no disponible; no se usa otra versión')
+            arguments=[str(path)]
+            process_options={'env':blender_profiles.environment(profile)}
+            if profile['user_resources']:arguments.extend(['--offline-mode','--disable-autoexec'])
+    elif profile_id is not None:raise ValueError('Esta aplicación no admite perfiles Blender')
+    if not path.is_absolute() or not path.is_file():raise ValueError('Configura primero la aplicación instalada')
+    if path.name.casefold() not in {n.casefold() for n in CATALOG[identifier]['executables']}:raise ValueError('Ejecutable no admitido')
     if identifier=='qgis' and path.suffix.lower()=='.exe':
         from lib.qgis_runtime import launch_options
         arguments,process_options=launch_options(path,studio.CONFIG_DIR/'qgis')
@@ -73,13 +92,15 @@ def launch(identifier,project_id,relative_file=None):
         source=(project/relative_file).resolve();source.relative_to(project)
         if not source.is_file() or source.suffix.lower() not in {x.lower() for x in CATALOG[identifier]['extensions']}:raise ValueError('Archivo de proyecto no compatible')
         arguments.append(str(source))
+    child_key=identifier+':'+profile['id'] if profile else identifier
     with LOCK:
-        existing=CHILDREN.get(identifier)
+        existing=CHILDREN.get(child_key)
         if existing and existing.poll() is None:raise ValueError('Esta aplicación ya tiene un proceso abierto desde el Estudio')
         logdir=project/'application_logs';logdir.mkdir(exist_ok=True)
         with (logdir/(identifier+'.log')).open('ab') as log:
             child=subprocess.Popen(arguments,cwd=str(project),stdin=subprocess.DEVNULL,stdout=log,stderr=log,shell=False,**process_options)
-        CHILDREN[identifier]=child
+        CHILDREN[child_key]=child
     record={'application':identifier,'pid':child.pid,'started_at':studio.now(),'file':relative_file,'status':'launched_not_verified'}
+    if profile:record.update(profile_id=profile['id'],version=profile['version'],executable=str(path))
     studio.save_json(logdir/(identifier+'-last.json'),record)
     return record

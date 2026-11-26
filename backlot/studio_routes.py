@@ -566,6 +566,18 @@ def create_studio_router():
     def applications():
         from lib.external_applications import catalog
         return {'applications':catalog()}
+    @router.get('/api/studio/applications/blender/profiles')
+    def blender_profile_contract():
+        from lib import blender_profiles
+        return {'profile_contract':1,'profiles':blender_profiles.catalog(),'selection_supported':True}
+    @router.post('/api/studio/applications/blender/profile')
+    async def select_blender_profile(request:Request):
+        from lib import blender_profiles,reference_analysis
+        data=await body(request)
+        if set(data)!={'profile_id'} or not isinstance(data['profile_id'],str):raise HTTPException(400,'Indica profile_id')
+        with agent.ACTIVE_LOCK,reference_analysis.LOCK,studio.LOCK:
+            if agent.ACTIVE or reference_analysis.ACTIVE:raise HTTPException(409,'Espera a que terminen las tareas antes de cambiar herramientas')
+            return invoke(blender_profiles.select,data['profile_id'])
     @router.post('/api/studio/applications/krita/inspect')
     async def krita_document_inspect(request:Request):
         from tools.analysis.local_applications import KritaDocumentInspect
@@ -602,7 +614,8 @@ def create_studio_router():
     async def application_launch(identifier:str,request:Request):
         from lib.external_applications import launch
         data=await body(request)
-        if set(data)-{'project_id','file'} or not isinstance(data.get('project_id'),str) or ('file' in data and not isinstance(data['file'],str)):raise HTTPException(400,'Indica proyecto y archivo opcional')
+        if set(data)-{'project_id','file','profile_id'} or not isinstance(data.get('project_id'),str) or ('file' in data and not isinstance(data['file'],str)) or ('profile_id' in data and not isinstance(data['profile_id'],str)):raise HTTPException(400,'Indica proyecto, archivo y perfil opcionales')
+        if 'profile_id' in data:return invoke(launch,identifier,data['project_id'],data.get('file'),data['profile_id'])
         return invoke(launch,identifier,data['project_id'],data.get('file'))
     @router.get('/api/studio/storage')
     def storage():

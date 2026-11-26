@@ -281,3 +281,18 @@ instalar también5.2 por rutina; mantenimiento4.5.17 se evalúa por separado.
 La activación previa #112–#115 ya tiene [evidencia local](ACTIVACION_112_115_RESULTADOS_ES.md).
 #112 recuperación de completado sin recibo elegible y acciones ocultas de#113
 siguen pendientes; no repetir síntesis/pruebas aprobadas ni reiniciar Studio.
+
+### Provisión #117 — 26-11-2026 UTC
+
+[Perfiles/uso/resultados](BLENDER_PERFILES_STUDIO_ES.md) y
+[evidencia](BLENDER_117_VALIDACION_20261126.json): ZIP5.3.0 descargado/verificado
+y extraído en ruta nueva, perfil/cp313 aislados. CLI/ventana y doctor5.3 reales;
+API EEVEE/channelbags y seis capacidades del candidato comprobadas sin render.
+Archimesh y MN520 cargan desde ZIP existentes;4.5/MN4.5.11 conservados.
+Registro compartido4.5/5.3, API y selector implementados/probados en copia aislada,
+sin fallback.4750 mismoPID: catálogo conoce ambas versiones por carga diferida,
+pero selector deshabilitado hasta activación de rutas. No afirmar activación
+por registro/catálogo; ninguna orden de reinicio ejecutada.14pruebas nuevas,
+tres verificaciones de delta y sintaxis focalizada; no repetir suites aprobadas.
+Pendientes: activación agrupada, uso real de complementos/28skills y QA creativo;
+#112 y acciones ocultas#113 permanecen pendientes. Coste$0/PR#2 borrador.
