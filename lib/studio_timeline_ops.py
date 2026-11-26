@@ -2,7 +2,7 @@
 from copy import deepcopy
 import uuid
 
-CAPABILITIES = ['crossfade', 'audio_balance', 'layer_transform_keyframes', 'layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
+CAPABILITIES = ['sfx_catalog', 'sfx_favorites', 'crossfade', 'audio_balance', 'layer_transform_keyframes', 'layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
                 'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply', 'qwen_tts_plan', 'reference_plan', 'component_add', 'component_remove']
 
 
@@ -95,6 +95,10 @@ def _ripple_labels(items, removed):
 
 
 def apply_timeline(edl, data):
+    if data.get('operation')=='sfx_favorites':
+        from lib.studio_sfx import favorites
+        favorites(edl,data)
+        return True
     from lib.studio_audio_balance import apply as apply_balance
     if apply_balance(edl, data):
         return True

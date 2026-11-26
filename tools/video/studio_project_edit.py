@@ -30,16 +30,17 @@ def request(path, data=None, timeout=120):
 
 class StudioProjectEdit(BaseTool):
     name = 'studio_project_edit'
-    version = '3.5.1'
+    version = '3.6.0'
     capability = 'video_post'
     provider = 'local'
     description = 'Read and edit the shared Studio project; explicit bounded Qwen preview/start/status/cancel. Revision required for writes.'
     install_instructions = 'Inicia la instancia actualizada de Studio local (BACKLOT_PORT o 4750); no requiere modelos ni paquetes nuevos.'
-    capabilities = ['read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']
+    capabilities = ['sfx_catalog', 'sfx_insert', 'sfx_receipt', 'read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']
     side_effects = ['Writes the selected manual project through the running local Studio server', 'qwen_start explicitly runs a bounded local synthesis worker']
     not_good_for = ['Unbounded inference or automatic model downloads', 'Editing production pipeline artifacts', 'Editing while Studio is stopped']
     input_schema = {'type': 'object', 'required': ['project_id', 'action'], 'properties': {
-        'project_id': {'type': 'string'}, 'action': {'enum': ['read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']},
+        'project_id': {'type': 'string'}, 'action': {'enum': ['sfx_catalog', 'sfx_insert', 'sfx_receipt', 'read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']},
+        'sfx': {'type':'object','description':'Local catalogue query or explicit insertion with request_id, revision, asset_id and montage start/in/out; never inference.'},
         'proposal': {'type': 'object', 'description': 'Read-only silence proposal with revision, EDL/word hashes and explicit source-clock analysis. Does not analyze media or apply cuts.'},
         'set_id': {'type': 'string'},
         'request_id': {'type':'string'}, 'qwen': {'type':'object'},
@@ -58,7 +59,14 @@ class StudioProjectEdit(BaseTool):
             pid = inputs['project_id']
             path = quote(pid, safe='')
             action = inputs['action']
-            if action == 'capabilities':
+            if action == 'sfx_catalog':
+                from urllib.parse import urlencode
+                value = request('sfx?'+urlencode(inputs.get('sfx',{})))
+            elif action == 'sfx_insert':
+                value = request(path+'/agent-sfx/insert',inputs['sfx'])
+            elif action == 'sfx_receipt':
+                value = request(path+'/sfx/requests/'+quote(inputs['request_id'],safe=''))
+            elif action == 'capabilities':
                 value = request('capabilities')
             elif action == 'qwen_profiles':
                 value = request('qwen/profiles')

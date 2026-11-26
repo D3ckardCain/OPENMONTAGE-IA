@@ -1,6 +1,7 @@
 import { initializePiperUI } from './editor-piper-ui.js';
 import { initializeQwenUI } from './editor-qwen.js';
 import { initializeComponentsUI } from './editor-components.js';
+import { initializeSfx } from './editor-sfx.js';
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
@@ -17,7 +18,7 @@ let preview = null, sourceKey = null, renderTimer = null, pending = false, works
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
 let compositionUI=null;
-let candidatesUI=null,cropPreview=null,qwenPanel=null,componentsUI=null;
+let candidatesUI=null,cropPreview=null,qwenPanel=null,componentsUI=null,sfxPanel=null;
 let cancelSupported=false,renderAttempt=null;
 const capabilities=new Set(),selectedIds=new Set();
 async function loadCapabilities(){
@@ -96,7 +97,7 @@ async function api(path, data) {
   if(data!==undefined&&!path.endsWith('/render/cancel')&&!compatibilityState().ok)throw Error(compatibilityState().message);
   const response = await fetch(path, data === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
   const value = await response.json();
-  if (!response.ok) throw Error(response.status===404 && path==='/api/studio/editor/projects' ? 'Esta instancia de Studio necesita reiniciarse para activar la API del editor. El espacio visual está preparado; las operaciones aún no están disponibles aquí.' : value.detail || 'Error de edición');
+  if (!response.ok) {const error=Error(response.status===404 && path==='/api/studio/editor/projects' ? 'Esta instancia de Studio necesita reiniciarse para activar la API del editor. El espacio visual está preparado; las operaciones aún no están disponibles aquí.' : value.detail || 'Error de edición');error.status=response.status;throw error;}
   return value;
 }
 async function task(fn,propagate=false) {
@@ -370,6 +371,7 @@ function pruneSelection(){
   if(!items.some(c=>c.id===selection.id))selection=selectedIds.size?{...selection,id:[...selectedIds][0]}:null;
 }
 function draw() {
+  sfxPanel?.draw();
   candidatesUI?.draw();cropPreview?.selectionChanged();qwenPanel?.draw();componentsUI?.draw();
   q('edit-revision').textContent = 'Revisión ' + state.revision + ' · guardado local';
   q('edit-undo').disabled = !state.undo.length; q('edit-redo').disabled = !state.redo.length;
@@ -502,6 +504,10 @@ cropPreview=initializeCropPreview({q,getEdl:edl,getSelection:selected,sourceUrl}
 compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});
 componentsUI=initializeComponentsUI({host:q('edit-sources').parentElement,getEdl:edl,getProject:()=>project,has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),editTitle:id=>effectsUI.selectTitle(id),editLayer:id=>compositionUI.selectLayer(id)});
 const piperPanel=initializePiperUI({host:q('edit-waveform-status').parentElement,getProject:()=>project,getRevision:()=>state.revision,reopen});
+sfxPanel=initializeSfx({host:q('edit-waveform-status').parentElement,getProject:()=>project,getEdl:edl,getRevision:()=>state.revision,has:name=>capabilities.has(name),cursor:()=>cursor,
+  insert:payload=>task(async()=>{state=await api(base()+'/sfx/insert',payload);invalidate();draw();},true),
+  recover:async id=>{let value;await task(async()=>{value=await api(base()+'/sfx/requests/'+encodeURIComponent(id));state=value;invalidate();draw();},true);return value;},
+  favorite:ids=>task(()=>command('sfx_favorites',{ids}),true)});
 qwenPanel=initializeQwenUI({host:q('edit-waveform-status').parentElement,getEdl:edl,getProject:()=>project,getRevision:()=>state.revision,run:(op,params)=>task(()=>command(op,params),true),registerPreview:relative=>task(async()=>{requireProject();if(Object.values(edl().sources).some(s=>s.path===relative))return;state=await api(base()+'/register',{revision:state.revision,relative_path:relative});invalidate();draw();},true)});
 initializeEditorLayout();
 showWorkspace();task(async()=>{try{await loadCapabilities();await projects();if(project)await reopen();}catch(error){for(const control of q('manual-editor').querySelectorAll('button,input,select,textarea'))control.disabled=true;throw error;}});

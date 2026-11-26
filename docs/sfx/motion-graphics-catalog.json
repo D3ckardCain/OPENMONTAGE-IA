@@ -1,0 +1,2957 @@
+{
+  "schema_version": 1,
+  "repository": "Barty-Bart/motion-graphics",
+  "revision": "3d83d987d658601d8a1269eb691622bdcd427335",
+  "source_files": 109,
+  "assets": [
+    {
+      "id": "sfx-f43ca0744dfe39a0697a0c891cccbcb38504a07ffe225ea4301f3586b9eef786",
+      "sha256": "f43ca0744dfe39a0697a0c891cccbcb38504a07ffe225ea4301f3586b9eef786",
+      "bytes": 144788,
+      "duration": 17.30720833333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 329533 room tone in an apartment livi",
+      "category": "ambience",
+      "category_es": "Ambiente",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ambience/fs-329533-room-tone-in-an-apartment-livi.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ambience/fs-329533-room-tone-in-an-apartment-livi.ogg",
+          "git_blob": "aa2f3a906e2f9de543ef72bfe7430b6573a2d126",
+          "category": "ambience",
+          "author": "leonelmail via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/leonelmail/sounds/329533/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7fd91a16809038f6d6ec4d4812376b771296717b5beab94108b72ad35c4d928c",
+      "sha256": "7fd91a16809038f6d6ec4d4812376b771296717b5beab94108b72ad35c4d928c",
+      "bytes": 170176,
+      "duration": 20.0,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 329569 roomtone bedroom yew",
+      "category": "ambience",
+      "category_es": "Ambiente",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ambience/fs-329569-roomtone-bedroom-yew.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ambience/fs-329569-roomtone-bedroom-yew.ogg",
+          "git_blob": "8a95cf27cac491025acc804eca7ec9b97866c10c",
+          "category": "ambience",
+          "author": "leonelmail via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/leonelmail/sounds/329569/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-ef77f82b969af2ce90cfdda45536a50e228fc2699e2894e97a59939a325c14e4",
+      "sha256": "ef77f82b969af2ce90cfdda45536a50e228fc2699e2894e97a59939a325c14e4",
+      "bytes": 171086,
+      "duration": 20.0,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 426767 apartment room tone wav",
+      "category": "ambience",
+      "category_es": "Ambiente",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ambience/fs-426767-apartment-room-tone-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ambience/fs-426767-apartment-room-tone-wav.ogg",
+          "git_blob": "c10315fe079aa437954b02ecb9b8db85dfa80eff",
+          "category": "ambience",
+          "author": "cMilan via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/cMilan/sounds/426767/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-158ca75cea50d9e6f56372cb6eeb5e3e490f9ea8e4bbc672210b7608d6c6ce2d",
+      "sha256": "158ca75cea50d9e6f56372cb6eeb5e3e490f9ea8e4bbc672210b7608d6c6ce2d",
+      "bytes": 5247,
+      "duration": 0.12035416666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs788933",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/fs788933.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/fs788933.ogg",
+          "git_blob": "38797c03a6f5195cd7a7a8df66dc35ddc92f48fb",
+          "category": "click",
+          "author": "Mediasaur via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/Mediasaur/sounds/788933/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-2dada4dfa34e6c47a37599f1f94c8f77b6223d34e803ced0ac84e6f25cbf0431",
+      "sha256": "2dada4dfa34e6c47a37599f1f94c8f77b6223d34e803ced0ac84e6f25cbf0431",
+      "bytes": 4581,
+      "duration": 0.097125,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface click 001",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/kenney-interface-click-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/kenney-interface-click-001.ogg",
+          "git_blob": "5047018dd1be84a6d1eece8cee2aa6eba38b3f9e",
+          "category": "click",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-5bd946a0d6c9dc4ce634e01cee62fa16efa14e395330490cc3e9ed3f40fc389f",
+      "sha256": "5bd946a0d6c9dc4ce634e01cee62fa16efa14e395330490cc3e9ed3f40fc389f",
+      "bytes": 4229,
+      "duration": 0.03964583333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface select 001",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/kenney-interface-select-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/kenney-interface-select-001.ogg",
+          "git_blob": "fadc849a28e2e2b6258365776af8ac8b2701086f",
+          "category": "click",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-86ad11d2e773b4af0facbca7497159c6686d25aed630e2f0341ee245c7020d1e",
+      "sha256": "86ad11d2e773b4af0facbca7497159c6686d25aed630e2f0341ee245c7020d1e",
+      "bytes": 4250,
+      "duration": 0.040375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface select 002",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/kenney-interface-select-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/kenney-interface-select-002.ogg",
+          "git_blob": "8874d1228ee1718b8e35d8f0691c90d15bcda9bb",
+          "category": "click",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-e90be30e8c6ad62c2f4be2abbb8a79fa71c7802da9468825054f913c6b43a271",
+      "sha256": "e90be30e8c6ad62c2f4be2abbb8a79fa71c7802da9468825054f913c6b43a271",
+      "bytes": 5997,
+      "duration": 0.20704166666666668,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface select 003",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/kenney-interface-select-003.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/kenney-interface-select-003.ogg",
+          "git_blob": "e745cbc71448bb16fe44f99a7bb74957bc44980d",
+          "category": "click",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9db66ab935963d8a28923ee9fbc144180f90d2a74abed077e310b4b39074dd75",
+      "sha256": "9db66ab935963d8a28923ee9fbc144180f90d2a74abed077e310b4b39074dd75",
+      "bytes": 3877,
+      "duration": 0.008604166666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface tick 001",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/kenney-interface-tick-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/kenney-interface-tick-001.ogg",
+          "git_blob": "5d20f77bbc436f96d361417d0852ba8287269059",
+          "category": "click",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-356c0fee41e0709e5224d1594cd2ef01acc75a2d2dff600132927ec1c905342c",
+      "sha256": "356c0fee41e0709e5224d1594cd2ef01acc75a2d2dff600132927ec1c905342c",
+      "bytes": 4832,
+      "duration": 0.09789583333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface toggle 001",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/kenney-interface-toggle-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/kenney-interface-toggle-001.ogg",
+          "git_blob": "cdfaa6a98897c5ea3d97a768106a86e64a0fe182",
+          "category": "click",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-a55d9466441ce140dc80d56fe7292b804fd127e91bddea9b04d85ebf9b4e42a0",
+      "sha256": "a55d9466441ce140dc80d56fe7292b804fd127e91bddea9b04d85ebf9b4e42a0",
+      "bytes": 4727,
+      "duration": 0.09647916666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface toggle 002",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "click/kenney-interface-toggle-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/click/kenney-interface-toggle-002.ogg",
+          "git_blob": "6d9ebb60a55465e58115642144da084396d4202d",
+          "category": "click",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-0845b985edbfd8f4a294da75228135bef9193a2f168bbed6b85d2a9cf054f9e7",
+      "sha256": "0845b985edbfd8f4a294da75228135bef9193a2f168bbed6b85d2a9cf054f9e7",
+      "bytes": 30968,
+      "duration": 3.5445208333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 349504 triangle open 04",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/fs-349504-triangle-open-04.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/fs-349504-triangle-open-04.ogg",
+          "git_blob": "4fd791a6c791a88d1dc39e9ed2727b3452317b1f",
+          "category": "ding",
+          "author": "cabled_mess via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/cabled_mess/sounds/349504/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-2743f4d7e09aa57f5933fe5edcef07fd2cd8754dc56595a0275d230ffab3946f",
+      "sha256": "2743f4d7e09aa57f5933fe5edcef07fd2cd8754dc56595a0275d230ffab3946f",
+      "bytes": 14581,
+      "duration": 0.6949375,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 571513 soft notifications bell ding d",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/fs-571513-soft-notifications-bell-ding-d.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/fs-571513-soft-notifications-bell-ding-d.ogg",
+          "git_blob": "8145c742bda84eb3ad7bfb2f4e4733bee182d243",
+          "category": "ding",
+          "author": "LegitCheese via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/LegitCheese/sounds/571513/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-1135bcdf76ef278938943ea2496336e6be586c2b19a9c652076d75fe21196362",
+      "sha256": "1135bcdf76ef278938943ea2496336e6be586c2b19a9c652076d75fe21196362",
+      "bytes": 5168,
+      "duration": 0.058020833333333334,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 634690 lil pip",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/fs-634690-lil-pip.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/fs-634690-lil-pip.ogg",
+          "git_blob": "dc1a9c5ed14348ad47b7116043ad00d0884d8c33",
+          "category": "ding",
+          "author": "adh.dreaming via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/adh.dreaming/sounds/634690/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-d4a54f3741e1ee1d3639350cf6cc7f1692f7222fdc01d0e70aacf3854d4e7e76",
+      "sha256": "d4a54f3741e1ee1d3639350cf6cc7f1692f7222fdc01d0e70aacf3854d4e7e76",
+      "bytes": 4450,
+      "duration": 0.1199375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface bong 001",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/kenney-interface-bong-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/kenney-interface-bong-001.ogg",
+          "git_blob": "6339ed594eb555011a0676071dc58f8a40b29e5f",
+          "category": "ding",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-111b82177bc58f2dd7d60625d2686f4d057c18b0dcc09c94514939c46234071e",
+      "sha256": "111b82177bc58f2dd7d60625d2686f4d057c18b0dcc09c94514939c46234071e",
+      "bytes": 4797,
+      "duration": 0.2874583333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface confirmation 001",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/kenney-interface-confirmation-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/kenney-interface-confirmation-001.ogg",
+          "git_blob": "7ffa450b4cc9942f6f2bffb503fffc429c7176d0",
+          "category": "ding",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-713179bb07c6706cbe2808f70a785dfc31f4d0e721dcfb9b25df82c970fdb5cf",
+      "sha256": "713179bb07c6706cbe2808f70a785dfc31f4d0e721dcfb9b25df82c970fdb5cf",
+      "bytes": 7494,
+      "duration": 0.52575,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface confirmation 002",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/kenney-interface-confirmation-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/kenney-interface-confirmation-002.ogg",
+          "git_blob": "71a2b6b8c9f1d7dd20aa7f44c435f38ba8131b46",
+          "category": "ding",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-4859ebeeb85c6c387833d70c0b350058b337dcfc32019d8ddb7e08a86d513558",
+      "sha256": "4859ebeeb85c6c387833d70c0b350058b337dcfc32019d8ddb7e08a86d513558",
+      "bytes": 5863,
+      "duration": 0.31585416666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface confirmation 003",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/kenney-interface-confirmation-003.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/kenney-interface-confirmation-003.ogg",
+          "git_blob": "aa43349395dfcf86d84090a5e6fd551313b30a26",
+          "category": "ding",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7bf0c217bea6a8481409620a0961b2009433f6b91f8570a00989b10996d2ded4",
+      "sha256": "7bf0c217bea6a8481409620a0961b2009433f6b91f8570a00989b10996d2ded4",
+      "bytes": 5425,
+      "duration": 0.2755416666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface glass 001",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/kenney-interface-glass-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/kenney-interface-glass-001.ogg",
+          "git_blob": "221f1643d900f60920c47199a5e87ce89f03ad4b",
+          "category": "ding",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-f9faacfc0a2cd5d96e01c7a0e8f8de4cad35a2cd402f2c96dbd769a88fada560",
+      "sha256": "f9faacfc0a2cd5d96e01c7a0e8f8de4cad35a2cd402f2c96dbd769a88fada560",
+      "bytes": 4554,
+      "duration": 0.12241666666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface glass 002",
+      "category": "ding",
+      "category_es": "Campana / aviso",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ding/kenney-interface-glass-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ding/kenney-interface-glass-002.ogg",
+          "git_blob": "db261745481042e88883f5ce9333af6d2935118c",
+          "category": "ding",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-a3fef6b45c51ffbfb2c48fb5402342330b773af43eb9feba369bc5afc2b16d55",
+      "sha256": "a3fef6b45c51ffbfb2c48fb5402342330b773af43eb9feba369bc5afc2b16d55",
+      "bytes": 85886,
+      "duration": 3.9878125,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 144546 touchs wav",
+      "category": "glitch",
+      "category_es": "Glitch / interferencia",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "glitch/fs-144546-touchs-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/glitch/fs-144546-touchs-wav.ogg",
+          "git_blob": "3110696ab899b877f0b74819459a42423341bc5a",
+          "category": "glitch",
+          "author": "garogourou via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/garogourou/sounds/144546/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-ce3a427db68b8f009c1891b59f7d140be6723dcf24cf508d4e01ac45ea900304",
+      "sha256": "ce3a427db68b8f009c1891b59f7d140be6723dcf24cf508d4e01ac45ea900304",
+      "bytes": 35806,
+      "duration": 3.97575,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 339521 vhs rewind forward and eject",
+      "category": "glitch",
+      "category_es": "Glitch / interferencia",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "glitch/fs-339521-vhs-rewind-forward-and-eject.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/glitch/fs-339521-vhs-rewind-forward-and-eject.ogg",
+          "git_blob": "0db8f8b9031a4c9b32e481b9cde9c9b37a4d0b02",
+          "category": "glitch",
+          "author": "lucaslima via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/lucaslima/sounds/339521/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-f65d78be4b4a3626d0f9e3ece277d858417698df5758c3c56af4abbf04cbfb04",
+      "sha256": "f65d78be4b4a3626d0f9e3ece277d858417698df5758c3c56af4abbf04cbfb04",
+      "bytes": 50205,
+      "duration": 3.9910625,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 402451 fast forward",
+      "category": "glitch",
+      "category_es": "Glitch / interferencia",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "glitch/fs-402451-fast-forward.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/glitch/fs-402451-fast-forward.ogg",
+          "git_blob": "88eead4cdd1b46d033706f4b586bf2961fdfe91f",
+          "category": "glitch",
+          "author": "plasterbrain via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/plasterbrain/sounds/402451/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-5b68a27d455b98aab0367514269b4da572827902759b73854a379fbc795757f8",
+      "sha256": "5b68a27d455b98aab0367514269b4da572827902759b73854a379fbc795757f8",
+      "bytes": 4140,
+      "duration": 0.027125,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface glitch 002",
+      "category": "glitch",
+      "category_es": "Glitch / interferencia",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "glitch/kenney-interface-glitch-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/glitch/kenney-interface-glitch-002.ogg",
+          "git_blob": "0f73eeb8c9b5813db03ba4240bad9a0fdb2939c5",
+          "category": "glitch",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-c460d6b8594b43b5d3771ad48c2967ccf7e6d2307ed59d56639be0bbb4fbc7c2",
+      "sha256": "c460d6b8594b43b5d3771ad48c2967ccf7e6d2307ed59d56639be0bbb4fbc7c2",
+      "bytes": 41609,
+      "duration": 3.9994375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney sci computernoise 000",
+      "category": "glitch",
+      "category_es": "Glitch / interferencia",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "glitch/kenney-sci-computernoise-000.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/glitch/kenney-sci-computernoise-000.ogg",
+          "git_blob": "024ffd8694777726b302730b92023a4194e7cd7c",
+          "category": "glitch",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/sci-fi-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-22fbbb3545e72b30fd9cae8080e851f930b6a54120b84e5dad657d3b9967d777",
+      "sha256": "22fbbb3545e72b30fd9cae8080e851f930b6a54120b84e5dad657d3b9967d777",
+      "bytes": 43275,
+      "duration": 3.9992708333333336,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney sci computernoise 001",
+      "category": "glitch",
+      "category_es": "Glitch / interferencia",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "glitch/kenney-sci-computernoise-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/glitch/kenney-sci-computernoise-001.ogg",
+          "git_blob": "5c83f63ab5e6a02b6833b72f56d94ae96e425df3",
+          "category": "glitch",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/sci-fi-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-a5bfc923a5f405b064c9bd8a306ddd6ee7128ba543a362b5978ad464e0148198",
+      "sha256": "a5bfc923a5f405b064c9bd8a306ddd6ee7128ba543a362b5978ad464e0148198",
+      "bytes": 46090,
+      "duration": 3.9981666666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney sci computernoise 002",
+      "category": "glitch",
+      "category_es": "Glitch / interferencia",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "glitch/kenney-sci-computernoise-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/glitch/kenney-sci-computernoise-002.ogg",
+          "git_blob": "996f5d4c9ae592564a49bc5adcfce10a4a1ff0bb",
+          "category": "glitch",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/sci-fi-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-374f5c6c54992e29340eae57b40a40d665d33fa8da622321d7a0b73c76ec3515",
+      "sha256": "374f5c6c54992e29340eae57b40a40d665d33fa8da622321d7a0b73c76ec3515",
+      "bytes": 55152,
+      "duration": 3.996875,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 177242 cinematic impact",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/fs-177242-cinematic-impact.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/fs-177242-cinematic-impact.ogg",
+          "git_blob": "dbca66d32828aefaedab07b102d59bf995c31313",
+          "category": "impact",
+          "author": "deleted_user_3277771 via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/deleted_user_3277771/sounds/177242/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-83e7e5223d345e247f19338b9344f43b5dfe5cfcc0bf8dcf512dd71445e4dd9c",
+      "sha256": "83e7e5223d345e247f19338b9344f43b5dfe5cfcc0bf8dcf512dd71445e4dd9c",
+      "bytes": 32394,
+      "duration": 3.9781666666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 222517 dramatic hit",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/fs-222517-dramatic-hit.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/fs-222517-dramatic-hit.ogg",
+          "git_blob": "0a3a98d9bb6ba5a635dc2d844c19e7b891c7086e",
+          "category": "impact",
+          "author": "qubodup via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/qubodup/sounds/222517/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-be7e7f75970a463cefbddb76ad5bb5bf6291ed912d886f072c9b3d6388f597d5",
+      "sha256": "be7e7f75970a463cefbddb76ad5bb5bf6291ed912d886f072c9b3d6388f597d5",
+      "bytes": 53096,
+      "duration": 3.9993125,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 347561 micheal bay hit",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/fs-347561-micheal-bay-hit.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/fs-347561-micheal-bay-hit.ogg",
+          "git_blob": "43a2f6b088a6fe64158cede34f10efcebaa3f303",
+          "category": "impact",
+          "author": "Kinoton via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Kinoton/sounds/347561/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-b9fae6c4e21f6a7cb51063fea25c15e4cc9991952145142358da667afc912ac0",
+      "sha256": "b9fae6c4e21f6a7cb51063fea25c15e4cc9991952145142358da667afc912ac0",
+      "bytes": 12178,
+      "duration": 0.749375,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs524817",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/fs524817.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/fs524817.ogg",
+          "git_blob": "90b421ca878afa2d561ff75dec187cfd69b76e3a",
+          "category": "impact",
+          "author": "DeVern via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/DeVern/sounds/524817/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-b324b06b97be640331606d335b8cdfbded9741baa138e4dfadf9b093bab3a528",
+      "sha256": "b324b06b97be640331606d335b8cdfbded9741baa138e4dfadf9b093bab3a528",
+      "bytes": 8255,
+      "duration": 0.2629375,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs745291",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/fs745291.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/fs745291.ogg",
+          "git_blob": "687e164f7c424a63f2e54cd20e43146f5a5d269d",
+          "category": "impact",
+          "author": "SamsterBirdies via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/SamsterBirdies/sounds/745291/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379",
+      "sha256": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379",
+      "bytes": 8062,
+      "duration": 0.5271875,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney impact impactpunch heavy 000",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/kenney-impact-impactpunch-heavy-000.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/kenney-impact-impactpunch-heavy-000.ogg",
+          "git_blob": "c3b91bfea178d75f781065625cd1c0d81107f06c",
+          "category": "impact",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/impact-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-5f21d3ec0524339430ef5950a96dd4eef7befd39d61bf0fc7147b5b301f0a339",
+      "sha256": "5f21d3ec0524339430ef5950a96dd4eef7befd39d61bf0fc7147b5b301f0a339",
+      "bytes": 7377,
+      "duration": 0.442125,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney impact impactpunch heavy 001",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/kenney-impact-impactpunch-heavy-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/kenney-impact-impactpunch-heavy-001.ogg",
+          "git_blob": "3b476067c0b42374ef141d1ce31e055afd2132ae",
+          "category": "impact",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/impact-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-15c8af2d9c64a2b57e3294f12bcee685f65e5f27dcaf7d1411b81d7b4fccd021",
+      "sha256": "15c8af2d9c64a2b57e3294f12bcee685f65e5f27dcaf7d1411b81d7b4fccd021",
+      "bytes": 6506,
+      "duration": 0.5054791666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney impact impactsoft heavy 000",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/kenney-impact-impactsoft-heavy-000.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/kenney-impact-impactsoft-heavy-000.ogg",
+          "git_blob": "352730fbfb688da86a5b68c5bf2e2384271207bc",
+          "category": "impact",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/impact-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9b00f2dde516a7dd93906bfb8e2baffa9a507ec74a3279ab7601be3b4e6d4b6e",
+      "sha256": "9b00f2dde516a7dd93906bfb8e2baffa9a507ec74a3279ab7601be3b4e6d4b6e",
+      "bytes": 6770,
+      "duration": 0.5690625,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney impact impactsoft heavy 001",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/kenney-impact-impactsoft-heavy-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/kenney-impact-impactsoft-heavy-001.ogg",
+          "git_blob": "ef3cf6e9c71491f80d8cf4b2c32366bcf59f463c",
+          "category": "impact",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/impact-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-3aac38610c1b53e9e35d0a346b959759c7203de8cc450b8a0b8332a70fc1d5c2",
+      "sha256": "3aac38610c1b53e9e35d0a346b959759c7203de8cc450b8a0b8332a70fc1d5c2",
+      "bytes": 14011,
+      "duration": 1.9932708333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney sci lowfrequency explosion 000",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/kenney-sci-lowfrequency-explosion-000.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/kenney-sci-lowfrequency-explosion-000.ogg",
+          "git_blob": "87a9cc2c00cef0df9285671a51e97ba24bcde470",
+          "category": "impact",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/sci-fi-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-430496e3ad263b0b1479ef271235c577ea6685a07eaa47fc67641acc0eec995b",
+      "sha256": "430496e3ad263b0b1479ef271235c577ea6685a07eaa47fc67641acc0eec995b",
+      "bytes": 9178,
+      "duration": 0.9925625,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney sci lowfrequency explosion 001",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "impact/kenney-sci-lowfrequency-explosion-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/impact/kenney-sci-lowfrequency-explosion-001.ogg",
+          "git_blob": "d1e93d4455138e05994d5332371b0312826d02bb",
+          "category": "impact",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/sci-fi-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-092c399d65c104856b60b489f400939828112f60e08df2a0af92d2aa22eb940a",
+      "sha256": "092c399d65c104856b60b489f400939828112f60e08df2a0af92d2aa22eb940a",
+      "bytes": 6288,
+      "duration": 0.09222916666666667,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "click",
+      "category": "click",
+      "category_es": "Clic",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "kit/click.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/kit/click.ogg",
+          "git_blob": "41f64d23132b899c665315c01a173e634027d59e",
+          "category": "click",
+          "author": "adh.dreaming",
+          "source_url": "https://freesound.org/people/adh.dreaming/sounds/671105/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-122c88861ce3ee60f701a4cf8d526d86f7bb55010e618089d0d7ebbc7c3abdfd",
+      "sha256": "122c88861ce3ee60f701a4cf8d526d86f7bb55010e618089d0d7ebbc7c3abdfd",
+      "bytes": 5606,
+      "duration": 0.27327083333333335,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "impact",
+      "category": "impact",
+      "category_es": "Impacto",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "kit/impact.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/kit/impact.ogg",
+          "git_blob": "1a70e0a635f2fcb53a75098d1f462144e1881b9b",
+          "category": "impact",
+          "author": "peoplearehappy",
+          "source_url": "https://freesound.org/people/peoplearehappy/sounds/841274/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-aaccb740ee19515ec7f11e6002da20d4089ff3d31cfe2ccf26ad12daaf377068",
+      "sha256": "aaccb740ee19515ec7f11e6002da20d4089ff3d31cfe2ccf26ad12daaf377068",
+      "bytes": 4812,
+      "duration": 0.11579166666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "pop",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "kit/pop.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/kit/pop.ogg",
+          "git_blob": "0dc11f2743afc636e5bfc115f7ec797e532395bd",
+          "category": "pop",
+          "author": "ethernel0",
+          "source_url": "https://freesound.org/people/ethernel0/sounds/776016/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-22fb67a53f8335427e523531ad80720c9fbb963b70d1fff5112e095c0dd91e01",
+      "sha256": "22fb67a53f8335427e523531ad80720c9fbb963b70d1fff5112e095c0dd91e01",
+      "bytes": 17180,
+      "duration": 2.0142708333333332,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "riser",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "kit/riser.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/kit/riser.ogg",
+          "git_blob": "2c89646dbe82bd2b8c4e1e5d4fa1c85544c65a05",
+          "category": "riser",
+          "author": "BeaconStudio",
+          "source_url": "https://freesound.org/people/BeaconStudio/sounds/859482/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7f832454b8a49e95237bfe40a81da20d82b00a2074e8789393fa6a0b75678cff",
+      "sha256": "7f832454b8a49e95237bfe40a81da20d82b00a2074e8789393fa6a0b75678cff",
+      "bytes": 4016,
+      "duration": 0.020479166666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "tick",
+      "category": "tick",
+      "category_es": "Tic / marcador",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "kit/tick.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/kit/tick.ogg",
+          "git_blob": "ed9d2a5f962b609e40cd199ea82e1aef8f2db924",
+          "category": "tick",
+          "author": "Squirrel_404",
+          "source_url": "https://freesound.org/people/Squirrel_404/sounds/683048/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-1a9e7021641074ddd157af0a81a727a0f5260c7fcf26b97b7a88da36c96fdc8c",
+      "sha256": "1a9e7021641074ddd157af0a81a727a0f5260c7fcf26b97b7a88da36c96fdc8c",
+      "bytes": 10571,
+      "duration": 0.4261875,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "whoosh",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "kit/whoosh.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/kit/whoosh.ogg",
+          "git_blob": "bb987f3e626b13600cb5c2395c52f135b5b7b249",
+          "category": "whoosh",
+          "author": "qubodup",
+          "source_url": "https://freesound.org/people/qubodup/sounds/60013/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-1833370e9af7c5ea1072d4addcf89d8a610b13ed814bc23d1429c9f64d22afdf",
+      "sha256": "1833370e9af7c5ea1072d4addcf89d8a610b13ed814bc23d1429c9f64d22afdf",
+      "bytes": 7982,
+      "duration": 0.26235416666666667,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 258269 mouth pop",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs-258269-mouth-pop.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs-258269-mouth-pop.ogg",
+          "git_blob": "269f5784c0187e5221a8752cc2040fbb02e7a2cf",
+          "category": "pop",
+          "author": "jcallison via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/jcallison/sounds/258269/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9da33408ec0919ed09bf000d5cd44f8b2881e6a52480ff256827ee3c0fd9cbbd",
+      "sha256": "9da33408ec0919ed09bf000d5cd44f8b2881e6a52480ff256827ee3c0fd9cbbd",
+      "bytes": 6039,
+      "duration": 0.24254166666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 447910 plop",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs-447910-plop.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs-447910-plop.ogg",
+          "git_blob": "fda1ba261e7303e150915bd7ebb008448351e7ca",
+          "category": "pop",
+          "author": "Breviceps via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Breviceps/sounds/447910/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-1a64ab1985f5a067b98f55b242be43fb3bf062ea345e5107335eb51520a5beb2",
+      "sha256": "1a64ab1985f5a067b98f55b242be43fb3bf062ea345e5107335eb51520a5beb2",
+      "bytes": 4776,
+      "duration": 0.09841666666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 467951 ui button click",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs-467951-ui-button-click.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs-467951-ui-button-click.ogg",
+          "git_blob": "4b11803b762c629cc1021bd98a0eb24bd546bf57",
+          "category": "pop",
+          "author": "benzix2 via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/benzix2/sounds/467951/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-a742d02acf4f25566bcce2c88a3512ab38323b9720a0722eff35e7c728c6c329",
+      "sha256": "a742d02acf4f25566bcce2c88a3512ab38323b9720a0722eff35e7c728c6c329",
+      "bytes": 18109,
+      "duration": 3.7929791666666666,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 514833 user interface menu sounds wav",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs-514833-user-interface-menu-sounds-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs-514833-user-interface-menu-sounds-wav.ogg",
+          "git_blob": "4022b94c4388653f5528674019ee2f824302b410",
+          "category": "pop",
+          "author": "oussamaben via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/oussamaben/sounds/514833/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-5807f8fc52bd799bec333697bb3a09d770c7ba8d56556d0723d3410d5fb56d3e",
+      "sha256": "5807f8fc52bd799bec333697bb3a09d770c7ba8d56556d0723d3410d5fb56d3e",
+      "bytes": 7620,
+      "duration": 0.211,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 824189 pop in sfx",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs-824189-pop-in-sfx.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs-824189-pop-in-sfx.ogg",
+          "git_blob": "9388203281aeafd2b747e36a9fbaba315efcb3b6",
+          "category": "pop",
+          "author": "Sadiquecat via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Sadiquecat/sounds/824189/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-0151c6d3810009ccb83300833956c2e8d17c9a36909c845c6065e40b215d97f2",
+      "sha256": "0151c6d3810009ccb83300833956c2e8d17c9a36909c845c6065e40b215d97f2",
+      "bytes": 5494,
+      "duration": 0.196375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs202230",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs202230.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs202230.ogg",
+          "git_blob": "98132d218e38ecc2b51cc862426af3a7d5ea67c6",
+          "category": "pop",
+          "author": "deraj via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/deraj/sounds/202230/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-adcd15c148f4ffffa94649d15bff5f184263680ad4dc94b53e174912a18e1431",
+      "sha256": "adcd15c148f4ffffa94649d15bff5f184263680ad4dc94b53e174912a18e1431",
+      "bytes": 4821,
+      "duration": 0.08079166666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs323738",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs323738.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs323738.ogg",
+          "git_blob": "b865b65bbb9e989eedcf9efbf47503621232214a",
+          "category": "pop",
+          "author": "Reitanna via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/Reitanna/sounds/323738/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-62df63b3a841686b4282f40070b6f79aefdb36459c5e16ac3254e688424e4512",
+      "sha256": "62df63b3a841686b4282f40070b6f79aefdb36459c5e16ac3254e688424e4512",
+      "bytes": 4787,
+      "duration": 0.08152083333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs527522",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/fs527522.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/fs527522.ogg",
+          "git_blob": "c47cb438dceddfaebe764d42ee197e2354d15ac1",
+          "category": "pop",
+          "author": "Narjara via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/Narjara/sounds/527522/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-08140a7af9d9cc779f1c452e59d01b41762c66baeeba5229632dee61b5a10035",
+      "sha256": "08140a7af9d9cc779f1c452e59d01b41762c66baeeba5229632dee61b5a10035",
+      "bytes": 4797,
+      "duration": 0.10929166666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface drop 001",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/kenney-interface-drop-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/kenney-interface-drop-001.ogg",
+          "git_blob": "dba78bd63aa489f575f0d07921baff7e31ee9de7",
+          "category": "pop",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-75a63540731b13d17a79b653b184200beaf8dbef8e5495889cfecd1abe2d705b",
+      "sha256": "75a63540731b13d17a79b653b184200beaf8dbef8e5495889cfecd1abe2d705b",
+      "bytes": 5067,
+      "duration": 0.1881875,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface drop 002",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/kenney-interface-drop-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/kenney-interface-drop-002.ogg",
+          "git_blob": "648a16ed90dffe9bdf0becd52c29e34c0fc866b1",
+          "category": "pop",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-382a7ea19405f410c8c7273731ea96599371ef93b2050484b4771c7fdc111040",
+      "sha256": "382a7ea19405f410c8c7273731ea96599371ef93b2050484b4771c7fdc111040",
+      "bytes": 4986,
+      "duration": 0.1881875,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface drop 003",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/kenney-interface-drop-003.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/kenney-interface-drop-003.ogg",
+          "git_blob": "31f7148166e660c7caf8e52d296be026cfbb80dc",
+          "category": "pop",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9ba1b09d09405e07aa7a1a5cecca8ceec936e8e6399f53d31691f67534551bab",
+      "sha256": "9ba1b09d09405e07aa7a1a5cecca8ceec936e8e6399f53d31691f67534551bab",
+      "bytes": 6400,
+      "duration": 0.252875,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface maximize 001",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/kenney-interface-maximize-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/kenney-interface-maximize-001.ogg",
+          "git_blob": "06c03867a3ee8ee2a8d4330abb3f388f4037cb62",
+          "category": "pop",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7474e58c8105caccaf1fbe20907c9d1b0f684cc04749dd174a3b9d8ac5ba95cc",
+      "sha256": "7474e58c8105caccaf1fbe20907c9d1b0f684cc04749dd174a3b9d8ac5ba95cc",
+      "bytes": 5148,
+      "duration": 0.25375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface maximize 002",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/kenney-interface-maximize-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/kenney-interface-maximize-002.ogg",
+          "git_blob": "4ff80dbb8d19853b8580152105e6e84a62e0a035",
+          "category": "pop",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-b33fe09929922956aae31ec6e191303e09437636e90cb10237090972bafb595f",
+      "sha256": "b33fe09929922956aae31ec6e191303e09437636e90cb10237090972bafb595f",
+      "bytes": 4806,
+      "duration": 0.09954166666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface pluck 001",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/kenney-interface-pluck-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/kenney-interface-pluck-001.ogg",
+          "git_blob": "1eef69ae7e38001373c4859952db0d03da8bebae",
+          "category": "pop",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-f4b79f58a2dbd6bbbb1e790c8bc2e93ee64eaa7a8dfbe794c364c1c5ecf0c7b6",
+      "sha256": "f4b79f58a2dbd6bbbb1e790c8bc2e93ee64eaa7a8dfbe794c364c1c5ecf0c7b6",
+      "bytes": 5004,
+      "duration": 0.11695833333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface pluck 002",
+      "category": "pop",
+      "category_es": "Pop / aparición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "pop/kenney-interface-pluck-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/pop/kenney-interface-pluck-002.ogg",
+          "git_blob": "12bb6998898f5900bfe6fb20bc1953fd60635894",
+          "category": "pop",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-d70d273421dbf6fcb329bb7860b25e6bd7bcdcbd10776181db3e59da1afcb8b5",
+      "sha256": "d70d273421dbf6fcb329bb7860b25e6bd7bcdcbd10776181db3e59da1afcb8b5",
+      "bytes": 90604,
+      "duration": 5.9979375,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 174363 rewind",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/fs-174363-rewind.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/fs-174363-rewind.ogg",
+          "git_blob": "ef9129634941055eb37dd4bb587ac0a7fe810bff",
+          "category": "riser",
+          "author": "kasa90 via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/kasa90/sounds/174363/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7104221aec4d6e92a561c8bb01c2eff3acbd1d69320b6380e3ca9baaeac97964",
+      "sha256": "7104221aec4d6e92a561c8bb01c2eff3acbd1d69320b6380e3ca9baaeac97964",
+      "bytes": 90973,
+      "duration": 5.9778125,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 396160 scary hits risers 002",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/fs-396160-scary-hits-risers-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/fs-396160-scary-hits-risers-002.ogg",
+          "git_blob": "01b8c3bc52df940301921aa2162f0ed11ec723c5",
+          "category": "riser",
+          "author": "Xinematix via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Xinematix/sounds/396160/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-b771fed01012714ef72da44721abf9a94a9699af32e5bc93db65333052d078c4",
+      "sha256": "b771fed01012714ef72da44721abf9a94a9699af32e5bc93db65333052d078c4",
+      "bytes": 90382,
+      "duration": 5.9683125,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 396161 scary hits risers 001",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/fs-396161-scary-hits-risers-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/fs-396161-scary-hits-risers-001.ogg",
+          "git_blob": "97cef0adf776fcbcb027314a5555f61d1f514dac",
+          "category": "riser",
+          "author": "Xinematix via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Xinematix/sounds/396161/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-58212f609ad7b3dccd8a88262146d2a9e72cbe0ad3d9e2660590365292fe0f9f",
+      "sha256": "58212f609ad7b3dccd8a88262146d2a9e72cbe0ad3d9e2660590365292fe0f9f",
+      "bytes": 91713,
+      "duration": 5.964541666666666,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 464250 echo chromatic riser wav",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/fs-464250-echo-chromatic-riser-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/fs-464250-echo-chromatic-riser-wav.ogg",
+          "git_blob": "fcfe063c44eff4f159c7d9b7189b4370226338b7",
+          "category": "riser",
+          "author": "DylanTheFish via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/DylanTheFish/sounds/464250/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-405d8d18c8f74e4eba0647a9c68f3c38969a17e79be53d742af37c62c50f3e89",
+      "sha256": "405d8d18c8f74e4eba0647a9c68f3c38969a17e79be53d742af37c62c50f3e89",
+      "bytes": 32712,
+      "duration": 2.4586041666666665,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 685256 riser sound effect short wav",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/fs-685256-riser-sound-effect-short-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/fs-685256-riser-sound-effect-short-wav.ogg",
+          "git_blob": "53d4d4a3fe25798b0e8d38013a94c57533c139aa",
+          "category": "riser",
+          "author": "syntheffects via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/syntheffects/sounds/685256/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-2add2dc3a7b832a3aa134d41dbff71ee45e56f335dc8ae9e6bf49e809f049c44",
+      "sha256": "2add2dc3a7b832a3aa134d41dbff71ee45e56f335dc8ae9e6bf49e809f049c44",
+      "bytes": 39935,
+      "duration": 2.0180416666666665,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs867126",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/fs867126.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/fs867126.ogg",
+          "git_blob": "14abddd070637ff2997c678b065b29190651bb65",
+          "category": "riser",
+          "author": "Diim_1 via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/Diim_1/sounds/867126/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-46f483f17c747cef10692b666cac2207bcf33e22d5499d6c449960d2f5ea7170",
+      "sha256": "46f483f17c747cef10692b666cac2207bcf33e22d5499d6c449960d2f5ea7170",
+      "bytes": 9670,
+      "duration": 0.3855,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital phaserup1",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/kenney-digital-phaserup1.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/kenney-digital-phaserup1.ogg",
+          "git_blob": "64fda873236f93daaa947f68892729f75f4da185",
+          "category": "riser",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-5857b0086333fab9b8ed2b683cfa2f2dafe8e177177a5841f94314ebac454d4b",
+      "sha256": "5857b0086333fab9b8ed2b683cfa2f2dafe8e177177a5841f94314ebac454d4b",
+      "bytes": 8647,
+      "duration": 0.31614583333333335,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital phaserup2",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/kenney-digital-phaserup2.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/kenney-digital-phaserup2.ogg",
+          "git_blob": "f605e2788a1fae2ae3ed68982d81cbfeed966500",
+          "category": "riser",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7726e373cf1bb4a1016d5e6f81aa67fc5047f3887fe9ff72350d84087285b9f8",
+      "sha256": "7726e373cf1bb4a1016d5e6f81aa67fc5047f3887fe9ff72350d84087285b9f8",
+      "bytes": 9551,
+      "duration": 0.3831041666666667,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital phaserup3",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/kenney-digital-phaserup3.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/kenney-digital-phaserup3.ogg",
+          "git_blob": "d6a08c335a048a2ca4abc8938dafcff12c729565",
+          "category": "riser",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-d8b5ee27a8d81af6b45fff4cfcfc9834923bbda925dee00490d9fa519590269d",
+      "sha256": "d8b5ee27a8d81af6b45fff4cfcfc9834923bbda925dee00490d9fa519590269d",
+      "bytes": 10712,
+      "duration": 0.954875,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital powerup1",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/kenney-digital-powerup1.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/kenney-digital-powerup1.ogg",
+          "git_blob": "d2c40feab5058ac6492339c32fed7909cf2aa0d3",
+          "category": "riser",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-1f09faaa9206479b427176e5c054345f6fa88a2a9fdf8be91538e80d2c714e7b",
+      "sha256": "1f09faaa9206479b427176e5c054345f6fa88a2a9fdf8be91538e80d2c714e7b",
+      "bytes": 4937,
+      "duration": 0.179375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital powerup2",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/kenney-digital-powerup2.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/kenney-digital-powerup2.ogg",
+          "git_blob": "5e0f344300166c5595e848f8961c793800f5704a",
+          "category": "riser",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-8f1ec3fcafd67d2e6f7e4a47ab6aaffb3b01f4e65942803fff977836272d504a",
+      "sha256": "8f1ec3fcafd67d2e6f7e4a47ab6aaffb3b01f4e65942803fff977836272d504a",
+      "bytes": 9803,
+      "duration": 0.8584583333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital powerup3",
+      "category": "riser",
+      "category_es": "Ascenso / riser",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "riser/kenney-digital-powerup3.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/riser/kenney-digital-powerup3.ogg",
+          "git_blob": "cc8cab626013dec6feffdfd1941a488e31e2d610",
+          "category": "riser",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-6deb301035f7a8cc055d892219a506dbb423ed6cf216598cae49546ed420d7d1",
+      "sha256": "6deb301035f7a8cc055d892219a506dbb423ed6cf216598cae49546ed420d7d1",
+      "bytes": 5867,
+      "duration": 0.07735416666666667,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs384187",
+      "category": "tick",
+      "category_es": "Tic / marcador",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "tick/fs384187.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/tick/fs384187.ogg",
+          "git_blob": "25be9305cccf51bdca5983083baf50e052ce4a08",
+          "category": "tick",
+          "author": "malle99 via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/malle99/sounds/384187/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-38526c0acaf627d311ab5c043ebb8cfef4b0919d9ea3418b5796108cfc605230",
+      "sha256": "38526c0acaf627d311ab5c043ebb8cfef4b0919d9ea3418b5796108cfc605230",
+      "bytes": 4451,
+      "duration": 0.0760625,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs528561",
+      "category": "tick",
+      "category_es": "Tic / marcador",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "tick/fs528561.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/tick/fs528561.ogg",
+          "git_blob": "8fa1715c2100e87ebec95ac017badf18f0e198a1",
+          "category": "tick",
+          "author": "Jummit via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/Jummit/sounds/528561/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-44b595a9ab477e969dd6399b0de0ae0ef3baa9c01a049fcb26beb762d1ba4a93",
+      "sha256": "44b595a9ab477e969dd6399b0de0ae0ef3baa9c01a049fcb26beb762d1ba4a93",
+      "bytes": 4072,
+      "duration": 0.022333333333333334,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs721514",
+      "category": "tick",
+      "category_es": "Tic / marcador",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "tick/fs721514.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/tick/fs721514.ogg",
+          "git_blob": "5ebc046f8a7b6a917ecee6edb78d7553ed210ef1",
+          "category": "tick",
+          "author": "BaggoNotes via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/BaggoNotes/sounds/721514/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-4c421d54f8211a8094e2bcfd332c84c6860e094e4235cffd239cd0c351208e16",
+      "sha256": "4c421d54f8211a8094e2bcfd332c84c6860e094e4235cffd239cd0c351208e16",
+      "bytes": 21666,
+      "duration": 1.4967708333333334,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 683096 woosh",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/fs-683096-woosh.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/fs-683096-woosh.ogg",
+          "git_blob": "92d972fbd019793e8f34d708c899e3178478256d",
+          "category": "transition",
+          "author": "florianreichelt via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/florianreichelt/sounds/683096/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-630af78bda741cd12745fe0c055074b347d00a561e6200656f9f2e5b8e246698",
+      "sha256": "630af78bda741cd12745fe0c055074b347d00a561e6200656f9f2e5b8e246698",
+      "bytes": 18250,
+      "duration": 0.8386875,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 702773 swipe wav",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/fs-702773-swipe-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/fs-702773-swipe-wav.ogg",
+          "git_blob": "a0630a23c3d7c92634296ce7db1c7425d44ef994",
+          "category": "transition",
+          "author": "LilMati via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/LilMati/sounds/702773/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7652326c21bc767dae3491474e8548f9a989c9eba7b42dd4ddc8f3f1d749b91c",
+      "sha256": "7652326c21bc767dae3491474e8548f9a989c9eba7b42dd4ddc8f3f1d749b91c",
+      "bytes": 4518,
+      "duration": 0.2999791666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 786514 swoosh v2",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/fs-786514-swoosh-v2.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/fs-786514-swoosh-v2.ogg",
+          "git_blob": "9f2968328b60cd437a17dd5f36ff3959024fbb68",
+          "category": "transition",
+          "author": "migoreng1 via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/migoreng1/sounds/786514/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-a3eb75614b94d8c07685ce05867724af5a0e7ccb9c58517c6791007ec12ad0f5",
+      "sha256": "a3eb75614b94d8c07685ce05867724af5a0e7ccb9c58517c6791007ec12ad0f5",
+      "bytes": 6884,
+      "duration": 0.36122916666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 816262 broomstick whoosh 3 quiet okm1",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+          "git_blob": "92c70996f99f1203cd06196f9d4c81cddaf93ae9",
+          "category": "transition",
+          "author": "Sadiquecat via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Sadiquecat/sounds/816262/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-c6537c3390cf2e2259318341d0e74e79c9c595c6a67a6524c613923d0d173992",
+      "sha256": "c6537c3390cf2e2259318341d0e74e79c9c595c6a67a6524c613923d0d173992",
+      "bytes": 44108,
+      "duration": 3.667520833333333,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 850347 swipe various",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/fs-850347-swipe-various.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/fs-850347-swipe-various.ogg",
+          "git_blob": "1027f103fc9cee834420449a971ebe272230b1bb",
+          "category": "transition",
+          "author": "Gravy42 via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Gravy42/sounds/850347/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7d1259974df6b16a37ad8717b38267e0fbf4c73e20ae0eb2f239b9e9903248c0",
+      "sha256": "7d1259974df6b16a37ad8717b38267e0fbf4c73e20ae0eb2f239b9e9903248c0",
+      "bytes": 37924,
+      "duration": 1.7977083333333332,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 856168 cyberpunk glitch hologram tran",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/fs-856168-cyberpunk-glitch-hologram-tran.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/fs-856168-cyberpunk-glitch-hologram-tran.ogg",
+          "git_blob": "81601d130b75b8b2767e80f3727f411cd46a60cc",
+          "category": "transition",
+          "author": "brktkrgll via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/brktkrgll/sounds/856168/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7bb0ccc4d3da18df270c40bd7b659a0501397a126eb531f4700af6b0d84a2835",
+      "sha256": "7bb0ccc4d3da18df270c40bd7b659a0501397a126eb531f4700af6b0d84a2835",
+      "bytes": 9334,
+      "duration": 0.5030625,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface maximize 005",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/kenney-interface-maximize-005.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/kenney-interface-maximize-005.ogg",
+          "git_blob": "18e6b25859cc91792fa01a9b0de215d1978ad26a",
+          "category": "transition",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-e71cb7bea4f83a2b674215e7b79663dff23e5967c996e8ba4b3a32d41e02235d",
+      "sha256": "e71cb7bea4f83a2b674215e7b79663dff23e5967c996e8ba4b3a32d41e02235d",
+      "bytes": 5465,
+      "duration": 0.36770833333333336,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface maximize 006",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/kenney-interface-maximize-006.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/kenney-interface-maximize-006.ogg",
+          "git_blob": "4ef9cd85d5480aaef228f1e606ca18bd6d0f8b34",
+          "category": "transition",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-95580ad817d8bc232b0ece21c29e11496c54d7f47c6665cc496d99c1e27908bd",
+      "sha256": "95580ad817d8bc232b0ece21c29e11496c54d7f47c6665cc496d99c1e27908bd",
+      "bytes": 6425,
+      "duration": 0.2548958333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface minimize 001",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/kenney-interface-minimize-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/kenney-interface-minimize-001.ogg",
+          "git_blob": "bdfd89973d19a1bbe2e362f6c27c66bce2c7209f",
+          "category": "transition",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-c27b8fcde987b91fee3202298acef91815bf61db5ce64767821b54f2bb4883c5",
+      "sha256": "c27b8fcde987b91fee3202298acef91815bf61db5ce64767821b54f2bb4883c5",
+      "bytes": 5411,
+      "duration": 0.255375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface minimize 002",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/kenney-interface-minimize-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/kenney-interface-minimize-002.ogg",
+          "git_blob": "5afb575248934f0ae88b481e4213126b5bf881cb",
+          "category": "transition",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-bdbcc2ea8a6ad7a1b60ebadf6c5cc857304a4fc9f03a98f8c096a199738a933f",
+      "sha256": "bdbcc2ea8a6ad7a1b60ebadf6c5cc857304a4fc9f03a98f8c096a199738a933f",
+      "bytes": 14046,
+      "duration": 0.9572916666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface scroll 001",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/kenney-interface-scroll-001.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/kenney-interface-scroll-001.ogg",
+          "git_blob": "893d49dfb219908dd44df6457ed889c79f3282b3",
+          "category": "transition",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-eccf0bfae9c6ff7c2ab5ba67d4e6fb63ee2b270614cdb9566fa3e29877af486e",
+      "sha256": "eccf0bfae9c6ff7c2ab5ba67d4e6fb63ee2b270614cdb9566fa3e29877af486e",
+      "bytes": 11642,
+      "duration": 1.0000416666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney interface scroll 002",
+      "category": "transition",
+      "category_es": "Transición",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "transition/kenney-interface-scroll-002.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/transition/kenney-interface-scroll-002.ogg",
+          "git_blob": "a1e18b5405f544ec89402fe24e95b79c59605ca5",
+          "category": "transition",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/interface-sounds"
+        }
+      ]
+    },
+    {
+      "id": "sfx-fca8597cbe2b45ef969ee1ed72be89e0324406c2a3d5b2386a8960edb8ffc650",
+      "sha256": "fca8597cbe2b45ef969ee1ed72be89e0324406c2a3d5b2386a8960edb8ffc650",
+      "bytes": 61078,
+      "duration": 3.993895833333333,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 323432 typing",
+      "category": "typing",
+      "category_es": "Teclado",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "typing/fs-323432-typing.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/typing/fs-323432-typing.ogg",
+          "git_blob": "3a13e8855621d168b3f25f73fbce0a1af17f986e",
+          "category": "typing",
+          "author": "Alivvie via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Alivvie/sounds/323432/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-b816df0aa9883726d3afb0b0b29430446a982180e10f6ed75e5d4932cdba0136",
+      "sha256": "b816df0aa9883726d3afb0b0b29430446a982180e10f6ed75e5d4932cdba0136",
+      "bytes": 18236,
+      "duration": 1.0,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 416777 digital typing wav",
+      "category": "typing",
+      "category_es": "Teclado",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "typing/fs-416777-digital-typing-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/typing/fs-416777-digital-typing-wav.ogg",
+          "git_blob": "ab86f2e73fe922a3b211c81429ecae20135f3649",
+          "category": "typing",
+          "author": "Sky_Motion via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Sky_Motion/sounds/416777/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-cedc80acbe29b897956cab7e7c98fb237753480acee3933346ed6f997b7627ea",
+      "sha256": "cedc80acbe29b897956cab7e7c98fb237753480acee3933346ed6f997b7627ea",
+      "bytes": 49484,
+      "duration": 3.7993958333333335,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 447909 keyboard typing",
+      "category": "typing",
+      "category_es": "Teclado",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "typing/fs-447909-keyboard-typing.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/typing/fs-447909-keyboard-typing.ogg",
+          "git_blob": "9c3e272b4a5fbde47c8510b33975c4e2b36d6adc",
+          "category": "typing",
+          "author": "Breviceps via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Breviceps/sounds/447909/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9bc1338b079901ea1f7b3a9b593fbcc8e7371d97e8b6bbfa7cb792c1cd0dfb91",
+      "sha256": "9bc1338b079901ea1f7b3a9b593fbcc8e7371d97e8b6bbfa7cb792c1cd0dfb91",
+      "bytes": 44671,
+      "duration": 2.0299791666666667,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 511418 data reveal sound",
+      "category": "typing",
+      "category_es": "Teclado",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "typing/fs-511418-data-reveal-sound.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/typing/fs-511418-data-reveal-sound.ogg",
+          "git_blob": "219233020674701bccae6b562510a3f8356d2c89",
+          "category": "typing",
+          "author": "Sky_Motion via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Sky_Motion/sounds/511418/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9e1195d8108b4fa9c85fddcb91cda642744dfe1e11ce4f2f7c0b52d57b4aecf0",
+      "sha256": "9e1195d8108b4fa9c85fddcb91cda642744dfe1e11ce4f2f7c0b52d57b4aecf0",
+      "bytes": 68989,
+      "duration": 3.9938541666666665,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 79388 keyboard typing wav",
+      "category": "typing",
+      "category_es": "Teclado",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "typing/fs-79388-keyboard-typing-wav.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/typing/fs-79388-keyboard-typing-wav.ogg",
+          "git_blob": "5f52d61a5ec017b59b053320e0abce196a9b3c16",
+          "category": "typing",
+          "author": "j1987 via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/j1987/sounds/79388/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-c0d1db97e02c29a90e1d24427354bce94ec65b226a3ee63bdee0edc16a7709da",
+      "sha256": "c0d1db97e02c29a90e1d24427354bce94ec65b226a3ee63bdee0edc16a7709da",
+      "bytes": 6187,
+      "duration": 0.317625,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital pepsound1",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-digital-pepsound1.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-digital-pepsound1.ogg",
+          "git_blob": "2a38dc86e165a7bcfb07229eefaa4b2b4b8d3503",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-7f99fa082c010a0799f54cee45a21c8927ff6d0d95c33fe8ca82ab26ecc8cf94",
+      "sha256": "7f99fa082c010a0799f54cee45a21c8927ff6d0d95c33fe8ca82ab26ecc8cf94",
+      "bytes": 6238,
+      "duration": 0.36702083333333335,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital pepsound2",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-digital-pepsound2.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-digital-pepsound2.ogg",
+          "git_blob": "2bd85ceb2edc354552bf68ff7a9bb9b4861f3210",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-f03e6dada943a8b2dc3d11654c794abb6cb78eb832ed4ea952c9647cf9074940",
+      "sha256": "f03e6dada943a8b2dc3d11654c794abb6cb78eb832ed4ea952c9647cf9074940",
+      "bytes": 6083,
+      "duration": 0.32216666666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital pepsound3",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-digital-pepsound3.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-digital-pepsound3.ogg",
+          "git_blob": "89823dd23db31dcc20ff3ce88acba4bc418c482d",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-a9daeb03bd1875a626837d334081800d57be92315bb721610d721daddcd5ae64",
+      "sha256": "a9daeb03bd1875a626837d334081800d57be92315bb721610d721daddcd5ae64",
+      "bytes": 8310,
+      "duration": 0.4907708333333333,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital threetone1",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-digital-threetone1.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-digital-threetone1.ogg",
+          "git_blob": "15c8a33bedd0d4566856eff72aa42510e28b9a89",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-410dce92c8e8e60deef634203f930bbaf3f4a8bd825dc14335f5d1599d9d5dd0",
+      "sha256": "410dce92c8e8e60deef634203f930bbaf3f4a8bd825dc14335f5d1599d9d5dd0",
+      "bytes": 9425,
+      "duration": 0.572375,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital threetone2",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-digital-threetone2.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-digital-threetone2.ogg",
+          "git_blob": "096ca6d0d10e1ce2d60f1bb755e24adab8ee3fe3",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-378835887205690c7733e0737e8508035197b2afbaedd07ea91ecd6f3b30f76c",
+      "sha256": "378835887205690c7733e0737e8508035197b2afbaedd07ea91ecd6f3b30f76c",
+      "bytes": 7003,
+      "duration": 0.3634791666666667,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital twotone1",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-digital-twotone1.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-digital-twotone1.ogg",
+          "git_blob": "7f6e2e48114ed5e534b860df657ba68e5fb72d88",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-231f248bd3d5f30e46e60207809e6cc9afda434178e1651ce1d221a0c3249391",
+      "sha256": "231f248bd3d5f30e46e60207809e6cc9afda434178e1651ce1d221a0c3249391",
+      "bytes": 7187,
+      "duration": 0.3835625,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney digital twotone2",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-digital-twotone2.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-digital-twotone2.ogg",
+          "git_blob": "f06c1d9a31f7f276cd7a679f211f688d8749c72e",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/digital-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9e92414cf63a9de1f18130a7a60fe972988a5f678458a3360abcf17acf31eb3f",
+      "sha256": "9e92414cf63a9de1f18130a7a60fe972988a5f678458a3360abcf17acf31eb3f",
+      "bytes": 7351,
+      "duration": 0.18347916666666667,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney ui rollover1",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-ui-rollover1.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-ui-rollover1.ogg",
+          "git_blob": "c870307f1338e8df329e084c0977aad77edd9b1f",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/ui-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-540d914dc4bca596df50668c8603db97ebc3d9e3c1a4d1a60aa56d6ae7bc6d5f",
+      "sha256": "540d914dc4bca596df50668c8603db97ebc3d9e3c1a4d1a60aa56d6ae7bc6d5f",
+      "bytes": 5374,
+      "duration": 0.0495625,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney ui rollover2",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-ui-rollover2.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-ui-rollover2.ogg",
+          "git_blob": "6b78aab980ec3a8e1a232b11db3c7281025b6a89",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/ui-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-56e51a76081240c57974472c972e4ff5816f083df1dbfeafdc7e7a644cc16052",
+      "sha256": "56e51a76081240c57974472c972e4ff5816f083df1dbfeafdc7e7a644cc16052",
+      "bytes": 5745,
+      "duration": 0.06639583333333333,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney ui rollover3",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-ui-rollover3.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-ui-rollover3.ogg",
+          "git_blob": "e1113a6addc4c61886e5b53f8d1f22894054ed66",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/ui-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-b301589f5d5521963e078d1f38b5dd1d02c32708301fee33c78851a99dede43b",
+      "sha256": "b301589f5d5521963e078d1f38b5dd1d02c32708301fee33c78851a99dede43b",
+      "bytes": 5882,
+      "duration": 0.06620833333333333,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "kenney ui rollover4",
+      "category": "ui-blip",
+      "category_es": "Interfaz / bleep",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "ui-blip/kenney-ui-rollover4.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/ui-blip/kenney-ui-rollover4.ogg",
+          "git_blob": "61fcb427f9802fcaaa116c109c467a4008d18e48",
+          "category": "ui-blip",
+          "author": "Kenney (kenney.nl), CC0; credit optional",
+          "source_url": "https://kenney.nl/assets/ui-audio"
+        }
+      ]
+    },
+    {
+      "id": "sfx-ef3e2fd463fdcfda8ed0a7c2b0bb45e5a24a4bbc1c1fe9d06250654615d6ffac",
+      "sha256": "ef3e2fd463fdcfda8ed0a7c2b0bb45e5a24a4bbc1c1fe9d06250654615d6ffac",
+      "bytes": 10562,
+      "duration": 0.4799791666666667,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 127197 fast simple chop 5 aif",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "whoosh/fs-127197-fast-simple-chop-5-aif.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/whoosh/fs-127197-fast-simple-chop-5-aif.ogg",
+          "git_blob": "ca0049917ea3cae75aa5f1c66e4cc4d82925543f",
+          "category": "whoosh",
+          "author": "dave.des via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/dave.des/sounds/127197/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-07ccb23fb559531c429aacf113b2e81000c6585a7daf0d61aea596c16cbd59e9",
+      "sha256": "07ccb23fb559531c429aacf113b2e81000c6585a7daf0d61aea596c16cbd59e9",
+      "bytes": 18716,
+      "duration": 2.136,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 169867 swoosh",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "whoosh/fs-169867-swoosh.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/whoosh/fs-169867-swoosh.ogg",
+          "git_blob": "523a8670a0d49fb69fa73d91117faa36c9766eed",
+          "category": "whoosh",
+          "author": "Halgrimm via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Halgrimm/sounds/169867/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-66a856a61cf6feba4746b9dcb121933c3944789e3566128bbd007053b8a4f402",
+      "sha256": "66a856a61cf6feba4746b9dcb121933c3944789e3566128bbd007053b8a4f402",
+      "bytes": 35151,
+      "duration": 3.9991666666666665,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 264777 swoosh",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "whoosh/fs-264777-swoosh.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/whoosh/fs-264777-swoosh.ogg",
+          "git_blob": "32c25026511c9cb704ed32ba0d3fe7739c4a37f2",
+          "category": "whoosh",
+          "author": "Shinplaster via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/Shinplaster/sounds/264777/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-070f08d451b5d60886505b871cda40cd718561d422e8cad560429f135e60248c",
+      "sha256": "070f08d451b5d60886505b871cda40cd718561d422e8cad560429f135e60248c",
+      "bytes": 8744,
+      "duration": 0.28172916666666664,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs 683101 quick woosh",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "whoosh/fs-683101-quick-woosh.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/whoosh/fs-683101-quick-woosh.ogg",
+          "git_blob": "35a4d91574deaeaf7b67a24517f0e492c7b25e6b",
+          "category": "whoosh",
+          "author": "florianreichelt via Freesound (CC0; credit optional)",
+          "source_url": "https://freesound.org/people/florianreichelt/sounds/683101/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-c11a75cb96a451390240cdcc8c9eb28e32795f7d89c8393aad0a2fb89d5dce11",
+      "sha256": "c11a75cb96a451390240cdcc8c9eb28e32795f7d89c8393aad0a2fb89d5dce11",
+      "bytes": 5347,
+      "duration": 0.17247916666666666,
+      "channels": 1,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs393811",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "whoosh/fs393811.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/whoosh/fs393811.ogg",
+          "git_blob": "63b018a900de47668221c53d6efcb40958bb8aed",
+          "category": "whoosh",
+          "author": "deleted_user_6479820 via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/deleted_user_6479820/sounds/393811/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-9dbdf9357223ab15b16cd3d6d532f2d7dc0dbc5e1c07780730feeec653798b1c",
+      "sha256": "9dbdf9357223ab15b16cd3d6d532f2d7dc0dbc5e1c07780730feeec653798b1c",
+      "bytes": 15014,
+      "duration": 0.5686458333333333,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs810485",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "whoosh/fs810485.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/whoosh/fs810485.ogg",
+          "git_blob": "7b2f01cc90200511ac3b345715adaf87edf29ee9",
+          "category": "whoosh",
+          "author": "CVLTIV8R via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/CVLTIV8R/sounds/810485/"
+        }
+      ]
+    },
+    {
+      "id": "sfx-ed77c27c3cb12b5e2a7628f72c663127283651adb06b04bd0bdb78c0563a7b33",
+      "sha256": "ed77c27c3cb12b5e2a7628f72c663127283651adb06b04bd0bdb78c0563a7b33",
+      "bytes": 9884,
+      "duration": 0.39991666666666664,
+      "channels": 2,
+      "sample_rate": 48000,
+      "kind": "audio",
+      "audio": true,
+      "name": "fs830856",
+      "category": "whoosh",
+      "category_es": "Whoosh / barrido",
+      "library": "MotionGraphics CC0",
+      "license": "CC0-1.0",
+      "license_evidence": "supplier_pinned_LICENSES.md",
+      "attribution_required": false,
+      "aliases": [
+        {
+          "file": "whoosh/fs830856.ogg",
+          "archive_entry": "motion-graphics-main/skills/sound-effects/sfx/whoosh/fs830856.ogg",
+          "git_blob": "1fc764b7d3dfe0cb28894bbac8c908f2e85db6e5",
+          "category": "whoosh",
+          "author": "MeanRaccoon via Freesound (CC0; credit given voluntarily)",
+          "source_url": "https://freesound.org/people/MeanRaccoon/sounds/830856/"
+        }
+      ]
+    }
+  ],
+  "license_git_blob": "a0088cdeddcb1b90bb65fb199cd308e752fdefd3",
+  "prepared_at": "2026-11-26T21:07:55.763491+00:00",
+  "no_network": true,
+  "license_url": "https://github.com/Barty-Bart/motion-graphics/blob/3d83d987d658601d8a1269eb691622bdcd427335/skills/sound-effects/LICENSES.md",
+  "verification": "Each bundled OGG matched the official Git blob; SHA256 here is locally computed, not published official SHA256",
+  "supplier_license_scope": "CC0 declaration in pinned supplier LICENSES.md; original source pages not all independently revalidated"
+}

@@ -25,6 +25,34 @@ def create_editor_router(body):
     def capabilities():
         return editor_capabilities()
 
+    @router.get('/sfx')
+    def sfx_catalog(q: str='', category: str='', offset: int=0, limit: int=24, favorites: bool=False, project_id: str=''):
+        from lib.studio_sfx_catalog import catalog
+        if favorites and not project_id:raise HTTPException(400,'Favoritos requiere proyecto')
+        ids=invoke(editor.state,project_id)['edit_decisions'].get('sfx_favorites',[]) if favorites else None
+        return invoke(catalog,q,category,offset,limit,ids)
+
+    @router.get('/sfx/{asset_id}/audio')
+    def sfx_audio(asset_id: str):
+        from lib.studio_sfx_catalog import materialize
+        path,_=invoke(materialize,asset_id)
+        return FileResponse(path,media_type='audio/ogg')
+
+    @router.post('/{pid}/sfx/insert')
+    async def sfx_insert(pid: str, request: Request):
+        from lib.studio_sfx import insert
+        return invoke(insert,pid,await body(request,12000))
+
+    @router.post('/{pid}/agent-sfx/insert')
+    async def agent_sfx_insert(pid: str, request: Request):
+        from lib.studio_sfx import insert
+        return invoke(insert,pid,await body(request,12000),'agent')
+
+    @router.get('/{pid}/sfx/requests/{request_id}')
+    def sfx_receipt(pid: str, request_id: str):
+        from lib.studio_sfx import receipt
+        return invoke(receipt,pid,request_id)
+
     @router.get('/piper/voices')
     def piper_voices():
         from lib.studio_piper import catalog
