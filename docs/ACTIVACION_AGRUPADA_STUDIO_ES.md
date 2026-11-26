@@ -9,6 +9,11 @@ selector Blender habilitado,4.5 predeterminado conservado. No nuevo reinicio
 necesario por ese lote. Sin repetir ASR/síntesis/piloto ni afirmar exportación AV.
 #112 sin recibo elegible y acciones ocultas #113 siguen pendientes.
 
+Entrega posterior #132: [diagnóstico/staging/audio HyperFrames](HYPERFRAMES_DIAGNOSTICO_LOCAL_ES.md)
+comprobados en proceso aislado. No se afirma carga del adaptador nuevo en4750;
+si el registro residente requiere activación, agrupar con próximas entregas.
+No reiniciar por esta documentación ni repetir #117/#129 aprobados.
+
 ## Historial del lote #117/#129 antes de activar
 
 [Preparación única comprobada y prueba portuguesa lista](ACTIVACION_117_129_ES.md):

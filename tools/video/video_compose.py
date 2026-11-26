@@ -260,7 +260,7 @@ class VideoCompose(BaseTool):
         """Check if HyperFrames rendering is available.
 
         Delegates to the dedicated tool so the availability check stays in
-        one place (node 22 floor, ffmpeg + npx on PATH).
+        one place (local reviewed CLI, Node22+, FFmpeg/FFprobe and prepared browser).
         """
         try:
             from tools.video.hyperframes_compose import HyperFramesCompose
@@ -313,18 +313,18 @@ class VideoCompose(BaseTool):
                 "HyperFrames is available for HTML/CSS/GSAP composition. Use it "
                 "for kinetic typography, product promos, launch reels, "
                 "website-to-video, and registry-block-driven scenes. Consumed via "
-                "'npx hyperframes' (npm package: 'hyperframes'). "
+                "the reviewed local Node entry (npm package: 'hyperframes'). "
                 "Before locking render_runtime='hyperframes' at the proposal stage, "
                 "verify the runtime with `hyperframes_compose` operation='doctor' "
                 "or `make hyperframes-doctor`. An 'available' flag from the runtime "
-                "check means node + ffmpeg + the npm package all resolve; it does "
+                "check means local requirements are present without downloads; it does "
                 "not guarantee a render will succeed on the first specific "
                 "composition."
             )
         else:
             info["hyperframes_note"] = (
-                "HyperFrames is NOT available. Requires Node.js >= 22, FFmpeg, "
-                "npx on PATH, and the 'hyperframes' npm package to be resolvable. "
+                "HyperFrames is NOT available. Requires Node.js >= 22, FFmpeg/FFprobe, "
+                "a reviewed local package and an explicitly prepared browser. "
                 "Run `make hyperframes-doctor` to see the specific missing piece, "
                 "or call `hyperframes_compose` operation='doctor' directly."
             )
@@ -1778,7 +1778,7 @@ class VideoCompose(BaseTool):
                     "Per governance this is a BLOCKER — surface it to the user "
                     "per AGENT_GUIDE.md > 'Escalate Blockers Explicitly' and wait "
                     "for approval before switching runtime. Requirements: "
-                    "Node.js >= 22, FFmpeg, and npx on PATH. See "
+                    "Node.js >=22, FFmpeg/FFprobe, reviewed local CLI, browser and explicit doctor. See "
                     "tools/video/hyperframes_compose.py for the specific missing piece."
                 ),
             )

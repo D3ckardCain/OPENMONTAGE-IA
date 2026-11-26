@@ -15,6 +15,15 @@ disco, electricidad o mantenimiento.
 
 ## Cola única ejecutable, en orden
 
+Entrega P0 E01/#132 [HyperFrames local](HYPERFRAMES_DIAGNOSTICO_LOCAL_ES.md):
+catálogo sin npm/npx/CLI/descargas, paquete revisado y requisitos explícitos,
+doctor JSON requerido vs opcional e invalidación. E05/E06: staging común por
+contenido sin colisiones; volumen0 conservado y fades no implementados rechazados.
+23casos nuevos/5adaptados focalizados aprobados; no suites antiguas completas.
+Pendientes P1: recursos offline reproducibles y render/seek/cancel/escucha reales.
+Consulta real no encontró preparación en rutas revisadas, no ausencia global.
+Sin instalaciones/reinicios/ComfyUI;4.5 predeterminado/PR#2 borrador conservados.
+
 Actualización de activación #117/#129:
 [validación real en4750](ACTIVACION_117_129_ES.md), PID130700/coherente;
 subtítulos portugueses revisados/aplicados, undo/redo/save/reopen exactos en copia.

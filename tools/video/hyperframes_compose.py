@@ -15,13 +15,11 @@ and what remains Remotion-only.
 
 from __future__ import annotations
 
-from lib.media_executables import find_media, media_environment
+from lib import hyperframes_runtime
 
 import json
 import logging
 import os
-import re
-import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -52,7 +50,7 @@ _AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"}
 
 class HyperFramesCompose(BaseTool):
     name = "hyperframes_compose"
-    version = "0.2.0"
+    version = "0.3.0"
     tier = ToolTier.CORE
     capability = "video_post"
     provider = "hyperframes"
@@ -61,15 +59,13 @@ class HyperFramesCompose(BaseTool):
     determinism = Determinism.DETERMINISTIC
     runtime = ToolRuntime.LOCAL
 
-    dependencies = ["cmd:npx", "cmd:ffmpeg"]
+    dependencies = ["cmd:node", "cmd:ffmpeg", "cmd:ffprobe"]
     install_instructions = (
-        "Requires Node.js >= 22 (https://nodejs.org/) and FFmpeg "
-        "(https://ffmpeg.org/download.html). The HyperFrames CLI is fetched "
-        "on first use via `npx hyperframes` (npm package: `hyperframes`). "
-        "Note: the upstream monorepo develops the package as `@hyperframes/cli`, "
-        "but it publishes to npm as `hyperframes`. `npx @hyperframes/cli` "
-        "returns 404 -- do NOT use that form. Verify setup with "
-        "`npx hyperframes doctor` or run the `doctor` operation on this tool."
+        "Prepare explicitly npm package: `hyperframes` version0.9.96 in an isolated directory; "
+        "declare HYPERFRAMES_PACKAGE_DIR and HYPERFRAMES_BROWSER_PATH. "
+        "Requires Node>=22 and existing FFmpeg/FFprobe. No npm/npx/install during diagnosis. "
+        "@hyperframes/cli is the monorepo name, not a request to install it. "
+        "Availability means local requirements only; doctor JSON and real render are separate."
     )
     agent_skills = [
         "hyperframes",
@@ -234,190 +230,43 @@ class HyperFramesCompose(BaseTool):
     ]
     user_visible_verification = [
         "Play the rendered MP4 and verify scene pacing, typography, and audio",
-        "Inspect workspace_path/index.html in a browser via `npx hyperframes preview`",
+        "Inspect workspace_path/index.html with the explicitly prepared local CLI preview",
     ]
 
     # ------------------------------------------------------------------
     # Status / availability
     # ------------------------------------------------------------------
 
-    _NODE_FLOOR_MAJOR = 22
-    _NPM_PACKAGE = "hyperframes"  # published npm name (NOT @hyperframes/cli — that's 404)
-    # Process-level cache for the npm resolve check. Shape:
-    #   {"version": "0.4.5"}   → package resolves
-    #   {"error": "<short>"}   → resolution failed (offline, unpublished, etc.)
-    # We cache per-process so the first call pays ~2-5s and subsequent calls
-    # (get_info spam from the registry) are free.
-    _npm_resolve_cache: Optional[dict[str, str]] = None
-    _cli_probe_cache: Optional[dict[str, str]] = None
+    @classmethod
+    def _resolve_npm_package(cls):
+        # Compatibility name: this reads a local manifest, never npm.
+        from lib.hyperframes_runtime import resolve
+        return resolve()
 
     @classmethod
-    def _node_major_version(cls) -> Optional[int]:
-        """Return Node.js major version, or None if node isn't installed."""
-        node = shutil.which("node")
-        if not node:
-            return None
+    def _probe_cli(cls):
+        """Explicit doctor only. Catalog queries must not execute the CLI."""
+        from lib.hyperframes_runtime import parse_doctor
         try:
-            out = subprocess.run(
-                [node, "--version"], capture_output=True, text=True, timeout=5
-            )
-            if out.returncode != 0:
-                return None
-            match = re.match(r"v?(\d+)\.", out.stdout.strip())
-            if not match:
-                return None
-            return int(match.group(1))
-        except (OSError, subprocess.SubprocessError):
-            return None
+            before = hyperframes_runtime.check()
+            proc = cls()._run_hf(["doctor", "--json"], cwd=None, timeout=20, check=False)
+            if proc.returncode:
+                report = {"status": "error", "error": "Doctor exit " + str(proc.returncode)}
+                hyperframes_runtime.remember(before, report)
+                return report
+            report = parse_doctor(cls._parse_json_output(proc.stdout))
+            if hyperframes_runtime.check()['identity_key'] != before['identity_key']:
+                return {"status": "error", "error": "Instalación cambió durante doctor; repite explícitamente el diagnóstico"}
+            hyperframes_runtime.remember(before, report)
+            return report
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            report = {"status": "error", "error": str(exc)}
+            hyperframes_runtime._DOCTOR.clear()
+            return report
 
-    @classmethod
-    def _resolve_npm_package(cls) -> dict[str, str]:
-        """Verify the `hyperframes` npm package actually resolves.
-
-        `_runtime_check` previously only verified that node/ffmpeg/npx existed
-        on PATH, which meant `runtime_available: True` on any machine with
-        Node + FFmpeg — even offline, even if npm was down, even if the
-        package was unpublished. This method performs a cheap
-        `npm view hyperframes version` (5s timeout) and caches the answer
-        for the rest of the process.
-
-        Returns {"version": "X.Y.Z"} on success, {"error": "<short>"} on any
-        failure (404, timeout, network error, npm missing). Never raises.
-        """
-        if cls._npm_resolve_cache is not None:
-            return cls._npm_resolve_cache
-
-        npm = shutil.which("npm")
-        if not npm:
-            cls._npm_resolve_cache = {"error": "npm not on PATH"}
-            return cls._npm_resolve_cache
-
-        try:
-            proc = subprocess.run(
-                [npm, "view", cls._NPM_PACKAGE, "version"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-        except subprocess.TimeoutExpired:
-            cls._npm_resolve_cache = {"error": "timeout (5s) — offline or slow registry"}
-            return cls._npm_resolve_cache
-        except (OSError, subprocess.SubprocessError) as e:
-            cls._npm_resolve_cache = {"error": f"npm view failed: {type(e).__name__}"}
-            return cls._npm_resolve_cache
-
-        if proc.returncode != 0:
-            stderr = (proc.stderr or "").strip()
-            # Most common failure is 404 (package unpublished or name wrong).
-            if "404" in stderr or "E404" in stderr:
-                cls._npm_resolve_cache = {
-                    "error": f"npm package `{cls._NPM_PACKAGE}` not found (404)"
-                }
-            else:
-                tail = stderr.splitlines()[-1][:200] if stderr else f"exit {proc.returncode}"
-                cls._npm_resolve_cache = {"error": f"npm view failed: {tail}"}
-            return cls._npm_resolve_cache
-
-        version = (proc.stdout or "").strip()
-        if not version:
-            cls._npm_resolve_cache = {"error": "npm view returned empty version"}
-        else:
-            cls._npm_resolve_cache = {"version": version}
-        return cls._npm_resolve_cache
-
-    @classmethod
-    def _probe_cli(cls) -> dict[str, str]:
-        """Run the published CLI's doctor command once per process.
-
-        Package resolution alone does not prove that the executable can start:
-        an upstream packaging regression can publish successfully while every
-        CLI command crashes during bootstrap. Provider preflight must not call
-        that state available.
-        """
-        if cls._cli_probe_cache is not None:
-            return cls._cli_probe_cache
-
-        npx = shutil.which("npx")
-        if not npx:
-            cls._cli_probe_cache = {"error": "npx not on PATH"}
-            return cls._cli_probe_cache
-
-        try:
-            proc = subprocess.run(
-                [npx, "--yes", cls._NPM_PACKAGE, "doctor", "--json"],
-                env=media_environment(),
-                capture_output=True,
-                text=True,
-                timeout=20,
-            )
-        except subprocess.TimeoutExpired:
-            cls._cli_probe_cache = {"error": "doctor timed out after 20s"}
-            return cls._cli_probe_cache
-        except (OSError, subprocess.SubprocessError) as exc:
-            cls._cli_probe_cache = {"error": f"doctor failed: {type(exc).__name__}"}
-            return cls._cli_probe_cache
-
-        if proc.returncode != 0:
-            output = "\n".join(filter(None, [proc.stderr, proc.stdout])).strip()
-            tail = output.splitlines()[-1][:200] if output else f"exit {proc.returncode}"
-            cls._cli_probe_cache = {"error": f"doctor failed: {tail}"}
-        else:
-            cls._cli_probe_cache = {"status": "ok"}
-        return cls._cli_probe_cache
-
-    def _runtime_check(self) -> dict[str, Any]:
-        """Return availability state for the HyperFrames runtime.
-
-        Checks BOTH local binaries (node >= 22, ffmpeg, npx) AND that the
-        `hyperframes` npm package actually resolves. A missing/404 package
-        counts as unavailable — `runtime_available: True` means the runtime
-        can genuinely run end-to-end, not just that the local tooling exists.
-        """
-        node_major = self._node_major_version()
-        ffmpeg_ok = find_media("ffmpeg") is not None
-        npx_ok = shutil.which("npx") is not None
-
-        reasons: list[str] = []
-        if node_major is None:
-            reasons.append("node not found on PATH")
-        elif node_major < self._NODE_FLOOR_MAJOR:
-            reasons.append(
-                f"node major version {node_major} < required {self._NODE_FLOOR_MAJOR}"
-            )
-        if not npx_ok:
-            reasons.append("npx not found on PATH")
-        if not ffmpeg_ok:
-            reasons.append("FFmpeg no disponible; revisa la ruta en el Estudio")
-
-        # Only probe npm if the local tooling is actually usable — otherwise
-        # a missing-node run would also show a confusing npm error.
-        npm_resolve: dict[str, str] = {}
-        if not reasons:
-            npm_resolve = self._resolve_npm_package()
-            if "error" in npm_resolve:
-                reasons.append(
-                    f"npm package `{self._NPM_PACKAGE}` not resolvable: "
-                    f"{npm_resolve['error']}"
-                )
-
-        cli_probe: dict[str, str] = {}
-        if not reasons:
-            cli_probe = self._probe_cli()
-            if "error" in cli_probe:
-                reasons.append(f"published CLI is not executable: {cli_probe['error']}")
-
-        return {
-            "runtime_available": not reasons,
-            "node_major": node_major,
-            "ffmpeg_available": ffmpeg_ok,
-            "npx_available": npx_ok,
-            "npm_package": self._NPM_PACKAGE,
-            "npm_package_version": npm_resolve.get("version"),
-            "npm_resolve_error": npm_resolve.get("error"),
-            "cli_probe_status": cli_probe.get("status"),
-            "cli_probe_error": cli_probe.get("error"),
-            "reasons": reasons,
-        }
+    def _runtime_check(self):
+        from lib.hyperframes_runtime import check
+        return check()
 
     def get_status(self) -> ToolStatus:
         check = self._runtime_check()
@@ -429,11 +278,7 @@ class HyperFramesCompose(BaseTool):
         info["hyperframes_runtime"] = check
         if not check["runtime_available"]:
             info["setup_offer"] = {
-                "effort": (
-                    "1-minute fix"
-                    if check["npx_available"] and check["ffmpeg_available"]
-                    else "5-minute fix (install Node 22+ and/or FFmpeg)"
-                ),
+                "effort": "Explicit local preparation or path configuration; reuse existing installations",
                 "install_instructions": self.install_instructions,
                 "unlocks": (
                     "HTML/CSS/GSAP composition runtime — kinetic typography, "
@@ -495,11 +340,11 @@ class HyperFramesCompose(BaseTool):
     # ------------------------------------------------------------------
 
     def _doctor(self, inputs: dict[str, Any]) -> ToolResult:
-        """Probe the environment. Reports node/ffmpeg/npx plus CLI doctor output."""
+        """Explicit local doctor; parse required checks, do not install anything."""
         check = self._runtime_check()
         out: dict[str, Any] = {"runtime_check": check}
 
-        if not check["runtime_available"]:
+        if not check["local_requirements_met"]:
             return ToolResult(
                 success=False,
                 error=(
@@ -509,28 +354,10 @@ class HyperFramesCompose(BaseTool):
                 data=out,
             )
 
-        # Ask the CLI itself for a deeper check. This also warms the npm
-        # cache so the first real render doesn't pay the download cost.
-        try:
-            proc = self._run_hf(["doctor"], cwd=None, timeout=180, check=False)
-            out["cli_doctor"] = {
-                "exit_code": proc.returncode,
-                "stdout_tail": (proc.stdout or "")[-4000:],
-                "stderr_tail": (proc.stderr or "")[-4000:],
-            }
-            ok = proc.returncode == 0
-            return ToolResult(
-                success=ok,
-                data=out,
-                error=None if ok else f"hyperframes doctor exit {proc.returncode}",
-            )
-        except Exception as e:
-            out["cli_doctor_error"] = str(e)
-            return ToolResult(
-                success=False,
-                error=f"hyperframes doctor failed: {e}",
-                data=out,
-            )
+        probe = self._probe_cli()
+        out["runtime_check"] = self._runtime_check()
+        out["cli_doctor"] = probe
+        return ToolResult(success=probe["status"] == "ok", data=out, error=probe.get("error"))
 
     def _scaffold(self, inputs: dict[str, Any]) -> ToolResult:
         """Materialize the HyperFrames workspace from OpenMontage artifacts.
@@ -1028,7 +855,6 @@ class HyperFramesCompose(BaseTool):
         are regenerable under `projects/`.
         """
         asset_lookup = {a["id"]: a for a in assets if "id" in a}
-        assets_dir = workspace / "assets"
         copies: list[dict[str, str]] = []
         resolved: list[dict] = []
         for cut in cuts:
@@ -1038,9 +864,8 @@ class HyperFramesCompose(BaseTool):
                 resolved_cut["source"] = asset_lookup[source].get("path", source)
             src_path = Path(resolved_cut["source"]) if resolved_cut.get("source") else None
             if src_path and src_path.exists() and not self._is_inside(src_path, workspace):
-                dest = assets_dir / src_path.name
-                if not dest.exists() or dest.stat().st_size != src_path.stat().st_size:
-                    shutil.copy2(src_path, dest)
+                from lib.hyperframes_staging import stage
+                dest = stage(src_path, workspace)
                 resolved_cut["source"] = str(dest)
                 copies.append({"from": str(src_path), "to": str(dest)})
             resolved.append(resolved_cut)
@@ -1054,7 +879,6 @@ class HyperFramesCompose(BaseTool):
     ) -> dict[str, Any]:
         """Resolve narration / music asset IDs and stage them."""
         asset_lookup = {a["id"]: a for a in assets if "id" in a}
-        assets_dir = workspace / "assets"
         out: dict[str, Any] = {"narration": [], "music": None}
 
         for seg in audio.get("narration", {}).get("segments", []) or []:
@@ -1065,9 +889,8 @@ class HyperFramesCompose(BaseTool):
             if not src.exists():
                 continue
             if not self._is_inside(src, workspace):
-                dest = assets_dir / src.name
-                if not dest.exists() or dest.stat().st_size != src.stat().st_size:
-                    shutil.copy2(src, dest)
+                from lib.hyperframes_staging import stage
+                dest = stage(src, workspace)
             else:
                 dest = src
             out["narration"].append(
@@ -1079,19 +902,23 @@ class HyperFramesCompose(BaseTool):
             )
 
         music = audio.get("music", {})
+        if any(music.get(k, 0) for k in ("fade_in_seconds", "fade_out_seconds")):
+            raise ValueError("HyperFrames scaffold no aplica fades musicales; prepara una mezcla local explícita o retira esos parámetros")
+        volume = music.get("volume", 0.15)
+        if isinstance(volume, bool) or not isinstance(volume, (int, float)) or not 0 <= volume <= 1:
+            raise ValueError("Volumen musical debe ser finito entre0 y1, incluido0")
         m_id = music.get("asset_id")
         if m_id and m_id in asset_lookup:
             src = Path(asset_lookup[m_id].get("path", ""))
             if src.exists():
                 if not self._is_inside(src, workspace):
-                    dest = assets_dir / src.name
-                    if not dest.exists() or dest.stat().st_size != src.stat().st_size:
-                        shutil.copy2(src, dest)
+                    from lib.hyperframes_staging import stage
+                    dest = stage(src, workspace)
                 else:
                     dest = src
                 out["music"] = {
                     "src": str(dest),
-                    "volume": float(music.get("volume", 0.15) or 0.15),
+                    "volume": float(music.get("volume", 0.15)),
                     "fade_in_seconds": float(music.get("fade_in_seconds", 0) or 0),
                     "fade_out_seconds": float(music.get("fade_out_seconds", 0) or 0),
                 }
@@ -1357,19 +1184,14 @@ class HyperFramesCompose(BaseTool):
         timeout: int,
         check: bool,
     ) -> subprocess.CompletedProcess:
-        """Invoke `npx hyperframes <args>` with the right Windows quirks.
+        """Invoke the same reviewed local Node entry used by diagnostics.
 
         We intentionally bypass `self.run_command` here because we do NOT
         want to raise CalledProcessError on non-zero exits — the caller
         parses lint/validate/render exit codes itself.
         """
-        cmd = ["npx", "--yes", "hyperframes", *args]
-        # On Windows, resolve the .cmd wrapper so subprocess can find it
-        # without shell=True.
-        if os.name == "nt":
-            resolved = shutil.which(cmd[0])
-            if resolved:
-                cmd[0] = resolved
+        from lib.hyperframes_runtime import command
+        cmd = command(args)
         try:
             return subprocess.run(
                 cmd,
@@ -1377,7 +1199,7 @@ class HyperFramesCompose(BaseTool):
                 text=True,
                 timeout=timeout,
                 cwd=str(cwd) if cwd else None,
-                env=media_environment(),
+                env=hyperframes_runtime.environment(),
                 check=False,
             )
         except subprocess.TimeoutExpired as e:
