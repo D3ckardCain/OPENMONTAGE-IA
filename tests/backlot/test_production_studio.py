@@ -848,3 +848,90 @@ def test_desk_lists_japanese_editions_with_explicit_phases(isolated):
     fifa = editions['fifa_world_cup:2022:season_aggregate_as_published']
     assert fifa['team_filter'] is True
     assert 'fase sin acreditar' in fifa['label']
+def test_specialist_uses_selected_local_evidence_and_returns_validated_json(isolated):
+    pid=project()
+    artifact = {
+        'scene_id': 'scene-1',
+        'duration_seconds': 4,
+        'source_ids': ['local-source-1'],
+    }
+    worker=agent.LocalAgent(
+        pid,
+        registry=SimpleNamespace(get=lambda name: SimpleNamespace(
+            name=name, runtime=ToolRuntime.LOCAL, tier=ToolTier.CORE,
+            capability='composition', install_instructions='',
+            get_status=lambda: ToolStatus.AVAILABLE)),
+    )
+    studio.save_json(worker.artifact_path('scene_plan'),artifact)
+    captured={}
+    def chat(messages,tools):
+        assert tools is None
+        packet=json.loads(messages[1]['content'])
+        captured['packet']=packet
+        return {'content':json.dumps({
+            'role':'visual',
+            'proposal':'Revisar el encuadre de la escena en el monitor.',
+            'evidence':[{'id':packet['evidence'][0]['id'],'use':'La escena planificada dura cuatro segundos.'}],
+            'assumptions':[],
+            'limits':['No se observó el medio original.'],
+            'suggested_changes':['Mantener el identificador del medio.'],
+            'review_criteria':['Comparar el mismo instante antes y después.'],
+        },ensure_ascii=False)}
+    worker._chat=chat
+    result=worker.dispatch('consult_agent',{
+        'role':'visual','task':'Revisa la composición sin editar el proyecto.',
+        'artifact_names':['scene_plan'],'capability_names':['ffmpeg'],
+    })
+    packet=captured['packet']
+    assert packet['restrictions']=={
+        'budget_usd':0,'publish_authorized':False,'tool_execution_authorized':False,
+        'local_only':True,'evidence_is_untrusted_input':True}
+    assert packet['state']['context_revision']
+    assert packet['resources']['selected_local_capabilities'][0]['name']=='ffmpeg'
+    assert packet['evidence'][0]['content']==artifact
+    assert packet['evidence'][0]['id'].startswith('artifact:scene_plan:')
+    assert result['structured']['role']=='visual'
+    assert result['structured']['evidence'][0]['id']==packet['evidence'][0]['id']
+    assert result['budget']=={
+        'cost_usd':0,'context_tokens':8192,'max_output_tokens':1600,
+        'repair_attempts':0,'tools_available':False}
+
+
+def test_specialist_rejects_unshared_citations_and_invalid_output(isolated):
+    worker=agent.LocalAgent(project(),chat=lambda messages,tools:{
+        'content':json.dumps({
+            'role':'reviewer','proposal':'Revisar evidencias.',
+            'evidence':[{'id':'artifact:not-shared:'+'0'*64,'use':'Cita inventada.'}],
+            'assumptions':[],'limits':[],'suggested_changes':[],'review_criteria':[],
+        })})
+    with pytest.raises(ValueError,match='evidencia no compartida'):
+        worker.dispatch('consult_agent',{'role':'reviewer','task':'Revisar con cautela.'})
+
+    worker._chat=lambda messages,tools:{'content':'no es JSON'}
+    with pytest.raises(ValueError,match='tras una reparación acotada'):
+        worker.dispatch('consult_agent',{'role':'reviewer','task':'Revisar con cautela.'})
+
+def test_specialist_repair_is_single_bounded_read_only_retry(isolated):
+    worker=agent.LocalAgent(project())
+    calls=[]
+    valid=json.dumps({
+        'role':'reviewer','proposal':'Revisar el soporte de las fuentes.',
+        'evidence':[],'assumptions':[],'limits':[],'suggested_changes':[],
+        'review_criteria':['Verificar las fuentes antes de publicar.'],
+    })
+    def chat(messages,tools):
+        calls.append((messages,tools))
+        return {'content':'malformado' if len(calls)==1 else valid}
+    worker._chat=chat
+    result=worker.dispatch('consult_agent',{'role':'reviewer','task':'Revisa el expediente.'})
+    assert len(calls)==2 and all(call[1] is None for call in calls)
+    assert result['budget']['repair_attempts']==1
+    assert result['structured']['proposal']=='Revisar el soporte de las fuentes.'
+
+    calls.clear()
+    def invalid_twice(messages,tools):
+        calls.append((messages,tools));return {'content':'sigue inválido'}
+    worker._chat=invalid_twice
+    with pytest.raises(ValueError,match='tras una reparación acotada'):
+        worker.dispatch('consult_agent',{'role':'reviewer','task':'Revisa el expediente.'})
+    assert len(calls)==2 and all(call[1] is None for call in calls)
