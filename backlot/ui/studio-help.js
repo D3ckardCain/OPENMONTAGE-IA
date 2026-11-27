@@ -105,6 +105,7 @@
 
   function show(button) {
     if (!enabled || !button?.isConnected) return;
+    if (activeButton && activeButton !== button) removeDescription(activeButton);
     activeButton = button;
     helpRegion.textContent = contextualHelp(button);
     helpRegion.hidden = false;

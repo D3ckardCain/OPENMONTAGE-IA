@@ -1,5 +1,6 @@
 """Studio channel-filter contract using synthetic API responses only."""
 import pytest
+from urllib.parse import urlsplit
 
 pytest.importorskip("playwright.sync_api")
 from playwright.sync_api import sync_playwright
@@ -14,7 +15,7 @@ def test_studio_restores_historical_channel_filters_and_payload(staged_backlot_s
         page = browser.new_page(viewport={"width": 2048, "height": 1152})
 
         def api(route):
-            path = route.request.url.split("?", 1)[0]
+            path = urlsplit(route.request.url).path
             if route.request.method == "POST" and path.endswith("/api/research/channels"):
                 calls.append(route.request.post_data_json)
                 return route.fulfill(json={

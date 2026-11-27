@@ -1,5 +1,6 @@
 """Accessible, persistent button help; all API traffic is synthetic/local."""
 import pytest
+from urllib.parse import urlsplit
 
 pytest.importorskip("playwright.sync_api")
 from playwright.sync_api import sync_playwright, expect
@@ -13,7 +14,7 @@ def test_button_help_is_accessible_toggleable_and_persistent(staged_backlot_serv
         page = browser.new_page(viewport={"width": 2048, "height": 1152})
 
         def api(route):
-            path = route.request.url.split("?", 1)[0]
+            path = urlsplit(route.request.url).path
             responses = {
                 "/api/health": {"ok": True},
                 "/api/studio/identity": {"restart_required": False},
@@ -37,6 +38,9 @@ def test_button_help_is_accessible_toggleable_and_persistent(staged_backlot_serv
         expect(help_region).to_contain_text("carpeta de proyecto")
         assert "studio-button-help" in (create.get_attribute("aria-describedby") or "")
         assert create.inner_text().strip() == original_name
+        box = create.bounding_box()
+        page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        expect(help_region).to_contain_text("carpeta de proyecto")
 
         # A button appended after startup receives contextual help too.
         page.locator('.nav-item[data-module="projects"]').click()
