@@ -189,7 +189,7 @@ body.editor-active[data-editor-workspace="subtitles"] #edit-subtitle-panel:not([
 .editor-menu{min-width:0}
 .editor-primary-spaces{flex:1 1 auto;overflow-x:auto;overscroll-behavior-x:contain}
 .editor-action-icon{display:block;width:16px;height:16px}
-.editor-menu button,.editor-menu-more>summary{min-height:36px}
+.editor-menu button,.editor-menu-more>summary{min-height:32px}
 @media(max-width:1050px){
  .editor-menu{flex-wrap:wrap;overflow:visible}
  .editor-primary-spaces{flex:1 1 calc(100% - 120px);max-width:100%;overflow-x:auto}
