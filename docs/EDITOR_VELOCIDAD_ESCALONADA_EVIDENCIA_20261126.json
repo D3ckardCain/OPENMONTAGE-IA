@@ -1,0 +1,52 @@
+{
+  "attempt": "cbeb680b8d1f47d29aba58e84e9cd5fc",
+  "duration_seconds": 3.96,
+  "video_frames": 99,
+  "fps": 25,
+  "audio_duration": 3.96,
+  "decoded_audio_samples": 190080,
+  "decoded_audio_rms": 0.10940129309892654,
+  "source_word_occurrences_preserved": 16,
+  "existing_excluded_word_occurrences": 1,
+  "after_excluded_word_occurrences": 1,
+  "stored_word_clock_only_no_new_acoustic_alignment": true,
+  "subtitle_text_and_times_match_export": true,
+  "retimed_audio_pieces": 2,
+  "retimed_layer_pieces": 2,
+  "markers": [
+    {
+      "id": "2a4bb6abefcc4b31aa9bc6f3e98363f9",
+      "seconds": 2.9697087378640776,
+      "label": "QA sync"
+    }
+  ],
+  "titles": [
+    {
+      "id": "bf6354c3a0004360828354b3e051d456",
+      "text": "QA \u00b7 velocidad escalonada",
+      "start_seconds": 0.6701030927835052,
+      "end_seconds": 3.6299029126213593,
+      "size": 24,
+      "position": "top"
+    }
+  ],
+  "old_knots": [
+    0,
+    1.94,
+    4
+  ],
+  "new_knots": [
+    0,
+    2.6,
+    3.96
+  ],
+  "native_speeds": [
+    0.7461538461538462,
+    1.5147058823529413
+  ],
+  "ui_undo_redo_reopen": true,
+  "new_focused_tests": 10,
+  "main4750": false,
+  "human_listening": false,
+  "initial_decimal_guard_rejection_corrected": true
+}

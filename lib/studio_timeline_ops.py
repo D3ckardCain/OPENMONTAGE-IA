@@ -8,6 +8,7 @@ CAPABILITIES = ['subtitle_karaoke', 'subtitle_layout', 'subtitle_reflow', 'rippl
 
 CAPABILITIES += ['clip_color', 'color_compare']
 CAPABILITIES += ['clip_color_curves']
+CAPABILITIES += ['clip_speed_ramp','speed_ramp_plan']
 
 
 def assert_editable(edl, data):
@@ -99,6 +100,8 @@ def _ripple_labels(items, removed):
 
 
 def apply_timeline(edl, data):
+    from lib.studio_speed_ramp import apply as apply_speed_ramp
+    if apply_speed_ramp(edl,data):return True
     from lib.studio_color_curves import apply as apply_color_curves
     if apply_color_curves(edl,data):return True
     from lib.studio_color import apply as apply_color

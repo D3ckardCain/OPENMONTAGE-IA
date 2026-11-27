@@ -25,6 +25,11 @@ def create_editor_router(body):
     def capabilities():
         return editor_capabilities()
 
+    @router.post('/{pid}/speed-plan')
+    async def speed_plan(pid:str,request:Request):
+        from lib.studio_speed_ramp import project_plan
+        return invoke(project_plan,pid,await body(request,12000))
+
     @router.get('/{pid}/color-compare')
     def color_compare(pid:str, clip_id:str, clip_seconds:float=0):
         from lib.studio_color import compare
