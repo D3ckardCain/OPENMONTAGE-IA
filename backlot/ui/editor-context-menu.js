@@ -42,6 +42,22 @@ export function clampMenuPosition(x, y, menuWidth, menuHeight, viewportWidth, vi
   };
 }
 
+export function describeEditorContext(target) {
+  const node=target?.closest?.('[data-editor-context]');
+  if(node){
+    const type=node.dataset.editorContext;
+    if(type==='empty')return {type,node};
+    if(type==='clip')return {type,id:node.dataset.contextId,track:node.dataset.contextTrack,node};
+    if(type==='cue')return {type,index:Number(node.dataset.contextIndex),node};
+    return {type,id:node.dataset.contextId,node};
+  }
+  if(target?.closest?.('#editor-monitor .editor-screen'))return {type:'monitor'};
+  const library=target?.closest?.('.editor-library');
+  if(library&&!target.closest?.('button,input,select,textarea,a,summary,[contenteditable="true"]'))return {type:'library'};
+  const tracks=target?.closest?.('#edit-tracks');
+  return tracks?{type:'empty',node:tracks}:null;
+}
+
 export function initializeEditorContextMenu({ root, describe, prepare = () => {}, items, state = () => ({}), activate }) {
   let menu = null;
   let opener = null;

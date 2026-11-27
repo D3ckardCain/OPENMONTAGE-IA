@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clampMenuPosition,contextMenuItems,initializeEditorContextMenu } from '../../backlot/ui/editor-context-menu.js';
+import { clampMenuPosition,contextMenuItems,describeEditorContext,initializeEditorContextMenu } from '../../backlot/ui/editor-context-menu.js';
 
 class Element {
   constructor(){this.children=[];this.attributes={};this.dataset={};this.style={};this.listeners={};this.disabled=false;this.isConnected=true;this.parent=null;this.textContent='';}
@@ -71,4 +71,19 @@ test('Shift+F10 uses the focused editor item and outside pointer closes without 
 test('menu coordinates remain within small and widescreen viewports',()=>{
   assert.deepEqual(clampMenuPosition(1200,1000,300,300,1280,720),{left:972,top:412});
   assert.deepEqual(clampMenuPosition(0,0,500,400,3440,1440),{left:8,top:8});
+});
+
+test('context resolution distinguishes managed editor areas from native library controls',()=>{
+  const clip={dataset:{editorContext:'clip',contextId:'c1',contextTrack:'audio'}};
+  const inClip={closest:selector=>selector==='[data-editor-context]'?clip:null};
+  assert.deepEqual(describeEditorContext(inClip),{type:'clip',id:'c1',track:'audio',node:clip});
+  const monitor={closest:selector=>selector==='#editor-monitor .editor-screen'?{}:null};
+  assert.deepEqual(describeEditorContext(monitor),{type:'monitor'});
+  const input={closest:selector=>selector==='.editor-library'?{}:selector==='button,input,select,textarea,a,summary,[contenteditable="true"]'?{}:null};
+  assert.equal(describeEditorContext(input),null);
+  const blankLibrary={closest:selector=>selector==='.editor-library'?{}:null};
+  assert.deepEqual(describeEditorContext(blankLibrary),{type:'library'});
+  const tracks={closest:selector=>selector==='#edit-tracks'?{}:null};
+  assert.equal(describeEditorContext(tracks).type,'empty');
+  assert.equal(describeEditorContext({closest:()=>null}),null);
 });

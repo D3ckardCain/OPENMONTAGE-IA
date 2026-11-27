@@ -16,7 +16,7 @@ import { compatibilityReady,compatibilityState } from './studio-compatibility.js
 import { initializeCandidatesUI } from './editor-candidates-ui.js';
 import { initializeCropPreview } from './editor-crop-preview.js';
 import { languageSelection,languageParams } from './editor-subtitle-language.js';
-import { contextMenuItems,initializeEditorContextMenu } from './editor-context-menu.js';
+import { contextMenuItems,describeEditorContext,initializeEditorContextMenu } from './editor-context-menu.js';
 const q = id => document.getElementById(id);
 let project = new URLSearchParams(location.search).get('edit'), state = null, selection = null;
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
@@ -527,19 +527,7 @@ cropPreview=initializeCropPreview({q,getEdl:edl,getSelection:selected,sourceUrl}
 compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),runStrict:(op,params)=>task(()=>command(op,params),true),has:name=>capabilities.has(name),cursor:()=>cursor});
 contextMenuUI=initializeEditorContextMenu({
   root:q('manual-editor'),
-  describe(target){
-    const node=target.closest?.('[data-editor-context]');
-    if(node){
-      const type=node.dataset.editorContext;
-      if(type==='empty')return {type,node};
-      if(type==='clip')return {type,id:node.dataset.contextId,track:node.dataset.contextTrack,node};
-      if(type==='cue')return {type,index:Number(node.dataset.contextIndex),node};
-      return {type,id:node.dataset.contextId,node};
-    }
-    if(target.closest?.('#editor-monitor .editor-screen'))return {type:'monitor'};
-    if(target.closest?.('.editor-library')&&!target.closest?.('button,input,select,textarea,a,summary,[contenteditable="true"]'))return {type:'library'};
-    return target.closest?.('#edit-tracks')?{type:'empty',node:target.closest('#edit-tracks')}:null;
-  },
+  describe:describeEditorContext,
   prepare(context){
     if(context.type!=='clip')return;
     const list=context.track==='audio'?edl().audio_tracks:edl().cuts,clip=list.find(item=>item.id===context.id);
