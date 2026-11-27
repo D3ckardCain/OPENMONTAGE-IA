@@ -12,6 +12,8 @@ for (const [viewport, gridHeight] of [[1920, 930], [1280, 570]]) {
 }
 
 const wideVideo = editorPanelBudget(930, 3, 'video');
+assert.ok(editorPanelBudget(612, 3, 'video').minTracks >= 360,
+  '1920x1080 layout keeps all three base lanes in the visible timeline budget');
 const wideAudio = editorPanelBudget(930, 3, 'audio');
 const wideSubtitles = editorPanelBudget(930, 3, 'subtitles');
 assert.ok(wideVideo.minTracks >= 360, 'legacy short timeline layouts migrate to enough room for three base tracks');

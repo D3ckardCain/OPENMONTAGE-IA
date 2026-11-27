@@ -4,7 +4,7 @@ export function editorPanelBudget(height, rows=3, workspace='video') {
   const taskExtra=workspace==='audio'?44:workspace==='subtitles'?36:0;
   const minTop=Math.min(260,Math.max(0,(viewport-8)*.36));
   const available=Math.max(0,viewport-8-minTop);
-  const minTracks=Math.min(360+Math.max(0,trackRows-3)*48+taskExtra,viewport*.5,available);
+  const minTracks=Math.min(360+Math.max(0,trackRows-3)*48+taskExtra,viewport*.6,available);
   return {minTop,minTracks,maxTracks:Math.max(minTracks,available),defaultTrackShare:(workspace==='audio'||workspace==='subtitles') ? .47 : .44};
 }
 
