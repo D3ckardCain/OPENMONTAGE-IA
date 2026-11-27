@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from lib.project_workspace import STANDARD_DIRS, create_project_folder, initialize_layout
 
 
@@ -27,7 +25,11 @@ def test_workspace_layout_is_uniform_and_confines_directories(tmp_path):
     assert all((project / name).resolve().is_relative_to(project.resolve()) for name in STANDARD_DIRS)
 
 
-def test_workspace_requires_existing_selected_root(tmp_path):
-    with pytest.raises(ValueError, match="carpeta raíz"):
-        create_project_folder(tmp_path / "missing", "Sin disco")
+def test_workspace_creates_a_missing_local_root(tmp_path):
+    root = tmp_path / "new" / "projects"
+    project_id, project = create_project_folder(root, "Trabajo offline")
+
+    assert root.is_dir()
+    assert project_id == "trabajo-offline"
+    assert project.is_dir()
 
