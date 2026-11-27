@@ -71,8 +71,8 @@ def _bounded_evidence(value, depth=0):
 
 
 _CONTEXT_PROTECTED = re.compile(
-    r"\b(?:authoriz(?:e|ed|ation)|autoriz(?:o|ación)|approval|approved|aprob(?:ado|ación)|"
-    r"decision|decisión|decidido|pending|pendiente|todo|uncertain|incierto|in_flight|"
+    r"\b(?:authoriz(?:e|ed|ation)|autoriz(?:o|ad[oa]|ación)|approval|approved|aprob(?:ad[oa]|ación)|"
+    r"decision(?:es)?|decisión(?:es)?|decidid[oa]|pending tasks?|pendient(?:e|es)|todo|uncertain|incierto|in_flight|"
     r"plan|planned|planificado|must|debe|should|debería|siguiente tarea|next task)\b",
     re.IGNORECASE,
 )
@@ -128,7 +128,7 @@ def _context_archive_record(message, index, request_sha256, messages_sha256, ses
         return None
     if _CONTEXT_PROTECTED.search(content) or "AGENT_SESSION_UNCERTAIN" in content:
         return None
-    refs = sorted(set(_CONTEXT_REFERENCE.findall(content)))
+    refs = list(dict.fromkeys(_CONTEXT_REFERENCE.findall(content)))
     classification = _context_message_classification(message.get("role"), content)
     original_sha256 = hashlib.sha256(
         json.dumps(message, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
