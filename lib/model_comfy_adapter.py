@@ -160,8 +160,9 @@ def prepare_i2v_image(family,inputs,client,ledger):
         image=current_image(pid)
         if not image:
             raise ValueError('Prepara primero la imagen de entrada de este proyecto')
-        path=(studio.project_path(pid)/'source_images'/image['filename']).resolve()
-        path.relative_to((studio.project_path(pid)/'source_images').resolve())
+        relative=image.get('relative_path') or ('source_images/'+image['filename'])
+        path=(studio.project_path(pid)/relative).resolve()
+        path.relative_to(studio.project_path(pid).resolve())
     if not path.is_file() or path.stat().st_size>8000000:
         raise ValueError('Imagen preparada ausente o demasiado grande')
     digest=hashlib.sha256(path.read_bytes()).hexdigest()
@@ -179,3 +180,4 @@ def prepare_i2v_image(family,inputs,client,ledger):
         name=client.upload_image(path,'openmontage-'+digest+path.suffix.lower())
         source={'sha256':digest,'project_id':pid,'server_image':name}
     return {**inputs,'server_image':name},source
+
