@@ -6,6 +6,7 @@ There is no hardcoded creative script or silent paid-provider fallback.
 """
 from __future__ import annotations
 import json
+import hashlib
 import math
 import subprocess
 import threading
@@ -89,8 +90,9 @@ TOOLS=[
  descriptor('write_project_file','Crea textos, subtítulos o código de composición en assets/ o workspaces/.',{'path':{'type':'string'},'content':{'type':'string','maxLength':300000}},['path','content']),
  descriptor('read_artifact','Lee un artefacto JSON del proyecto.',{'name':{'type':'string'}},['name']),
  descriptor('write_artifact','Guarda un artefacto JSON; los artefactos conocidos validan su esquema.',{'name':{'type':'string'},'data':{'type':'object'}},['name','data']),
- descriptor('list_tools','Descubre contratos locales por capacidad; no ejecuta herramientas.',{'capability':{'type':'string'}}),
+ descriptor('list_tools','Descubre herramientas locales con páginas compactas; usa tool_info para el contrato completo. No ejecuta herramientas.',{'capability':{'type':'string'},'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
  descriptor('tool_info','Lee contrato real, disponibilidad, instalación y skills de una herramienta.',{'name':{'type':'string'}},['name']),
+ descriptor('tool_preflight','Comprueba esquema, disponibilidad, requisitos, coste y tiempo estimado sin ejecutar la herramienta.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
  descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
  descriptor('wan_presets','Lee perfiles WAN locales y su configuración actual.'),
  descriptor('select_wan_preset','Selecciona explícitamente el perfil WAN previamente anunciado y registra el cambio; no descarga modelos.',{'preset':{'enum':['wan22-5b-t2v','wan22-14b-t2v-4step','wan22-14b-i2v-4step']}},['preset']),
@@ -102,6 +104,18 @@ TOOLS=[
  descriptor('consult_agent','Consulta secuencial de solo lectura. El director selecciona artefactos/capacidades locales; la respuesta JSON cita IDs y no autoriza herramientas.',{'role':{'enum':list(ROLES)},'task':{'type':'string','minLength':1,'maxLength':4000},'artifact_names':{'type':'array','maxItems':4,'uniqueItems':True,'items':{'type':'string','pattern':'^[a-z][a-z0-9_]{0,80}$'}},'capability_names':{'type':'array','maxItems':6,'uniqueItems':True,'items':{'type':'string','minLength':1,'maxLength':120}}},['role','task']),
  descriptor('checkpoint','Guarda evidencia de la etapa actual y respeta sus aprobaciones.',{'stage':{'type':'string'},'status':{'enum':['in_progress','completed','awaiting_human','failed']},'artifacts':{'type':'object'},'message':{'type':'string'}},['stage','status','artifacts']),
  descriptor('finish','Finaliza solo si existe un render comprobable, o comunica bloqueo concreto.',{'message':{'type':'string'},'blocked':{'type':'boolean'}},['message','blocked'])]
+
+
+class AgentToolFailure(ValueError):
+    """Typed, non-retrying failure before or during an agent tool call."""
+    def __init__(self,code,message,*,outcome='not_started',recoverable=True,retryable=False,next_action='Corrige la precondición; no reintentes una escritura incierta.'):
+        self.code=code;self.outcome=outcome;self.recoverable=recoverable;self.retryable=retryable;self.next_action=next_action
+        super().__init__(message)
+
+    def as_receipt(self):
+        return {'error':{'code':self.code,'message':str(self)[:1200],'outcome':self.outcome,
+                         'recoverable':self.recoverable,'retryable':self.retryable,
+                         'reconcile_before_retry':self.outcome=='unknown','next_action':self.next_action}}
 
 
 class Pause(Exception):
@@ -397,40 +411,104 @@ class LocalAgent:
             return {'saved':str(self.artifact_path(args['name']))}
         if name=='list_tools':
             reg=self.registry_ready()
-            return [{'name':t.name,'capability':t.capability,'runtime':t.runtime.value,'install_instructions':t.install_instructions}
-                    for t in reg._tools.values() if self.permitted(t) and (not args.get('capability') or t.capability==args['capability'])]
-        if name in ('tool_info','execute_tool'):
-            tool=self.registry_ready().get(args['name'])
-            if tool is None or not self.permitted(tool):raise ValueError('Solo herramientas concretas locales, sin publicación ni proveedores de pago')
+            rows=[t for t in reg._tools.values() if self.permitted(t) and
+                  (not args.get('capability') or t.capability==args['capability'])]
+            rows.sort(key=lambda tool:tool.name)
+            offset=args.get('offset',0);limit=args.get('limit',50)
+            page=rows[offset:offset+limit]
+            items=[{'name':t.name,'version':t.version,'capability':t.capability,'runtime':t.runtime.value,
+                    'status':t.get_status().value,
+                    'install_instructions':t.install_instructions[:240] if t.get_status()!=ToolStatus.AVAILABLE else ''}
+                   for t in page]
+            if 'offset' in args or 'limit' in args or len(rows)>limit:
+                return {'total':len(rows),'offset':offset,'limit':limit,'items':items,
+                        'next_offset':offset+len(items) if offset+len(items)<len(rows) else None}
+            return items
+        if name in ('tool_info','tool_preflight','execute_tool'):
+            reg=self.registry_ready();tool=reg.get(args['name'])
+            if tool is None or not self.permitted(tool):
+                raise AgentToolFailure('tool_not_allowed','Solo herramientas concretas locales, sin publicación ni proveedores de pago.')
             if name=='tool_info':return tool.get_info()
-            inputs=dict(args['inputs']);validate(inputs,tool.input_schema)
-            stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
-            definition=next((s for s in self.manifest['stages'] if s['name']==stage),{})
-            if 'skills/'+definition.get('skill','')+'.md' not in self.reads:raise ValueError('Lee primero las instrucciones de la etapa actual')
-            for field in ('output_path','output_dir'):
-                if field in tool.input_schema.get('properties',{}) and not inputs.get(field):raise ValueError('Indica explícitamente '+field+' dentro del proyecto')
-            price=tool.estimate_cost(inputs)
-            if not isinstance(price,(int,float)) or not math.isfinite(price) or price!=0:raise ValueError('La estimación no es cero verificable')
-            if tool.get_status()!=ToolStatus.AVAILABLE:raise ValueError('Herramienta no disponible: '+tool.install_instructions)
-            for skill in tool.agent_skills:
-                if not any(x.startswith('.agents/skills/'+skill+'/') for x in self.reads):raise ValueError('Lee primero el skill '+skill)
-            for key,value in inputs.items():
-                if key in ('output_path','output_dir','project_dir','workspace_dir','workdir') and value:
-                    dest=Path(value)
-                    if not dest.is_absolute():dest=self.path/dest
-                    dest=dest.resolve();relative=dest.relative_to(self.path.resolve())
-                    if relative.parts[:2] in (('assets','imports'),('assets','editor-renders')):
-                        raise ValueError('No sobrescribas importaciones ni snapshots del editor')
-                    inputs[key]=str(dest)
-            if 'project_id' in inputs and inputs['project_id']!=self.pid:raise ValueError('La herramienta apunta a otro proyecto')
-            self.event('tool','Ejecutando '+tool.name)
-            result=tool.execute(inputs)
-            data=result.data
-            if result.success and tool.name in ('official_uefa_live', 'official_fifa_live', 'official_jleague_live', 'official_mls_live', 'official_bundesliga_live', 'official_premier_live', 'brasileirao_player_stats', 'classificacao_league_player_stats', 'eredivisie_player_stats', 'ligamx_player_stats', 'as_competition_player_stats', 'official_asian_cup_live', 'official_ofc_nations_cup_live'):
-                from lib.football_statistics import add_standard_statistics
-                data=add_standard_statistics(data)
-            return {'success':result.success,'data':data,'error':result.error,'cost_usd':result.cost_usd,
-                    'artifacts':list(result.artifacts or [])}
+            try:
+                inputs=dict(args['inputs']);validate(inputs,tool.input_schema)
+                stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
+                definition=next((s for s in self.manifest['stages'] if s['name']==stage),{})
+                stage_skill='skills/'+definition.get('skill','')+'.md'
+                missing_skills=[]
+                if stage_skill not in self.reads:missing_skills.append(stage_skill)
+                for skill in getattr(tool,'agent_skills',[]):
+                    if not any(x.startswith('.agents/skills/'+skill+'/') for x in self.reads):
+                        missing_skills.append('.agents/skills/'+skill+'/')
+                for field in ('output_path','output_dir'):
+                    if field in tool.input_schema.get('properties',{}) and not inputs.get(field):
+                        raise ValueError('Indica explícitamente '+field+' dentro del proyecto')
+                for key,value in list(inputs.items()):
+                    if key in ('output_path','output_dir','project_dir','workspace_dir','workdir') and value:
+                        dest=Path(value)
+                        if not dest.is_absolute():dest=self.path/dest
+                        dest=dest.resolve();relative=dest.relative_to(self.path.resolve())
+                        if relative.parts[:2] in (('assets','imports'),('assets','editor-renders')):
+                            raise ValueError('No sobrescribas importaciones ni snapshots del editor')
+                        inputs[key]=str(dest)
+                if 'project_id' in inputs and inputs['project_id']!=self.pid:raise ValueError('La herramienta apunta a otro proyecto')
+            except Exception as exc:
+                raise AgentToolFailure('precondition_failed',str(exc),outcome='not_started',recoverable=True,retryable=False,
+                                       next_action='Corrige los argumentos o la ruta indicada; no se ejecutó la herramienta.') from exc
+            try:
+                estimate=tool.estimate_cost(inputs)
+                runtime_seconds=tool.estimate_runtime(inputs)
+            except Exception as exc:
+                estimate=None;runtime_seconds=None;estimate_error=str(exc)[:300]
+            else:estimate_error=None
+            available=tool.get_status()==ToolStatus.AVAILABLE
+            fields=list(getattr(tool,'idempotency_key_fields',[]) or [])
+            fingerprint_data={'project_id':self.pid,'tool':tool.name,'version':tool.version,'arguments':inputs}
+            request_fingerprint=hashlib.sha256(json.dumps(fingerprint_data,ensure_ascii=False,sort_keys=True,default=str,separators=(',',':')).encode('utf-8')).hexdigest()
+            request_id=args.get('request_id') or 'agent-'+request_fingerprint[:32]
+            cost_valid=isinstance(estimate,(int,float)) and math.isfinite(estimate) and estimate==0
+            skills_ready=not missing_skills
+            ready=available and cost_valid and skills_ready and estimate_error is None
+            if name=='tool_preflight':
+                return {'ready':ready,'tool':tool.name,'version':tool.version,'capability':tool.capability,
+                        'status':tool.get_status().value,'input_schema':tool.input_schema,
+                        'preconditions':{'missing_skills':missing_skills,'dependencies':list(getattr(tool,'dependencies',[])),
+                                         'project_scoped_outputs':True},
+                        'effects':list(getattr(tool,'side_effects',[]) or []),
+                        'estimated_cost_usd':estimate,'estimated_runtime_seconds':runtime_seconds,
+                        'estimate_error':estimate_error,'request_id':request_id,
+                        'request_fingerprint':request_fingerprint,
+                        'declared_idempotency_fields':fields,'idempotency_candidate':request_fingerprint,'idempotency_enforced_by_dispatch':False}
+            if name=='execute_tool':
+                if missing_skills:raise AgentToolFailure('skill_not_read','Lee primero el skill '+missing_skills[0],outcome='not_started',recoverable=True)
+                if not cost_valid or estimate_error is not None:
+                    raise AgentToolFailure('cost_not_verified','La estimación no es cero verificable.',outcome='not_started',recoverable=False)
+                if not available:raise AgentToolFailure('tool_unavailable','Herramienta no disponible: '+tool.install_instructions,outcome='not_started',recoverable=True)
+                self.event('tool','Ejecutando '+tool.name,request_id=request_id,request_fingerprint=request_fingerprint)
+                try:result=tool.execute(inputs)
+                except Exception as exc:
+                    self.event('error','Resultado de herramienta incierto; requiere reconciliación antes de repetir',
+                               tool=tool.name,request_id=request_id,error=str(exc)[:500])
+                    return {'success':False,'tool':tool.name,'tool_version':tool.version,'request_id':request_id,
+                            'request_fingerprint':request_fingerprint,
+                            'error':{'code':'tool_execution_outcome_unknown','message':str(exc)[:1200],
+                                     'outcome':'unknown','recoverable':True,'retryable':False,
+                                     'reconcile_before_retry':True,
+                                     'next_action':'Consulta revisión, recibo y artefactos del proyecto con este request_id; no repitas la escritura.'},
+                            'cost_usd':0}
+                data=result.data
+                if result.success and tool.name in ('official_uefa_live', 'official_fifa_live', 'official_jleague_live', 'official_mls_live', 'official_bundesliga_live', 'official_premier_live', 'brasileirao_player_stats', 'classificacao_league_player_stats', 'eredivisie_player_stats', 'ligamx_player_stats', 'as_competition_player_stats', 'official_asian_cup_live', 'official_ofc_nations_cup_live'):
+                    from lib.football_statistics import add_standard_statistics
+                    data=add_standard_statistics(data)
+                failure=None
+                if not result.success:
+                    failure={'code':'tool_reported_failure','message':str(result.error or 'La herramienta informó fallo')[:1200],
+                             'outcome':'unknown','recoverable':True,'retryable':False,'reconcile_before_retry':True,
+                             'next_action':'Comprueba recibos y artefactos antes de repetir.'}
+                return {'success':result.success,'tool':tool.name,'tool_version':tool.version,
+                        'request_id':request_id,'request_fingerprint':request_fingerprint,
+                        'declared_idempotency_fields':fields,'idempotency_candidate':request_fingerprint,'idempotency_enforced_by_dispatch':False,
+                        'data':data,'error':failure,'cost_usd':result.cost_usd,
+                        'artifacts':list(result.artifacts or [])}
         if name=='wan_presets':
             from lib.wan_presets import catalog
             from lib.model_adapters import configuration

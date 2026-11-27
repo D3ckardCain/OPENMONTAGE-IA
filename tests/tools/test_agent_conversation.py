@@ -92,7 +92,11 @@ def test_errors_are_delivered_to_next_model_without_success_claim(instance, erro
     instance.dispatch.side_effect = error
     c = Conversation(instance, INITIAL.copy(), tools=[])
     c.turn()
-    assert json.loads(c.state['messages'][-1]['content']) == {'error': str(error)}
+        receipt=json.loads(c.state['messages'][-1]['content'])
+    assert receipt['error']['message']==str(error)
+    assert receipt['error']['outcome']=='unknown'
+    assert receipt['error']['retryable'] is False
+    assert receipt['error']['reconcile_before_retry'] is True
     assert studio.read_json(c.path)['in_flight'] is None
     instance.chat.side_effect = lambda messages, tools, **kw: (
         message(call(2)) if json.loads(messages[-1]['content'])['error'] == str(error) else None)
@@ -274,3 +278,30 @@ def test_prepared_native_conversion_cancel_resume_with_simulated_model(tmp_path,
     assert [r['data']['values'] for r in receipts] == [[25.4], [2.54]]
     assert all(r['data']['provenance']['network_accessed'] is False for r in receipts)
     model.assert_called_once()
+
+def test_large_receipt_over_100k_is_archived_before_context_reuse(instance):
+    complete=json.dumps({'data':{'text':'x'*110000}},separators=(',',':'))
+    instance.chat.side_effect=[message(call(1)),{'role':'assistant','content':'Resultado recibido.'}]
+    instance.dispatch.return_value={'payload':complete}
+    c=Conversation(instance,INITIAL.copy(),tools=[])
+    c.turn()
+    assert len(c.state['messages'][-1]['content'])>100000
+    with pytest.raises(Pause) as waiting:c.turn()
+    assert waiting.value.status=='awaiting_input'
+    summary=json.loads(c.state['messages'][-1]['content'])
+    archive=instance.path/summary['archive_path']
+    record=json.loads(archive.read_text(encoding='utf-8'))
+    assert json.loads(record['content'])['payload']==complete
+    assert summary['receipt_sha256']==hashlib.sha256(record['content'].encode('utf-8')).hexdigest()
+
+
+def test_identical_tool_call_without_project_progress_stops_before_duplicate(instance):
+    instance.chat.side_effect=[message(call(1)),message(call(1))]
+    instance.dispatch.return_value={'value':'same'}
+    c=Conversation(instance,INITIAL.copy(),tools=[])
+    c.turn()
+    with pytest.raises(Pause,match='AGENT_LOOP_NO_PROGRESS'):
+        c.turn()
+    assert instance.dispatch.call_count==1
+    assert c.state['tool_call_history'][-1]['before']==c.state['tool_call_history'][-1]['after']
+    assert studio.read_json(c.path)['in_flight'] is None

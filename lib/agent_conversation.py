@@ -168,6 +168,35 @@ class Conversation:
         return {'compacted': compacted, 'characters_before': original_size,
                 'characters_after': len(json.dumps(messages, ensure_ascii=False, default=str))}
 
+    def _progress_fingerprint(self):
+        """Detect local project-state changes for loop control; never proof of completion."""
+        import os
+        digest=hashlib.sha256()
+        candidates=[]
+        for name in ('production_request.json',):
+            p=self.agent.path/name
+            if p.is_file() and not p.is_symlink():candidates.append(p)
+        for pattern in ('checkpoint_*.json',):
+            candidates.extend(p for p in self.agent.path.glob(pattern) if p.is_file() and not p.is_symlink())
+        for root_name in ('artifacts','assets','workspaces'):
+            root=self.agent.path/root_name
+            if not root.is_dir() or root.is_symlink():continue
+            for p in root.rglob('*'):
+                if p.is_file() and not p.is_symlink() and not p.name.startswith('agent_receipt_'):
+                    candidates.append(p)
+                    if len(candidates)>=5000:break
+        for path in sorted(set(candidates),key=lambda p:str(p)):
+            try:
+                stat=path.stat();relative=path.relative_to(self.agent.path).as_posix()
+                digest.update(relative.encode('utf-8','replace'));digest.update(b'\\0')
+                digest.update(str(stat.st_size).encode());digest.update(b':')
+                digest.update(str(stat.st_mtime_ns).encode())
+                if stat.st_size<=65536:
+                    digest.update(path.read_bytes())
+            except OSError:
+                digest.update(b'unreadable')
+        return digest.hexdigest()
+
     def turn(self):
         from lib.production_agent import Pause
         a, s = self.agent, self.state
@@ -209,25 +238,52 @@ class Conversation:
             if a.cancel.is_set():
                 raise Pause('stopped', 'Detenido entre acciones; resultados guardados para reanudar.')
             fn = s['pending'][s['next_call']]['function']
-            s['in_flight'] = {'call_index': s['next_call'], 'function': fn}
+            call=s['pending'][s['next_call']]
+            try:
+                args = fn.get('arguments', {})
+                if isinstance(args, str):args = json.loads(args)
+            except Exception as exc:
+                args={}
+                parse_error=exc
+            else:parse_error=None
+            signature=hashlib.sha256(json.dumps({'name':fn.get('name'),'arguments':args},ensure_ascii=False,sort_keys=True,default=str,separators=(',',':')).encode('utf-8')).hexdigest()
+            progress_before=self._progress_fingerprint()
+            recent=s.setdefault('tool_call_history',[])
+            repeated=any(item.get('signature')==signature and item.get('before')==item.get('after')==progress_before
+                         for item in recent[-2:])
+            s['in_flight']={'call_index':s['next_call'],'function':fn,'tool_call_id':call.get('id'),
+                            'signature':signature,'progress_before':progress_before}
             self.save()
             pause = None
             try:
-                args = fn.get('arguments', {})
-                if isinstance(args, str):
-                    args = json.loads(args)
+                if parse_error is not None:raise parse_error
+                if repeated:raise Pause('blocked','AGENT_LOOP_NO_PROGRESS: llamada idéntica con los mismos argumentos y sin cambios de proyecto; se detuvo antes de repetirla.')
                 result = a.dispatch(fn.get('name'), args)
             except Pause as exc:
                 pause = exc
                 result = {'paused': exc.status, 'message': str(exc)}
             except Exception as exc:
-                result = {'error': str(exc)[:1200]}
+                if callable(getattr(exc,'as_receipt',None)):
+                    result=exc.as_receipt()
+                elif isinstance(exc,json.JSONDecodeError):
+                    result={'error':{'code':'invalid_tool_arguments','message':str(exc)[:1200],
+                                     'outcome':'not_started','recoverable':True,'retryable':False,
+                                     'reconcile_before_retry':False,'next_action':'Corrige los argumentos JSON.'}}
+                else:
+                    result={'error':{'code':'agent_dispatch_error','message':str(exc)[:1200],
+                                     'outcome':'unknown','recoverable':True,'retryable':False,
+                                     'reconcile_before_retry':True,
+                                     'next_action':'Consulta revisión, recibo y artefactos antes de repetir.'}}
                 a.event('error', str(exc)[:1200])
             content = json.dumps(result, ensure_ascii=False, default=str)
-            if len(content) > 100000:
-                content = json.dumps({'error': 'Resultado demasiado grande; solicita una capacidad o artefacto concreto.'})
             receipt = {'role': 'tool', 'tool_name': fn.get('name'), 'content': content}
-            call = s['pending'][s['next_call']]
+            progress_after=self._progress_fingerprint()
+            s.setdefault('tool_call_history',[]).append({
+                'signature':signature,'name':fn.get('name'),'tool_call_id':call.get('id'),
+                'before':progress_before,'after':progress_after,
+                'receipt_sha256':hashlib.sha256(content.encode('utf-8')).hexdigest(),
+                'outcome':'paused' if pause else ('error' if isinstance(result,dict) and result.get('error') else 'returned')})
+            s['tool_call_history']=s['tool_call_history'][-100:]
             if call.get('id'):
                 receipt['tool_call_id'] = call['id']
             s['messages'].append(receipt)

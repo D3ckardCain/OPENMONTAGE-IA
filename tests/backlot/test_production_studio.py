@@ -935,3 +935,63 @@ def test_specialist_repair_is_single_bounded_read_only_retry(isolated):
     with pytest.raises(ValueError,match='contrato JSON'):
         worker.dispatch('consult_agent',{'role':'reviewer','task':'Revisa el expediente.'})
     assert len(calls)==2 and all(call[1] is None for call in calls)
+
+def test_local_tool_catalog_pagination_and_preflight_are_read_only(isolated):
+    pid=project()
+    called=[]
+    def make_tool(name):
+        return SimpleNamespace(
+            name=name,version='1.2.3',capability='fixture',runtime=ToolRuntime.LOCAL,tier=ToolTier.CORE,
+            install_instructions='',input_schema={'type':'object','properties':{'output_path':{'type':'string'}}},
+            output_schema={'type':'object'},dependencies=[],agent_skills=[],side_effects=['writes_project_asset'],
+            idempotency_key_fields=['output_path'],estimate_cost=lambda inputs:0,
+            estimate_runtime=lambda inputs:2.5,get_status=lambda:ToolStatus.AVAILABLE,
+            execute=lambda inputs:called.append(name),get_info=lambda:{'name':name,'version':'1.2.3'})
+    tools={'zeta':make_tool('zeta'),'alpha':make_tool('alpha')}
+    registry=SimpleNamespace(_tools=tools,get=lambda name:tools.get(name))
+    worker=agent.LocalAgent(project(),registry=registry)
+    page=worker.dispatch('list_tools',{'offset':0,'limit':1})
+    assert page['total']==2 and page['next_offset']==1
+    assert [row['name'] for row in page['items']]==['alpha']
+    worker.instruction('skills/'+worker.manifest['stages'][0]['skill']+'.md')
+    output=worker.path/'assets'/'preflight.txt'
+    result=worker.dispatch('tool_preflight',{'name':'alpha','inputs':{'output_path':str(output)}})
+    assert result['ready'] is True
+    assert result['estimated_cost_usd']==0 and result['estimated_runtime_seconds']==2.5
+    assert result['declared_idempotency_fields']==['output_path']
+    assert result['idempotency_enforced_by_dispatch'] is False
+    assert not output.exists() and called==[]
+
+
+def test_tool_execution_exception_returns_unknown_outcome_without_retry(isolated):
+    pid=project();calls=[]
+    tool=SimpleNamespace(
+        name='fixture-write',version='3',capability='fixture',runtime=ToolRuntime.LOCAL,tier=ToolTier.CORE,
+        install_instructions='',input_schema={'type':'object','properties':{'output_path':{'type':'string'}}},
+        output_schema={},dependencies=[],agent_skills=[],side_effects=['writes_project_asset'],
+        idempotency_key_fields=['output_path'],estimate_cost=lambda inputs:0,estimate_runtime=lambda inputs:1,
+        get_status=lambda:ToolStatus.AVAILABLE,
+        execute=lambda inputs:(calls.append(inputs),(_ for _ in ()).throw(TimeoutError('synthetic lost response')))[1])
+    worker=agent.LocalAgent(pid,registry=SimpleNamespace(get=lambda name:tool))
+    worker.instruction('skills/'+worker.manifest['stages'][0]['skill']+'.md')
+    result=worker.dispatch('execute_tool',{'name':tool.name,'inputs':{'output_path':'assets/uncertain.bin'}})
+    assert result['success'] is False
+    assert result['error']['code']=='tool_execution_outcome_unknown'
+    assert result['error']['outcome']=='unknown' and result['error']['retryable'] is False
+    assert result['error']['reconcile_before_retry'] is True
+    assert result['request_id'] and result['request_fingerprint']
+    assert len(calls)==1
+
+
+def test_base_tool_info_exposes_retry_idempotency_and_preconditions():
+    from tools.base_tool import BaseTool,RetryPolicy
+    class Fixture(BaseTool):
+        name='contract-fixture';version='9.1';input_schema={'type':'object','properties':{'output_path':{'type':'string'}}}
+        output_schema={'type':'object'};dependencies=['cmd:fixture'];agent_skills=['ffmpeg']
+        idempotency_key_fields=['input_path'];retry_policy=RetryPolicy(max_retries=2,backoff_seconds=0.5,retryable_errors=['timeout'])
+        def execute(self,inputs):return ToolResult(success=True)
+    info=Fixture().get_info()
+    assert info['version']=='9.1'
+    assert info['preconditions']['requires_project_output_path'] is True
+    assert info['retry_policy']=={'max_retries':2,'backoff_seconds':0.5,'retryable_errors':['timeout']}
+    assert info['idempotency_key_fields']==['input_path']
