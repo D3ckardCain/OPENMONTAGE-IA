@@ -116,17 +116,25 @@ def verify(project_id,outputs):
             decoded=subprocess.run(decode_args,capture_output=True,text=True,
                 timeout=min(3600,max(60,math.ceil(duration*3))))
             if decoded.returncode:raise ValueError('El video o audio no superó la decodificación completa: '+decoded.stderr[-600:])
-            audio_check={'status':'not_present','stream_count':0}
+            audio_check={'status':'not_present','stream_count':0,
+                         'measured_audio_stream_ordinals':[],
+                         'unmeasured_audio_stream_ordinals':[],
+                         'measurement_completeness':'not_applicable'}
             if audio:
                 from lib.studio_mix_meter import parse as parse_audio_metrics
                 try:
                     metrics=parse_audio_metrics(decoded.stderr)
                 except ValueError:
                     audio_check={'status':'unavailable','stream_count':len(audio),
-                                 'scope':'first_audio_stream','warning':'No se obtuvieron métricas legibles durante el decode.'}
+                                 'scope':'first_audio_stream','measured_audio_stream_ordinals':[],
+                                 'unmeasured_audio_stream_ordinals':list(range(len(audio))),
+                                 'measurement_completeness':'unavailable',
+                                 'warning':'No se obtuvieron métricas legibles durante el decode.'}
                 else:
                     coverage_seconds=metrics['samples_per_channel']/48000
                     warnings=[]
+                    if len(audio)>1:
+                        warnings.append('additional_audio_streams_not_measured')
                     if metrics['loudness_below_gate']:
                         warnings.append('loudness_below_gate; no demuestra por sí sola un archivo vacío')
                     signal_state = 'silent' if metrics['rms_dbfs'] is None and metrics['sample_peak_dbfs'] is None else 'present'
@@ -143,6 +151,9 @@ def verify(project_id,outputs):
                         'signal_state':signal_state,
                         'scope':'first_audio_stream',
                         'stream_count':len(audio),
+                        'measured_audio_stream_ordinals':[0],
+                        'unmeasured_audio_stream_ordinals':list(range(1,len(audio))),
+                        'measurement_completeness':'partial' if len(audio)>1 else 'all_streams',
                         'coverage_seconds':coverage_seconds,
                         'video_duration_seconds':duration,
                         'metrics':metrics,

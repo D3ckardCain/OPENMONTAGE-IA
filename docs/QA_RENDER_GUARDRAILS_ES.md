@@ -12,7 +12,14 @@ peak. Valores bajo puerta de loudness, sample peak a escala completa/por encima,
 true peak sobre 0 dBTP o una duración de audio distinta producen alertas técnicas;
 no convierten una señal silenciosa intencional en defecto confirmado. Si hay
 varios streams, solo se miden métricas del primero, aunque el decodificador prueba
-todos los streams mapeados.
+todos los streams mapeados. El recibo lo hace explícito con ordinales entre los
+streams de audio en el orden de ffprobe: el ordinal 0 es el medido y los restantes
+aparecen en `unmeasured_audio_stream_ordinals`. En ese caso la cobertura de
+medición es `partial` y se añade la alerta
+`additional_audio_streams_not_measured`; la decodificación completa no equivale
+a mediciones acústicas de cada stream. Si el parser no obtiene métricas, los
+ordinales quedan sin medir y la cobertura se marca `unavailable`. Sin audio,
+la medición es `not_applicable`.
 
 Esto acredita integridad técnica declarada, decodificación y mediciones de señal
 sobre el primer stream. No acredita calidad visual, contenido correcto, mezcla

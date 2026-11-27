@@ -173,6 +173,39 @@ Summary:
     assert check['signal_state']=='present'
     assert check['status']=='warning' and len(check['warnings'])==3
 
+
+def test_multiple_audio_stream_metrics_disclose_unmeasured_ordinals(render,monkeypatch):
+    project,path=render
+    audio_metadata=metadata()
+    audio_metadata['streams'].extend([
+        {'codec_type':'audio','codec_name':'aac','sample_rate':'48000','channels':2},
+        {'codec_type':'audio','codec_name':'aac','sample_rate':'48000','channels':2},
+    ])
+    log='''[astats] Overall
+[astats] Peak level dB: -3.000
+[astats] RMS level dB: -18.250
+[astats] Number of samples: 48000
+Summary:
+  Integrated loudness:
+    I: -20.0 LUFS
+    Threshold: -30.0 LUFS
+  Loudness range:
+    LRA: 0.0 LU
+  True peak:
+    Peak: -2.0 dBFS
+'''
+    calls=transport(monkeypatch,audio_metadata,decoded_stderr=log)
+    checks.verify('one',[{'path':str(path),'audio_codec':'aac'}])
+    assert len(calls)==2  # ffprobe + one full decode; no second metrics decode
+    check=studio.read_json(project/'render_verification.json')['outputs'][0]['audio_signal_check']
+    assert check['stream_count']==2
+    assert check['measured_audio_stream_ordinals']==[0]
+    assert check['unmeasured_audio_stream_ordinals']==[1]
+    assert check['measurement_completeness']=='partial'
+    assert check['status']=='warning'
+    assert 'additional_audio_streams_not_measured' in check['warnings']
+
+
 def test_silent_decoded_audio_is_distinguished_from_low_loudness(render,monkeypatch):
     project,path=render
     audio_metadata=metadata()
