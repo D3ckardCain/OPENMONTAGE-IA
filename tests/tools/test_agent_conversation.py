@@ -379,7 +379,8 @@ def test_model_usage_from_ollama_is_visible_as_job_event(instance):
         'total_duration':800000,'load_duration':100000,'prompt_eval_duration':400000,'eval_duration':300000}}
     instance.chat.return_value={'role':'assistant','content':'Listo.','tool_calls':[]}
     c=Conversation(instance,INITIAL.copy(),tools=[])
-    with pytest.raises(Pause,match='awaiting_input'):c.turn()
+    with pytest.raises(Pause) as paused:c.turn()
+    assert str(paused.value)=='Listo.'
     event=next(call for call in instance.event.call_args_list if call.args[0]=='model_usage')
     assert 'prompt 321 tokens' in event.args[1]
     assert 'respuesta 17 tokens' in event.args[1]
@@ -389,5 +390,6 @@ def test_model_usage_from_ollama_is_visible_as_job_event(instance):
 
 def test_missing_ollama_usage_does_not_emit_estimated_metrics(instance):
     instance.chat.return_value={'role':'assistant','content':'Listo.','tool_calls':[]}
-    with pytest.raises(Pause,match='awaiting_input'):Conversation(instance,INITIAL.copy(),tools=[]).turn()
+    with pytest.raises(Pause) as paused:Conversation(instance,INITIAL.copy(),tools=[]).turn()
+    assert str(paused.value)=='Listo.'
     assert not any(call.args[0]=='model_usage' for call in instance.event.call_args_list)
