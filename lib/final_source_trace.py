@@ -18,7 +18,7 @@ def _valid_input(item):
     if not isinstance(path,str) or not path or len(path)>500 or '\\' in path:return False
     relative=Path(path)
     return (not relative.is_absolute() and '..' not in relative.parts and
-            relative.parts[0] in ('assets','source_images','thumbnails') and
+            relative.parts[0] in ('assets','source_images','originales','thumbnails') and
             isinstance(digest,str) and bool(re.fullmatch('[0-9a-f]{64}',digest)))
 
 
@@ -100,3 +100,4 @@ def inspect(project_id):
     return {'project_id':project_id,'verification_status':verification.get('status') if isinstance(verification,dict) else None,
             'outputs':rows,'generation_started':False,
             'note':'Coincidencia con recibos guardados, sin recalcular hashes actuales. Las licencias declaradas requieren revisión; la integridad de archivos se comprueba aparte.'}
+
