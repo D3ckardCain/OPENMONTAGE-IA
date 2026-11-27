@@ -71,3 +71,11 @@ def test_agent_api_shares_points_and_no_arbitrary_expression(project,monkeypatch
         'operation':'track_volume_points','revision':edit.state(pid)['revision'],'track':'video','points':POINTS}})
     assert result.success and edit.state(pid)['events'][-1]['origin']=='agent'
     with pytest.raises(edit.Conflict):edit.command(pid,{'operation':'track_volume_points','revision':0,'track':'video','points':[]})
+
+
+def test_missing_or_misspelled_points_cannot_clear_saved_curve(project):
+    pid,key,_=project;add(pid,key);command(pid,'track_volume_points',track='video',points=POINTS)
+    before=edit.state(pid)
+    for payload in ({'track':'video'},{'track':'video','keyframes':[]},{'track':'video','points':[],'keyframes':[]}):
+        with pytest.raises(ValueError):command(pid,'track_volume_points',**payload)
+        assert edit.state(pid)==before

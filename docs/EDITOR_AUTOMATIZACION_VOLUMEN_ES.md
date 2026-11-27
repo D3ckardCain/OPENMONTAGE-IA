@@ -29,7 +29,7 @@ La operación sustituye todos los puntos de esa pista. `points:[]` quita la curv
 
 ## Validación nueva
 
-**14 casos focalizados aprobados**: historial, bypass/identidad, guardar/reabrir, entradas inválidas sin mutación, reloj después de retardo y concat, orden antes de ducking, mismo audio en preview/export, semántica de split/reordenación/ripple, borrador silenciado y puente del agente/API. No se repitieron suites de mezclador, ducking, medición ni CI.
+**15 casos focalizados aprobados**: historial, bypass/identidad, guardar/reabrir, entradas inválidas sin mutación, reloj después de retardo y concat, orden antes de ducking, mismo audio en preview/export, semántica de split/reordenación/ripple, borrador silenciado y puente del agente/API. No se repitieron suites de mezclador, ducking, medición ni CI.
 
 Una copia de4s reutilizó **el MP4 bypass compatible ya aprobado**, sin renderizarlo. Ambas pistas recibieron la curva0,2→1→0,2 en0/2/4s. Se obtuvo una única salida nueva válida H.264/AAC,640×360/8fps. La primera tentativa falló porque la negociación del layout después de `aeval` resultaba en «2 channels» no reconocido por AAC; se corrigió añadiendo `aformat` estéreo explícito después de la evaluación y una aserción focalizada. Se conserva el intento fallido; no se declara como render válido.
 
@@ -44,3 +44,5 @@ Comparación del audio AAC decodificado contra bypass×curva por muestra: correl
 Panel/API reales en QA4776 sobre copia: campos, arrastre con un commit, teclado, Esc sin escritura, bypass, undo/redo y reapertura. Se distinguió selección visual del punto (no persistente) de puntos guardados y se redondeó el incremento de teclado para evitar ruido decimal. Verificación de distribución de solo lectura en1920×1080 y3440×1440; controles compactos sin desbordamiento de página. QA propio cerrado. [Evidencia](EDITOR_AUTOMATIZACION_VOLUMEN_EVIDENCIA_20261126.json).
 
 Pendientes: activación conjunta en4750 después de confirmación manual y escucha humana. Se mantiene intacta la única página A/B existente. Ocho descargas sin inspeccionar hasta confirmación; Wan VACE Low válido preservado. Costo0, sin dependencias ni cambios en ComfyUI/.venv. PR#2 permanece en borrador.
+
+Proteccion adicional del contrato: points es obligatorio y los campos mal escritos se rechazan; omitirlos nunca elimina una curva guardada. Se valido con un caso focalizado nuevo, sin repetir exportacion ni controles ya aprobados.

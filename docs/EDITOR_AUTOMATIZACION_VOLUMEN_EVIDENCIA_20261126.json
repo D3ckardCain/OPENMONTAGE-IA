@@ -1,5 +1,5 @@
 {
-  "new_focused_cases_passed": 14,
+  "new_focused_cases_passed": 15,
   "export": {
     "scope": "One new MP4, previous compatible level-mixer MP4 reused; same triangular curve on both lanes",
     "points": [
@@ -216,7 +216,7 @@
   "expected_activation": {
     "backend": {
       "status": "available",
-      "sha256": "8f0b3b210c3a8e667aefd0cfc329d67b3d695979b74ecda3ebed48c8c62f31e4",
+      "sha256": "026d05efc2d3dcd618bccf79f8afc87e27f2f07a515d61f1d0076ba81ddb3222",
       "files": 50
     },
     "ui": {
@@ -224,5 +224,6 @@
       "sha256": "fc43e41c4b8bab5e3504d5bf6c28f94411389d1d161588d4d05e694d1844cf8b",
       "files": 42
     }
-  }
+  },
+  "post_ui_contract_guard": "Missing points or misspelled fields cannot erase a stored curve; one additional focused case passed. Valid UI commands and DSP unchanged."
 }

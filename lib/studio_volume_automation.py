@@ -24,6 +24,8 @@ def normalize(value):
 
 def apply(edl,data):
     if data.get('operation')!='track_volume_points':return False
+    if 'points' not in data or set(data)-{'operation','revision','track','points','bypass'}:
+        raise ValueError('Indica points explícitamente; usa [] para quitar la automatización')
     lane=data.get('track')
     if lane not in ('video','audio'):raise ValueError('Pista de automatización desconocida')
     value=normalize({k:data[k] for k in ('points','bypass') if k in data})
