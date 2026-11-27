@@ -555,7 +555,10 @@ def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
         page.locator('#edit-transition-form [name=duration_seconds]').fill('0.25')
         page.locator('#edit-transition-form [type=submit]').click()
         expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        assert state['edit_decisions']['cuts'][1]['transition']['duration_seconds']==.25
+        transition=state['edit_decisions']['cuts'][1].get('transition')
+        assert transition and transition.get('duration_seconds')==.25, (
+            f"transition not committed; operations={[c.get('operation') for c in calls]}; "
+            f"notice={page.locator('#edit-message').inner_text()!r}")
         page.locator('#edit-layers-panel summary').click()
         layer=page.locator('#edit-layer-form');layer.locator('[name=in_seconds]').fill('0')
         layer.locator('[name=out_seconds]').fill('1');layer.locator('[name=start_seconds]').fill('0.5')
