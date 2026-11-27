@@ -25,6 +25,11 @@ def create_editor_router(body):
     def capabilities():
         return editor_capabilities()
 
+    @router.get('/{pid}/color-compare')
+    def color_compare(pid:str, clip_id:str, clip_seconds:float=0):
+        from lib.studio_color import compare
+        return invoke(compare,pid,clip_id,clip_seconds)
+
     @router.post('/{pid}/mix-meter')
     async def mix_meter(pid: str, request: Request):
         from lib.studio_mix_meter import start

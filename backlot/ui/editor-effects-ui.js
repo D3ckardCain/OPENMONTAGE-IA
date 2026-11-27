@@ -4,7 +4,9 @@ import {initializeAudioBalance} from './editor-audio-balance.js';
 import {initializeAudioProcessing} from './editor-audio-processing.js';
 import {initializeTrackMixer} from './editor-track-mixer.js';
 import {initializeDucking} from './editor-ducking.js';
+import {initializeColor} from './editor-color.js';
 export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBalance=run,has,cursor}){
+  const colorUI=initializeColor({host:q('edit-transform-panel'),getEdl,getProject,getSelection,run:runBalance,has,cursor});
   const mixerUI=initializeTrackMixer({host:q('edit-mix-panel'),getEdl,getProject,run:runBalance,has});
   const duckingUI=initializeDucking({host:q('edit-mix-panel'),getEdl,getProject,run:runBalance,has});
   const balanceUI=initializeAudioBalance({host:q('edit-mix-panel'),getEdl,getProject,getSelection,run:runBalance,has});
@@ -17,6 +19,7 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBal
   const numeric=(form,key)=>Number(form.elements[key].value);
   function syncCrop(){const f=q('edit-transform-form');for(const key of ['zoom','focus_x','focus_y'])f.elements[key].disabled=f.elements.fit.value!=='crop';}
   function drawSelection(){
+    colorUI.draw();
     let item;try{item=getSelection();}catch{/* no clip */}
     balanceUI.draw(item);
     processingUI.draw();

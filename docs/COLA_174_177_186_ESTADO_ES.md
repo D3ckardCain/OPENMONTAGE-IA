@@ -18,3 +18,5 @@ Ninguna de estas dependencias autoriza a sobrescribir configuraciones, mover ori
 Avance posterior: lectura/zona publicada5dfb85d; karaoke con palabras guardadas implementado en entrega posterior (manual EDITOR_SUBTITULOS_KARAOKE_ES.md). Dependencia de cuentas168 permanece. Siguiente bloque: GSAP186/132.
 
 GSAP186: guías Core/Timeline fijadas y título propio determinista comprobado en Chrome. `GSAP_186_TITULO_OFFLINE_ES.md` distingue dos pruebas nuevas, seek/recarga idénticos y bloqueo de exportación a0/72,180s. No se repite el render sin causa identificada; continúa auditoría P1 independiente.
+
+P1 color: entrega SDR por clip con exposición/contraste/saturación/gamma y bypass, comparación de un fotograma dividido ampliable. Manual `EDITOR_COLOR_SDR_ES.md`:7 casos nuevos, UI4781 e historial/reapertura, un MP4 nuevo4s frente a bypass reutilizado; AAC/cues exactos. No se acreditan curvas/HSL/LUT/scopes ni activación4750.

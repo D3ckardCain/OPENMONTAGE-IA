@@ -1,0 +1,25 @@
+{
+  "same_montage_bypass_reused": "projects\\qa174-karaoke-root\\edit-qa129-pt-activation\\assets\\editor-renders\\acb36238a1fb433581dc954ce8442c9c\\montage.mp4",
+  "active_attempt": "beb6e6548b24488d89910596f34ed6e8",
+  "duration": 4.0,
+  "width": 640,
+  "height": 360,
+  "audio_AAC_payload_identical": true,
+  "subtitle_text_times_exact": true,
+  "split_same_decoded_frame": true,
+  "color_effect_mean_abs_RGB": 17.933662551440328,
+  "export_vs_comparison_mean_abs_RGB": 2.760897633744856,
+  "preview_export_filter_shared": true,
+  "human_listening": false,
+  "main4750": false,
+  "new_focused_tests": 7,
+  "ui_history_reopen": true,
+  "ui_comparison_dialog_width": 1100,
+  "dialog_focus_escape": true,
+  "backend_build": {
+    "status": "available",
+    "sha256": "55fe1aadb4e1d14e08f4abaf1be29833299b1d262ca233f097ba2f42363aadbe",
+    "files": 53
+  },
+  "ui_validation": "isolated4781;no4750"
+}

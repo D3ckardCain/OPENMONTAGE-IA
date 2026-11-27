@@ -152,6 +152,11 @@ def render_digest(edl, contract=RENDER_CONTRACT):
         if mix.get('normalize'):
             content['audio_mix']['target_lufs'] = mix['target_lufs']
     for clip in content['cuts'] + content['audio_tracks']:
+        from lib.studio_color import effective as effective_color,CONTRACT as color_contract
+        color=effective_color(clip.get('color'))
+        if color:
+            clip['color']=color;content['color_contract']=color_contract
+        else:clip.pop('color',None)
         from lib.studio_audio_processing import effective, RENDER_CONTRACT as audio_contract
         processing=effective(clip.get('audio_processing'))
         if processing:
@@ -429,6 +434,9 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_color import normalize as normalize_color
+    for clip in edl['cuts']:
+        if 'color' in clip:normalize_color(clip['color'])
     if 'subtitle_karaoke' in edl:
         from lib.studio_subtitle_karaoke import normalize as normalize_karaoke
         normalize_karaoke(edl['subtitle_karaoke'])

@@ -6,6 +6,9 @@ CAPABILITIES = ['subtitle_karaoke', 'subtitle_layout', 'subtitle_reflow', 'rippl
                 'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply', 'qwen_tts_plan', 'reference_plan', 'component_add', 'component_remove']
 
 
+CAPABILITIES += ['clip_color', 'color_compare']
+
+
 def assert_editable(edl, data):
     from lib import studio_editor as edit
     op = data.get('operation')
@@ -95,6 +98,8 @@ def _ripple_labels(items, removed):
 
 
 def apply_timeline(edl, data):
+    from lib.studio_color import apply as apply_color
+    if apply_color(edl,data):return True
     from lib.studio_subtitle_karaoke import apply as apply_karaoke
     if apply_karaoke(edl,data):return True
     from lib.studio_subtitle_layout import apply as apply_subtitle_layout

@@ -30,22 +30,22 @@ def request(path, data=None, timeout=120):
 
 class StudioProjectEdit(BaseTool):
     name = 'studio_project_edit'
-    version = '3.9.0'
+    version = '3.10.0'
     capability = 'video_post'
     provider = 'local'
     description = 'Read and edit the shared Studio project; explicit bounded Qwen preview/start/status/cancel. Revision required for writes.'
     install_instructions = 'Inicia la instancia actualizada de Studio local (BACKLOT_PORT o 4750); no requiere modelos ni paquetes nuevos.'
-    capabilities = ['subtitle_karaoke', 'subtitle_quality', 'mix_meter_start', 'mix_meter_status', 'mix_meter_cancel', 'sfx_catalog', 'sfx_insert', 'sfx_receipt', 'read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']
+    capabilities = ['color_compare', 'subtitle_karaoke', 'subtitle_quality', 'mix_meter_start', 'mix_meter_status', 'mix_meter_cancel', 'sfx_catalog', 'sfx_insert', 'sfx_receipt', 'read', 'revisioned_edit', 'register_project_media', 'local_render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']
     side_effects = ['Writes the selected manual project through the running local Studio server', 'qwen_start explicitly runs a bounded local synthesis worker']
     not_good_for = ['Unbounded inference or automatic model downloads', 'Editing production pipeline artifacts', 'Editing while Studio is stopped']
     input_schema = {'type': 'object', 'required': ['project_id', 'action'], 'properties': {
-        'project_id': {'type': 'string'}, 'action': {'enum': ['subtitle_karaoke', 'subtitle_quality', 'mix_meter_start', 'mix_meter_status', 'mix_meter_cancel', 'sfx_catalog', 'sfx_insert', 'sfx_receipt', 'read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']},
+        'project_id': {'type': 'string'}, 'action': {'enum': ['color_compare', 'subtitle_karaoke', 'subtitle_quality', 'mix_meter_start', 'mix_meter_status', 'mix_meter_cancel', 'sfx_catalog', 'sfx_insert', 'sfx_receipt', 'read', 'command', 'register', 'render', 'render_status', 'render_cancel', 'capabilities', 'subtitle_words', 'subtitle_draft', 'silence_proposal', 'chatterbox_profiles', 'qwen_profiles', 'qwen_start', 'qwen_status', 'qwen_cancel']},
         'sfx': {'type':'object','description':'Local catalogue query or explicit insertion with request_id, revision, asset_id and montage start/in/out; never inference.'},
         'proposal': {'type': 'object', 'description': 'Read-only silence proposal with revision, EDL/word hashes and explicit source-clock analysis. Does not analyze media or apply cuts.'},
         'set_id': {'type': 'string'},
         'request_id': {'type':'string'}, 'meter': {'type':'object','description':'Optional start_seconds and duration_seconds, maximum 120 seconds of the existing final rendered mix; never auto-render.'}, 'qwen': {'type':'object'},
         'command': {'type': 'object'}, 'relative_path': {'type': 'string'}, 'revision': {'type': 'integer'},
-        'preview': {'type': 'boolean'}, 'attempt': {'type': 'string'}}}
+        'clip_id': {'type':'string'}, 'clip_seconds': {'type':'number'}, 'preview': {'type': 'boolean'}, 'attempt': {'type': 'string'}}}
 
     def get_status(self):
         try:
@@ -59,7 +59,10 @@ class StudioProjectEdit(BaseTool):
             pid = inputs['project_id']
             path = quote(pid, safe='')
             action = inputs['action']
-            if action == 'subtitle_karaoke':
+            if action == 'color_compare':
+                from urllib.parse import urlencode
+                value=request(path+'/color-compare?'+urlencode({'clip_id':inputs['clip_id'],'clip_seconds':inputs.get('clip_seconds',0)}))
+            elif action == 'subtitle_karaoke':
                 value=request(path+'/subtitles/karaoke?set_id='+quote(inputs['set_id'],safe=''))
             elif action == 'subtitle_quality':
                 value=request(path+'/subtitles/quality')
