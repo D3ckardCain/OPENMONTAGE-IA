@@ -167,7 +167,7 @@ def create_production(data):
     with LOCK:
         from lib.project_workspace import create_project_folder, describe as describe_workspace, initialize_layout
         pid,p=create_project_folder(PROJECTS_DIR,data['title'])
-        initialize_layout(p)
+        initialize_layout(p,pid,data['title'])
         p=init_project(pid,title=data['title'],pipeline_type=data['pipeline'],pipeline_dir=PROJECTS_DIR)
         save_json(p/'production_request.json',{**data,'performance_import_sha256':performance['sha256'] if performance else None,'research_idea_sha256':idea_sha256,
             'research_observations_sha256':observations_sha256,'project_id':pid,'created_at':now(),'budget_usd':0,'publish_authorized':False})
