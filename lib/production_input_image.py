@@ -37,7 +37,7 @@ def stage_image(project_id, data):
         raise ValueError('No se pudo decodificar la imagen') from exc
     digest = hashlib.sha256(raw).hexdigest()
     name = digest + ('.png' if fmt == 'PNG' else '.jpg')
-    folder = project / 'source_images'
+    folder = project / 'originales' / 'imagenes'
     with studio.LOCK:
         folder.mkdir(parents=True, exist_ok=True)
         path = folder / name
@@ -46,8 +46,9 @@ def stage_image(project_id, data):
                 raise ValueError('El proyecto ya contiene 100 imágenes de entrada')
             with path.open('xb') as stream:
                 stream.write(raw)
-        record = {'filename': name, 'sha256': digest, 'width': width, 'height': height,
-                  'bytes': len(raw), 'format': fmt, 'url': f'/media/{project_id}/source_images/{name}',
+        record = {'filename': name, 'relative_path': f'originales/imagenes/{name}',
+                  'sha256': digest, 'width': width, 'height': height,
+                  'bytes': len(raw), 'format': fmt, 'url': f'/media/{project_id}/originales/imagenes/{name}',
                   'comfyui_uploaded': False, 'generation_started': False}
         studio.save_json(project / 'source_image.json', record)
     return record
@@ -55,3 +56,4 @@ def stage_image(project_id, data):
 
 def current_image(project_id):
     return studio.read_json(studio.project_path(project_id) / 'source_image.json')
+
