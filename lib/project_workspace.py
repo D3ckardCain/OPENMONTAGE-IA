@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import json
 import unicodedata
 from pathlib import Path
 
@@ -65,12 +66,27 @@ def create_project_folder(root: Path, title: str) -> tuple[str, Path]:
     raise ValueError("No se encontró un nombre de carpeta libre para el proyecto")
 
 
-def initialize_layout(project: Path) -> None:
+def initialize_layout(project: Path, project_id: str | None = None, title: str | None = None) -> None:
     project = Path(project).resolve()
     for relative in STANDARD_DIRS:
         target = project / relative
         target.resolve().relative_to(project)
         target.mkdir(parents=True, exist_ok=True)
+    if project_id is not None and title is not None:
+        manifest = project / "datos" / "workspace.json"
+        record = {
+            "schema_version": 1,
+            "project_id": project_id,
+            "title": title,
+            "project_root": str(project.parent),
+            "project_path": str(project),
+            "directories": list(STANDARD_DIRS[:10]),
+            "originals_policy": "copy_into_project; source_is_never_moved_or_deleted",
+            "shared_models_policy": "models_remain_in_shared_application_locations",
+        }
+        with manifest.open("x", encoding="utf-8", newline="\n") as stream:
+            json.dump(record, stream, ensure_ascii=False, indent=2)
+            stream.write("\n")
 
 
 def describe(project: Path) -> dict:
