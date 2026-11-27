@@ -83,7 +83,11 @@ def report(edl):
                       'text':text,'lines':len(lines),'max_line_chars':max(map(len,lines)),
                       'cps':cps,'cps_available':cps is not None,'warnings':warnings,
                       'proposed_text':proposed[index].get('text','') if isinstance(proposed[index],dict) else ''})
-    return {'contract':'subtitle-reading-layout-v1','input_edl_sha256':edit_digest(edl),'policy':policy,
+    try:
+        input_digest=edit_digest(edl)
+    except (TypeError,ValueError,OverflowError):
+        input_digest=None
+    return {'contract':'subtitle-reading-layout-v1','input_edl_sha256':input_digest,'policy':policy,
             'cues':items,'warning_cues':sum(bool(x['warnings']) for x in items),
             'timing_warning_cues':sum(bool(timing_warnings[index]) for index in timing_warnings),
             'timing':timing,'proposed_cues':proposed,
@@ -100,6 +104,7 @@ def apply(edl,data):
     elif op=='subtitle_reflow':
         result=report(edl)
         if data.get('reviewed') is not True:raise ValueError('Revisa la propuesta de saltos de línea')
+        if result['input_edl_sha256'] is None:raise ValueError('Corrige los intervalos inválidos antes de aplicar cambios')
         if data.get('input_edl_sha256')!=result['input_edl_sha256']:raise edit.Conflict('El borrador quedó obsoleto; vuelve a consultar')
         edl['cues']=result['proposed_cues']
     else:return False

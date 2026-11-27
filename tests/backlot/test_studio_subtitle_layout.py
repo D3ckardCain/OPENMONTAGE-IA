@@ -84,3 +84,16 @@ def test_timing_report_finds_overlap_and_out_of_range_and_manual_copy_repair(pro
     assert repaired['timing']['out_of_range_cues']==[]
     assert repaired['timing_warning_cues']==0
     assert source==source_before
+
+
+def test_nonfinite_timing_is_reported_and_blocks_reflow(project):
+    pid,key,_=project
+    add(pid,key)
+    corrupted=deepcopy(edit.state(pid)['edit_decisions'])
+    corrupted['cues']=[{'start_seconds':1.,'end_seconds':float('nan'),'text':'Texto'}]
+    report=layout.report(corrupted)
+    assert report['input_edl_sha256'] is None
+    assert report['timing']['invalid_interval_cues']==[0]
+    assert report['cues'][0]['cps_available'] is False
+    with pytest.raises(ValueError,match='intervalos inválidos'):
+        layout.apply(corrupted,{'operation':'subtitle_reflow','reviewed':True,'input_edl_sha256':None})
