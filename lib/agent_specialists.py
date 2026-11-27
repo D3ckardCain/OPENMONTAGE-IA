@@ -11,7 +11,6 @@ MAX_ARTIFACT_BYTES = 8_000
 MAX_EVIDENCE_BYTES = 16_000
 CONTEXT_TOKENS = 8_192
 OUTPUT_TOKENS = 1_600
-SPECIALIST_FIELDS = ["role", "proposal", "evidence", "assumptions", "limits", "suggested_changes", "review_criteria"]
 
 SPECIALIST_SCHEMA = {
     "type": "object",

@@ -488,7 +488,7 @@ class LocalAgent:
                 {'role':'user','content':args['question'],'images':[encoded]}])
             return {'path':str(p),'inspection':reply.get('content',''),'scope':'single_image','model':self.config['model']}
         if name=='consult_agent':
-            from lib.agent_specialists import build_context,parse_result,CONTEXT_TOKENS,OUTPUT_TOKENS,SPECIALIST_FIELDS
+            from lib.agent_specialists import build_context,parse_result,CONTEXT_TOKENS,OUTPUT_TOKENS,SPECIALIST_SCHEMA
             packet=build_context(self,args)
             self.event('agent','Consulta local de especialista '+args['role'],context_revision=packet['state']['context_revision'])
             system=('Responde exclusivamente con JSON válido conforme al contrato: role, proposal, evidence[{id,use}], '
@@ -513,7 +513,7 @@ class LocalAgent:
                     structured=parse_result(repaired.get('content'),args['role'],allowed)
                     repairs=1
                 except ValueError as final_error:
-                    raise ValueError('La salida del especialista sigue inválida tras una reparación acotada; no se ejecutaron acciones.') from final_error
+                    raise ValueError('La salida del especialista sigue inválida tras una reparación acotada: '+str(final_error)+'; no se ejecutaron acciones.') from final_error
             return {'role':args['role'],'structured':structured,'context_revision':packet['state']['context_revision'],
                     'budget':{'cost_usd':0,'context_tokens':CONTEXT_TOKENS,'max_output_tokens':OUTPUT_TOKENS,
                               'repair_attempts':repairs,'tools_available':False}}
