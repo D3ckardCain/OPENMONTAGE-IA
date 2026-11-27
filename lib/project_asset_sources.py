@@ -35,8 +35,8 @@ def _asset(project,relative):
     if not isinstance(relative,str) or len(relative)>300 or '\\' in relative:
         raise ValueError('Ruta relativa de medio inválida')
     path=Path(relative)
-    if not path.parts or path.is_absolute() or '..' in path.parts or path.parts[0] not in ('assets','source_images','thumbnails'):
-        raise ValueError('El medio debe estar dentro de assets, source_images o thumbnails del proyecto')
+    if not path.parts or path.is_absolute() or '..' in path.parts or path.parts[0] not in ('assets','source_images','originales','thumbnails'):
+        raise ValueError('El medio debe estar dentro de originales, assets, source_images o thumbnails del proyecto')
     target=project/path
     if any((project.joinpath(*path.parts[:index])).is_symlink() for index in range(1,len(path.parts)+1)):
         raise ValueError('No se admiten enlaces simbólicos')
@@ -105,7 +105,7 @@ def coverage(pid,offset=0,limit=20):
     project=studio.project_path(pid)
     registered={item['path']:item for item in read(pid)['entries']}
     rows=[];scanned=0;examined=0;complete=True;skipped_links=0
-    for root in ('assets','source_images','thumbnails'):
+    for root in ('originales','assets','source_images','thumbnails'):
         folder=project/root
         if folder.is_symlink():skipped_links+=1;continue
         if not folder.is_dir():continue
@@ -141,7 +141,7 @@ def coverage(pid,offset=0,limit=20):
         'offset':offset,'rows':rows[offset:offset+limit],
         'next_offset':offset+limit if offset+limit<count else None,
         'complete_scan':complete,'skipped_symlinks':skipped_links,
-        'limits':'Solo extensiones multimedia en assets, source_images y thumbnails; máximo 1000 medios, 2000 entradas exploradas y profundidad 6. Un archivo registrado aún requiere revisar derechos y vigencia de licencia.'}
+        'limits':'Solo extensiones multimedia en originales, assets, source_images y thumbnails; máximo 1000 medios, 2000 entradas exploradas y profundidad 6. Un archivo registrado aún requiere revisar derechos y vigencia de licencia.'}
 
 
 def usage(pid,offset=0,limit=20):
@@ -154,7 +154,7 @@ def usage(pid,offset=0,limit=20):
         if not isinstance(value,str) or not value or len(value)>500 or '\\' in value:
             problems.append('Ruta inválida en '+source);return
         path=Path(value)
-        if not path.parts or path.is_absolute() or '..' in path.parts or path.parts[0] not in ('assets','source_images','thumbnails'):
+        if not path.parts or path.is_absolute() or '..' in path.parts or path.parts[0] not in ('originales','assets','source_images','thumbnails'):
             problems.append('Ruta fuera del registro: '+value[:150]);return
         relative=path.as_posix()
         found.setdefault(relative,set()).add(source)
@@ -198,3 +198,4 @@ def usage(pid,offset=0,limit=20):
         'next_offset':offset+limit if offset+limit<len(rows) else None,
         'problems':problems[:20],
         'limits':'Rutas declaradas en asset_manifest y scene_batch, no certificación de uso en el render. Puede faltar material usado por otras rutas; revisa licencias y decisiones antes de publicar.'}
+
