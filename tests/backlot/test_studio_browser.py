@@ -1263,15 +1263,14 @@ def test_pending_production_action_ignores_duplicate_click(staged_backlot_server
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page()
-        def awaiting_human_project(route):
-            response=route.fetch()
-            payload=response.json()
-            payload['job']['status']='awaiting_human'
-            route.fulfill(response=response,json=payload)
-        # Keep the UI scenario deterministic: the real staged fixture may be
-        # changed by parallel tests, but this browser test needs an awaiting
-        # human decision to expose the approval control.
-        page.route('**/api/studio/projects/gate-idea',awaiting_human_project)
+        # Isolate the UI state explicitly; this test measures duplicate
+        # submissions, not checkpoint construction or the production API.
+        page.route('**/api/studio/projects/gate-idea',lambda route:route.fulfill(json={
+            'request':{'title':'Synthetic approval fixture'},
+            'job':{'status':'awaiting_human','message':'Review fixture','events':[]},
+            'stages':[],'artifacts':[],'outputs':[],'board_url':'/fixture',
+            'reference_video_url':'','channel_research':None,'channel_performance':None,
+        }))
         page.route('**/api/studio/projects/gate-idea/approve',delayed_approval)
         page.goto(staged_backlot_server+'/studio?project=gate-idea')
         expect(page.locator('#approve')).to_be_visible()
