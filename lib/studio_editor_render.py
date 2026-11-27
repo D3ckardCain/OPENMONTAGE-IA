@@ -16,6 +16,8 @@ from lib.studio_subtitle_language import metadata_args
 from lib.studio_audio_balance import filter_suffix as balance_filter
 from lib.studio_audio_processing import filter_suffix as processing_filter
 from lib.studio_color import suffix as color_filter
+from lib.studio_smooth_clock import item_seconds,video_pts
+from lib.studio_smooth_audio import tracks as warped_audio_tracks
 
 
 def plan(pid, edl, preview=False):
@@ -38,6 +40,8 @@ def plan(pid, edl, preview=False):
     filters = []
     labels = []
     tracks = edl['cuts'] + edl['audio_tracks']
+    warped=warped_audio_tracks(edl)
+    warp_input={c['id']:len(tracks)+len(edl.get('layers',[]))+j for j,(_,c) in enumerate(warped)}
     solo = any(c.get('solo') for c in tracks)
     for i, clip in enumerate(tracks):
         gap = clip.get('kind') == 'gap'
@@ -48,7 +52,7 @@ def plan(pid, edl, preview=False):
             path = editor.source(pid, clip['source_id'])
             args += [*editor.INPUT_OPTIONS, '-i', str(path)]
         start, end, speed = clip['in_seconds'], clip['out_seconds'], clip['speed']
-        seconds = (end - start) / speed
+        seconds = item_seconds(clip)
         is_video = i < len(edl['cuts'])
         if is_video:
             seconds = editor.frames(clip, fps) / fps
@@ -58,7 +62,7 @@ def plan(pid, edl, preview=False):
                 end += after * speed
                 seconds += before + after
             vf, af_transition = transition_filters(edl['cuts'], i, seconds)
-            filters.append(f'[{i}:v:0]trim=start={start}:end={end},setpts=(PTS-STARTPTS)/{speed},'
+            filters.append(f'[{i}:v:0]trim=start={start}:end={end},setpts={video_pts(clip)},'
                            + transform_filter(width, height, clip.get('transform')) + color_filter(clip.get('color'),clip.get('color_curves')) + f',setsar=1,fps={fps},'
                            f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds}{vf},format=yuv420p'
                            + (f',settb=1/{fps},setpts=N' if cross else '') + f'[v{i}]')
@@ -66,8 +70,9 @@ def plan(pid, edl, preview=False):
         from lib.studio_track_mixer import gain as lane_gain
         strip_gain = lane_gain(edl, 'video' if is_video else 'audio')
         if info['audio']:
-            af = (f'[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'
-                  + VideoTrimmer._build_atempo_chain(speed) + f',aresample=48000,'
+            prefix=(f'[{warp_input[clip["id"]]}:a:0]atrim=duration={seconds},asetpts=PTS-STARTPTS' if clip['id'] in warp_input else
+                    f'[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'+VideoTrimmer._build_atempo_chain(speed))
+            af = (prefix + f',aresample=48000,'
                   'aformat=sample_fmts=fltp:channel_layouts=stereo'
                   + balance_filter(clip) + processing_filter(clip) + f',volume={gain}')
             if clip['fade_in']:
@@ -106,10 +111,10 @@ def plan(pid, edl, preview=False):
         animated=enhanced(layer)
         suffix,overlay=curve_filters(layer,width,height,fps,index) if animated else (f",format=rgba,colorchannelmixer=aa={layer['opacity']}",None)
         filters.append(f"[{source_index}:v:0]trim=start={layer['in_seconds']}:end={layer['out_seconds']},"
-                       f"setpts=(PTS-STARTPTS)/{layer['speed']}+{layer['start_seconds']}/TB,"
+                       f"setpts={video_pts(layer,absolute=True)},"
                        +transform_filter(w,h,{'fit':layer.get('fit','pad')})+f",setsar=1,fps={fps}"+suffix+f"[layer{index}]")
         target='montage' if index==len(layers)-1 else f'composite{index}'
-        end=layer['start_seconds']+(layer['out_seconds']-layer['in_seconds'])/layer['speed']
+        end=layer['start_seconds']+item_seconds(layer)
         x=str(round(width*layer['x']));y=str(round(height*layer['y']))
         if layer.get('position_keyframes'):
             from lib.studio_layer_keyframes import overlay_position
@@ -121,6 +126,7 @@ def plan(pid, edl, preview=False):
         filters.append(f"[{base}][layer{index}]{overlay}:"
                        f"eof_action=pass:repeatlast=0:enable='gte(t,{layer['start_seconds']})*lt(t,{end})'[{target}]")
         base=target
+    for i,_ in warped:args+=['-f','f32le','-ar','48000','-ac','2','-i',f'audio-warp-{i}.f32']
     from lib.studio_ducking import mix_inputs
     from lib.studio_volume_automation import suffix as volume_curve
     envelope=volume_curve(edl,'video')
@@ -228,6 +234,8 @@ def _worker(pid, edl, job, args, filters):
             info = edl['sources'][key]
             if editor.digest(editor.source(pid, key)) != info['sha256']:
                 raise ValueError('Cambió la identidad de un medio; importa su nueva versión')
+        from lib.studio_smooth_audio import prepare
+        if warped_audio_tracks(edl):job['smooth_audio_provenance']=prepare(pid,edl,work,control)
         video_label = '[montage]'
         for index, title in enumerate(edl.get('titles', [])):
             name = f'title-{index}.ass'
@@ -253,7 +261,7 @@ def _worker(pid, edl, job, args, filters):
         command = [require_media('ffmpeg'), '-nostdin', '-v', 'error', '-xerror', '-n', *args,
                    '-filter_complex', ';'.join(filters), '-map', video_label, '-map', '[mix]']
         if edl['cues'] and not burn:
-            command += ['-map', f"{len(edl['cuts'])+len(edl['audio_tracks'])+len(edl.get('layers', []))}:s:0", '-c:s', 'mov_text',
+            command += ['-map', f"{len(edl['cuts'])+len(edl['audio_tracks'])+len(edl.get('layers', []))+len(warped_audio_tracks(edl))}:s:0", '-c:s', 'mov_text',
                         *metadata_args(edl['subtitle_style'])]
         command += ['-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k',
                     '-t', str(editor.duration(edl)), '-movflags', '+faststart', str(output)]
@@ -279,6 +287,11 @@ def _worker(pid, edl, job, args, filters):
     except Exception as exc:
         job.update(status='failed', completed_at=studio.now(), error=str(exc))
     finally:
+        if warped_audio_tracks(edl) and (control.process is None or control.process.poll() is not None):
+            try:
+                from lib.studio_smooth_audio import cleanup
+                cleanup(edl,work)
+            except OSError as exc:job['smooth_audio_cleanup_error']=str(exc)
         with studio.LOCK:
             try:
                 if control.event.is_set() and (control.process is None or control.stopped):

@@ -1,5 +1,7 @@
 // Timeline arithmetic shared by ruler, cursor and source-time editing controls.
+import {forwardClock,inverseClock} from './editor-smooth-clock.js';
 export function clipDuration(clip, edl, video=true) {
+  if(clip.time_warp){const w=clip.time_warp;if(w.role==='primary')return w.map.output_frames/w.map.fps;return forwardClock(w.map,w.old_start_seconds+(clip.out_seconds-clip.in_seconds)/w.old_speed)-forwardClock(w.map,w.old_start_seconds);}
   const raw=(clip.out_seconds-clip.in_seconds)/clip.speed;
   return video?Math.round(raw*edl.output.fps)/edl.output.fps:raw;
 }
@@ -11,7 +13,8 @@ export function tickStep(zoom,fps){
   return Math.max(1/fps,[1,2,5,10].map(n=>n*power).find(n=>n>=target));
 }
 export function clipStart(edl,clip,track){return track==='audio'?clip.start_seconds:edl.cuts.slice(0,edl.cuts.indexOf(clip)).reduce((sum,c)=>sum+clipDuration(c,edl),0);}
-export function sourceTime(edl,clip,track,time){return clip.in_seconds+(time-clipStart(edl,clip,track))*clip.speed;}
+export function sourceTime(edl,clip,track,time){if(clip.time_warp){const w=clip.time_warp;return clip.in_seconds+(inverseClock(w.map,time)-w.old_start_seconds)*w.old_speed;}return clip.in_seconds+(time-clipStart(edl,clip,track))*clip.speed;}
+export function sourceToTimeline(edl,clip,track,time){if(clip.time_warp){const w=clip.time_warp;return forwardClock(w.map,w.old_start_seconds+(time-clip.in_seconds)/w.old_speed);}return clipStart(edl,clip,track)+(time-clip.in_seconds)/clip.speed;}
 export function splitAtCursor(edl,clip,track,cursor){
   const at=sourceTime(edl,clip,track,cursor), minimum=track==='video'?clip.speed/edl.output.fps:.001;
   if(at<clip.in_seconds+minimum-1e-8||at>clip.out_seconds-minimum+1e-8)throw Error('El cursor debe estar dentro del clip y dejar al menos un fotograma a cada lado.');

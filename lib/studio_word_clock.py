@@ -70,6 +70,10 @@ def inspect(edl,set_id):
                     outside+=1;continue
                 reason='zero_duration' if zero else 'partial_source_word' if start<a or finish>b else None
                 out_start=cursor+(start-a)/speed;out_end=cursor+(finish-a)/speed
+                if clip.get('time_warp'):
+                    from lib.studio_smooth_clock import source_offset
+                    out_start=cursor+Fraction(str(source_offset(clip,float(start))))
+                    out_end=cursor+Fraction(str(source_offset(clip,float(finish))))
                 if not reason and (out_start<cursor or out_end>end):reason='partial_frame_quantization'
                 if reason:
                     omitted.append(dict(word_index=word['index'],text=word['word'],source=_span(start,finish),reason=reason))

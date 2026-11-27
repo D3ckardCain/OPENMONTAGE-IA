@@ -9,11 +9,18 @@ CAPABILITIES = ['subtitle_karaoke', 'subtitle_layout', 'subtitle_reflow', 'rippl
 CAPABILITIES += ['clip_color', 'color_compare']
 CAPABILITIES += ['clip_color_curves']
 CAPABILITIES += ['clip_speed_ramp','speed_ramp_plan']
+CAPABILITIES += ['clip_smooth_speed','smooth_speed_plan']
 
 
 def assert_editable(edl, data):
     from lib import studio_editor as edit
     op = data.get('operation')
+    if any(c.get('time_warp') for c in edl['cuts']+edl['audio_tracks']+edl.get('layers',[])):
+        blocked={'trim','split','remove','move','duplicate','audio_trim_position','delete_keep_gap','ripple_delete','silence_apply','add','output','output_custom','clip_speed_ramp','transition','layer_add','layer_remove','layer_move','component_add','component_remove','layer_transform_keyframes','layer_position_keyframes'}
+        timed={'in_seconds','out_seconds','start_seconds','speed','source_id','motion'}
+        target=next((x for x in edl['cuts']+edl['audio_tracks']+edl.get('layers',[]) if x['id']==data.get('id')), {})
+        if op in blocked or op in ('clip','layer_update') and any(data[k]!=target.get(k) for k in set(data)&timed):
+            raise edit.Conflict('Rampa continua activa: deshaz su mapa antes de modificar duración/orden/FPS o animación vinculada; color, mezcla y textos siguen editables')
     if op in ('trim', 'split', 'remove', 'move', 'clip', 'audio_trim_position'):
         items = edl['audio_tracks'] if data.get('track') == 'audio' or op == 'audio_trim_position' else edl['cuts']
         item = edit._item(items, data.get('id'))
@@ -100,6 +107,8 @@ def _ripple_labels(items, removed):
 
 
 def apply_timeline(edl, data):
+    from lib.studio_smooth_speed import apply as apply_smooth_speed
+    if apply_smooth_speed(edl,data):return True
     from lib.studio_speed_ramp import apply as apply_speed_ramp
     if apply_speed_ramp(edl,data):return True
     from lib.studio_color_curves import apply as apply_color_curves

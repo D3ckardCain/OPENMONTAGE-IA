@@ -7,10 +7,12 @@ import {initializeDucking} from './editor-ducking.js';
 import {initializeColor} from './editor-color.js';
 import {initializeColorCurves} from './editor-color-curves.js';
 import {initializeSpeedRamp} from './editor-speed-ramp.js';
+import {initializeSmoothSpeed} from './editor-smooth-speed.js';
 export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBalance=run,has,cursor}){
   const colorUI=initializeColor({host:q('edit-transform-panel'),getEdl,getProject,getSelection,run:runBalance,has,cursor});
   const curvesUI=initializeColorCurves({host:q('edit-transform-panel'),getProject,getSelection,run:runBalance,has});
   const speedUI=initializeSpeedRamp({host:q('edit-transform-panel'),getProject,getEdl,getSelection,run:runBalance,has,cursor});
+  const smoothUI=initializeSmoothSpeed({host:q('edit-transform-panel'),getProject,getEdl,getSelection,run:runBalance,has});
   const mixerUI=initializeTrackMixer({host:q('edit-mix-panel'),getEdl,getProject,run:runBalance,has});
   const duckingUI=initializeDucking({host:q('edit-mix-panel'),getEdl,getProject,run:runBalance,has});
   const balanceUI=initializeAudioBalance({host:q('edit-mix-panel'),getEdl,getProject,getSelection,run:runBalance,has});
@@ -26,6 +28,7 @@ export function initializeEffectsUI({q,getEdl,getProject,getSelection,run,runBal
     colorUI.draw();
     curvesUI.draw();
     speedUI.draw();
+    smoothUI.draw();
     let item;try{item=getSelection();}catch{/* no clip */}
     balanceUI.draw(item);
     processingUI.draw();

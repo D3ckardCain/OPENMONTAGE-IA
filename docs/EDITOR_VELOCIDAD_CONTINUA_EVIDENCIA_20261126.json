@@ -1,0 +1,91 @@
+{
+  "attempt": "6eea986c1ab04988a78b8d74d726c2b9",
+  "single_MP4_export": true,
+  "duration_seconds": 3.68,
+  "video_frames": 92,
+  "fps": 25,
+  "audio_duration": 3.68,
+  "decoded_audio_samples": 176640,
+  "decoded_audio_rms": 0.10627694427967072,
+  "video_clock_anchors": [
+    {
+      "output_time": 0.88,
+      "analytic_source_time": 0.7861267060200952,
+      "closest_source_probe_time": 0.7861267060200952,
+      "mean_RGB_error": 2.503706065759637,
+      "source_quantization_window_seconds": 0.041666666666666664
+    },
+    {
+      "output_time": 1.84,
+      "analytic_source_time": 2.0,
+      "closest_source_probe_time": 1.9583333333333333,
+      "mean_RGB_error": 2.5686011904761905,
+      "source_quantization_window_seconds": 0.041666666666666664
+    },
+    {
+      "output_time": 2.8,
+      "analytic_source_time": 3.2138732939799044,
+      "closest_source_probe_time": 3.172206627313238,
+      "mean_RGB_error": 2.522264739229025,
+      "source_quantization_window_seconds": 0.041666666666666664
+    }
+  ],
+  "stored_word_occurrences_preserved": 16,
+  "original_partial_word_exclusions": 1,
+  "current_partial_word_exclusions": 1,
+  "subtitle_text_and_times_verified": true,
+  "shared_map_all_three_tracks": true,
+  "audio_mode": "continuous_resample_pitch_changes",
+  "audio_provenance": [
+    {
+      "clip_id": "fb47d9c1bc384f68b78875552e87b68c",
+      "source_id": "afdca3ead9154188b43c2799258fa8f7",
+      "source_sha256": "8c91014b94ee773afb32260534eff3113fd27ef3f11f9af7d27dab9f8cb31670",
+      "mode": "continuous_resample_pitch_changes",
+      "samples": 176640,
+      "rate": 48000,
+      "channels": 2,
+      "lowpass_hz": 14600.07381379631,
+      "precision": "Analytic inverse clock, float64 positions, linear PCM interpolation; pitch changes and quality limits explicit"
+    },
+    {
+      "clip_id": "b056bd147e044414a511152c578df950",
+      "source_id": "52f340c3fc4645e78283499ada848c29",
+      "source_sha256": "bb3cf85dc4eebba207314b9aabe861a591a6a283257bc44b8b2795cde271b279",
+      "mode": "continuous_resample_pitch_changes",
+      "samples": 153053,
+      "rate": 48000,
+      "channels": 2,
+      "lowpass_hz": 14600.07381379631,
+      "precision": "Analytic inverse clock, float64 positions, linear PCM interpolation; pitch changes and quality limits explicit"
+    }
+  ],
+  "intermediate_PCM_removed": true,
+  "playback": {
+    "ended": true,
+    "duration": 3.68,
+    "width": 640,
+    "height": 360,
+    "total": 92,
+    "dropped": 0,
+    "callbacks": 91,
+    "seekable": [
+      0,
+      3.68
+    ],
+    "errors": [],
+    "instance": 4789,
+    "main4750": false,
+    "human_listening": false
+  },
+  "undo_redo_save_reopen": true,
+  "new_focused_tests": 13,
+  "clock_conformance": {
+    "vectors": 181,
+    "max_error_seconds": 8.881784197001252e-16,
+    "backend_frontend_same_contract": "continuous-source-speed-linear-v1"
+  },
+  "main4750": false,
+  "human_listening": false,
+  "limits": "Video anchors include normal source/output frame quantization; audio impulse fixtures verify analytic timing; no independent acoustic ASR/lip-sync or pitch-preservation claim"
+}

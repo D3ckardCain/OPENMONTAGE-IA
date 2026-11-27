@@ -25,6 +25,11 @@ def create_editor_router(body):
     def capabilities():
         return editor_capabilities()
 
+    @router.post('/{pid}/smooth-speed-plan')
+    async def smooth_speed_plan(pid:str,request:Request):
+        from lib.studio_smooth_speed import project_plan
+        return invoke(project_plan,pid,await body(request,12000))
+
     @router.post('/{pid}/speed-plan')
     async def speed_plan(pid:str,request:Request):
         from lib.studio_speed_ramp import project_plan

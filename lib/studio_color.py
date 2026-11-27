@@ -69,6 +69,9 @@ def compare(pid,clip_id,clip_seconds):
     if clip.get('kind')=='gap':raise ValueError('El intervalo vacío no tiene fotograma')
     seconds=edit.number(clip_seconds,0,(clip['out_seconds']-clip['in_seconds'])/clip['speed']-.001)
     time=clip['in_seconds']+seconds*clip['speed'];path=edit.source(pid,clip['source_id'])
+    if clip.get('time_warp'):
+        from lib.studio_smooth_clock import forward,inverse
+        warp=clip['time_warp'];time=clip['in_seconds']+(inverse(warp['map'],forward(warp['map'],warp['old_start_seconds'])+seconds)-warp['old_start_seconds'])*warp['old_speed']
     color=deepcopy(clip.get('color'));saved=normalize(color or {})
     # Compare a configured effect even when playback/export is bypassed; receipt says so.
     proposed={**saved,'bypass':False};out=edl['output'];w,h=(out['width'],out['height']) if out['ratio']=='custom' else edit.PRESETS[out['ratio']]

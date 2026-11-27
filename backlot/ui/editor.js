@@ -8,7 +8,7 @@ import { initializeSubtitleLayout } from './editor-subtitle-layout.js';
 import { initializeSubtitleKaraoke } from './editor-subtitle-karaoke.js';
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
-import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
+import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta,sourceToTimeline } from './editor-time.js';
 import { makePeaks,paintPeaks,signalLevel } from './editor-waveform.js';
 import { initializeEffectsUI } from './editor-effects-ui.js';
 import { initializeCompositionUI } from './editor-composition-ui.js';
@@ -451,7 +451,7 @@ async function waveform(key) {
     paintPeaks(canvas,peaks);canvas.hidden=false;status.textContent='Forma de onda real · primer canal · fuente completa, sin efectos ni mezcla.';
     canvas.onclick=event=>{const time=(event.offsetX/canvas.clientWidth)*peaks.duration;
       if(sourceKey===key)q('edit-player').currentTime=time;
-      else if(selection){const item=selected();seekTimeline(clipStart(edl(),item.clip,item.track)+(Math.max(item.clip.in_seconds,Math.min(item.clip.out_seconds,time))-item.clip.in_seconds)/item.clip.speed);}
+      else if(selection){const item=selected();seekTimeline(sourceToTimeline(edl(),item.clip,item.track,Math.max(item.clip.in_seconds,Math.min(item.clip.out_seconds,time))));}
     };
   }catch(error){if(pid===project&&token===waveformSelection){status.textContent='Forma de onda no disponible: '+error.message;q('edit-waveform-retry').hidden=edl().sources[key].duration>300||edl().sources[key].bytes>100000000;q('edit-waveform-retry').dataset.source=key;}}
 }
@@ -492,7 +492,7 @@ q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()
 q('edit-render-cancel').onclick=()=>task(async()=>{requireProject();await api(base()+'/render/cancel',{attempt:renderAttempt});await checkRender();});
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});
 q('edit-show-montage').onclick=()=>task(async()=>{requireProject();await checkRender();if(!preview)message('El montaje actual aún no tiene vista previa guardada. Usa Preparar vista previa del montaje.');});
-q('edit-player').ontimeupdate=()=>{const p=q('edit-player');if(preview)cursor=p.currentTime||0;else if(selection&&state){try{const item=selected();if(sourceKey===item.clip.source_id)cursor=clipStart(edl(),item.clip,item.track)+Math.max(0,(p.currentTime-item.clip.in_seconds)/item.clip.speed);}catch{/* removed */}}q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};
+q('edit-player').ontimeupdate=()=>{const p=q('edit-player');if(preview)cursor=p.currentTime||0;else if(selection&&state){try{const item=selected();if(sourceKey===item.clip.source_id)cursor=sourceToTimeline(edl(),item.clip,item.track,Math.max(item.clip.in_seconds,p.currentTime));}catch{/* removed */}}q('edit-time').textContent=new Date(Math.max(0,p.currentTime)*1000).toISOString().slice(11,23);q('edit-caption').textContent=preview?.subtitle_mode==='mov_text'?(edl().cues.find(c=>c.start_seconds<=p.currentTime&&p.currentTime<c.end_seconds)?.text||''):'';if(!preview&&selection){try{const item=selected();if(sourceKey===item.clip.source_id&&p.currentTime>=item.clip.out_seconds)p.pause();}catch{/* selection removed */}}updatePlayhead();};
 q('edit-player').onerror=()=>message('El navegador no pudo reproducir este archivo. Puedes preparar la vista previa MP4 con FFmpeg; no se modifica el original.');
 q('edit-srt-import').onchange=event=>task(async()=>{requireProject();const f=event.target.files[0];if(!f)return;if(f.size>500000)throw Error('SRT superior a 500 KB');const response=await fetch(base()+'/subtitles/import?filename='+encodeURIComponent(f.name)+'&revision='+state.revision,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f});const value=await response.json();if(!response.ok)throw Error(value.detail);state=value;invalidate();draw();message('SRT importado y validado; se conservan sus bytes originales. Aplica los cambios posteriores del campo SRT por separado.');});
 q('edit-srt-save').onclick=()=>task(()=>command('subtitles',{srt:q('edit-srt').value}));

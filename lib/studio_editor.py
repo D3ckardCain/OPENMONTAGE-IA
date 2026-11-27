@@ -282,6 +282,11 @@ def duration(edl):
 
 
 def frames(clip, fps):
+    if clip.get('time_warp',{}).get('role')=='primary':
+        from lib.studio_smooth_clock import validate
+        m=validate(clip['time_warp']['map'])
+        if fps!=m['fps']:raise ValueError('No cambies FPS con rampa continua activa')
+        return m['output_frames']
     # Match browser Math.round for nonnegative times, including half frames.
     return math.floor((clip['out_seconds'] - clip['in_seconds']) / clip['speed'] * fps + .5)
 
@@ -439,6 +444,8 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_smooth_speed import validate as validate_smooth
+    validate_smooth(edl)
     from lib.studio_color_curves import normalize as normalize_color_curves
     for clip in edl['cuts']:
         if 'color_curves' in clip:normalize_color_curves(clip['color_curves'])
