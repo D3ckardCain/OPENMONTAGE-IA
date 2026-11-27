@@ -37,8 +37,10 @@ def number(value, low=0, high=86400):
 
 
 def media_path(project, relative):
-    if not isinstance(relative, str) or '\\' in relative or not relative.startswith('assets/'):
-        raise ValueError('El medio debe estar dentro de assets/ del proyecto')
+    if not isinstance(relative, str) or '\\' in relative or not (
+        relative.startswith('assets/') or relative.startswith('originales/')
+    ):
+        raise ValueError('El medio debe estar dentro de originales/ o assets/ del proyecto')
     path = project / relative
     path.resolve().relative_to(project.resolve())
     if any(p in ('.', '..') for p in Path(relative).parts) or path.is_symlink() or not path.is_file():
@@ -94,13 +96,13 @@ def _empty():
 def create(title):
     if not isinstance(title, str) or not 1 <= len(title.strip()) <= 120:
         raise ValueError('Indica un título de 1 a 120 caracteres')
-    pid = 'edit-' + uuid.uuid4().hex[:12]
-    project = studio.PROJECTS_DIR / pid
-    project.mkdir(parents=True, exist_ok=False)
+    from lib.project_workspace import create_project_folder, describe as describe_workspace, initialize_layout
+    pid, project = create_project_folder(studio.PROJECTS_DIR, title)
+    initialize_layout(project)
     studio.save_json(project / 'production_request.json', {'title': title.strip(), 'manual_edit': True})
     studio.save_json(project / 'project.json', {'project_id': pid, 'title': title.strip(), 'type': 'manual_edit'})
     studio.save_json(project / ARTIFACT, {'revision': 0, 'edit_decisions': _empty(), 'undo': [], 'redo': [], 'events': []})
-    return {'project_id': pid, **state(pid)}
+    return {'project_id': pid, 'project_path': str(project), 'workspace': describe_workspace(project), **state(pid)}
 
 
 def state(pid):
@@ -111,6 +113,8 @@ def state(pid):
         raise ValueError('Este proyecto usa el flujo de producción. Crea un proyecto de edición manual; no se sustituye su montaje.')
     value['edit_sha256'] = edit_digest(value['edit_decisions'])
     value['render_sha256'] = render_digest(value['edit_decisions'])
+    from lib.project_workspace import describe as describe_workspace
+    value['workspace'] = describe_workspace(project)
     return value
 
 
@@ -264,7 +268,7 @@ def import_subtitles(pid, blob, filename, expected):
         _revision(value, expected)
         edl = deepcopy(value['edit_decisions'])
         edl['cues'] = parse_srt(blob.decode('utf-8-sig'), duration(edl))
-        relative = 'assets/imports/' + uuid.uuid4().hex + '.srt'
+        relative = 'subtitulos/' + uuid.uuid4().hex + '.srt'
         target = studio.project_path(pid) / relative
         target.parent.resolve().relative_to(studio.project_path(pid).resolve())
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -498,3 +502,4 @@ def source(pid, source_id):
     if identity(path) != {key: info[key] for key in ('bytes', 'mtime_ns')}:
         raise Conflict('El medio cambió desde su importación; vuelve a importarlo')
     return path
+
