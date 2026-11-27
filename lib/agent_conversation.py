@@ -288,12 +288,24 @@ class Conversation:
                                      if item.get('signature')==signature and item.get('outcome')=='unknown'),None)
             repeated=any(item.get('signature')==signature and item.get('before')==item.get('after')==progress_before
                          for item in recent[-2:])
+            owner_request_id=None
+            preflight_error=None
+            if fn.get('name')=='execute_tool' and parse_error is None:
+                try:
+                    identity=a.dispatch('tool_preflight',args)
+                    if isinstance(identity,dict) and isinstance(identity.get('request_id'),str) and identity['request_id']:
+                        owner_request_id=identity['request_id']
+                    else:
+                        preflight_error='tool_preflight no devolvió request_id'
+                except Exception as exc:
+                    preflight_error=str(exc)[:500]
             attempt_seed={'request_sha256':s.get('request_sha256'),'message_count':len(s['messages']),
                           'call_index':s['next_call'],'signature':signature,'tool_call_id':call.get('id')}
             conversation_attempt_id=hashlib.sha256(json.dumps(attempt_seed,sort_keys=True,separators=(',',':')).encode('utf-8')).hexdigest()[:32]
             s['in_flight']={'call_index':s['next_call'],'function':fn,'tool_call_id':call.get('id'),
                             'signature':signature,'progress_before':progress_before,
-                            'conversation_attempt_id':conversation_attempt_id}
+                            'conversation_attempt_id':conversation_attempt_id,
+                            'request_id':owner_request_id}
             self.save()
             pause = None
             try:
@@ -303,7 +315,17 @@ class Conversation:
                     suffix=' request_id='+str(request_id) if request_id else ''
                     raise Pause('blocked','AGENT_TOOL_OUTCOME_UNCERTAIN: la misma llamada pudo haber escrito; reconcilia su estado antes de repetirla.'+suffix)
                 if repeated:raise Pause('blocked','AGENT_LOOP_NO_PROGRESS: llamada idéntica con los mismos argumentos y sin cambios de proyecto; se detuvo antes de repetirla.')
-                result = a.dispatch(fn.get('name'), args)
+                if fn.get('name')=='execute_tool' and not owner_request_id:
+                    result={'success':False,'tool':args.get('name') if isinstance(args,dict) else None,
+                            'request_id':None,
+                            'error':{'code':'owner_request_id_unavailable',
+                                     'message':'No se ejecutó la herramienta: no se pudo obtener y persistir su request_id.',
+                                     'outcome':'not_started','recoverable':True,'retryable':False,
+                                     'reconcile_before_retry':False,
+                                     'next_action':'Revisa tool_preflight; no reintentes una escritura incierta.'},
+                            'preflight_error':preflight_error}
+                else:
+                    result = a.dispatch(fn.get('name'), args)
             except Pause as exc:
                 pause = exc
                 result = {'paused': exc.status, 'message': str(exc)}

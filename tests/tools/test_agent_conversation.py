@@ -134,6 +134,49 @@ def test_interruption_after_intent_blocks_unsafe_replay(instance):
     assert instance.dispatch.call_count == 1
 
 
+def test_execute_tool_without_preflight_request_id_is_not_dispatched(instance):
+    instance.chat.return_value = message({
+        'id': 'call-owner-missing',
+        'function': {'name': 'execute_tool', 'arguments': {
+            'name': 'synthetic_write', 'inputs': {'value': 1}}}})
+    dispatched = []
+    def dispatch(name, args):
+        dispatched.append(name)
+        return {'ready': False}
+    instance.dispatch.side_effect = dispatch
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    c.turn()
+    receipt = json.loads(c.state['messages'][-1]['content'])
+    assert receipt['error']['code'] == 'owner_request_id_unavailable'
+    assert receipt['error']['outcome'] == 'not_started'
+    assert dispatched == ['tool_preflight']
+    assert studio.read_json(c.path)['in_flight'] is None
+
+
+def test_execute_tool_persists_owner_request_id_before_dispatch(instance):
+    instance.chat.return_value = message({
+        'id': 'call-owner-1',
+        'function': {'name': 'execute_tool', 'arguments': {
+            'name': 'synthetic_write', 'inputs': {'value': 'synthetic-private-argument'}}}})
+    dispatched = []
+    def dispatch(name, args):
+        dispatched.append(name)
+        if name == 'tool_preflight':
+            return {'ready': True, 'request_id': 'owner-request-42'}
+        raise KeyboardInterrupt()
+    instance.dispatch.side_effect = dispatch
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    with pytest.raises(KeyboardInterrupt): c.turn()
+    saved = studio.read_json(c.path)
+    assert saved['in_flight']['request_id'] == 'owner-request-42'
+    assert dispatched == ['tool_preflight', 'execute_tool']
+    with pytest.raises(Pause, match='AGENT_SESSION_UNCERTAIN') as blocked:
+        Conversation(instance, INITIAL.copy(), tools=[])
+    assert 'request_id=owner-request-42' in str(blocked.value)
+    assert 'synthetic-private-argument' not in str(blocked.value)
+    assert dispatched == ['tool_preflight', 'execute_tool']
+
+
 def test_failed_receipt_write_keeps_uncertain_intent_on_disk(instance, monkeypatch):
     instance.chat.return_value = message(call(1), call(2))
     instance.dispatch.return_value = {'success': True}
