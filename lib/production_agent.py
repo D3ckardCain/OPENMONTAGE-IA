@@ -432,6 +432,7 @@ class LocalAgent:
             if tool is None or not self.permitted(tool):
                 raise AgentToolFailure('tool_not_allowed','Solo herramientas concretas locales, sin publicación ni proveedores de pago.')
             if name=='tool_info':return tool.get_info()
+            tool_version=getattr(tool,'version','unknown')
             try:
                 inputs=dict(args['inputs']);validate(inputs,tool.input_schema)
                 stage=get_next_stage(studio.PROJECTS_DIR,self.pid,self.request['pipeline'])
@@ -465,14 +466,14 @@ class LocalAgent:
             else:estimate_error=None
             available=tool.get_status()==ToolStatus.AVAILABLE
             fields=list(getattr(tool,'idempotency_key_fields',[]) or [])
-            fingerprint_data={'project_id':self.pid,'tool':tool.name,'version':tool.version,'arguments':inputs}
+            fingerprint_data={'project_id':self.pid,'tool':tool.name,'version':tool_version,'arguments':inputs}
             request_fingerprint=hashlib.sha256(json.dumps(fingerprint_data,ensure_ascii=False,sort_keys=True,default=str,separators=(',',':')).encode('utf-8')).hexdigest()
             request_id=args.get('request_id') or 'agent-'+request_fingerprint[:32]
             cost_valid=isinstance(estimate,(int,float)) and math.isfinite(estimate) and estimate==0
             skills_ready=not missing_skills
             ready=available and cost_valid and skills_ready and estimate_error is None
             if name=='tool_preflight':
-                return {'ready':ready,'tool':tool.name,'version':tool.version,'capability':tool.capability,
+                return {'ready':ready,'tool':tool.name,'version':tool_version,'capability':tool.capability,
                         'status':tool.get_status().value,'input_schema':tool.input_schema,
                         'preconditions':{'missing_skills':missing_skills,'dependencies':list(getattr(tool,'dependencies',[])),
                                          'project_scoped_outputs':True},
@@ -491,7 +492,7 @@ class LocalAgent:
                 except Exception as exc:
                     self.event('error','Resultado de herramienta incierto; requiere reconciliación antes de repetir',
                                tool=tool.name,request_id=request_id,error=str(exc)[:500])
-                    return {'success':False,'tool':tool.name,'tool_version':tool.version,'request_id':request_id,
+                    return {'success':False,'tool':tool.name,'tool_version':tool_version,'request_id':request_id,
                             'request_fingerprint':request_fingerprint,
                             'error':{'code':'tool_execution_outcome_unknown','message':str(exc)[:1200],
                                      'outcome':'unknown','recoverable':True,'retryable':False,
@@ -507,7 +508,7 @@ class LocalAgent:
                     failure={'code':'tool_reported_failure','message':str(result.error or 'La herramienta informó fallo')[:1200],
                              'outcome':'unknown','recoverable':True,'retryable':False,'reconcile_before_retry':True,
                              'next_action':'Comprueba recibos y artefactos antes de repetir.'}
-                return {'success':result.success,'tool':tool.name,'tool_version':tool.version,
+                return {'success':result.success,'tool':tool.name,'tool_version':tool_version,
                         'request_id':request_id,'request_fingerprint':request_fingerprint,
                         'declared_idempotency_fields':fields,'idempotency_candidate':request_fingerprint,'idempotency_enforced_by_dispatch':False,
                         'data':data,'error':failure,'cost_usd':result.cost_usd,

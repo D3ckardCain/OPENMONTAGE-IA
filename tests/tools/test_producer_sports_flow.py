@@ -33,7 +33,7 @@ def test_producer_discovers_queries_and_designs_without_ids_or_retyping_stats(pr
     def fetch():calls.append(1);return page,{'url':wba.URL,'retrieved_at':'2026-11-20T00:00:00Z'}
     monkeypatch.setattr(wba,'fetch',fetch)
     request={'name':'official_wba_live','inputs':{'action':'collectible_card','name':'Boxer 1'}}
-    with pytest.raises(ValueError,match='instrucciones'):worker.dispatch('execute_tool',request)
+    with pytest.raises(ValueError,match='skill'):worker.dispatch('execute_tool',request)
     assert not calls
     worker.instruction('skills/'+worker.manifest['stages'][0]['skill']+'.md')
     researched=worker.dispatch('execute_tool',request)
