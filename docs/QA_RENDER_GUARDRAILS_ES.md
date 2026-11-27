@@ -59,3 +59,8 @@ Límite: no mide las cajas de glifos del render ni demuestra que un texto concre
 quepa en la zona segura. El contrato existente aplica márgenes al subtítulo
 quemado/ASS y señala que el subtítulo seleccionable no garantiza estilo; la
 comprobación geométrica visual y la revisión humana permanecen pendientes.
+
+
+## Reparación selectiva de un cue · regresión de API y agente
+
+La prueba focalizada inyecta un cue fuera del montaje solo en el proyecto sintético temporal, lo detecta por la API de calidad y corrige ese cue mediante el comando compartido `agent-command/cue_update`. Comprueba que cortes, pistas de audio, fuentes y salida no cambian, y que deshacer/rehacer, guardar y reabrir reproducen el estado esperado. El medio es un byte fixture con probe simulado: no se decodifica, exporta ni presenta como evidencia audiovisual real. No mide glifos ni zona segura, que siguen pendientes.

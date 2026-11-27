@@ -2,7 +2,7 @@ from copy import deepcopy
 import pytest
 from fastapi.testclient import TestClient
 from backlot.server import create_app
-from lib import studio_editor as edit,studio_subtitle_layout as layout
+from lib import production_studio as studio,studio_editor as edit,studio_subtitle_layout as layout
 from lib.scene_burned_subtitles import _ass
 from tests.backlot.test_studio_editor import project,command,add
 
@@ -97,3 +97,52 @@ def test_nonfinite_timing_is_reported_and_blocks_reflow(project):
     assert report['cues'][0]['cps_available'] is False
     with pytest.raises(ValueError,match='intervalos inválidos'):
         layout.apply(corrupted,{'operation':'subtitle_reflow','reviewed':True,'input_edl_sha256':None})
+
+
+def test_out_of_range_cue_repair_is_selective_shared_and_reversible(project):
+    pid,key,source_path=project
+    seed(pid,key)
+    original_media=source_path.read_bytes()
+    artifact=studio.project_path(pid)/edit.ARTIFACT
+    corrupted=edit.state(pid)
+    corrupted['edit_decisions']['cues'][0]['end_seconds']=12.
+    # Inject a defect only into this disposable synthetic test project.
+    corrupted['undo']=[];corrupted['redo']=[]
+    studio.save_json(artifact,corrupted)
+
+    client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
+    url=f'/api/studio/editor/{pid}'
+    audit=client.get(url+'/subtitles/quality')
+    assert audit.status_code==200
+    assert audit.json()['timing']['out_of_range_cues']==[0]
+    before=edit.state(pid)
+    before_edl=deepcopy(before['edit_decisions'])
+
+    def agent_command(operation,**params):
+        current=edit.state(pid)
+        response=client.post(url+'/agent-command',json={
+            'operation':operation,'revision':current['revision'],**params})
+        assert response.status_code==200,response.text
+        return response.json()
+
+    agent_command('cue_update',index=0,start_seconds=1.,end_seconds=2.,
+                  text=before_edl['cues'][0]['text'])
+    fixed=edit.state(pid)
+    fixed_edl=fixed['edit_decisions']
+    assert fixed_edl['cues'][0]['end_seconds']==2.
+    assert fixed_edl['cuts']==before_edl['cuts']
+    assert fixed_edl['audio_tracks']==before_edl['audio_tracks']
+    assert fixed_edl['sources']==before_edl['sources']
+    assert fixed_edl['output']==before_edl['output']
+    assert fixed['events'][-1]['origin']=='agent'
+    assert layout.project_report(pid)['timing']['out_of_range_cues']==[]
+
+    agent_command('undo')
+    assert layout.project_report(pid)['timing']['out_of_range_cues']==[0]
+    agent_command('redo')
+    assert layout.project_report(pid)['timing']['out_of_range_cues']==[]
+    agent_command('save')
+    reopened=studio.read_json(artifact)
+    assert reopened['edit_decisions']==edit.state(pid)['edit_decisions']
+    assert reopened['edit_decisions']['cues'][0]['end_seconds']==2.
+    assert source_path.read_bytes()==original_media
