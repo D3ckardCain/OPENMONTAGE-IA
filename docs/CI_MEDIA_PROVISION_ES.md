@@ -55,3 +55,11 @@ Las fuentes usan los paquetes firmados del Ubuntu del runner. No fijan snapshot
 inmutable de cada paquete ni añaden cobertura de otras arquitecturas/OS. Los tests
 de aplicaciones/instalación Windows conservan su entorno y alcance. Este script no
 es instalador local de Studio y no toca ComfyUI, configuraciones o candidatos.
+
+## Actualización del job browser-regressions · 2026-11-27
+
+Run [45999054766](https://github.com/D3ckardCain/OPENMONTAGE-IA/actions/runs/45999054766), job 140505746089: el runner identificado por el log usó Ubuntu 26.04 (resolute). La provisión aislada desde los archivos oficiales firmados comenzó la instalación de FFmpeg y descargó al menos 62 paquetes/dependencias; el proceso alcanzó libavfilter11 y terminó en exit 124 al límite interno de 180 s de instalación. El paso de Playwright fue omitido; no es un fallo de test ni una instalación incompleta declarada exitosa.
+
+Se fijó únicamente browser-regressions a ubuntu-24.04; no se cambió la matriz Linux/Windows de contratos, el Python, la selección de paquetes, las fuentes firmadas, el límite de 180 s ni el timeout de 6 min del step. El motivo es evitar que la etiqueta móvil ubuntu-latest cambie la versión base/paquetes de FFmpeg sin relación con este job. Se añade una prueba estática para conservar el pin y verificar que el flujo sigue preparando FFmpeg antes de instalar Chromium y ejecutar Playwright.
+
+Fuentes oficiales de imagen: [tabla de labels de GitHub Actions Runner Images](https://github.com/actions/runner-images#available-images) y [Ubuntu 24.04 image definition](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md). Este cambio es una hipótesis acotada para reducir la variabilidad de APT, no garantía de que paquetes externos nunca fallen. Se ejecutará Playwright solo si APT completa en el runner fijado.
