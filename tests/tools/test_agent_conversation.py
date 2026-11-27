@@ -1,5 +1,6 @@
 """Offline protocol simulations; no live model or native application in CI."""
 import json
+import hashlib
 import threading
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -189,6 +190,51 @@ def test_malformed_model_batches_never_dispatch(instance, calls):
     with pytest.raises(ValueError, match='AGENT_PROTOCOL'):
         Conversation(instance, INITIAL.copy(), tools=[]).turn()
     instance.dispatch.assert_not_called()
+
+
+def test_completed_large_receipt_is_archived_and_summarized_without_losing_pair(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    call_id = 'receipt-large-1'
+    complete = json.dumps({'status': 'ok', 'data': {'artifact_id': 'artifact-17', 'text': 'x' * 91000},
+                           'provenance': {'source_sha256': 'a' * 64}}, separators=(',', ':'))
+    c.state['messages'].extend([
+        {'role': 'assistant', 'content': '', 'tool_calls': [{'id': call_id, 'function': {'name': 'read_fixture'}}]},
+        {'role': 'tool', 'tool_name': 'read_fixture', 'tool_call_id': call_id, 'content': complete},
+    ])
+    c.state.update(pending=[{'id': call_id, 'function': {'name': 'read_fixture'}}], next_call=1, in_flight=None)
+
+    result = c.compact_completed_context()
+    summary = json.loads(c.state['messages'][-1]['content'])
+    archive = instance.path / summary['archive_path']
+    record = json.loads(archive.read_text(encoding='utf-8'))
+
+    assert result['compacted'] == 1
+    assert result['characters_after'] < result['characters_before']
+    assert c.state['messages'][-2]['tool_calls'][0]['id'] == c.state['messages'][-1]['tool_call_id'] == call_id
+    assert summary['receipt_sha256'] == hashlib.sha256(complete.encode('utf-8')).hexdigest()
+    assert record['content'] == complete and record['receipt_sha256'] == summary['receipt_sha256']
+    assert summary['summary']['status'] == 'ok'
+    assert summary['summary']['data']['artifact_id'] == 'artifact-17'
+    assert c.state['compactions'][0]['tool_call_id'] == call_id
+    assert studio.read_json(c.path)['messages'][-1]['content'] == c.state['messages'][-1]['content']
+    instance.dispatch.assert_not_called()
+
+
+def test_uncertain_or_incomplete_batch_is_never_compacted(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    complete = json.dumps({'data': {'text': 'y' * 20000}})
+    c.state['messages'].append({'role': 'tool', 'tool_name': 'read_fixture', 'content': complete})
+    c.state.update(pending=[{'function': {'name': 'write_fixture'}}], next_call=0,
+                   in_flight={'call_index': 0, 'function': {'name': 'write_fixture'}})
+    c.save()
+
+    before = c.state['messages'][-1]['content']
+    result = c.compact_completed_context()
+
+    assert result == {'compacted': 0, 'reason': 'batch_incomplete'}
+    assert c.state['messages'][-1]['content'] == before
+    assert not (instance.path / 'agent-session-archive').exists()
+    assert studio.read_json(c.path)['in_flight']['call_index'] == 0
 
 
 def test_prepared_native_conversion_cancel_resume_with_simulated_model(tmp_path, monkeypatch):
