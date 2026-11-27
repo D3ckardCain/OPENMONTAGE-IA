@@ -183,3 +183,27 @@ body.editor-active[data-editor-workspace="subtitles"] #edit-subtitle-panel:not([
 .video-evidence-card .video-evidence-pts{display:flex;flex-wrap:wrap;gap:4px}
 .video-evidence-card .video-evidence-pts button,.video-evidence-card li button{font-size:11px;text-align:left;white-space:normal}
 .video-evidence-card ol{max-height:220px;overflow:auto;padding-left:24px}
+
+
+/* UI UX Pro Max: responsive editor navigation, touch targets and stable icon alignment. */
+.editor-menu{min-width:0}
+.editor-primary-spaces{flex:1 1 auto;overflow-x:auto;overscroll-behavior-x:contain}
+.editor-action-icon{display:block;width:16px;height:16px}
+.editor-menu button,.editor-menu-more>summary{min-height:36px}
+@media(max-width:1050px){
+ .editor-menu{flex-wrap:wrap;overflow:visible}
+ .editor-primary-spaces{flex:1 1 calc(100% - 120px);max-width:100%;overflow-x:auto}
+}
+@media(max-width:680px){
+ .editor-menu{align-items:stretch;gap:4px}
+ .editor-primary-spaces{flex:1 1 100%;width:100%;max-width:100%}
+ .editor-menu button{min-height:44px;padding-inline:10px;font-size:12px}
+ .editor-menu-more{flex:0 0 auto;margin-left:0}
+ .editor-menu-more>summary{display:flex;align-items:center;min-height:44px}
+ .editor-secondary-spaces button{min-height:44px}
+ .editor-commandbar .editor-action,.editor-commandbar>details>summary{min-height:44px}
+ .editor-shell button:not(.editor-clip):not(.editor-marker),
+ .editor-shell input:not([type=checkbox]):not([type=radio]),
+ .editor-shell select,.editor-shell textarea{min-height:44px}
+ .editor-shell input[type=checkbox],.editor-shell input[type=radio]{width:20px;height:20px}
+}
