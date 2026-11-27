@@ -164,8 +164,10 @@ def create_production(data):
         observations_sha256=_digest(observations)
     if data['pipeline']=='framework-smoke':raise ValueError('Pipeline reservado para pruebas')
     manifest=load_pipeline_readonly(data['pipeline'])
-    pid='video-'+uuid.uuid4().hex[:12]
     with LOCK:
+        from lib.project_workspace import create_project_folder, describe as describe_workspace, initialize_layout
+        pid,p=create_project_folder(PROJECTS_DIR,data['title'])
+        initialize_layout(p)
         p=init_project(pid,title=data['title'],pipeline_type=data['pipeline'],pipeline_dir=PROJECTS_DIR)
         save_json(p/'production_request.json',{**data,'performance_import_sha256':performance['sha256'] if performance else None,'research_idea_sha256':idea_sha256,
             'research_observations_sha256':observations_sha256,'project_id':pid,'created_at':now(),'budget_usd':0,'publish_authorized':False})
@@ -183,7 +185,8 @@ def create_production(data):
         first=manifest['stages'][0]['name']
         write_checkpoint(PROJECTS_DIR,pid,first,'in_progress',{'decision_log':decision},pipeline_type=data['pipeline'])
         save_json(p/'job.json',{'status':'ready','updated_at':now(),'message':'Proyecto creado. Comprueba el runtime e inicia los agentes.','events':[]})
-    return {'project_id':pid,'studio_url':'/studio?project='+pid,'board_url':'/p/'+pid}
+    return {'project_id':pid,'project_path':str(p),'workspace':describe_workspace(p),
+            'studio_url':'/studio?project='+pid,'board_url':'/p/'+pid}
 
 
 def production_state(pid):
@@ -217,7 +220,9 @@ def production_state(pid):
             'imported_at_utc':performance['imported_at_utc']} if performance else None
     except (ValueError,TypeError,KeyError,OSError):
         performance_state={'status':'invalid','message':'Copia de rendimiento ausente o alterada.'}
+    from lib.project_workspace import describe as describe_workspace
     return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,
+            'workspace':describe_workspace(p),
         'channel_research':channel_research_summary(p,request),
         'channel_performance':performance_state,
         'translation':translation_summary(pid),
@@ -272,3 +277,4 @@ def resource_catalog():
             groups.append({'id':group['id'],'label':group.get('name',group['id']),'files':items,'source_catalog':path.name})
     return {'inventories':[{k:v for k,v in x.items() if k!='Ficheros'} for x in inventories], 'groups':groups,
             'notes':['Registro por ruta/tamaño, no prueba de instalación ni de inferencia.','Si no consta, revisa ambos discos antes de descargar.','No todos los modelos tienen adaptador de ejecución integrado.']}
+
