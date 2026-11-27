@@ -41,8 +41,8 @@
         <button class="nav-item" data-module="library"><svg><use href="#i-folder"/></svg><span>Biblioteca</span></button>
         <button class="nav-item" data-module="projects"><svg><use href="#i-grid"/></svg><span>Proyectos</span></button>
         <div class="rail-caption rail-caption-gap">HERRAMIENTAS</div>
-        <button class="nav-item" data-module="channels"><svg><use href="#i-search"/></svg><span>Investigación</span><i>10</i></button>
-        <button class="nav-item" data-module="sports"><svg><use href="#i-trophy"/></svg><span>Comparativas</span><i>11</i></button>
+        <button class="nav-item" data-module="channels"><svg><use href="#i-search"/></svg><span>Investigación</span></button>
+        <button class="nav-item" data-module="sports"><svg><use href="#i-trophy"/></svg><span>Comparativas</span></button>
         <button class="nav-item" data-module="thumbnails"><svg><use href="#i-image"/></svg><span>Miniaturas</span></button>
         <button class="nav-item" data-module="avatars"><svg><use href="#i-user"/></svg><span>Avatares</span></button>
         <button class="nav-item" data-module="clips"><svg><use href="#i-scissors"/></svg><span>Clips y tráileres</span></button>
@@ -55,7 +55,17 @@
       <div id="backend-warning" class="backend-warning" role="status" hidden><span class="warning-mark">!</span><span><strong>Studio necesita activación manual</strong><small>Esta pantalla está actualizada; el proceso actual declara una revisión de backend distinta. Las acciones de escritura quedan desactivadas hasta reiniciar Studio manualmente.</small></span><code id="identity-short"></code></div>
       <section id="module-video" class="module-page active" data-page="video">
         <div class="page-heading"><div><p class="eyebrow">ESPACIO DE EDICIÓN</p><h1>Vídeo</h1></div><div class="project-picker"><label for="project-select">Proyecto</label><select id="project-select"><option value="">Selecciona un proyecto</option></select><button id="new-project-inline" class="square-button" aria-label="Crear proyecto"><svg><use href="#i-plus"/></svg></button></div></div>
-        <div class="mode-strip" aria-label="Modos de vídeo"><button class="mode-chip unavailable" title="El backend activo no expone este generador">Texto a vídeo <small>No disponible</small></button><button class="mode-chip unavailable" title="El backend activo no expone este generador">Imagen a vídeo <small>No disponible</small></button><button class="mode-chip unavailable" title="El análisis de referencia requiere revisar un flujo específico">Recrear referencia <small>Preparación pendiente</small></button><button class="mode-chip unavailable" title="No se confirmó el flujo completo de narración a vídeo">Guion a vídeo <small>No disponible</small></button><button class="mode-chip selected" aria-current="true">Editar material propio <small>Editor manual</small></button><button class="mode-chip unavailable" title="No se confirmó una plantilla conectada a este panel">Plantillas <small>No disponible</small></button><button id="social-toggle" class="mode-chip social-chip" aria-expanded="false">Adaptar para redes <small>Salida local</small></button></div>
+        <div class="mode-toolbar">
+          <div class="mode-strip" role="group" aria-label="Modos de vídeo">
+            <button class="mode-chip unavailable" title="El backend activo no expone este generador"><span>Texto a vídeo</span><small>No disponible</small></button>
+            <button class="mode-chip unavailable" title="El backend activo no expone este generador"><span>Imagen a vídeo</span><small>No disponible</small></button>
+            <button class="mode-chip unavailable" title="El análisis de referencia requiere revisar un flujo específico"><span>Recrear referencia</span><small>Preparación pendiente</small></button>
+            <button class="mode-chip unavailable" title="No se confirmó el flujo completo de narración a vídeo"><span>Guion a vídeo</span><small>No disponible</small></button>
+            <button class="mode-chip selected" aria-current="true"><span>Editar material propio</span><small>Editor manual</small></button>
+            <button class="mode-chip unavailable" title="No se confirmó una plantilla conectada a este panel"><span>Plantillas</span><small>No disponible</small></button>
+          </div>
+          <div class="mode-actions"><button id="social-toggle" class="mode-chip social-chip" aria-expanded="false">Adaptar para redes <small>Salida local</small></button></div>
+        </div>
         <div id="social-panel" class="social-panel" hidden><label for="social-platform">Destino</label><select id="social-platform"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option></select><label for="social-format">Formato</label><select id="social-format"><option value="9:16">Vertical · 9:16</option><option value="16:9">Horizontal · 16:9</option><option value="1:1">Cuadrado · 1:1</option><option value="4:5">Retrato · 4:5</option></select><span>Solo cambia el formato editable del proyecto. No publica ni promete recorte automático o zonas seguras.</span><button id="social-apply" class="quiet-button">Aplicar al montaje</button></div>
         <div id="editor-lock" class="inline-note" hidden></div>
         <div class="edit-workbench">
