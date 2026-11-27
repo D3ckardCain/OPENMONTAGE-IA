@@ -6,7 +6,8 @@ import subprocess
 import threading
 
 CONTRACT='clip-sdr-color-v1'
-DEFAULT={'bypass':False,'exposure_ev':0.,'contrast':1.,'saturation':1.,'gamma':1.}
+DEFAULT={'bypass':False,'exposure_ev':0.,'contrast':1.,'saturation':1.,'gamma':1.,
+         'temperature':0.,'tint':0.}
 COMPARE_LOCK=threading.Lock()
 
 
@@ -29,7 +30,8 @@ def normalize(value):
     if not isinstance(value,dict) or set(value)-set(DEFAULT):raise ValueError('Ajustes de color desconocidos')
     result={**DEFAULT,**value}
     if type(result['bypass']) is not bool:raise ValueError('Bypass requiere booleano')
-    for key,low,high in [('exposure_ev',-2,2),('contrast',.25,2),('saturation',0,2),('gamma',.5,2)]:result[key]=number(result[key],low,high)
+    for key,low,high in [('exposure_ev',-2,2),('contrast',.25,2),('saturation',0,2),('gamma',.5,2),
+                         ('temperature',-1,1),('tint',-1,1)]:result[key]=number(result[key],low,high)
     return result
 
 
@@ -45,8 +47,20 @@ def suffix(value,curves=None):
     tail=curves_suffix(curves,bypass)
     v=effective(value)
     if not v:return tail
+    balance=''
+    if v['temperature'] or v['tint']:
+        # A bounded creative SDR bias, not calibrated white balance. Apply
+        # equal channel offsets across shadows/midtones/highlights.
+        warm=v['temperature']*.12;magenta=v['tint']*.12
+        options=[]
+        for band in ('s','m','h'):
+            options.extend((f'r{band}={warm+magenta*.5:.12g}',
+                            f'g{band}={-magenta:.12g}',
+                            f'b{band}={-warm+magenta*.5:.12g}'))
+        balance=',colorbalance='+':'.join(options)
     return (f",format=gbrpf32le,exposure=exposure={v['exposure_ev']:.12g}"
-            f",format=yuv444p,eq=contrast={v['contrast']:.12g}:saturation={v['saturation']:.12g}:gamma={v['gamma']:.12g}"+tail)
+            f",format=yuv444p,eq=contrast={v['contrast']:.12g}:saturation={v['saturation']:.12g}:gamma={v['gamma']:.12g}"
+            +balance+tail)
 
 
 def apply(edl,data):
