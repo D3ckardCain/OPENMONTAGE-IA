@@ -88,12 +88,12 @@ class Conversation:
         if original_size <= CONTEXT_COMPACT_CHARS:
             return {'compacted': 0, 'reason': 'under_threshold', 'characters': original_size}
 
-        archive_dir = self.agent.path / 'agent-session-archive'
+        archive_dir = self.agent.path / 'artifacts'
         try:
             project = self.agent.path.resolve()
             archive_dir.resolve().relative_to(project)
             if archive_dir.is_symlink():
-                raise OSError('Receipt archive cannot be a symbolic link')
+                raise OSError('Project artifact directory cannot be a symbolic link')
             archive_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             self.agent.event('context_compaction_failed', 'Could not prepare receipt archive', error=str(exc)[:300])
@@ -109,7 +109,8 @@ class Conversation:
             content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
             call_id = message.get('tool_call_id')
             archive_id = hashlib.sha256(f'{call_id or "no-call-id"}:{content_hash}'.encode('utf-8')).hexdigest()
-            target = archive_dir / f'{archive_id}.json'
+            archive_name = f'agent_receipt_{archive_id}'
+            target = archive_dir / f'{archive_name}.json'
             if target.exists():
                 if target.is_symlink() or not target.is_file():
                     self.agent.event('context_compaction_failed', 'Archived receipt is not a regular file', archive_id=archive_id)
@@ -124,7 +125,8 @@ class Conversation:
                     continue
             else:
                 try:
-                    current_bytes = sum(p.stat().st_size for p in archive_dir.iterdir() if p.is_file() and not p.is_symlink())
+                    current_bytes = sum(p.stat().st_size for p in archive_dir.glob('agent_receipt_*.json')
+                                        if p.is_file() and not p.is_symlink())
                     record = {'version': 1, 'archive_id': archive_id, 'tool_name': message.get('tool_name'),
                               'tool_call_id': call_id, 'receipt_sha256': content_hash,
                               'receipt_characters': len(content), 'content': content}
@@ -148,8 +150,9 @@ class Conversation:
                 structured = {'text': content}
             summary = {'compacted': True, 'tool_name': message.get('tool_name'),
                        'tool_call_id': call_id, 'receipt_sha256': content_hash,
-                       'receipt_characters': len(content), 'archive_path': f'agent-session-archive/{archive_id}.json',
-                       'evidence_note': 'Deterministic summary; the complete receipt is preserved at the archive path.',
+                       'receipt_characters': len(content), 'archive_path': f'artifacts/{archive_name}.json',
+                       'artifact_name': archive_name,
+                       'evidence_note': 'Deterministic summary; use read_artifact with artifact_name to recover the complete receipt.',
                        'summary': _bounded_evidence(structured)}
             message['content'] = json.dumps(summary, ensure_ascii=False, separators=(',', ':'))
             state.setdefault('compactions', []).append({'archive_id': archive_id, 'receipt_sha256': content_hash,

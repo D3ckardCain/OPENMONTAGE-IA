@@ -213,6 +213,7 @@ def test_completed_large_receipt_is_archived_and_summarized_without_losing_pair(
     assert c.state['messages'][-2]['tool_calls'][0]['id'] == c.state['messages'][-1]['tool_call_id'] == call_id
     assert summary['receipt_sha256'] == hashlib.sha256(complete.encode('utf-8')).hexdigest()
     assert record['content'] == complete and record['receipt_sha256'] == summary['receipt_sha256']
+    assert summary['artifact_name'].startswith('agent_receipt_')
     assert summary['summary']['status'] == 'ok'
     assert summary['summary']['data']['artifact_id'] == 'artifact-17'
     assert c.state['compactions'][0]['tool_call_id'] == call_id
@@ -233,7 +234,7 @@ def test_uncertain_or_incomplete_batch_is_never_compacted(instance):
 
     assert result == {'compacted': 0, 'reason': 'batch_incomplete'}
     assert c.state['messages'][-1]['content'] == before
-    assert not (instance.path / 'agent-session-archive').exists()
+    assert not list((instance.path / 'artifacts').glob('agent_receipt_*.json'))
     assert studio.read_json(c.path)['in_flight']['call_index'] == 0
 
 
