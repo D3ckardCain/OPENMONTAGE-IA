@@ -1,0 +1,180 @@
+{
+  "new_focused_cases_passed": 9,
+  "ui": {
+    "scope": "Real UI/API4777 on copied existing QA media; no render/decode or listening",
+    "default_absolute": true,
+    "explicit_opt_in": true,
+    "video_source_shift_seconds": 1,
+    "expected_mapped_points": [
+      {
+        "seconds": 0,
+        "gain": 0.6000000000000001
+      },
+      {
+        "seconds": 1,
+        "gain": 1
+      },
+      {
+        "seconds": 3,
+        "gain": 0.2
+      }
+    ],
+    "undo_redo_reopen": true,
+    "option_resets_on_reopen": true,
+    "page_errors": [],
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "384d9fc3b4a6b25b8ed23ac8e22e1769503b64b4494940a69610a32329460e68",
+        "files": 50
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "384d9fc3b4a6b25b8ed23ac8e22e1769503b64b4494940a69610a32329460e68",
+        "files": 50
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "c03735527cc8ab52520a72514ddf0f96d5a15b45571d80b363c079dbcbcdbca2",
+        "files": 42
+      },
+      "restart_required": false,
+      "pid": 28228,
+      "loaded_at_utc": "2026-11-27T00:33:31.122992+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "ripple_volume_points",
+          "track_volume_points",
+          "mix_meter",
+          "audio_ducking",
+          "track_mixer",
+          "audio_processing",
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "384d9fc3b4a6b25b8ed23ac8e22e1769503b64b4494940a69610a32329460e68"
+      }
+    },
+    "main4750_checked": false,
+    "human_listening": false
+  },
+  "material_follow": {
+    "scope": "Actual saved QA copy, compare gain at surviving source instants; no audio decoding or render",
+    "source_in_seconds": 1.0,
+    "source_out_seconds": 4.0,
+    "surviving_duration_seconds": 3.0,
+    "rows": [
+      {
+        "original_montage_seconds": 1,
+        "shifted_montage_seconds": 0,
+        "original_gain": 0.6000000000000001,
+        "shifted_gain": 0.6000000000000001
+      },
+      {
+        "original_montage_seconds": 1.25,
+        "shifted_montage_seconds": 0.25,
+        "original_gain": 0.7,
+        "shifted_gain": 0.7000000000000001
+      },
+      {
+        "original_montage_seconds": 1.5,
+        "shifted_montage_seconds": 0.5,
+        "original_gain": 0.8,
+        "shifted_gain": 0.8
+      },
+      {
+        "original_montage_seconds": 2,
+        "shifted_montage_seconds": 1,
+        "original_gain": 1.0,
+        "shifted_gain": 1.0
+      },
+      {
+        "original_montage_seconds": 2.5,
+        "shifted_montage_seconds": 1.5,
+        "original_gain": 0.8,
+        "shifted_gain": 0.8
+      },
+      {
+        "original_montage_seconds": 3,
+        "shifted_montage_seconds": 2,
+        "original_gain": 0.6,
+        "shifted_gain": 0.6
+      },
+      {
+        "original_montage_seconds": 3.9,
+        "shifted_montage_seconds": 2.9,
+        "original_gain": 0.24,
+        "shifted_gain": 0.24
+      }
+    ],
+    "same_media_sha256": true,
+    "main4750_checked": false,
+    "human_listening": false
+  },
+  "qa4777": "closed",
+  "new_renders": 0,
+  "expected_activation": {
+    "backend": {
+      "status": "available",
+      "sha256": "384d9fc3b4a6b25b8ed23ac8e22e1769503b64b4494940a69610a32329460e68",
+      "files": 50
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "c03735527cc8ab52520a72514ddf0f96d5a15b45571d80b363c079dbcbcdbca2",
+      "files": 42
+    }
+  },
+  "new_ffmpeg_audio_decodes": 0,
+  "ui_existing_waveforms": "Browser may decode existing small source waveforms normally; no new full-mix analysis or FFmpeg audio decode was requested."
+}

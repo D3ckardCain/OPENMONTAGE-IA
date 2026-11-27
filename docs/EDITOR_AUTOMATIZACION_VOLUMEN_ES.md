@@ -46,3 +46,5 @@ Panel/API reales en QA4776 sobre copia: campos, arrastre con un commit, teclado,
 Pendientes: activación conjunta en4750 después de confirmación manual y escucha humana. Se mantiene intacta la única página A/B existente. Ocho descargas sin inspeccionar hasta confirmación; Wan VACE Low válido preservado. Costo0, sin dependencias ni cambios en ComfyUI/.venv. PR#2 permanece en borrador.
 
 Proteccion adicional del contrato: points es obligatorio y los campos mal escritos se rechazan; omitirlos nunca elimina una curva guardada. Se valido con un caso focalizado nuevo, sin repetir exportacion ni controles ya aprobados.
+
+Ampliacion posterior: [ripple de puntos opcional](EDITOR_VOLUMEN_RIPPLE_ES.md) implementado. Los tiempos absolutos siguen siendo el valor por defecto; la limitacion inicial se resuelve mediante esa opcion explicita.

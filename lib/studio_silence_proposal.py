@@ -197,7 +197,8 @@ def apply(edl, data):
                 raise editor.Conflict('El corte no coincide con fotogramas completos; revisa la propuesta')
             selected_pieces.append(clip['id'])
         cursor = end
-    timeline.apply_timeline(edl, dict(operation='ripple_delete', ids=selected_pieces))
+    timeline.apply_timeline(edl, dict(operation='ripple_delete', ids=selected_pieces,
+                                    move_volume_points=data.get('move_volume_points',False)))
     expected_frames = original_frames - sum(b - a for a, b in removed)
     if sum(editor.frames(c, fps) for c in edl['cuts']) != expected_frames:
         raise editor.Conflict('Duración ripple inesperada; no se aplica la propuesta')
@@ -207,7 +208,7 @@ def apply(edl, data):
         source_id=report['source_id'], source_sha256=report['source_sha256'],
         transcript_sha256=report['transcript_sha256'], reviewed=True,
         reviewed_audio_ids=data.get('reviewed_audio_ids', [])[:],
-        output_fps=fps, applied=True, scope='snapshot_at_apply_not_live_alignment',
+        output_fps=fps, applied=True, move_volume_points=data.get('move_volume_points',False), scope='snapshot_at_apply_not_live_alignment',
         evidence=report['analysis_provenance']['evidence'])
 
 

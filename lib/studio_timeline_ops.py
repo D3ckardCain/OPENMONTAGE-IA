@@ -2,7 +2,7 @@
 from copy import deepcopy
 import uuid
 
-CAPABILITIES = ['track_volume_points', 'mix_meter', 'audio_ducking', 'track_mixer', 'audio_processing', 'sfx_catalog', 'sfx_favorites', 'crossfade', 'audio_balance', 'layer_transform_keyframes', 'layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
+CAPABILITIES = ['ripple_volume_points', 'track_volume_points', 'mix_meter', 'audio_ducking', 'track_mixer', 'audio_processing', 'sfx_catalog', 'sfx_favorites', 'crossfade', 'audio_balance', 'layer_transform_keyframes', 'layer_position_keyframes', 'batch', 'duplicate', 'markers', 'flags', 'audio_trim_position', 'delete_keep_gap', 'ripple_delete',
                 'transform', 'titles', 'output_custom', 'audio_mix', 'transition', 'layers', 'clip_candidates', 'subtitle_language', 'subtitle_words', 'subtitle_from_words', 'silence_apply', 'qwen_tts_plan', 'reference_plan', 'component_add', 'component_remove']
 
 
@@ -153,6 +153,10 @@ def apply_timeline(edl, data):
         end = edit.number(data['out_seconds'], start + .001, edl['sources'][item['source_id']]['duration'])
         item.update(in_seconds=start, out_seconds=end, start_seconds=edit.number(data['start_seconds']))
     elif op in ('delete_keep_gap', 'ripple_delete'):
+        move_volume=data.get('move_volume_points',False)
+        if type(move_volume) is not bool:raise ValueError('Mover puntos de volumen requiere booleano')
+        if move_volume and (op!='ripple_delete' or data.get('track')=='audio'):
+            raise ValueError('Mover puntos solo corresponde al cierre ripple global de vídeo')
         items, selected = _selection(edl, data)
         if data.get('track') == 'audio':
             items[:] = [c for c in items if c not in selected]
@@ -203,6 +207,9 @@ def apply_timeline(edl, data):
                 edl['titles'] = _ripple_labels(edl['titles'], removed)
             edl['markers'] = [{**m, 'seconds': _ripple_time(m['seconds'], removed)} for m in edl.get('markers', [])
                               if not any(a <= m['seconds'] < b for a, b in removed)]
+            if move_volume:
+                from lib.studio_volume_automation import ripple as ripple_volume
+                ripple_volume(edl,removed)
     elif op in ('marker_add', 'marker_update', 'marker_remove'):
         markers = edl.setdefault('markers', [])
         if op == 'marker_remove':

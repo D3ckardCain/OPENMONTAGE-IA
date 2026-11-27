@@ -30,6 +30,7 @@ async function loadCapabilities(){
 function applyCapabilities(result){
   capabilities.clear();cancelSupported=result.caps?.render_cancel===true;
   if(result.ok){for(const name of result.caps.commands)capabilities.add(name);}
+  if(q('edit-ripple-volume-label'))q('edit-ripple-volume-label').hidden=!capabilities.has('ripple_volume_points');
   q('edit-advanced-tools').hidden=!capabilities.has('batch');q('edit-flags-panel').hidden=!capabilities.has('flags');q('edit-markers-panel').hidden=!capabilities.has('markers');
 }
 const waveformCache=new Map();let waveformQueue=Promise.resolve(),waveformSelection=0;
@@ -113,6 +114,7 @@ async function task(fn,propagate=false) {
 function requireProject() { if(!compatibilityState().ok)throw Error(compatibilityState().message);if (!state || !project) throw Error('Selecciona o crea un proyecto de edición'); }
 async function command(operation, params={}) {
   requireProject();
+  if(operation==='silence_apply'&&capabilities.has('ripple_volume_points')&&!('move_volume_points' in params))params={...params,move_volume_points:q('edit-ripple-volume').checked};
   state = await api(base() + '/command', {operation, revision:state.revision, ...params});
   invalidate(); draw(); message('Guardado · revisión ' + state.revision);
 }
@@ -133,6 +135,7 @@ async function reopen(id=project) {
   if (!id) throw Error('Selecciona un proyecto');
   const value = await api('/api/studio/editor/' + encodeURIComponent(id));
   project = id; state = value; selection = null;selectedIds.clear(); sourceKey = null; preview = null;lastMeter='Sin medici\u00f3n para este proyecto';q('edit-meter').hidden=true;q('edit-meter-level').textContent=lastMeter;
+  q('edit-ripple-volume').checked=false;
   q('edit-player').pause(); q('edit-player').removeAttribute('src'); q('edit-player').load();
   q('edit-download').hidden=true;
   q('edit-monitor-title').textContent = 'Montaje reabierto · selecciona una fuente o prepara la vista previa';
@@ -467,7 +470,8 @@ q('edit-duplicate').onclick=()=>task(async()=>{
   selectedIds.clear();for(const clip of item.track==='audio'?edl().audio_tracks:edl().cuts)if(!before.has(clip.id))selectedIds.add(clip.id);
   selection={track:item.track,id:[...selectedIds][0]};drawTracks();drawInspector();
 });
-for(const [id,operation] of [['edit-delete-gap','delete_keep_gap'],['edit-delete-ripple','ripple_delete']])q(id).onclick=()=>task(()=>{const item=selected();return command(operation,{track:item.track,ids:[...selectedIds]});});
+const rippleVolumeLabel=document.createElement('label');rippleVolumeLabel.id='edit-ripple-volume-label';rippleVolumeLabel.hidden=true;rippleVolumeLabel.title='Solo cierre global de vídeo y aplicación de silencios: elimina puntos del tramo, desplaza los posteriores y conserva bordes con transición de una muestra. Desactivado: tiempos absolutos.';const rippleVolume=document.createElement('input');rippleVolume.type='checkbox';rippleVolume.id='edit-ripple-volume';rippleVolumeLabel.append(rippleVolume,document.createTextNode('Ripple: mover puntos de volumen'));q('edit-advanced-tools').append(rippleVolumeLabel);
+for(const [id,operation] of [['edit-delete-gap','delete_keep_gap'],['edit-delete-ripple','ripple_delete']])q(id).onclick=()=>task(()=>{const item=selected(),params={track:item.track,ids:[...selectedIds]};if(operation==='ripple_delete'&&capabilities.has('ripple_volume_points'))params.move_volume_points=rippleVolume.checked;return command(operation,params);});
 q('edit-marker-add').onclick=()=>task(async()=>{
   requireProject();const before=new Set((edl().markers||[]).map(m=>m.id));
   await command('marker_add',{seconds:cursor,label:'Marcador '+(before.size+1)});

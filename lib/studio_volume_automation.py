@@ -65,3 +65,49 @@ def suffix(edl,lane):
     if not points:return ''
     expr=expression(points)
     return f",aeval=exprs='val(0)*({expr})|val(1)*({expr})':c=stereo,aformat=sample_fmts=fltp:channel_layouts=stereo"
+
+
+def value_at(points,t):
+    if t<=points[0]['seconds']:return points[0]['gain']
+    for a,b in zip(points,points[1:]):
+        if t<b['seconds']:
+            return a['gain']+(b['gain']-a['gain'])*(t-a['seconds'])/(b['seconds']-a['seconds'])
+    return points[-1]['gain']
+
+
+def ripple(edl,removed):
+    """Opt-in map of both prepared envelopes, including bypassed ones.
+
+    Remove [a,b), hold the surviving left limit up to one output sample before
+    the join and take the original right limit at the join (right wins).
+    """
+    intervals=[]
+    for a,b in sorted(removed):
+        if intervals and a<=intervals[-1][1]+1e-12:intervals[-1]=(intervals[-1][0],max(b,intervals[-1][1]))
+        else:intervals.append((a,b))
+    from lib.studio_timeline_ops import _ripple_time
+    sample=1/48000
+    for lane,settings in edl.get('volume_automation',{}).items():
+        points=normalize(settings)['points']
+        if not points:continue
+        # Existing points at a are removed; at b survive at the joined time.
+        mapped=[{'seconds':_ripple_time(p['seconds'],intervals),'gain':p['gain']} for p in points
+                if not any(a<=p['seconds']<b for a,b in intervals)]
+        anchors=[]
+        for a,b in intervals:
+            join=_ripple_time(b,intervals)
+            anchors.append({'seconds':join,'gain':value_at(points,b)})
+            if join>=sample:
+                anchors.append({'seconds':join-sample,'gain':value_at(points,a-sample)})
+        # Boundary anchors supersede points closer than one sample. Never
+        # silently decimate a long envelope to fit the editor's bounded limit.
+        mapped=[p for p in mapped if all(abs(p['seconds']-a['seconds'])>=sample-1e-12 for a in anchors)]
+        combined=sorted(mapped+anchors,key=lambda p:p['seconds'])
+        result=[]
+        for point in combined:
+            if result and point['seconds']-result[-1]['seconds']<sample-1e-12:
+                result[-1]=point  # Right-most boundary wins in a sub-sample collision.
+            else:result.append(point)
+        if len(result)>32:
+            raise ValueError('Ripple superaría 32 puntos por pista; reduce puntos o conserva tiempos absolutos')
+        settings.update(normalize({'points':result,'bypass':settings.get('bypass',False)}))
