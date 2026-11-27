@@ -14,6 +14,7 @@ import { initializeEffectsUI } from './editor-effects-ui.js';
 import { initializeCompositionUI } from './editor-composition-ui.js';
 import { compatibilityReady,compatibilityState } from './studio-compatibility.js';
 import { initializeCandidatesUI } from './editor-candidates-ui.js';
+import { initializeVideoEvidence } from './editor-video-evidence.js';
 import { initializeCropPreview } from './editor-crop-preview.js';
 import { languageSelection,languageParams } from './editor-subtitle-language.js';
 import { contextMenuItems,describeEditorContext,initializeEditorContextMenu } from './editor-context-menu.js';
@@ -22,6 +23,7 @@ let project = new URLSearchParams(location.search).get('edit'), state = null, se
 let preview = null, sourceKey = null, renderTimer = null, pending = false, workspace = location.hash.slice(1) || 'video';
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
+let videoEvidenceUI=null;
 let finalMixMeter=null;
 let subtitleLayout=null;
 let subtitleKaraoke=null;
@@ -140,7 +142,7 @@ async function projects() {
 async function reopen(id=project) {
   if (!id) throw Error('Selecciona un proyecto');
   const value = await api('/api/studio/editor/' + encodeURIComponent(id));
-  project = id; state = value; selection = null;selectedIds.clear(); sourceKey = null; preview = null;lastMeter='Sin medici\u00f3n para este proyecto';q('edit-meter').hidden=true;q('edit-meter-level').textContent=lastMeter;
+  project = id; state = value; selection = null;selectedIds.clear(); sourceKey = null; preview = null;videoEvidenceUI?.reset();lastMeter='Sin medici\u00f3n para este proyecto';q('edit-meter').hidden=true;q('edit-meter-level').textContent=lastMeter;
   q('edit-ripple-volume').checked=false;
   q('edit-player').pause(); q('edit-player').removeAttribute('src'); q('edit-player').load();
   q('edit-download').hidden=true;
@@ -604,6 +606,7 @@ contextMenuUI=initializeEditorContextMenu({
     if(id==='add-marker')q('edit-marker-add').click();
   }
 });
+videoEvidenceUI=initializeVideoEvidence({getProject:()=>project,getEdl:edl,sourceToTimeline,jump:seekTimeline});
 componentsUI=initializeComponentsUI({host:q('edit-sources').parentElement,getEdl:edl,getProject:()=>project,has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),editTitle:id=>effectsUI.selectTitle(id),editLayer:id=>compositionUI.selectLayer(id)});
 const piperPanel=initializePiperUI({host:q('edit-waveform-status').parentElement,getProject:()=>project,getRevision:()=>state.revision,reopen});
 sfxPanel=initializeSfx({host:q('edit-waveform-status').parentElement,getProject:()=>project,getEdl:edl,getRevision:()=>state.revision,has:name=>capabilities.has(name),cursor:()=>cursor,

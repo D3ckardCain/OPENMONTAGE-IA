@@ -36,3 +36,10 @@ Agente: pedir primero índice/JSON y solo la hoja o fotogramas necesarios; aumen
 el presupuesto únicamente ante una pregunta concreta. Los resultados devuelven
 rutas, no cargas automáticas al modelo. Otra pregunta/rango tiene su propia clave.
 Planificación desde referencias debe citar este recibo y declarar sus huecos.
+
+
+## Galería de evidencia guardada
+
+La galería del editor consulta recibos guardados `frame_sampler` de cobertura parcial; solo se activa al pulsar el control. No ejecuta extracción, ASR ni inferencia. Valida proyecto, recibo archivado, `tool_call_id`, hash y ubicación/tamaño de la hoja JPEG bajo `artifacts/`. No expone rutas locales ni acepta imágenes remotas. El salto temporal solo se habilita si el hash de la fuente corresponde al montaje y el PTS cae dentro de un clip.
+
+La validación offline cubre recibos sintéticos y API aislada. En este checkout no había recibo elegible local de la muestra portuguesa; no se repitió extracción. La presencia en el panel de Studio activo y la revisión visual quedan pendientes de una activación permitida.

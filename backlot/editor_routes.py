@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse, Response
 from lib import production_studio as studio, studio_editor as editor, studio_editor_render as render
 from backlot.studio_identity import capabilities as editor_capabilities
 
@@ -176,6 +176,21 @@ def create_editor_router(body):
         return [{'project_id': p.parent.name, 'title': studio.read_json(p).get('title', p.parent.name)}
                 for p in studio.PROJECTS_DIR.glob('*/production_request.json')
                 if studio.read_json(p).get('manual_edit')]
+
+    @router.get('/{pid}/video-evidence')
+    def video_evidence(pid: str):
+        from lib.video_evidence_gallery import list_saved_evidence
+        result = invoke(list_saved_evidence, invoke(studio.project_path, pid))
+        for item in result['items']:
+            item['contact_sheet_url'] = f'/api/studio/editor/{pid}/video-evidence/{item["id"]}/contact-sheet'
+        return result
+
+    @router.get('/{pid}/video-evidence/{evidence_id}/contact-sheet')
+    def video_evidence_contact_sheet(pid: str, evidence_id: str):
+        from lib.video_evidence_gallery import contact_sheet_bytes
+        image = invoke(contact_sheet_bytes, invoke(studio.project_path, pid), evidence_id)
+        return Response(content=image, media_type='image/jpeg', headers={
+            'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff'})
 
     @router.post('/projects')
     async def create(request: Request):
