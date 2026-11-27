@@ -92,14 +92,14 @@ def test_errors_are_delivered_to_next_model_without_success_claim(instance, erro
     instance.dispatch.side_effect = error
     c = Conversation(instance, INITIAL.copy(), tools=[])
     c.turn()
-        receipt=json.loads(c.state['messages'][-1]['content'])
+    receipt=json.loads(c.state['messages'][-1]['content'])
     assert receipt['error']['message']==str(error)
     assert receipt['error']['outcome']=='unknown'
     assert receipt['error']['retryable'] is False
     assert receipt['error']['reconcile_before_retry'] is True
     assert studio.read_json(c.path)['in_flight'] is None
     instance.chat.side_effect = lambda messages, tools, **kw: (
-        message(call(2)) if json.loads(messages[-1]['content'])['error'] == str(error) else None)
+        message(call(2)) if json.loads(messages[-1]['content'])['error']['message'] == str(error) else None)
     instance.dispatch.side_effect = None
     instance.dispatch.return_value = {'success': True}
     c.turn()
