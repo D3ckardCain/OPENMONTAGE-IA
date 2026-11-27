@@ -1,0 +1,25 @@
+{
+  "repository": "greensock/gsap-skills",
+  "revision": "aed9cfd3277740755f6bfc1155c7aa645403b760",
+  "source": "https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760",
+  "guides": [
+    {
+      "path": "skills/gsap-core/SKILL.md",
+      "blob_sha1": "98639432f4112b664aa5e53cf5d8ea1a4697eff9",
+      "sha256_lf": "3887b47e050ab5afbe2a9a820f23d39fa02ab785e06a343be44c6f91d84d12b3",
+      "bytes_lf": 14792,
+      "local_normalized_match": true
+    },
+    {
+      "path": "skills/gsap-timeline/SKILL.md",
+      "blob_sha1": "1fed372b0e5276b2a207d80bc23f81180a0dff55",
+      "sha256_lf": "1a8b0f39cc4be3ed3d834b89672e4ae2f151b901dc3450bebf10bbc45379fe02",
+      "bytes_lf": 4394,
+      "local_normalized_match": true
+    }
+  ],
+  "guide_license": "MIT; notice docs/licenses/GSAP-SKILLS-MIT.txt",
+  "runtime_version": "3.14.2",
+  "runtime_license": "Separate GSAP standard license https://gsap.com/standard-license; not MIT",
+  "scope": "Core and Timeline actually used; no claim all plugins integrated"
+}

@@ -49,3 +49,18 @@ Here render_runtime="hyperframes" is the engine under test. Remotion and FFmpeg
 as composition engines would invalidate that technical test; FFmpeg remains
 available for probing and bounded frame/audio inspection only. Report missing
 requirements without a fallback or automatic download.
+
+## Separate #186 GSAP title validation
+
+The user explicitly authorized a new short offline GSAP title and deterministic
+seek/export in the implementation queue. Use separate `qa186-gsap-offline`, the
+same pipeline and `hyperframes_offline_pilot` build/render phases. Record that
+full bounded QA authorization before assets; no new approval prompt is required
+for this already authorized title export. Preserve the completed132 pilot.
+The186 scene is3s640x360/24fps, own title and shapes, no audio, no borrowed
+registry blocks. Pin official GSAP Core/Timeline guide revision and MIT notice;
+GSAP runtime remains under its separate license. Reuse the selected persisted
+offline profile, Node/browser/GSAP and valid identity/hash evidence, without
+running the old doctor or cancellation tests again. Require check/render gates,
+same-time/out-of-order/reload frame equality, local-resource network evidence
+and ffprobe/frame review. No new npm/package/browser/model downloads.

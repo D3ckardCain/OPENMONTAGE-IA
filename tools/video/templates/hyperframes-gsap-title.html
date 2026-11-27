@@ -1,0 +1,20 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; font-src 'self' data:">
+<title>QA186 · GSAP local determinista</title><script src="assets/gsap.min.js"></script>
+<style>html,body{margin:0;width:640px;height:360px;font-family:Arial,sans-serif;color:#e6edf3}#root{width:640px;height:360px;position:relative;overflow:hidden}.clip{position:absolute;inset:0}#fill{background:#0d1117}#title{box-sizing:border-box;padding:42px 48px;display:flex;flex-direction:column;justify-content:center;gap:18px}#eyebrow{font-size:13px;letter-spacing:3px;color:#79c0ff;margin:0}.headline{font-size:44px;line-height:1.08;font-weight:700;display:block;margin:0}#accent{width:180px;height:4px;background:#3fb950;transform-origin:left center}#caption{font-size:16px;color:#b1bac4;margin:0}</style></head>
+<body><div id="root" data-composition-id="qa186" data-width="640" data-height="360" data-duration="3">
+<div id="fill" class="clip" data-start="0" data-duration="3" data-track-index="0"></div>
+<section id="title" class="clip" data-start="0" data-duration="3" data-track-index="1"><p id="eyebrow">OPENMONTAGE · QA186</p><div><span class="headline">Un título.</span><span class="headline">Un mismo tiempo.</span></div><div id="accent"></div><p id="caption">GSAP Core + Timeline · solo recursos locales</p></section></div>
+<script>
+window.__timelines=window.__timelines||{};
+if(window.__timelines.qa186)window.__timelines.qa186.kill();
+const tl=gsap.timeline({paused:true,defaults:{ease:'power2.out'}});
+tl.addLabel('entrada',0.1);
+tl.fromTo('#eyebrow',{opacity:0,y:10},{opacity:1,y:0,duration:0.35},'entrada');
+tl.fromTo('.headline',{opacity:0,y:24},{opacity:1,y:0,duration:0.6,stagger:0.12},'entrada+=0.08');
+tl.fromTo('#accent',{scaleX:0},{scaleX:1,duration:0.55},'entrada+=0.3');
+tl.fromTo('#caption',{opacity:0,y:8},{opacity:1,y:0,duration:0.4},'entrada+=0.45');
+tl.addLabel('salida',2.5);
+tl.fromTo('#title',{opacity:1},{opacity:0,duration:0.4,immediateRender:false},'salida');
+window.__timelines.qa186=tl;
+</script></body></html>

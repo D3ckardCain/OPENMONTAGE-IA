@@ -16,3 +16,5 @@ Base `1b1fdbd`, rama `feat/local-agent-research-foundation`, PR2 en borrador. Es
 Ninguna de estas dependencias autoriza a sobrescribir configuraciones, mover originales, modificar .venv/ComfyUI ni fusionar PR2. Las condiciones de reinicio y descargas son independientes. Se continúa con tareas locales independientes sin pedir confirmaciones rutinarias.
 
 Avance posterior: lectura/zona publicada5dfb85d; karaoke con palabras guardadas implementado en entrega posterior (manual EDITOR_SUBTITULOS_KARAOKE_ES.md). Dependencia de cuentas168 permanece. Siguiente bloque: GSAP186/132.
+
+GSAP186: guías Core/Timeline fijadas y título propio determinista comprobado en Chrome. `GSAP_186_TITULO_OFFLINE_ES.md` distingue dos pruebas nuevas, seek/recarga idénticos y bloqueo de exportación a0/72,180s. No se repite el render sin causa identificada; continúa auditoría P1 independiente.
