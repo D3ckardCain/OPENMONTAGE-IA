@@ -1036,3 +1036,47 @@ def test_specialist_discards_response_when_selected_context_changes_before_parse
             'artifact_names': ['scene_plan'],
         })
     assert len(calls) == 1
+
+
+def test_concurrent_approval_is_one_atomic_decision(isolated,monkeypatch):
+    from tests.contracts.test_phase0_contracts import sample_artifact
+    import time
+    pid=studio.create_production({'title':'Doble aprobación','brief':'Proyecto sintético','pipeline':'hybrid','language':'es','automatic':False})['project_id']
+    worker=agent.LocalAgent(pid);worker._timed_stage='idea';worker._stage_timer=time.monotonic()
+    stage=worker.manifest['stages'][0]
+    worker.instruction('skills/'+stage['skill']+'.md')
+    with pytest.raises(agent.Pause):
+        worker.dispatch('checkpoint',{'stage':'idea','status':'completed','artifacts':{'brief':sample_artifact('brief')}})
+
+    active=0;maximum=0;counter_lock=threading.Lock();original=agent.get_next_stage
+    def measured_get_next_stage(*args,**kwargs):
+        nonlocal active,maximum
+        with counter_lock:
+            active+=1;maximum=max(maximum,active)
+        try:
+            time.sleep(.03)
+            return original(*args,**kwargs)
+        finally:
+            with counter_lock:active-=1
+    monkeypatch.setattr(agent,'get_next_stage',measured_get_next_stage)
+    started=[];monkeypatch.setattr(agent,'start',lambda project_id:started.append(project_id) or {'started':True})
+    gate=threading.Barrier(9);outcomes=[];outcome_lock=threading.Lock()
+    def submit():
+        gate.wait(timeout=5)
+        try:
+            agent.approve(pid);value='approved'
+        except ValueError:
+            value='rejected'
+        with outcome_lock:outcomes.append(value)
+    threads=[threading.Thread(target=submit) for _ in range(8)]
+    for thread in threads:thread.start()
+    gate.wait(timeout=5)
+    for thread in threads:thread.join(timeout=5)
+    assert all(not thread.is_alive() for thread in threads)
+    assert maximum==1
+    assert outcomes.count('approved')==1 and outcomes.count('rejected')==7
+    assert started==[pid]
+    reviews=studio.read_json(studio.project_path(pid)/'editorial_reviews.json',[])
+    assert [review['decision'] for review in reviews].count('approved')==1
+    checkpoint=studio.read_json(studio.project_path(pid)/'checkpoint_idea.json')
+    assert checkpoint['status']=='completed' and checkpoint['human_approved'] is True

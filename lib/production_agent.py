@@ -20,7 +20,7 @@ from lib.pipeline_loader import load_pipeline_readonly
 from tools.base_tool import ToolRuntime, ToolTier, ToolStatus
 
 ACTIVE={}
-ACTIVE_LOCK=threading.Lock()
+ACTIVE_LOCK=threading.RLock()
 ROLES={'research':'Investigador: hechos, fuentes, actualidad y límites de evidencia.',
        'writer':'Guionista: estructura original, títulos, narración y satisfacción.',
        'visual':'Director visual: escenas y recursos adecuados; nada de sustituir movimiento sin aprobación.',
@@ -740,12 +740,13 @@ def approve(pid):
     if problem:=selection_provenance_problem(p):raise ValueError(problem)
     with ACTIVE_LOCK:
         if pid in ACTIVE:raise ValueError('El agente sigue activo')
-    current=get_next_stage(studio.PROJECTS_DIR,pid,req['pipeline'])
-    cp=studio.read_json(p/('checkpoint_'+str(current)+'.json'),{})
-    if cp.get('status')!='awaiting_human' or current=='publish':raise ValueError('No hay una etapa de producción pendiente de aprobación')
-    write_checkpoint(studio.PROJECTS_DIR,pid,current,'completed',cp['artifacts'],pipeline_type=req['pipeline'],human_approved=True)
-    _record_editorial_review(p,current,'approved','')
-    return start(pid)
+        current=get_next_stage(studio.PROJECTS_DIR,pid,req['pipeline'])
+        cp=studio.read_json(p/('checkpoint_'+str(current)+'.json'),{})
+        if cp.get('status')!='awaiting_human' or current=='publish':raise ValueError('No hay una etapa de producción pendiente de aprobación')
+        write_checkpoint(studio.PROJECTS_DIR,pid,current,'completed',cp['artifacts'],pipeline_type=req['pipeline'],human_approved=True)
+        _record_editorial_review(p,current,'approved','')
+        # RLock lets start() reserve the active slot before this approval transaction releases it.
+        return start(pid)
 
 
 def _record_editorial_review(path,stage,decision,reason):

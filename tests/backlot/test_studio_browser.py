@@ -1250,3 +1250,24 @@ def test_studio_editor_chrome_responsive_controls_and_icons(staged_backlot_serve
             assert all(button['height'] >= 44 and button['fontSize'] >= 12 for button in data['buttons'])
         browser.close()
 
+
+
+def test_pending_production_action_ignores_duplicate_click(staged_backlot_server):
+    """Only one approval POST is sent while a synthetic request is pending."""
+    import time
+    calls=[]
+    def delayed_approval(route):
+        calls.append(route.request.method)
+        time.sleep(.25)
+        route.fulfill(json={'started':True,'project_id':'gate-idea'})
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.route('**/api/studio/projects/gate-idea/approve',delayed_approval)
+        page.goto(staged_backlot_server+'/studio?project=gate-idea')
+        expect(page.locator('#approve')).to_be_visible()
+        page.locator('#approve').evaluate("el=>{el.click();el.dispatchEvent(new MouseEvent('click',{bubbles:true}));}")
+        page.wait_for_timeout(700)
+        assert calls==['POST']
+        expect(page.locator('#approve')).not_to_have_attribute('aria-busy','true')
+        browser.close()
