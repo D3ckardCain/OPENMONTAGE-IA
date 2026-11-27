@@ -1,12 +1,27 @@
 """Bounded per-cut SDR color; one numeric filter shared by preview/export."""
 from copy import deepcopy
 import base64
+import io
 import subprocess
 import threading
 
 CONTRACT='clip-sdr-color-v1'
 DEFAULT={'bypass':False,'exposure_ev':0.,'contrast':1.,'saturation':1.,'gamma':1.}
 COMPARE_LOCK=threading.Lock()
+
+
+def histogram(png):
+    """Exact bins of this small display image, not calibrated HDR scopes."""
+    from PIL import Image
+    with Image.open(io.BytesIO(png)) as image:
+        if image.width>960 or image.height>270 or image.width%2:raise ValueError('Comparación fuera de presupuesto de píxeles')
+        image=image.convert('RGB');half=image.width//2;result={}
+        for label,box in [('before',(0,0,half,image.height)),('after',(half,0,image.width,image.height))]:
+            crop=image.crop(box);channels=crop.histogram();total=crop.width*crop.height
+            result[label]={'pixels':total,'rgb_bins_32':{name:[sum(channels[c*256+i:c*256+i+8]) for i in range(0,256,8)] for c,name in enumerate(('red','green','blue'))},
+                'channel_at_0':{name:channels[c*256] for c,name in enumerate(('red','green','blue'))},
+                'channel_at_255':{name:channels[c*256+255] for c,name in enumerate(('red','green','blue'))}}
+        return {'contract':'display-frame-rgb-histogram-v1','range':'8-bit RGB0..255;32bins of8','includes_padding':True,'scope':'Only decoded comparison frame including borders; extremes do not prove clipping; not calibrated luminance/HDR/waveform/vectorscope',**result}
 
 
 def normalize(value):
@@ -71,4 +86,5 @@ def compare(pid,clip_id,clip_seconds):
        'source_id':clip['source_id'],'source_sha256':edl['sources'][clip['source_id']]['sha256'],
        'requested_source_seconds':time,'clip_seconds':seconds,'color':proposed,'saved_bypass':saved['bypass'],
        'width':w*2,'height':h,'image_data_url':'data:image/png;base64,'+base64.b64encode(result.stdout).decode('ascii'),
+       'histogram':histogram(result.stdout),
        'scope':'One decoded selected-clip frame split before/after; no titles, layers, transitions or audio; requested time is not measured PTS'}
