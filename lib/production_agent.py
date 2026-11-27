@@ -585,6 +585,12 @@ class LocalAgent:
             result=self.chat([{'role':'system','content':ROLES[args['role']]+' '+system},
                               {'role':'user','content':json.dumps(packet,ensure_ascii=False,separators=(',',':'))}],
                              context_tokens=CONTEXT_TOKENS,max_output_tokens=OUTPUT_TOKENS)
+            try:
+                current_packet=build_context(self,args)
+            except (OSError,ValueError) as exc:
+                raise ValueError('El paquete del especialista dejó de estar disponible durante la consulta; descarta la respuesta y reconstruye el contexto.') from exc
+            if current_packet['state']['context_revision']!=packet['state']['context_revision']:
+                raise ValueError('La evidencia, capacidad o estado compartido cambió durante la consulta; descarta la respuesta y vuelve a consultar la revisión vigente.')
             allowed={item['id'] for item in packet['evidence']}
             raw=result.get('content');repairs=0
             try:

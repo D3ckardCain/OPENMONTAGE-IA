@@ -1016,3 +1016,23 @@ def test_local_agent_chat_uses_bounded_defaults_and_allows_explicit_budget(monke
     assert requests[0][2]['options']=={'num_ctx':4096,'num_predict':2048}
     assert requests[1][2]['options']=={'num_ctx':12288,'num_predict':512}
     assert all(row[2]['keep_alive']==0 for row in requests)
+
+def test_specialist_discards_response_when_selected_context_changes_before_parse(isolated):
+    pid = project()
+    worker = agent.LocalAgent(pid)
+    studio.save_json(worker.artifact_path('scene_plan'), {'scene_id': 'scene-before'})
+    calls = []
+
+    def chat(messages, tools):
+        calls.append(messages)
+        studio.save_json(worker.artifact_path('scene_plan'), {'scene_id': 'scene-after'})
+        return {'content': 'salida incompleta'}
+
+    worker._chat = chat
+    with pytest.raises(ValueError, match='cambió durante la consulta'):
+        worker.dispatch('consult_agent', {
+            'role': 'visual',
+            'task': 'Revisa únicamente el paquete seleccionado.',
+            'artifact_names': ['scene_plan'],
+        })
+    assert len(calls) == 1

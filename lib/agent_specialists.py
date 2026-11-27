@@ -148,7 +148,11 @@ def build_context(agent, args):
         "evidence": selected,
         "output_schema": SPECIALIST_SCHEMA,
     }
-    packet["state"]["context_revision"] = _canonical_sha256(packet)
+    revision_packet = {
+        **packet,
+        "state": {key: value for key, value in packet["state"].items() if key != "job_updated_at"},
+    }
+    packet["state"]["context_revision"] = _canonical_sha256(revision_packet)
     return packet
 
 

@@ -274,3 +274,17 @@ Para leer anotaciones Kinovea existentes usa `kinovea_annotations` con proyecto 
 La acción explícita de diagnóstico `POST /api/studio/agent/probe-tools` prueba una sola llamada sintética de Ollama al puente y una conversión de unidades. Lee `docs/PRUEBA_AGENTE_LOCAL_ES.md`. Ejecuta inferencia textual sintética; no la confundas con un chequeo pasivo ni con producción autónoma aprobada. No admite tareas o herramientas arbitrarias y no cambia el contexto de producción.
 
 Para las conexiones funcionales aisladas de #21–#25 lee `docs/OPERACIONES_BIBLIOTECAS_ES.md`: `socceraction_spadl_validate` valida SPADL declarado, `warehouse_dimensions` calcula tamaños sin sólidos, `soccervision_homography` aplica una matriz conocida, `musetalk_batch_plan` agrupa placeholders y `tvcalib_parameters` normaliza parámetros declarados. Usa `execute_tool` con el proyecto correcto; conserva hashes, versiones y unidades. No infieras de estas operaciones validación de proveedores de eventos, tolerancias de fabricación, calibración de cámara, tracking o síntesis de avatares. Sus informes no autorizan generar contenido real.
+
+## Paquetes de especialista: vigencia
+
+`consult_agent` calcula `context_revision` sobre las entradas seleccionadas, los
+hashes de artefactos, capacidades locales y estado/checkpoint visible. Tras volver el
+modelo local, reconstruye ese paquete antes de validar o reparar el JSON. Si cambió o
+desapareció una entrada, descarta la respuesta sin reparación ni ejecución de acciones;
+el director debe volver a consultar el contexto vigente.
+
+Se excluye únicamente `job.updated_at` de la huella: registrar el evento de inicio de
+la propia consulta cambia ese timestamp aunque la evidencia no haya cambiado. El
+timestamp sigue incluido como información descriptiva. Esto detecta cambios en el
+paquete seleccionado, no toda modificación arbitraria de archivos del proyecto ni una
+alteración posterior al segundo chequeo.
