@@ -102,8 +102,8 @@ def preflight(inputs):
             relative = path.resolve().relative_to(project)
         except ValueError:
             fail('path_outside_project', 'Entrada y salida deben pertenecer al proyecto')
-        if not relative.parts or relative.parts[0] not in ('assets','source_images','thumbnails'):
-            fail('path_outside_project', 'Usa assets, source_images o thumbnails del proyecto')
+        if not relative.parts or relative.parts[0] not in ('assets','source_images','originales','thumbnails'):
+            fail('path_outside_project', 'Usa originales, assets, source_images o thumbnails del proyecto')
         if any(project.joinpath(*relative.parts[:i]).is_symlink() for i in range(1,len(relative.parts)+1)):
             fail('symlink', 'No se admiten enlaces simbólicos para entrada/salida')
         paths[key] = project / relative
@@ -158,3 +158,4 @@ def local_session(model, path, expected):
     if active != ['CPUExecutionProvider']:
         fail('provider_incompatible', 'Proveedor CPU explícito no respetado; no se permite fallback')
     return session
+
