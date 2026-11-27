@@ -561,7 +561,7 @@ def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
         assert transition and transition.get('duration_seconds')==8/30, (
             f"transition not committed; operations={[c.get('operation') for c in calls]}; "
             f"notice={page.locator('#edit-message').inner_text()!r}")
-        page.locator('#edit-layers-panel summary').click()
+        page.locator('#edit-layers-panel > summary').click()
         layer=page.locator('#edit-layer-form');layer.locator('[name=in_seconds]').fill('0')
         layer.locator('[name=out_seconds]').fill('1');layer.locator('[name=start_seconds]').fill('0.5')
         layer.locator('[type=submit]').click();expect(page.locator('.editor-layers button')).to_have_count(1)

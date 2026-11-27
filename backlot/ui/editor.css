@@ -31,7 +31,7 @@ body.editor-active>.editor-shell{flex:1;display:grid;grid-template-rows:auto aut
 .editor-upper{display:grid;grid-template-columns:var(--library) var(--library-split) minmax(240px,1fr) var(--inspector-split) var(--inspector);grid-template-rows:minmax(0,1fr);min-height:0;min-width:0;overflow:auto}
 .editor-upper>section,.editor-timeline{padding:8px;border:1px solid #30363d;border-radius:6px;background:#161b22;min-width:0;min-height:0;overflow:auto}
 .editor-grid h2{font-size:14px;margin:0 0 6px}
-.editor-grid h3{font-size:12px;margin:4px 0 2px}
+.editor-grid h3{font-size:12px;margin:4px 0 2px}#edit-tracks>h3{margin:1px 0 0;line-height:14px}
 .editor-grid p{font-size:12px;line-height:1.4;color:#b1bac4;margin:6px 0}
 .editor-grid label{font-size:12px;margin:8px 0}
 .editor-grid details{margin:10px 0}
