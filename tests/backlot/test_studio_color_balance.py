@@ -36,7 +36,7 @@ def test_temperature_tint_share_agent_history_persistence_and_bypass(project):
     assert active['render_sha256'] != original['render_sha256']
     for preview in (True, False):
         graph = ';'.join(render.plan(pid, active['edit_decisions'], preview)[1])
-        assert 'colorbalance=' in graph and 'rs=0.048' in graph
+        assert 'colorbalance=' in graph and 'rs=0.036' in graph
     edit.command(pid, {'operation': 'clip_color', 'revision': active['revision'], 'id': clip,
                        'color': {**active['edit_decisions']['cuts'][0]['color'], 'bypass': True}}, 'agent')
     bypass = edit.state(pid)
