@@ -1,5 +1,6 @@
 """Explicit project reading limits and burn-only safe area. No ASR or accounts."""
 from copy import deepcopy
+import math
 import re
 import textwrap
 
