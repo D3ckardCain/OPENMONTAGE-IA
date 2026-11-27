@@ -288,7 +288,9 @@ def test_large_receipt_over_100k_is_archived_before_context_reuse(instance):
     assert len(c.state['messages'][-1]['content'])>100000
     with pytest.raises(Pause) as waiting:c.turn()
     assert waiting.value.status=='awaiting_input'
-    summary=json.loads(c.state['messages'][-1]['content'])
+    tool_receipt=next(m for m in reversed(c.state['messages'])
+                      if m.get('role')=='tool' and m.get('tool_name')=='numeric')
+    summary=json.loads(tool_receipt['content'])
     archive=instance.path/summary['archive_path']
     record=json.loads(archive.read_text(encoding='utf-8'))
     assert json.loads(record['content'])['payload']==complete

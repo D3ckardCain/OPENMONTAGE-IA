@@ -460,10 +460,14 @@ class LocalAgent:
                                        next_action='Corrige los argumentos o la ruta indicada; no se ejecutó la herramienta.') from exc
             try:
                 estimate=tool.estimate_cost(inputs)
+            except Exception as exc:
+                estimate=None;cost_error=str(exc)[:300]
+            else:cost_error=None
+            try:
                 runtime_seconds=tool.estimate_runtime(inputs)
             except Exception as exc:
-                estimate=None;runtime_seconds=None;estimate_error=str(exc)[:300]
-            else:estimate_error=None
+                runtime_seconds=None;runtime_error=str(exc)[:300]
+            else:runtime_error=None
             available=tool.get_status()==ToolStatus.AVAILABLE
             fields=list(getattr(tool,'idempotency_key_fields',[]) or [])
             fingerprint_data={'project_id':self.pid,'tool':tool.name,'version':tool_version,'arguments':inputs}
@@ -471,7 +475,7 @@ class LocalAgent:
             request_id=args.get('request_id') or 'agent-'+request_fingerprint[:32]
             cost_valid=isinstance(estimate,(int,float)) and math.isfinite(estimate) and estimate==0
             skills_ready=not missing_skills
-            ready=available and cost_valid and skills_ready and estimate_error is None
+            ready=available and cost_valid and skills_ready and cost_error is None
             if name=='tool_preflight':
                 return {'ready':ready,'tool':tool.name,'version':tool_version,'capability':tool.capability,
                         'status':tool.get_status().value,'input_schema':tool.input_schema,
@@ -479,12 +483,12 @@ class LocalAgent:
                                          'project_scoped_outputs':True},
                         'effects':list(getattr(tool,'side_effects',[]) or []),
                         'estimated_cost_usd':estimate,'estimated_runtime_seconds':runtime_seconds,
-                        'estimate_error':estimate_error,'request_id':request_id,
+                        'estimate_error':cost_error,'runtime_estimate_error':runtime_error,'request_id':request_id,
                         'request_fingerprint':request_fingerprint,
                         'declared_idempotency_fields':fields,'idempotency_candidate':request_fingerprint,'idempotency_enforced_by_dispatch':False}
             if name=='execute_tool':
                 if missing_skills:raise AgentToolFailure('skill_not_read','Lee primero el skill '+missing_skills[0],outcome='not_started',recoverable=True)
-                if not cost_valid or estimate_error is not None:
+                if not cost_valid or cost_error is not None:
                     raise AgentToolFailure('cost_not_verified','La estimación no es cero verificable.',outcome='not_started',recoverable=False)
                 if not available:raise AgentToolFailure('tool_unavailable','Herramienta no disponible: '+tool.install_instructions,outcome='not_started',recoverable=True)
                 self.event('tool','Ejecutando '+tool.name,request_id=request_id,request_fingerprint=request_fingerprint)

@@ -35,7 +35,7 @@ def packet():
         "selected_concept": {"concept_id": "c1", "rationale": "Synthetic selection"},
         "production_plan": {
             "pipeline": "animated-explainer",
-            "render_runtime": "local",
+            "render_runtime": "ffmpeg",
             "stages": [stage("script"), stage("edit", ["script"])],
         },
         "cost_estimate": {"total_estimated_usd": 0, "line_items": [], "budget_verdict": "within_budget"},
