@@ -185,11 +185,17 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         assert page.locator('#edit-tracks .editor-cues .editor-clip').count()==len(state['edit_decisions']['cues'])
         assert page.locator('#edit-tracks .editor-volume-automation').count()==0
         assert page.locator('#editor-tools .editor-volume-automation').count()==2
-        track_bounds=page.locator('#edit-tracks').bounding_box()
-        for lane in page.locator('#edit-tracks .editor-lane').all():
-            lane_bounds=lane.bounding_box()
-            assert lane_bounds['y']>=track_bounds['y']-1
-            assert lane_bounds['y']+lane_bounds['height']<=track_bounds['y']+track_bounds['height']+1
+        tracks=page.locator('#edit-tracks')
+        lanes=page.locator('#edit-tracks .editor-lane')
+        track_bounds=tracks.bounding_box()
+        first_lane=lanes.first.bounding_box()
+        assert first_lane['y']>=track_bounds['y']-1
+        tracks.evaluate('(el)=>{el.scrollTop=el.scrollHeight}')
+        assert tracks.evaluate('(el)=>el.scrollTop')>0
+        track_bounds=tracks.bounding_box()
+        last_lane=lanes.last.bounding_box()
+        assert last_lane['y']>=track_bounds['y']-1
+        assert last_lane['y']+last_lane['height']<=track_bounds['y']+track_bounds['height']+1
         assert page.locator('#edit-split').is_disabled()
         page.screenshot(path=str(output/f'existing-layout-{width}x{height}-default.png'),full_page=True)
         for identifier,dx,dy in [('library',60,0),('inspector',-50,0),('timeline',0,-40)]:

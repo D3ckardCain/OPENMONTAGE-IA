@@ -61,7 +61,7 @@ body.editor-active[data-editor-workspace="audio"] #editor-monitor>.editor-audio-
 .editor-context-menu [role=menuitem]:disabled{color:#8b949e;opacity:.6;cursor:not-allowed}
 .editor-timeline{grid-row:3;display:flex;flex-direction:column;overflow:hidden}
 .editor-timeline>h2{flex:none;font-size:12px;margin:0 0 2px}
-.editor-tools{flex:0 1 auto;min-height:0;max-height:180px;overflow:auto;border-top:1px solid #30363d;padding-top:4px}
+.editor-tools{flex:none;max-height:min(60%,calc(100% - 80px));overflow:auto;border-top:1px solid #30363d;padding-top:4px}
 .editor-tools>.editor-toolbar{flex-wrap:wrap;gap:5px}
 .editor-tools>.editor-toolbar label{margin:0}
 .editor-tools details{margin:4px 0 0}
