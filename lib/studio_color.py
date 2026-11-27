@@ -39,11 +39,14 @@ def effective(value):
     return None if v['bypass'] or v==DEFAULT else v
 
 
-def suffix(value):
+def suffix(value,curves=None):
+    from lib.studio_color_curves import suffix as curves_suffix
+    bypass=normalize(value)['bypass'] if value is not None else False
+    tail=curves_suffix(curves,bypass)
     v=effective(value)
-    if not v:return ''
+    if not v:return tail
     return (f",format=gbrpf32le,exposure=exposure={v['exposure_ev']:.12g}"
-            f",format=yuv444p,eq=contrast={v['contrast']:.12g}:saturation={v['saturation']:.12g}:gamma={v['gamma']:.12g}")
+            f",format=yuv444p,eq=contrast={v['contrast']:.12g}:saturation={v['saturation']:.12g}:gamma={v['gamma']:.12g}"+tail)
 
 
 def apply(edl,data):
@@ -71,7 +74,7 @@ def compare(pid,clip_id,clip_seconds):
     proposed={**saved,'bypass':False};out=edl['output'];w,h=(out['width'],out['height']) if out['ratio']=='custom' else edit.PRESETS[out['ratio']]
     scale=min(480/w,270/h);w=max(2,round(w*scale/2)*2);h=max(2,round(h*scale/2)*2)
     graph=(f'[0:v]{transform_filter(w,h,clip.get("transform"))},setsar=1,split=2[a][b];'
-           f'[a]format=yuv444p[before];[b]null{suffix(proposed)},format=yuv444p[after];'
+           f'[a]format=yuv444p[before];[b]null{suffix(proposed,clip.get("color_curves"))},format=yuv444p[after];'
            '[before][after]hstack=inputs=2,format=rgb24[out]')
     if not COMPARE_LOCK.acquire(blocking=False):raise edit.Conflict('Comparación ocupada; espera el resultado vigente')
     try:

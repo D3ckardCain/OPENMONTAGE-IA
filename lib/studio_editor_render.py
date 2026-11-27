@@ -59,7 +59,7 @@ def plan(pid, edl, preview=False):
                 seconds += before + after
             vf, af_transition = transition_filters(edl['cuts'], i, seconds)
             filters.append(f'[{i}:v:0]trim=start={start}:end={end},setpts=(PTS-STARTPTS)/{speed},'
-                           + transform_filter(width, height, clip.get('transform')) + color_filter(clip.get('color')) + f',setsar=1,fps={fps},'
+                           + transform_filter(width, height, clip.get('transform')) + color_filter(clip.get('color'),clip.get('color_curves')) + f',setsar=1,fps={fps},'
                            f'tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds}{vf},format=yuv420p'
                            + (f',settb=1/{fps},setpts=N' if cross else '') + f'[v{i}]')
         gain = 0 if clip['muted'] or (solo and not clip.get('solo')) else clip['gain']

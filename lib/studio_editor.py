@@ -153,6 +153,11 @@ def render_digest(edl, contract=RENDER_CONTRACT):
             content['audio_mix']['target_lufs'] = mix['target_lufs']
     for clip in content['cuts'] + content['audio_tracks']:
         from lib.studio_color import effective as effective_color,CONTRACT as color_contract
+        from lib.studio_color_curves import effective as effective_color_curves
+        curves=effective_color_curves(clip.get('color_curves'),clip.get('color',{}).get('bypass',False))
+        if curves:
+            clip['color_curves']=curves;content['color_curves_contract']='rgb-pchip-v1'
+        else:clip.pop('color_curves',None)
         color=effective_color(clip.get('color'))
         if color:
             clip['color']=color;content['color_contract']=color_contract
@@ -434,6 +439,9 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_color_curves import normalize as normalize_color_curves
+    for clip in edl['cuts']:
+        if 'color_curves' in clip:normalize_color_curves(clip['color_curves'])
     from lib.studio_color import normalize as normalize_color
     for clip in edl['cuts']:
         if 'color' in clip:normalize_color(clip['color'])
