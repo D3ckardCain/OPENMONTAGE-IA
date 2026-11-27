@@ -19,13 +19,14 @@ def render(tmp_path,monkeypatch):
     return project,path
 
 
-def transport(monkeypatch,metadata,decode_error=False):
+def transport(monkeypatch,metadata,decode_error=False,decoded_stderr=''):
     calls=[]
     monkeypatch.setattr(checks,'executable',lambda name:'/configured/'+name+'.exe')
     def run(args,**kwargs):
         calls.append(args)
+        stderr='broken media' if decode_error else decoded_stderr if len(calls)==2 else ''
         return SimpleNamespace(returncode=1 if len(calls)==2 and decode_error else 0,
-            stdout=json.dumps(metadata),stderr='broken media' if decode_error else '')
+            stdout=json.dumps(metadata),stderr=stderr)
     monkeypatch.setattr(checks.subprocess,'run',run)
     return calls
 
@@ -141,3 +142,32 @@ def test_render_fps_or_aspect_mismatch_fails_before_full_decode(render,monkeypat
         checks.verify('one',[{'path':str(path),**declaration}])
     assert len(calls)==1
     assert studio.read_json(project/'render_verification.json')['status']=='failed'
+
+def test_audio_signal_metrics_reuse_full_decode_and_report_clipping_and_low_loudness(render,monkeypatch):
+    project,path=render
+    audio_metadata=metadata()
+    audio_metadata['streams'].append({'codec_type':'audio','codec_name':'aac','sample_rate':'48000','channels':2})
+    log='''[astats] Overall
+[astats] Peak level dB: 0.000
+[astats] RMS level dB: -inf
+[astats] Number of samples: 48000
+Summary:
+  Integrated loudness:
+    I: -70.0 LUFS
+    Threshold: -60.0 LUFS
+  Loudness range:
+    LRA: 0.0 LU
+  True peak:
+    Peak: 0.4 dBFS
+'''
+    calls=transport(monkeypatch,audio_metadata,decoded_stderr=log)
+    checks.verify('one',[{'path':str(path),'audio_codec':'aac'}])
+    assert len(calls)==2
+    assert '-filter:a:0' in calls[1]
+    assert 'ebur128=peak=true' in calls[1][calls[1].index('-filter:a:0')+1]
+    check=studio.read_json(project/'render_verification.json')['outputs'][0]['audio_signal_check']
+    assert check['scope']=='first_audio_stream' and check['coverage_seconds']==1
+    assert check['metrics']['sample_peak_at_or_above_full_scale']
+    assert check['metrics']['true_peak_above_full_scale']
+    assert check['metrics']['loudness_below_gate']
+    assert check['status']=='warning' and len(check['warnings'])==3

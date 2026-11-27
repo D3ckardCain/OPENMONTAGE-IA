@@ -105,14 +105,50 @@ def verify(project_id,outputs):
             if item.get('file_size_bytes') is not None and item['file_size_bytes']!=before.st_size:raise ValueError('El tamaño real no coincide con render_report')
             audio=[s for s in streams if s.get('codec_type')=='audio']
             if item.get('audio_codec') and not audio:raise ValueError('Se declaró audio pero el archivo no contiene una pista de audio')
-            decoded=subprocess.run([decoder,'-nostdin','-v','error','-xerror','-threads','1','-i',str(path),
-                '-map','0:v:0','-map','0:a?','-threads','1','-f','null','-'],
-                capture_output=True,text=True,timeout=min(3600,max(60,math.ceil(duration*3))))
+            decode_args=[decoder,'-nostdin','-nostats','-v','info' if audio else 'error',
+                '-xerror','-threads','1','-i',str(path),'-map','0:v:0','-map','0:a?']
+            if audio:
+                decode_args.extend(['-filter:a:0',
+                    'aresample=48000,ebur128=peak=true,'
+                    'astats=metadata=0:reset=0:measure_perchannel=none:'
+                    'measure_overall=Peak_level+RMS_level+Number_of_samples'])
+            decode_args.extend(['-threads','1','-f','null','-'])
+            decoded=subprocess.run(decode_args,capture_output=True,text=True,
+                timeout=min(3600,max(60,math.ceil(duration*3))))
             if decoded.returncode:raise ValueError('El video o audio no superó la decodificación completa: '+decoded.stderr[-600:])
+            audio_check={'status':'not_present','stream_count':0}
+            if audio:
+                from lib.studio_mix_meter import parse as parse_audio_metrics
+                try:
+                    metrics=parse_audio_metrics(decoded.stderr)
+                except ValueError:
+                    audio_check={'status':'unavailable','stream_count':len(audio),
+                                 'scope':'first_audio_stream','warning':'No se obtuvieron métricas legibles durante el decode.'}
+                else:
+                    coverage_seconds=metrics['samples_per_channel']/48000
+                    warnings=[]
+                    if metrics['loudness_below_gate']:
+                        warnings.append('loudness_below_gate; no demuestra por sí sola un archivo vacío')
+                    if metrics['sample_peak_at_or_above_full_scale']:
+                        warnings.append('sample_peak_at_or_above_full_scale')
+                    if metrics['true_peak_above_full_scale']:
+                        warnings.append('true_peak_above_full_scale')
+                    if abs(coverage_seconds-duration)>max(.05,duration*.01):
+                        warnings.append('audio_coverage_differs_from_video_duration')
+                    audio_check={
+                        'status':'warning' if warnings else 'measured',
+                        'scope':'first_audio_stream',
+                        'stream_count':len(audio),
+                        'coverage_seconds':coverage_seconds,
+                        'video_duration_seconds':duration,
+                        'metrics':metrics,
+                        'warnings':warnings,
+                    }
             checksum=digest(path);after=path.stat()
             if (before.st_size,before.st_mtime_ns)!=(after.st_size,after.st_mtime_ns):raise ValueError('El render cambió durante la verificación')
             record={'path':str(path),'duration_seconds':duration,'width':width,'height':height,
                 'video_codec':video.get('codec_name'),'fps':fps,'display_aspect_ratio':aspect,'audio_streams':len(audio),
+                'audio_signal_check':audio_check,
                 'bytes':after.st_size,'sha256':checksum,'full_decode_passed':True}
             report['outputs'].append(record);verified.append({**item,'path':str(path),'verified_sha256':checksum})
         with studio.LOCK:
