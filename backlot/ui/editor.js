@@ -253,6 +253,7 @@ function addTrimHandles(button,clip,track){
 }
 function drawTracks() {
   const box = q('edit-tracks'),focus=box.contains(document.activeElement)?document.activeElement.dataset.focus:null; box.replaceChildren();
+  const automationTools=q('editor-tools');automationTools.querySelectorAll('.editor-volume-automation').forEach(node=>node.remove());
   const end=timelineEnd(edl());
   q('edit-zoom').max=Math.min(10000,5000000/Math.max(1,end));
   if(zoomMode==='fit')q('edit-zoom').value=fitZoom(edl(),box.clientWidth);
@@ -305,7 +306,7 @@ function drawTracks() {
     if(track==='audio'&&clips.length){const scale=element('div','');scale.className='editor-audio-scale';scale.style.width=(Math.max(...clips.map(c=>c.start_seconds+seconds(c)))*Number(q('edit-zoom').value))+'px';lane.append(scale);lane.style.height=(clips.length*64+16)+'px';}
     const head=element('div','');head.className='editor-playhead';head.setAttribute('aria-hidden','true');lane.append(head);
     box.append(lane);
-    appendVolumeAutomation({box,track,width,zoom,edl:edl(),has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),cursor:()=>cursor,project});
+    appendVolumeAutomation({box:automationTools,track,width,zoom,edl:edl(),has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),cursor:()=>cursor,project});
   }
   box.append(element('h3','Subtítulos · tiempos del montaje'));
   const cues=element('div','');cues.className='editor-lane editor-cues';cues.dataset.editorContext='empty';cues.style.width=width+'px';

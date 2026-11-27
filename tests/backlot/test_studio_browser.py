@@ -183,6 +183,8 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         assert page.locator('#editor-inspector #edit-subtitle-panel').count()==1
         assert page.locator('#edit-tracks .editor-ruler').count()==1
         assert page.locator('#edit-tracks .editor-cues .editor-clip').count()==len(state['edit_decisions']['cues'])
+        assert page.locator('#edit-tracks .editor-volume-automation').count()==0
+        assert page.locator('#editor-tools .editor-volume-automation').count()==2
         track_bounds=page.locator('#edit-tracks').bounding_box()
         for lane in page.locator('#edit-tracks .editor-lane').all():
             lane_bounds=lane.bounding_box()
