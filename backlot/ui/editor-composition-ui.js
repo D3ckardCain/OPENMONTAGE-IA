@@ -17,7 +17,9 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
   function transitionHelp(){
     const cross=typeSelect.value==='crossfade',field=transitionForm.elements.duration_seconds,fps=getEdl().output.fps;
     field.parentElement.firstChild.textContent=cross?'Duración total del solape (s) ':'Duración por lado (s) ';
-    field.min=String((cross?2:1)/fps);
+    const frameStep=(cross?2:1)/fps;
+    field.min=String(frameStep);
+    field.step=String(frameStep);
     q('edit-transition-panel').querySelector('p').textContent=cross?
       'Solape centrado en el corte: mitad antes y mitad después, con vídeo y audio reales fuera de los recortes. Redondea a un número par de fotogramas. Conserva duración y pistas; requiere margen de ambas fuentes. Revisa las palabras durante el solape.':
       'Oscurece y atenúa el final anterior y el inicio seleccionado. No solapa clips ni cambia tiempos.';
