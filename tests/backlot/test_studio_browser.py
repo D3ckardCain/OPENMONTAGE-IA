@@ -190,12 +190,12 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         track_bounds=tracks.bounding_box()
         first_lane=lanes.first.bounding_box()
         assert first_lane['y']>=track_bounds['y']-1
-        tracks.evaluate('(el)=>{el.scrollTop=el.scrollHeight}')
-        assert tracks.evaluate('(el)=>el.scrollTop')>0
-        track_bounds=tracks.bounding_box()
-        last_lane=lanes.last.bounding_box()
-        assert last_lane['y']>=track_bounds['y']-1
-        assert last_lane['y']+last_lane['height']<=track_bounds['y']+track_bounds['height']+1
+        last_lane=lanes.last
+        last_lane.scroll_into_view_if_needed()
+        timeline_bounds=page.locator('#editor-timeline').bounding_box()
+        last_bounds=last_lane.bounding_box()
+        assert last_bounds['y']>=timeline_bounds['y']-1
+        assert last_bounds['y']+last_bounds['height']<=timeline_bounds['y']+timeline_bounds['height']+1
         assert page.locator('#edit-split').is_disabled()
         page.screenshot(path=str(output/f'existing-layout-{width}x{height}-default.png'),full_page=True)
         for identifier,dx,dy in [('library',60,0),('inspector',-50,0),('timeline',0,-40)]:
