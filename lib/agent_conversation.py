@@ -71,15 +71,15 @@ def _bounded_evidence(value, depth=0):
 
 
 _CONTEXT_PROTECTED = re.compile(
-    r"\\b(?:authoriz(?:e|ed|ation)|autoriz(?:o|ación)|approval|approved|aprob(?:ado|ación)|"
+    r"\b(?:authoriz(?:e|ed|ation)|autoriz(?:o|ación)|approval|approved|aprob(?:ado|ación)|"
     r"decision|decisión|decidido|pending|pendiente|todo|uncertain|incierto|in_flight|"
-    r"plan|planned|planificado|must|debe|should|debería|siguiente tarea|next task)\\b",
+    r"plan|planned|planificado|must|debe|should|debería|siguiente tarea|next task)\b",
     re.IGNORECASE,
 )
 _CONTEXT_REFERENCE = re.compile(
-    r"https?://[^\\s<>\\])}]+|#[0-9]+|\\b[0-9a-fA-F]{40}\\b|\\b[0-9a-fA-F]{64}\\b"
+    r"https?://[^\s<>\])}]+|#[0-9]+|\b[0-9a-fA-F]{40}\b|\b[0-9a-fA-F]{64}\b"
 )
-_CONTEXT_LABEL = re.compile(r"^\\s*(?:\\[)?(FACT|HECHO|PLAN|SUMMARY|RESUMEN)(?:\\])?\\s*:", re.IGNORECASE)
+_CONTEXT_LABEL = re.compile(r"^\s*(?:\[)?(FACT|HECHO|PLAN|SUMMARY|RESUMEN)(?:\])?\s*:", re.IGNORECASE)
 
 
 def _context_message_classification(role, content):
