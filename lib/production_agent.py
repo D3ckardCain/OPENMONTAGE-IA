@@ -407,6 +407,9 @@ class LocalAgent:
                 raise ValueError('Artefacto reservado del estudio')
             from schemas.artifacts import ARTIFACT_NAMES, validate_artifact
             if args['name'] in ARTIFACT_NAMES:validate_artifact(args['name'],args['data'])
+            if args['name']=='proposal_packet':
+                from lib.production_plan import validate_executable_plan
+                validate_executable_plan(args['data'])
             studio.save_json(self.artifact_path(args['name']),args['data'])
             return {'saved':str(self.artifact_path(args['name']))}
         if name=='list_tools':
