@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 from lib.project_workspace import STANDARD_DIRS, create_project_folder, initialize_layout
 
@@ -19,10 +20,13 @@ def test_workspace_layout_is_uniform_and_confines_directories(tmp_path):
     root = tmp_path / "projects"
     root.mkdir()
     _, project = create_project_folder(root, "Edición local")
-    initialize_layout(project)
+    initialize_layout(project, project_id, "Edición local")
 
     assert all((project / name).is_dir() for name in STANDARD_DIRS)
     assert all((project / name).resolve().is_relative_to(project.resolve()) for name in STANDARD_DIRS)
+    manifest = json.loads((project / "datos" / "workspace.json").read_text(encoding="utf-8"))
+    assert manifest["project_path"] == str(project.resolve())
+    assert manifest["originals_policy"] == "copy_into_project; source_is_never_moved_or_deleted"
 
 
 def test_workspace_creates_a_missing_local_root(tmp_path):
