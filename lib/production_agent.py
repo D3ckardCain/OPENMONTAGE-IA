@@ -177,6 +177,12 @@ class LocalAgent:
             response=studio.local_request(self.config['ollama_url'],'/api/chat',data,timeout=180,cancel=self.cancel,progress=observe)
         except CancelledRequest as exc:raise Pause('stopped',str(exc)) from exc
         if self.cancel.is_set():raise Pause('stopped','Respuesta descartada tras solicitar cancelación')
+        # Preserve server-reported usage when available. Never estimate tokens
+        # from serialized characters or prompt length.
+        usage={key:value for key in ('prompt_eval_count','eval_count','total_duration',
+                'load_duration','prompt_eval_duration','eval_duration')
+               if type((value:=response.get(key))) is int and 0<=value<=10**15}
+        if usage:self.last_transport={**self.last_transport,'ollama_usage':usage}
         message=response.get('message')
         if not isinstance(message,dict):raise ValueError('Ollama no devolvió un mensaje válido')
         return message
