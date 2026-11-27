@@ -5,9 +5,9 @@ import io
 import subprocess
 import threading
 
-CONTRACT='clip-sdr-color-v1'
+CONTRACT='clip-sdr-color-v2'
 DEFAULT={'bypass':False,'exposure_ev':0.,'contrast':1.,'saturation':1.,'gamma':1.,
-         'temperature':0.,'tint':0.}
+         'temperature':0.,'tint':0.,'hue_degrees':0.}
 COMPARE_LOCK=threading.Lock()
 
 
@@ -31,7 +31,7 @@ def normalize(value):
     result={**DEFAULT,**value}
     if type(result['bypass']) is not bool:raise ValueError('Bypass requiere booleano')
     for key,low,high in [('exposure_ev',-2,2),('contrast',.25,2),('saturation',0,2),('gamma',.5,2),
-                         ('temperature',-1,1),('tint',-1,1)]:result[key]=number(result[key],low,high)
+                         ('temperature',-1,1),('tint',-1,1),('hue_degrees',-180,180)]:result[key]=number(result[key],low,high)
     return result
 
 
@@ -58,9 +58,10 @@ def suffix(value,curves=None):
                             f'g{band}={-magenta:.12g}',
                             f'b{band}={-warm+magenta*.5:.12g}'))
         balance=',colorbalance='+':'.join(options)
+    hue=f",hue=H={v['hue_degrees']:.12g}" if v['hue_degrees'] else ''
     return (f",format=gbrpf32le,exposure=exposure={v['exposure_ev']:.12g}"
             f",format=yuv444p,eq=contrast={v['contrast']:.12g}:saturation={v['saturation']:.12g}:gamma={v['gamma']:.12g}"
-            +balance+tail)
+            +hue+balance+tail)
 
 
 def apply(edl,data):

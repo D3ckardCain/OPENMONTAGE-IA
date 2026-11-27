@@ -7,6 +7,7 @@ CAPABILITIES = ['subtitle_karaoke', 'subtitle_layout', 'subtitle_reflow', 'rippl
 
 
 CAPABILITIES += ['clip_color', 'color_compare']
+CAPABILITIES += ['clip_color_hsl_hue']
 CAPABILITIES += ['clip_color_curves']
 CAPABILITIES += ['clip_speed_ramp','speed_ramp_plan']
 CAPABILITIES += ['clip_smooth_speed','smooth_speed_plan']

@@ -36,6 +36,22 @@ def test_color_lock_split_and_graph_shared(project):
     with pytest.raises(edit.Conflict):command(pid,'clip_color',id=clip,color=None)
 
 
+def test_hsl_hue_is_bounded_persisted_reversible_and_shared_by_preview_export(project):
+    pid,key,_=project;clip=add(pid,key);before=edit.state(pid)
+    command(pid,'clip_color',id=clip,color={'hue_degrees':45})
+    active=edit.state(pid);assert active['edit_decisions']['cuts'][0]['color']['hue_degrees']==45
+    assert active['render_sha256']!=before['render_sha256']
+    for preview in [True,False]:
+        graph=';'.join(render.plan(pid,active['edit_decisions'],preview)[1])
+        assert 'hue=H=45' in graph
+    command(pid,'undo');assert edit.state(pid)['edit_decisions']==before['edit_decisions']
+    command(pid,'redo');command(pid,'save')
+    assert edit.state(pid)['edit_decisions']['cuts'][0]['color']['hue_degrees']==45
+    current=edit.state(pid)
+    with pytest.raises(ValueError):command(pid,'clip_color',id=clip,color={'hue_degrees':181})
+    assert edit.state(pid)==current
+
+
 def test_color_http_and_agent_read_contract(project,monkeypatch):
     pid,key,_=project;clip=add(pid,key);client=TestClient(create_app(),base_url='http://127.0.0.1:4750')
     monkeypatch.setattr(color,'compare',lambda p,c,t:{'project_id':p,'clip_id':c,'time':t})

@@ -14,7 +14,8 @@ class StudioEditorCapabilitiesTest(unittest.TestCase):
         self.assertIn('automatizaci&#243;n de volumen y ducking', panel)
         self.assertIn('EQ/compresor y bypass durante la exportaci&#243;n local', panel)
         self.assertIn('rampas de velocidad y keyframes visuales de capas', panel)
-        self.assertRegex(panel, r'Pendiente: buses de mezcla.*DSP en directo.*HSL/LUT/scopes.*clips principales y t&#237;tulos')
+        self.assertIn('matiz HSL global', panel)
+        self.assertRegex(panel, r'Pendiente: buses de mezcla.*DSP en directo.*HSL por rangos, LUT/scopes.*clips principales y t&#237;tulos')
         self.assertNotRegex(panel, r'Pendientes:.*curvas de velocidad')
 
 
