@@ -1,6 +1,6 @@
 // Shared server requests and receipts; session storage holds only recovery tokens.
 export function initializePiperUI({host,getProject,getRevision,reopen}){
-  const panel=document.createElement('details');
+  const panel=document.createElement('details');panel.className='editor-audio-tool';
   panel.innerHTML='<summary>Voces locales Piper</summary><button type="button" data-load>Consultar voces</button><label>Voz<select data-voice></select></label><label>Hablante<select data-speaker></select></label><p data-license></p><textarea data-text maxlength="1000" aria-label="Texto de preescucha">Esta es una prueba breve de voz local.</textarea><button type="button" data-preview disabled>Crear preescucha local</button><button type="button" data-recover>Recuperar última solicitud</button><button type="button" data-new>Nueva solicitud (otra toma)</button><audio controls></audio><button type="button" data-import disabled>Incorporar a biblioteca de audio</button><p role="status" data-status></p>';
   host.append(panel);
   const q=s=>panel.querySelector(s);

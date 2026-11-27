@@ -45,6 +45,8 @@ body.editor-active>.editor-shell{flex:1;display:grid;grid-template-rows:auto aut
 .editor-caption{position:absolute;bottom:14%;left:10%;right:10%;text-align:center;color:white;text-shadow:0 1px 3px black;font-size:clamp(14px,2vw,32px);pointer-events:none;white-space:pre-line}
 .editor-transport{display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:none;font-size:12px}
 .editor-monitor>.editor-toolbar{flex:none}
+body.editor-active:not([data-editor-workspace="audio"]) .editor-audio-tool{display:none!important}
+body.editor-active[data-editor-workspace="audio"] #editor-monitor>.editor-audio-tool{flex:none;max-height:24%;overflow:auto;border-top:1px solid #30363d;padding-top:5px}
 #edit-render-status,#edit-waveform-status{max-height:2.8em;overflow:auto;flex:none;font-size:11px}
 .editor-import{display:block}
 .editor-source{padding:6px 0;border-bottom:1px solid #30363d;overflow-wrap:anywhere;font-size:12px}
@@ -53,6 +55,10 @@ body.editor-active>.editor-shell{flex:1;display:grid;grid-template-rows:auto aut
 .editor-source button{margin:3px}
 .editor-source small{display:block;color:#b1bac4}
 .editor-source audio{width:100%}
+.editor-context-menu{position:fixed;z-index:1000;display:grid;min-width:220px;max-width:min(320px,calc(100vw - 16px));max-height:min(70dvh,520px);overflow:auto;padding:5px;background:#161b22;border:1px solid #484f58;border-radius:7px;box-shadow:0 8px 28px #010409cc}
+.editor-context-menu [role=menuitem]{display:block;width:100%;min-height:32px;padding:6px 10px;text-align:left;white-space:normal;color:#e6edf3;background:transparent;border:1px solid transparent;border-radius:4px}
+.editor-context-menu [role=menuitem]:hover:not(:disabled),.editor-context-menu [role=menuitem]:focus-visible{background:#1f6feb33;border-color:#388bfd;outline:2px solid #58a6ff;outline-offset:-2px}
+.editor-context-menu [role=menuitem]:disabled{color:#8b949e;opacity:.6;cursor:not-allowed}
 .editor-timeline{grid-row:3;display:flex;flex-direction:column;overflow:hidden}
 .editor-timeline>h2{flex:none;font-size:12px;margin:0 0 2px}
 .editor-tools{flex:none;max-height:min(60%,calc(100% - 80px));overflow:auto;border-top:1px solid #30363d;padding-top:4px}
