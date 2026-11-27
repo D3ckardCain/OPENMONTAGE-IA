@@ -2,6 +2,7 @@
 import json
 import math
 import re
+from fractions import Fraction
 import hashlib
 import subprocess
 from pathlib import Path
@@ -22,6 +23,35 @@ def football_selection(project_id):
     return {key: selected[key] for key in ('selection_id', 'sha256', 'dossier_path',
                                           'selected_metrics', 'scope', 'source', 'status')}
 
+
+def _rate(value):
+    if not isinstance(value,str) or len(value)>40:return None
+    try:
+        rate=Fraction(value)
+        result=float(rate)
+        return result if math.isfinite(result) and result>0 else None
+    except (ValueError,ZeroDivisionError,OverflowError):
+        return None
+
+
+def _aspect(video,width,height):
+    display=video.get('display_aspect_ratio')
+    match=re.fullmatch(r'(\d+)[:/](\d+)',display) if isinstance(display,str) else None
+    if match and int(match[2])>0:return int(match[1])/int(match[2])
+    sample=video.get('sample_aspect_ratio')
+    match=re.fullmatch(r'(\d+)[:/](\d+)',sample) if isinstance(sample,str) else None
+    if match and int(match[1])>0 and int(match[2])>0:
+        return (width*int(match[1]))/(height*int(match[2]))
+    return width/height
+
+
+def _expected_aspect(value):
+    if isinstance(value,(int,float)) and type(value) is not bool and math.isfinite(value) and value>0:
+        return float(value)
+    if isinstance(value,str):
+        match=re.fullmatch(r'\s*(\d+(?:\.\d+)?)\s*[:/]\s*(\d+(?:\.\d+)?)\s*',value)
+        if match and float(match[2])>0:return float(match[1])/float(match[2])
+    raise ValueError('Aspect ratio esperado inválido')
 
 def verify(project_id,outputs):
     project=studio.project_path(project_id);report={'status':'running','started_at':studio.now(),
@@ -54,6 +84,19 @@ def verify(project_id,outputs):
             if not video or not math.isfinite(duration) or duration<=0:raise ValueError('La salida no contiene un video de duración positiva y finita')
             width=video.get('width');height=video.get('height')
             if type(width) is not int or type(height) is not int or min(width,height)<=0:raise ValueError('Dimensiones de video inválidas')
+            fps=_rate(video.get('avg_frame_rate')) or _rate(video.get('r_frame_rate'))
+            aspect=_aspect(video,width,height)
+            declared_fps=item.get('fps')
+            if declared_fps is not None:
+                if type(declared_fps) not in (int,float) or not math.isfinite(declared_fps) or declared_fps<=0:
+                    raise ValueError('FPS esperado inválido')
+                if fps is None or abs(fps-declared_fps)>max(0.01,declared_fps*0.001):
+                    raise ValueError('El FPS real no coincide con render_report')
+            declared_aspect=item.get('aspect_ratio')
+            if declared_aspect is not None:
+                expected_aspect=_expected_aspect(declared_aspect)
+                if abs(aspect-expected_aspect)>0.01:
+                    raise ValueError('La relación de aspecto real no coincide con render_report')
             declared=item.get('duration_seconds')
             if declared is not None:
                 if type(declared) not in (int,float) or not math.isfinite(declared) or declared<=0 or abs(duration-declared)>max(0.25,duration*0.02):raise ValueError('La duración real no coincide con render_report')
@@ -69,7 +112,7 @@ def verify(project_id,outputs):
             checksum=digest(path);after=path.stat()
             if (before.st_size,before.st_mtime_ns)!=(after.st_size,after.st_mtime_ns):raise ValueError('El render cambió durante la verificación')
             record={'path':str(path),'duration_seconds':duration,'width':width,'height':height,
-                'video_codec':video.get('codec_name'),'audio_streams':len(audio),
+                'video_codec':video.get('codec_name'),'fps':fps,'display_aspect_ratio':aspect,'audio_streams':len(audio),
                 'bytes':after.st_size,'sha256':checksum,'full_decode_passed':True}
             report['outputs'].append(record);verified.append({**item,'path':str(path),'verified_sha256':checksum})
         with studio.LOCK:

@@ -31,7 +31,7 @@ def transport(monkeypatch,metadata,decode_error=False):
 
 
 def metadata(duration='1'):
-    return {'format':{'duration':duration},'streams':[{'codec_type':'video','codec_name':'h264','width':64,'height':64}]}
+    return {'format':{'duration':duration},'streams':[{'codec_type':'video','codec_name':'h264','width':64,'height':64,'avg_frame_rate':'24/1','r_frame_rate':'24/1','sample_aspect_ratio':'1:1'}]}
 
 
 def test_configured_tools_full_decode_and_integrity_receipt(render,monkeypatch):
@@ -122,3 +122,22 @@ def test_real_synthetic_video_passes_full_decode(render,monkeypatch):
     subprocess.run([ffmpeg,'-nostdin','-v','error','-y','-f','lavfi','-i','color=blue:s=64x64:d=0.2','-c:v','mpeg4',str(path)],check=True,timeout=20)
     checks.verify('one',[{'path':str(path),'duration_seconds':0.2,'resolution':'64x64'}])
     assert studio.read_json(project/'render_verification.json')['status']=='passed'
+
+
+def test_fps_and_display_aspect_are_recorded_and_checked(render,monkeypatch):
+    project,path=render;transport(monkeypatch,metadata())
+    checks.verify('one',[{'path':str(path),'fps':24,'aspect_ratio':'1:1'}])
+    receipt=studio.read_json(project/'render_verification.json')
+    assert receipt['outputs'][0]['fps']==24
+    assert receipt['outputs'][0]['display_aspect_ratio']==1
+
+@pytest.mark.parametrize('declaration,match',[
+    ({'fps':25},'FPS real'),
+    ({'aspect_ratio':'9:16'},'relación de aspecto'),
+])
+def test_render_fps_or_aspect_mismatch_fails_before_full_decode(render,monkeypatch,declaration,match):
+    project,path=render;calls=transport(monkeypatch,metadata())
+    with pytest.raises(ValueError,match=match):
+        checks.verify('one',[{'path':str(path),**declaration}])
+    assert len(calls)==1
+    assert studio.read_json(project/'render_verification.json')['status']=='failed'
