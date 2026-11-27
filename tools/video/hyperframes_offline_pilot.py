@@ -18,13 +18,13 @@ def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 
 class HyperFramesOfflinePilot(BaseTool):
     name='hyperframes_offline_pilot'
-    version='1.1.0'
+    version='1.2.0'
     capability='video_post'
     provider='hyperframes'
     runtime=ToolRuntime.LOCAL
     description='Bounded own-resource HyperFrames offline QA; separate project only.'
     agent_skills=['hyperframes','hyperframes-core','hyperframes-cli','ffmpeg']
-    input_schema={'type':'object','required':['project_id','phase'],'properties':{'project_id':{'enum':['qa132-hyperframes-offline','qa186-gsap-offline']},'phase':{'enum':['build','render','cancel']}}}
+    input_schema={'type':'object','required':['project_id','phase'],'properties':{'project_id':{'enum':['qa132-hyperframes-offline','qa186-gsap-offline']},'phase':{'enum':['build','render','cancel','frame186','zero186','finish186','span186','trace186']}}}
 
     def get_status(self):
         return ToolStatus.AVAILABLE if hyperframes_runtime.check()['local_requirements_met'] else ToolStatus.UNAVAILABLE
@@ -35,6 +35,9 @@ class HyperFramesOfflinePilot(BaseTool):
             root=checkpoint.PROJECTS_DIR/inputs['project_id'];marker=json.loads((root/'project.json').read_text())
             if marker.get('pipeline_type')!='hyperframes-offline-pilot':raise ValueError('Wrong pipeline')
             phase=inputs['phase']
+            if phase in ('frame186','zero186','finish186','span186','trace186'):
+                if inputs['project_id']!='qa186-gsap-offline':raise ValueError('Diagnostic scope is186 only')
+                return self.diagnostic186(root,phase)
             if inputs['project_id']=='qa186-gsap-offline' and phase not in ('build','render'):raise ValueError('GSAP title scope is build/render only; do not repeat cancellation')
             if phase=='build':return self.build(root)
             workspace=root/'hyperframes';entry=workspace/'index.html';receipt=json.loads((root/'artifacts/pilot-build.json').read_text())
@@ -98,3 +101,38 @@ class HyperFramesOfflinePilot(BaseTool):
               'width':640,'height':360,'audio':False,'cost_usd':0,'scope':'New own GSAP186 title only; no previous132 render repeated'}
         (root/'artifacts/pilot-build.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
         return ToolResult(success=True,data=data)
+
+    def diagnostic186(self,root,phase):
+        """User-requested one-frame render gate, same authored title and transport."""
+        from lib.media_executables import require_media
+        receipt=root/'artifacts'/f'{phase}.json'
+        if receipt.exists():raise ValueError('Existing diagnostic receipt; inspect it before another attempt')
+        build=json.loads((root/'artifacts/pilot-build.json').read_text(encoding='utf-8'))
+        workspace=root/'hyperframes'
+        if sha(workspace/'index.html')!=build['html_sha256']:raise ValueError('Title changed since reviewed build')
+        if phase in ('finish186','span186','trace186'):
+            frame=json.loads((root/'artifacts/frame186.json').read_text(encoding='utf-8'))
+            if not frame.get('success'):raise ValueError('One-frame capture must pass first')
+        logroot=root/phase;(logroot/'artifacts').mkdir(parents=True,exist_ok=True)
+        target=root/'renders'/('hyperframes-offline-verified.mp4' if phase=='finish186' else phase+'.mp4')
+        if target.exists():raise ValueError('Diagnostic output already exists; never overwrite')
+        args=['render','--output',str(target),'--fps','24','--quality','draft','--strict']
+        if phase=='span186':args+=['--start','0','--end','3']
+        elif phase not in ('finish186','trace186'):
+            at=0 if phase=='zero186' else 1
+            args+=['--start',str(at),'--end',str(at+1/24)]
+        adapter=OwnedHyperFrames(logroot,trace=phase=='trace186')
+        result={'phase':phase,'success':False,'title_sha256':build['html_sha256'],'processes':adapter.processes}
+        try:
+            proc=adapter._run_hf(args,cwd=workspace,timeout=90 if phase in ('finish186','span186') else 45,check=False)
+            result['exit_code']=proc.returncode
+            if proc.returncode:raise ValueError('CLI failed; inspect the preserved phase render.log')
+            probe=subprocess.run([str(require_media('ffprobe')),'-v','error','-count_frames','-select_streams','v:0',
+              '-show_entries','stream=width,height,nb_read_frames,r_frame_rate:format=duration','-of','json',str(target)],capture_output=True,text=True,timeout=15,check=True)
+            result['probe']=json.loads(probe.stdout)
+            count=int(result['probe']['streams'][0]['nb_read_frames'])
+            if count!=(72 if phase in ('finish186','span186','trace186') else 1):raise ValueError('Unexpected decoded frame count: '+str(count))
+            result.update(success=True,output=str(target.relative_to(root)))
+        except (OSError,ValueError,subprocess.SubprocessError) as exc:result['error']=str(exc)
+        receipt.write_text(json.dumps(result,indent=2),encoding='utf-8')
+        return ToolResult(success=result['success'],data=result,error=result.get('error'))

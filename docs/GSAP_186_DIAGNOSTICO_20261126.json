@@ -1,0 +1,77 @@
+{
+  "title_sha256": "42e317103e9809b61286a663653b78850ca7a8de6a45bfd690899650ea881ae5",
+  "one_frame_tests": {
+    "at_1s": true,
+    "at_0s": true
+  },
+  "negative_experiments": {
+    "streaming_disabled_full_pipeline": false,
+    "span_with90s_budget": false
+  },
+  "successful_trace_run": {
+    "phase": "trace186",
+    "success": true,
+    "title_sha256": "42e317103e9809b61286a663653b78850ca7a8de6a45bfd690899650ea881ae5",
+    "processes": [
+      {
+        "pid": 151364,
+        "operation": "render",
+        "exit_code": 0,
+        "elapsed_seconds": 10.59399999998277,
+        "cancelled": false
+      }
+    ],
+    "exit_code": 0,
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "width": 640,
+          "height": 360,
+          "r_frame_rate": "24/1",
+          "nb_read_frames": "72"
+        }
+      ],
+      "format": {
+        "duration": "3.000000"
+      }
+    },
+    "output": "renders\\trace186.mp4"
+  },
+  "playback": {
+    "ended": true,
+    "duration": 3,
+    "width": 640,
+    "height": 360,
+    "callbacks": 71,
+    "quality": {
+      "total": 72,
+      "dropped": 0
+    },
+    "errors": [],
+    "scope": "Actual Chrome MP4 playback to end; 72 decoded frames separately accredited by ffprobe; title intentionally has no audio",
+    "human_listening": false,
+    "main4750": false
+  },
+  "range_seek": {
+    "currentTime": 1,
+    "readyState": 4,
+    "bright_pixels": 9942,
+    "seekable": [
+      [
+        0,
+        3
+      ]
+    ]
+  },
+  "new_focused_tests": 3,
+  "external_node_attempts_blocked": 1,
+  "blocked_hosts": [
+    "fonts.googleapis.com"
+  ],
+  "root_cause": "Unconfirmed timing/race hypothesis; trace run passed without functional engine/title change. No permanent streaming/span workaround retained.",
+  "main4750": false,
+  "model_downloads_queried": false,
+  "cost_usd": 0
+}
