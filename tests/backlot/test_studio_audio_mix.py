@@ -27,7 +27,13 @@ def test_output_mix_is_shared_reversible_persistent_and_used_by_render_plan(proj
     command(pid, 'undo')
     assert edit.state(pid)['render_sha256'] == initial_render
     command(pid, 'redo')
-    assert edit.state(pid)['edit_decisions']['audio_mix']['target_lufs'] == -18.5
+    assert edit.state(pid)['edit_decisions']['audio_mix'] == {
+        'gain': 0.8, 'normalize': True, 'target_lufs': -18.5
+    }
+    partial = command(pid, 'audio_mix', gain=0.7)
+    assert partial['edit_decisions']['audio_mix'] == {
+        'gain': 0.7, 'normalize': True, 'target_lufs': -18.5
+    }
 
     from backlot.server import create_app
     from fastapi.testclient import TestClient
@@ -48,7 +54,7 @@ def test_output_mix_is_shared_reversible_persistent_and_used_by_render_plan(proj
     result = tool.execute({
         'project_id': pid, 'action': 'command',
         'command': {'operation': 'audio_mix', 'revision': read.data['revision'],
-                    'gain': 0.65, 'target_lufs': -20}
+                    'gain': 0.65, 'normalize': True, 'target_lufs': -20}
     })
     assert result.success
     assert edit.state(pid)['events'][-1]['origin'] == 'agent'
