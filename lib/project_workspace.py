@@ -45,8 +45,12 @@ def create_project_folder(root: Path, title: str) -> tuple[str, Path]:
     with another Studio process.
     """
     root = Path(root).expanduser().resolve()
+    try:
+        root.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise ValueError(f"La carpeta raíz de proyectos no está disponible: {exc}") from exc
     if not root.is_dir():
-        raise ValueError("La carpeta raíz de proyectos no está disponible")
+        raise ValueError("La ruta raíz de proyectos no es una carpeta")
     base = folder_slug(title)
     for number in range(1, 10000):
         project_id = base if number == 1 else f"{base}-{number}"
