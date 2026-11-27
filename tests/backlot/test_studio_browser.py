@@ -170,7 +170,7 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         before=contained();src=page.locator('#edit-player').get_attribute('src')
         assert before['panels']['editor-library']['width']>=319
         assert before['panels']['editor-timeline']['height']>=359
-        assert page.evaluate("localStorage.getItem('edit-layout-version')")=='3'
+        assert page.evaluate("localStorage.getItem('edit-layout-version')")=='4'
         fit_scale=float(page.locator('#edit-zoom').input_value())
         assert fit_scale>160
         ticks=page.locator('.editor-ruler span').all_text_contents()

@@ -35,6 +35,9 @@ export function initializeEditorLayout() {
     const height=grid.clientHeight, workspace=document.body.dataset.editorWorkspace||'video';
     const budget=editorPanelBudget(height,root.dataset.timelineRows||3,workspace),{minTop,minTracks,maxTracks,defaultTrackShare}=budget;
     if(migrate){
+      // Pre-v4 layouts could leave the library too narrow to identify media.
+      // Normalize only during migration; preserve widths saved by current layouts.
+      if(prefs.library<defaults.library)prefs.library=defaults.library;
       if(prefs.tracks!==null&&(prefs.tracks<minTracks||prefs.tracks>height*.65)){
         prefs.tracks=null;try{localStorage.removeItem(keys.tracks);}catch{/* storage is optional */}
       }
