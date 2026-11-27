@@ -173,7 +173,8 @@ def create_editor_router(body):
 
     @router.get('/projects')
     def projects():
-        return [{'project_id': p.parent.name, 'title': studio.read_json(p).get('title', p.parent.name)}
+        return [{'project_id': p.parent.name, 'title': studio.read_json(p).get('title', p.parent.name),
+                 'project_path': str(p.parent.resolve())}
                 for p in studio.PROJECTS_DIR.glob('*/production_request.json')
                 if studio.read_json(p).get('manual_edit')]
 
@@ -230,7 +231,7 @@ def create_editor_router(body):
             raise HTTPException(400, 'Extensión no admitida o nombre demasiado largo')
         project = invoke(studio.project_path, pid)
         invoke(editor._revision, invoke(editor.state, pid), revision)
-        relative = 'assets/imports/' + uuid.uuid4().hex + suffix
+        relative = 'originales/' + uuid.uuid4().hex + suffix
         target = project / relative
         try:
             target.parent.resolve().relative_to(project.resolve())
@@ -340,3 +341,4 @@ def create_editor_router(body):
         return invoke(render.start, pid, data.get('revision'), data.get('preview', False), 'agent')
 
     return router
+
