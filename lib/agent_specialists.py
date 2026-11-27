@@ -152,10 +152,14 @@ def build_context(agent, args):
     return packet
 
 
+class SpecialistFormatError(ValueError):
+    """The response can be repaired by formatting only, without tool effects."""
+
+
 def parse_result(raw, role, allowed_evidence_ids):
     """Parse strict JSON and reject unsupported or stale citations; no repair call."""
     if not isinstance(raw, str) or len(raw) > 20_000:
-        raise ValueError("El especialista devolvió una salida ausente o superior a 20 KB.")
+        raise SpecialistFormatError("El especialista devolvió una salida ausente o superior a 20 KB.")
     text = raw.strip()
     if text.startswith("```json") and text.endswith("```"):
         text = text[7:-3].strip()
@@ -163,7 +167,7 @@ def parse_result(raw, role, allowed_evidence_ids):
         data = json.loads(text)
         validate(data, SPECIALIST_SCHEMA)
     except (json.JSONDecodeError, ValidationError) as exc:
-        raise ValueError("La salida del especialista no cumple el contrato JSON; no se ejecutaron acciones.") from exc
+        raise SpecialistFormatError("La salida del especialista no cumple el contrato JSON; no se ejecutaron acciones.") from exc
     if data["role"] != role:
         raise ValueError("La salida del especialista declara un rol distinto al solicitado.")
     cited = [item["id"] for item in data["evidence"]]

@@ -908,7 +908,7 @@ def test_specialist_rejects_unshared_citations_and_invalid_output(isolated):
         worker.dispatch('consult_agent',{'role':'reviewer','task':'Revisar con cautela.'})
 
     worker._chat=lambda messages,tools:{'content':'no es JSON'}
-    with pytest.raises(ValueError,match='evidencia no compartida'):
+    with pytest.raises(ValueError,match='contrato JSON'):
         worker.dispatch('consult_agent',{'role':'reviewer','task':'Revisar con cautela.'})
 
 def test_specialist_repair_is_single_bounded_read_only_retry(isolated):

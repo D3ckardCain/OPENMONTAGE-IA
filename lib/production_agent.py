@@ -488,7 +488,7 @@ class LocalAgent:
                 {'role':'user','content':args['question'],'images':[encoded]}])
             return {'path':str(p),'inspection':reply.get('content',''),'scope':'single_image','model':self.config['model']}
         if name=='consult_agent':
-            from lib.agent_specialists import build_context,parse_result,CONTEXT_TOKENS,OUTPUT_TOKENS,SPECIALIST_SCHEMA
+            from lib.agent_specialists import build_context,parse_result,CONTEXT_TOKENS,OUTPUT_TOKENS,SPECIALIST_SCHEMA,SpecialistFormatError
             packet=build_context(self,args)
             self.event('agent','Consulta local de especialista '+args['role'],context_revision=packet['state']['context_revision'])
             system=('Responde exclusivamente con JSON válido conforme al contrato: role, proposal, evidence[{id,use}], '
@@ -503,7 +503,7 @@ class LocalAgent:
             raw=result.get('content');repairs=0
             try:
                 structured=parse_result(raw,args['role'],allowed)
-            except ValueError as first_error:
+            except SpecialistFormatError as first_error:
                 if not isinstance(raw,str) or len(raw)>20000:raise
                 repaired=self.chat([{'role':'system','content':'Repara una sola vez el formato JSON del contenido suministrado. Conserva únicamente afirmaciones presentes; no agregues hechos ni IDs. Devuelve solo el objeto JSON requerido.'},
                                     {'role':'user','content':json.dumps({'invalid_output':raw,'role':args['role'],
