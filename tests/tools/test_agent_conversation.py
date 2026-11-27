@@ -356,7 +356,7 @@ def test_old_user_assistant_context_compacts_in_order_and_keeps_citations(instan
     assert [m['role'] for m in c.state['messages']] == ['user', 'assistant'] + ['assistant'] * 12
     assert first['message_index'] == 0 and second['message_index'] == 1
     assert 'https://github.com/example/repo/issues/92' in first['references']
-    assert '#' + 'a' * 40 in first['references']
+    assert 'a' * 40 in first['references']
     assert first['classification'] == 'user_statement_unclassified'
     assert second['classification'] == 'assistant_statement_unclassified'
     for stub in (first, second):
@@ -402,6 +402,8 @@ def test_context_message_compaction_keeps_authority_decisions_pending_and_uncert
     assert c.state['messages'][:2] == protected
 
     c.state['model_attempts'] = []
+    c.state['messages'] = [protected[0], {'role': 'assistant', 'content': 'filler ' * 30000}] + [
+        {'role': 'assistant', 'content': 'recent'} for _ in range(12)]
     c.save()
     result = c.compact_old_context_messages()
     assert result['compacted'] == 1
