@@ -98,7 +98,7 @@ def create(title):
         raise ValueError('Indica un título de 1 a 120 caracteres')
     from lib.project_workspace import create_project_folder, describe as describe_workspace, initialize_layout
     pid, project = create_project_folder(studio.PROJECTS_DIR, title)
-    initialize_layout(project)
+    initialize_layout(project, pid, title.strip())
     studio.save_json(project / 'production_request.json', {'title': title.strip(), 'manual_edit': True})
     studio.save_json(project / 'project.json', {'project_id': pid, 'title': title.strip(), 'type': 'manual_edit'})
     studio.save_json(project / ARTIFACT, {'revision': 0, 'edit_decisions': _empty(), 'undo': [], 'redo': [], 'events': []})
