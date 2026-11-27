@@ -2,8 +2,8 @@
 export function editorPanelBudget(height, rows=3, workspace='video') {
   const viewport=Math.max(1,Number(height)||1), trackRows=Math.max(3,Number(rows)||3);
   const taskExtra=workspace==='audio'?44:workspace==='subtitles'?36:0;
-  const minTop=Math.min(260,viewport*.36);
-  const available=Math.max(60,viewport-10-minTop);
+  const minTop=Math.min(260,Math.max(0,(viewport-8)*.36));
+  const available=Math.max(0,viewport-8-minTop);
   const minTracks=Math.min(360+Math.max(0,trackRows-3)*48+taskExtra,viewport*.5,available);
   return {minTop,minTracks,maxTracks:Math.max(minTracks,available),defaultTrackShare:(workspace==='audio'||workspace==='subtitles') ? .47 : .44};
 }
@@ -35,7 +35,6 @@ export function initializeEditorLayout() {
     const height=grid.clientHeight, workspace=document.body.dataset.editorWorkspace||'video';
     const budget=editorPanelBudget(height,root.dataset.timelineRows||3,workspace),{minTop,minTracks,maxTracks,defaultTrackShare}=budget;
     if(migrate){
-      if(prefs.library<260||prefs.library>grid.clientWidth*.4)prefs.library=defaults.library;
       if(prefs.tracks!==null&&(prefs.tracks<minTracks||prefs.tracks>height*.65)){
         prefs.tracks=null;try{localStorage.removeItem(keys.tracks);}catch{/* storage is optional */}
       }

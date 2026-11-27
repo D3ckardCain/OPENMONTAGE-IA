@@ -5,7 +5,7 @@ for (const [viewport, gridHeight] of [[1920, 930], [1280, 570]]) {
   for (const workspace of ['video', 'audio', 'subtitles']) {
     const budget = editorPanelBudget(gridHeight, 3, workspace);
     assert.ok(budget.minTracks >= 0, `${viewport}px ${workspace}: timeline has a non-negative minimum`);
-    assert.ok(budget.maxTracks + budget.minTop + 10 <= gridHeight + 1,
+    assert.ok(budget.maxTracks + budget.minTop + 8 <= gridHeight + 1,
       `${viewport}px ${workspace}: upper workspace, separator, and timeline fit the editor grid`);
     assert.ok(budget.defaultTrackShare >= .44 && budget.defaultTrackShare <= .47);
   }
