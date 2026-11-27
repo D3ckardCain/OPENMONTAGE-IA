@@ -288,3 +288,14 @@ la propia consulta cambia ese timestamp aunque la evidencia no haya cambiado. El
 timestamp sigue incluido como información descriptiva. Esto detecta cambios en el
 paquete seleccionado, no toda modificación arbitraria de archivos del proyecto ni una
 alteración posterior al segundo chequeo.
+
+
+### Compactación de recibos medianos · #161
+
+Cuando el contexto completo supera 90.000 caracteres, la compactación archiva
+recibos de herramienta desde 2.049 caracteres si su resumen determinista reduce
+el tamaño. El contenido original sigue íntegro y verificado por SHA-256 bajo
+`artifacts/agent_receipt_*.json`, con el mismo `tool_call_id`. Solo se ejecuta
+después de terminar el lote; recibos pequeños que no reduzcan el contexto se
+conservan en línea. El umbral sigue midiendo caracteres, no tokens, y no resume
+mensajes de usuario/asistente ni implementa memoria tipada.

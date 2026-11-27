@@ -104,11 +104,25 @@ class Conversation:
             if message.get('role') != 'tool':
                 continue
             content = message.get('content', '')
-            if not isinstance(content, str) or len(content) <= 16000:
+            if not isinstance(content, str) or len(content) <= 2048:
                 continue
+            try:
+                structured = json.loads(content)
+            except (ValueError, TypeError):
+                structured = {'text': content}
             content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
             call_id = message.get('tool_call_id')
             archive_id = hashlib.sha256(f'{call_id or "no-call-id"}:{content_hash}'.encode('utf-8')).hexdigest()
+            archive_name = f'agent_receipt_{archive_id}'
+            summary = {'compacted': True, 'tool_name': message.get('tool_name'),
+                       'tool_call_id': call_id, 'receipt_sha256': content_hash,
+                       'receipt_characters': len(content), 'archive_path': f'artifacts/{archive_name}.json',
+                       'artifact_name': archive_name,
+                       'evidence_note': 'Deterministic summary; use read_artifact with artifact_name to recover the complete receipt.',
+                       'summary': _bounded_evidence(structured)}
+            summary_content = json.dumps(summary, ensure_ascii=False, separators=(',', ':'))
+            if len(summary_content) >= len(content):
+                continue
             archive_name = f'agent_receipt_{archive_id}'
             target = archive_dir / f'{archive_name}.json'
             if target.exists():
@@ -144,17 +158,7 @@ class Conversation:
                                      archive_id=archive_id, error=str(exc)[:300])
                     break
 
-            try:
-                structured = json.loads(content)
-            except (ValueError, TypeError):
-                structured = {'text': content}
-            summary = {'compacted': True, 'tool_name': message.get('tool_name'),
-                       'tool_call_id': call_id, 'receipt_sha256': content_hash,
-                       'receipt_characters': len(content), 'archive_path': f'artifacts/{archive_name}.json',
-                       'artifact_name': archive_name,
-                       'evidence_note': 'Deterministic summary; use read_artifact with artifact_name to recover the complete receipt.',
-                       'summary': _bounded_evidence(structured)}
-            message['content'] = json.dumps(summary, ensure_ascii=False, separators=(',', ':'))
+            message['content'] = summary_content
             state.setdefault('compactions', []).append({'archive_id': archive_id, 'receipt_sha256': content_hash,
                 'tool_call_id': call_id, 'tool_name': message.get('tool_name'),
                 'original_characters': len(content), 'summary_characters': len(message['content'])})

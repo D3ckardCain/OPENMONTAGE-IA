@@ -225,6 +225,47 @@ def test_completed_large_receipt_is_archived_and_summarized_without_losing_pair(
     instance.dispatch.assert_not_called()
 
 
+
+def test_aggregate_medium_receipts_compact_without_breaking_pairs(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    messages = list(INITIAL)
+    messages.append({'role': 'user', 'content': 'context-' * 9000})
+    pending = []
+    originals = []
+    for index in range(3):
+        call_id = f'medium-receipt-{index}'
+        call = {'id': call_id, 'function': {'name': 'read_fixture', 'arguments': {'page': index}}}
+        receipt = json.dumps({'status': 'ok', 'data': {'text': chr(97 + index) * 9000}},
+                             separators=(',', ':'))
+        pending.append(call)
+        originals.append((call_id, receipt))
+        messages.extend([
+            {'role': 'assistant', 'content': '', 'tool_calls': [call]},
+            {'role': 'tool', 'tool_name': 'read_fixture', 'tool_call_id': call_id, 'content': receipt},
+        ])
+    c.state['messages'] = messages
+    c.state.update(pending=pending, next_call=len(pending), in_flight=None)
+    c.save()
+
+    result = c.compact_completed_context()
+
+    assert result['compacted'] >= 1
+    assert result['characters_before'] > 90000
+    assert result['characters_after'] <= 90000
+    for index, (call_id, original) in enumerate(originals):
+        assistant, tool = messages[3 + 2 * index], messages[4 + 2 * index]
+        assert assistant['tool_calls'][0]['id'] == tool['tool_call_id'] == call_id
+        if json.loads(tool['content']).get('compacted'):
+            summary = json.loads(tool['content'])
+            archive = instance.path / summary['archive_path']
+            record = json.loads(archive.read_text(encoding='utf-8'))
+            assert record['content'] == original
+            assert record['receipt_sha256'] == hashlib.sha256(original.encode('utf-8')).hexdigest()
+            assert summary['receipt_characters'] == len(original)
+    assert c.state['compactions']
+    assert studio.read_json(c.path)['messages'] == c.state['messages']
+    instance.dispatch.assert_not_called()
+
 def test_uncertain_or_incomplete_batch_is_never_compacted(instance):
     c = Conversation(instance, INITIAL.copy(), tools=[])
     complete = json.dumps({'data': {'text': 'y' * 20000}})
