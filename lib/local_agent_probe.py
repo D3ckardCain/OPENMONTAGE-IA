@@ -102,14 +102,21 @@ def _chain(instance, base, model, tag, show):
                 {'role': 'user', 'content': 'First convert [1] from in to mm with freecad_units. After its tool result, convert the returned data.values from mm to cm. Use project_id ' + instance.pid + '. Do not guess the second input before reading the tool result.'}]
     original = instance.dispatch
     receipts = []
+    preflight_ids = []
     def dispatch(name, args):
         index = len(receipts)
         expected = {'name': 'freecad_units', 'inputs': {'project_id': instance.pid,
                     'source_unit': 'in' if index == 0 else 'mm',
                     'target_unit': 'mm' if index == 0 else 'cm',
                     'values': [1] if index == 0 else receipts[0]['data']['values']}}
-        if index >= 2 or name != 'execute_tool' or args != expected:
+        if index >= 2 or name not in ('tool_preflight', 'execute_tool') or args != expected:
             raise ValueError('AGENT_CHAIN_PROTOCOL: argumentos no corresponden al resultado anterior')
+        if name == 'tool_preflight':
+            result = original(name, args)
+            if not isinstance(result, dict) or not result.get('request_id'):
+                raise ValueError('AGENT_CHAIN_PROTOCOL: preflight debe devolver request_id')
+            preflight_ids.append(result['request_id'])
+            return result
         if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != SOURCE_SHA256:
             raise ValueError('AGENT_PROBE_CHANGED: reinicia Studio')
         result = original(name, args)
@@ -128,6 +135,8 @@ def _chain(instance, base, model, tag, show):
     values = [r['data']['values'] for r in receipts]
     if values != [[25.4], [2.54]]:
         raise ValueError('AGENT_CHAIN_TOOL: valores nativos inesperados')
+    if len(preflight_ids) != 2 or not all(preflight_ids):
+        raise ValueError('AGENT_CHAIN_PROTOCOL: cada escritura requiere request_id previo')
     transcript = conversation.state['messages']
     return {'passed': True, 'scope': 'two_synthetic_numeric_steps_not_full_production',
             'model': model, 'model_manifest_digest': tag.get('digest'),
