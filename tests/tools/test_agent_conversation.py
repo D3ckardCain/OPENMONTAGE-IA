@@ -43,6 +43,7 @@ def test_results_and_provenance_reach_next_model_call(instance):
     assert instance.dispatch.call_args.args == ('numeric', {'value': 25.4})
     saved = studio.read_json(c.path)
     assert saved['next_call'] == 1 and saved['in_flight'] is None
+    assert all(item.get('conversation_attempt_id') for item in saved['tool_call_history'])
 
 
 def test_cancel_and_new_instance_resume_remaining_call_without_replay(instance):
@@ -114,13 +115,22 @@ def test_malformed_arguments_are_structured_error_not_crash(instance):
 
 
 def test_interruption_after_intent_blocks_unsafe_replay(instance):
-    instance.chat.return_value = message(call(1))
+    instance.chat.return_value = message(call('synthetic-private-argument', id='call-uncertain-1'))
     instance.dispatch.side_effect = KeyboardInterrupt()
     c = Conversation(instance, INITIAL.copy(), tools=[])
     with pytest.raises(KeyboardInterrupt): c.turn()
-    assert studio.read_json(c.path)['in_flight']['call_index'] == 0
-    with pytest.raises(Pause, match='AGENT_SESSION_UNCERTAIN'):
+    saved = studio.read_json(c.path)
+    assert saved['in_flight']['call_index'] == 0
+    attempt_id = saved['in_flight']['conversation_attempt_id']
+    assert len(attempt_id) == 32
+    with pytest.raises(Pause, match='AGENT_SESSION_UNCERTAIN') as blocked:
         Conversation(instance, INITIAL.copy(), tools=[])
+    message_text = str(blocked.value)
+    assert 'tool=numeric' in message_text
+    assert 'tool_call_id=call-uncertain-1' in message_text
+    assert f'conversation_attempt_id={attempt_id}' in message_text
+    assert 'request_id=not_recorded' in message_text
+    assert 'synthetic-private-argument' not in message_text
     assert instance.dispatch.call_count == 1
 
 

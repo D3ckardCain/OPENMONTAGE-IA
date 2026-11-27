@@ -12,6 +12,25 @@ CONTEXT_COMPACT_CHARS = 90000
 MAX_RECEIPT_ARCHIVE_BYTES = 256 * 1024 * 1024
 
 
+def _uncertain_session_message(in_flight):
+    """Describe the saved intent without exposing tool arguments or claiming its outcome."""
+    entry = in_flight if isinstance(in_flight, dict) else {}
+    function = entry.get('function')
+    function = function if isinstance(function, dict) else {}
+    name = function.get('name')
+    name = name if isinstance(name, str) and name.isascii() and name.replace('_', '').isalnum() else 'unknown'
+    call_id = entry.get('tool_call_id')
+    call_id = call_id if isinstance(call_id, str) and call_id.isascii() and call_id.replace('-', '').replace('_', '').isalnum() else 'unknown'
+    attempt_id = entry.get('conversation_attempt_id')
+    attempt_id = attempt_id if isinstance(attempt_id, str) and len(attempt_id) == 32 and all(c in '0123456789abcdef' for c in attempt_id) else 'not_recorded'
+    request_id = entry.get('request_id')
+    request_id = request_id if isinstance(request_id, str) and request_id.isascii() and request_id.replace('-', '').replace('_', '').isalnum() else 'not_recorded'
+    return ('AGENT_SESSION_UNCERTAIN: llamada persistida antes del dispatch; su efecto no se conoce y no se repetirá. '
+            f'tool={name} tool_call_id={call_id} conversation_attempt_id={attempt_id} request_id={request_id}. '
+            'Comprueba recibos/artefactos del propietario antes de reanudar; no compartas los argumentos en el diagnóstico.')
+
+
+
 def _bounded_evidence(value, depth=0):
     """Keep identifiers and a small preview; the exact receipt stays archived."""
     if isinstance(value, str):
@@ -62,7 +81,7 @@ class Conversation:
         if old and old.get('request_sha256') != digest:
             raise Pause('blocked', 'AGENT_SESSION_REQUEST_CHANGED: solicitud cambió; conserva y revisa la sesión antes de reanudar.')
         if old.get('in_flight') is not None:
-            raise Pause('blocked', 'AGENT_SESSION_UNCERTAIN: llamada sin recibo; verifica sus efectos antes de reanudar. No se repite automáticamente.')
+            raise Pause('blocked', _uncertain_session_message(old['in_flight']))
         self.state = old or {'version': 2, 'request_sha256': digest, 'messages': deepcopy(initial),
                              'pending': [], 'next_call': 0, 'in_flight': None, 'reads': []}
         for attempt in self.state.get('model_attempts', []):
@@ -269,8 +288,12 @@ class Conversation:
                                      if item.get('signature')==signature and item.get('outcome')=='unknown'),None)
             repeated=any(item.get('signature')==signature and item.get('before')==item.get('after')==progress_before
                          for item in recent[-2:])
+            attempt_seed={'request_sha256':s.get('request_sha256'),'message_count':len(s['messages']),
+                          'call_index':s['next_call'],'signature':signature,'tool_call_id':call.get('id')}
+            conversation_attempt_id=hashlib.sha256(json.dumps(attempt_seed,sort_keys=True,separators=(',',':')).encode('utf-8')).hexdigest()[:32]
             s['in_flight']={'call_index':s['next_call'],'function':fn,'tool_call_id':call.get('id'),
-                            'signature':signature,'progress_before':progress_before}
+                            'signature':signature,'progress_before':progress_before,
+                            'conversation_attempt_id':conversation_attempt_id}
             self.save()
             pause = None
             try:
@@ -305,6 +328,7 @@ class Conversation:
             outcome='paused' if pause else ('unknown' if uncertain else ('error' if error_value else 'returned'))
             s.setdefault('tool_call_history',[]).append({
                 'signature':signature,'name':fn.get('name'),'tool_call_id':call.get('id'),
+                'conversation_attempt_id':conversation_attempt_id,
                 'request_id':result.get('request_id') if isinstance(result,dict) else None,
                 'before':progress_before,'after':progress_after,
                 'receipt_sha256':hashlib.sha256(content.encode('utf-8')).hexdigest(),

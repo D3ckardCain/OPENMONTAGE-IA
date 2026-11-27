@@ -299,3 +299,9 @@ el tamaño. El contenido original sigue íntegro y verificado por SHA-256 bajo
 después de terminar el lote; recibos pequeños que no reduzcan el contexto se
 conservan en línea. El umbral sigue midiendo caracteres, no tokens, y no resume
 mensajes de usuario/asistente ni implementa memoria tipada.
+
+### Intento incierto trazable sin filtrar argumentos · 2026-11-27
+
+La sesión persiste ahora un `conversation_attempt_id` determinista antes de despachar cada herramienta y lo conserva en el historial al guardar el recibo. Si el proceso se interrumpe entre ambas escrituras, `AGENT_SESSION_UNCERTAIN` informa la herramienta, el `tool_call_id`, el identificador local del intento y si existe un `request_id` del propietario. El mensaje no copia argumentos del modelo ni asegura que la operación se ejecutó; sigue bloqueando el reintento hasta reconciliar recibos/artefactos con el propietario.
+
+Prueba sintética focalizada: interrupción tras guardar intención, reanudación bloqueada con identidad de llamada visible, argumento privado ausente del mensaje y un solo dispatch. La correlación local no sustituye leases, deduplicación del backend ni consulta automática por `request_id`; sesiones antiguas pueden mostrar `not_recorded`. No se ejecutaron modelos ni herramientas reales.
