@@ -3,6 +3,7 @@ import { initializeQwenUI } from './editor-qwen.js';
 import { initializeComponentsUI } from './editor-components.js';
 import { initializeSfx } from './editor-sfx.js';
 import { initializeMixMeter } from './editor-mix-meter.js';
+import { appendVolumeAutomation } from './editor-volume-automation.js';
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
@@ -293,6 +294,7 @@ function drawTracks() {
     if(track==='audio'&&clips.length){const scale=element('div','');scale.className='editor-audio-scale';scale.style.width=(Math.max(...clips.map(c=>c.start_seconds+seconds(c)))*Number(q('edit-zoom').value))+'px';lane.append(scale);lane.style.height=(clips.length*64+16)+'px';}
     const head=element('div','');head.className='editor-playhead';head.setAttribute('aria-hidden','true');lane.append(head);
     box.append(lane);
+    appendVolumeAutomation({box,track,width,zoom,edl:edl(),has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),cursor:()=>cursor,project});
   }
   box.append(element('h3','Subtítulos · tiempos del montaje'));
   const cues=element('div','');cues.className='editor-lane editor-cues';cues.style.width=width+'px';

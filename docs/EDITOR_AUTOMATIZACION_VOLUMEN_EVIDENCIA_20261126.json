@@ -1,0 +1,228 @@
+{
+  "new_focused_cases_passed": 14,
+  "export": {
+    "scope": "One new MP4, previous compatible level-mixer MP4 reused; same triangular curve on both lanes",
+    "points": [
+      {
+        "seconds": 0.0,
+        "gain": 0.2
+      },
+      {
+        "seconds": 2.0,
+        "gain": 1.0
+      },
+      {
+        "seconds": 4.0,
+        "gain": 0.2
+      }
+    ],
+    "project_id": "edit-43cd66fe472f",
+    "bypass": {
+      "status": "completed",
+      "attempt": "eef989a8158645b097e6d9ba27d610e6",
+      "revision": 28,
+      "origin": "user",
+      "edit_sha256": "b1a0c3d23c69f1b7bde78471bc6c1ab51e4f72401b35eddb2657ef2f1fb6b38e",
+      "render_sha256": "ff59edda8c0458f5713ef94990ffd2c768e1388bf13c9d7c33210edd819660f0",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-26T23:04:11.431423+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-26T23:04:16.712533+00:00",
+      "path": "assets/editor-renders/eef989a8158645b097e6d9ba27d610e6/montage.mp4",
+      "url": "/media/edit-43cd66fe472f/assets/editor-renders/eef989a8158645b097e6d9ba27d610e6/montage.mp4",
+      "sha256": "e1e2af5aa01db0371809242d3c0a7320cd74dbca7487913b5d894a2bbdafed62",
+      "bytes": 106017,
+      "duration": 4.0,
+      "subtitle_mode": "mov_text",
+      "source_sha256": {
+        "7be58866b09d46d783d2e774a2a1928a": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683",
+        "f82a033cac8645f6acdcc7f8f3e1dbcb": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      },
+      "current": true
+    },
+    "active": {
+      "status": "completed",
+      "attempt": "306e5479ad9c48b7a51f8ac6864649e3",
+      "revision": 30,
+      "origin": "user",
+      "edit_sha256": "8125ac3b7de1fe267da7254f7a5f99e82cb3f78d9632d3a9493bf2589697f41e",
+      "render_sha256": "3b6ffae0e1b5a9d84932882db0e3fcacfe9ddbc2294b7ed826c06cb8a158c036",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-27T00:19:58.335249+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-27T00:20:00.477991+00:00",
+      "path": "assets/editor-renders/306e5479ad9c48b7a51f8ac6864649e3/montage.mp4",
+      "url": "/media/edit-43cd66fe472f/assets/editor-renders/306e5479ad9c48b7a51f8ac6864649e3/montage.mp4",
+      "sha256": "1a369e9a594d88ac1e7ccd8bc3013156e6f1318c6c7adcc86b0fab0444010edb",
+      "bytes": 106121,
+      "duration": 4.0,
+      "subtitle_mode": "mov_text",
+      "source_sha256": {
+        "7be58866b09d46d783d2e774a2a1928a": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683",
+        "f82a033cac8645f6acdcc7f8f3e1dbcb": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      },
+      "current": true
+    },
+    "windows": {
+      "low_before_rise": {
+        "measured_gain": 0.38851451166509093,
+        "expected_weighted_gain": 0.3886905418990978
+      },
+      "high_at_peak": {
+        "measured_gain": 0.9617217234575763,
+        "expected_weighted_gain": 0.961662846500356
+      },
+      "low_after_fall": {
+        "measured_gain": 0.4414058776224601,
+        "expected_weighted_gain": 0.4410532323251802
+      }
+    },
+    "audio_correlation": 0.9999831719230838,
+    "relative_rms_error": 0.005801505621080206,
+    "video_frames_and_pts_identical": true,
+    "subtitle_cues_identical": true,
+    "bypass_restores_old_render_digest": true,
+    "undo_save_reopen": true,
+    "samples_per_channel": 192000,
+    "main4750_checked": false,
+    "human_listening": false,
+    "model_downloads_checked": false
+  },
+  "ui": {
+    "scope": "Real UI/API4776 on QA copy, no additional render",
+    "numeric_point": true,
+    "drag_one_commit": true,
+    "keyboard_point": true,
+    "escape_no_write": true,
+    "bypass": true,
+    "undo_redo_reopen": true,
+    "curve_expansion_persisted": true,
+    "page_errors": [],
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "8f0b3b210c3a8e667aefd0cfc329d67b3d695979b74ecda3ebed48c8c62f31e4",
+        "files": 50
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "8f0b3b210c3a8e667aefd0cfc329d67b3d695979b74ecda3ebed48c8c62f31e4",
+        "files": 50
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "c3d896f3b42b16dfa29b00797a57ca230f96715f91731e13a627d77787169d62",
+        "files": 42
+      },
+      "restart_required": false,
+      "pid": 128372,
+      "loaded_at_utc": "2026-11-27T00:20:56.800539+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "track_volume_points",
+          "mix_meter",
+          "audio_ducking",
+          "track_mixer",
+          "audio_processing",
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "8f0b3b210c3a8e667aefd0cfc329d67b3d695979b74ecda3ebed48c8c62f31e4"
+      }
+    },
+    "main4750_checked": false,
+    "human_listening": false
+  },
+  "layout_delta": {
+    "scope": "Read-only layout delta, no repeated editor operations or render",
+    "layouts": [
+      {
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "panel_height": 196.796875
+      },
+      {
+        "viewport": {
+          "width": 3440,
+          "height": 1440
+        },
+        "panel_height": 196.796875
+      }
+    ]
+  },
+  "qa4776": "closed",
+  "initial_failed_export": {
+    "attempt": "e16e804eeede478fb8bfec211ed2bc77",
+    "cause": "aeval output channel layout negotiated as 2 channels; AAC rejected it",
+    "fix": "Explicit stereo aformat immediately after aeval; new focused graph assertion",
+    "valid_output": false
+  },
+  "expected_activation": {
+    "backend": {
+      "status": "available",
+      "sha256": "8f0b3b210c3a8e667aefd0cfc329d67b3d695979b74ecda3ebed48c8c62f31e4",
+      "files": 50
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "fc43e41c4b8bab5e3504d5bf6c28f94411389d1d161588d4d05e694d1844cf8b",
+      "files": 42
+    }
+  }
+}

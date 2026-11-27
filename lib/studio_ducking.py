@@ -68,16 +68,16 @@ def effective(edl):
     return {k: v for k, v in value.items() if k not in ('enabled', 'bypass')}
 
 
-def mix_inputs(edl, filters):
+def mix_inputs(edl, filters,voice_label='[baseaudio]'):
     """Same asplit/sidechaincompress pattern as AudioMixer, no fixed attenuation."""
     labels = [(clip, f'[a{i+len(edl["cuts"])}]') for i, clip in enumerate(edl['audio_tracks'])]
     value = effective(edl)
     if value is None:
-        return '[baseaudio]'+''.join(label for _, label in labels), len(labels)+1
+        return voice_label+''.join(label for _, label in labels), len(labels)+1
     from lib.studio_editor import duration
     music = [label for c, label in labels if c.get('ducking_music')]
     other = [label for c, label in labels if not c.get('ducking_music')]
-    filters.append('[baseaudio]asplit=2[duck_voice_out][duck_voice_key]')
+    filters.append(voice_label+'asplit=2[duck_voice_out][duck_voice_key]')
     filters.append(''.join(music)+f'amix=inputs={len(music)}:duration=longest:normalize=0,'
                    f'apad,atrim=duration={duration(edl)}[duck_music]')
     threshold = 10**(value['threshold_db']/20)

@@ -86,6 +86,8 @@ def plan(pid, edl, preview=False):
             af += af_transition
         if not is_video:
             af += f",adelay={round(clip['start_seconds'] * 1000)}:all=1"
+            from lib.studio_volume_automation import suffix as volume_curve
+            af += volume_curve(edl,'audio')
         filters.append(af + f'[a{i}]')
         if is_video:
             labels.append(f'[v{i}][a{i}]')
@@ -119,7 +121,13 @@ def plan(pid, edl, preview=False):
                        f"eof_action=pass:repeatlast=0:enable='gte(t,{layer['start_seconds']})*lt(t,{end})'[{target}]")
         base=target
     from lib.studio_ducking import mix_inputs
-    audio, input_count = mix_inputs(edl, filters)
+    from lib.studio_volume_automation import suffix as volume_curve
+    envelope=volume_curve(edl,'video')
+    voice_label='[baseaudio]'
+    if envelope:
+        filters.append('[baseaudio]'+envelope[1:]+'[baseaudio_automated]')
+        voice_label='[baseaudio_automated]'
+    audio, input_count = mix_inputs(edl, filters,voice_label)
     mix = edl.get('audio_mix', {})
     filters.append(audio + f'amix=inputs={input_count}:duration=first:normalize=0,volume={mix.get("gain", 1)}[premix]')
     label = 'premix'

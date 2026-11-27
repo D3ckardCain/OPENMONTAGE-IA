@@ -29,3 +29,5 @@ Comando normal del puente `studio_project_edit`, acción `command`, con revisió
 Activación agrupada: además de las capacidades ya documentadas, exigir `track_mixer` e identidad residente igual al disco actual; no utilizar el fingerprint de la entrega EQ anterior como identidad de esta ampliación. No reiniciar hasta la confirmación indicada por el usuario.
 
 Actualización: [salida codificada y sincronización validadas](EDITOR_MEZCLADOR_EXPORT_ES.md). [Ducking local](EDITOR_DUCKING_ES.md) entregado aparte; las menciones anteriores a ambas comprobaciones como pendientes son históricas. La activación4750 y escucha humana siguen pendientes.
+
+Ampliacion posterior: [puntos de volumen por pista](EDITOR_AUTOMATIZACION_VOLUMEN_ES.md) implementados y exportados. Sigue pendiente el remapeo automatico de sus tiempos con ripple, no la automatizacion lineal inicial.

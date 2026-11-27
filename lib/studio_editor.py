@@ -159,6 +159,11 @@ def render_digest(edl, contract=RENDER_CONTRACT):
         content['track_mixer'] = mixer
         content['track_mixer_contract'] = 'logical-lanes-v1'
     from lib.studio_ducking import effective as effective_ducking, RENDER_CONTRACT as ducking_contract
+    from lib.studio_volume_automation import effective as effective_volume, RENDER_CONTRACT as volume_contract
+    volumes={lane:effective_volume(edl,lane) for lane in ('video','audio')}
+    if any(volumes.values()):
+        content['volume_automation']={lane:p for lane,p in volumes.items() if p}
+        content['volume_automation_contract']=volume_contract
     ducking = effective_ducking(edl)
     if ducking:
         content['audio_ducking'] = ducking
@@ -416,6 +421,8 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    from lib.studio_volume_automation import validate as validate_volume
+    validate_volume(edl)
     from lib.studio_ducking import validate as validate_ducking
     validate_ducking(edl)
     from lib.studio_track_mixer import normalize as normalize_mixer
