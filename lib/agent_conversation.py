@@ -350,7 +350,25 @@ class Conversation:
             archive_sha256 = hashlib.sha256(encoded_record).hexdigest()
             artifact_name = 'agent_context_' + archive_sha256
             target = archive_dir / (artifact_name + '.json')
-            if len(encoded_record) >= len(str(message.get('content', ''))):
+
+            stub = {
+                'compacted_context': True,
+                'archive_version': CONTEXT_COMPACTION_VERSION,
+                'session_version': state.get('version'),
+                'request_sha256': request_sha256,
+                'source_messages_sha256': source_messages_sha256,
+                'message_index': index,
+                'role': message.get('role'),
+                'classification': record['classification'],
+                'references': record['references'],
+                'original_message_sha256': record['original_message_sha256'],
+                'archive_sha256': archive_sha256,
+                'archive_path': f'artifacts/{artifact_name}.json',
+                'artifact_name': artifact_name,
+                'evidence_note': 'Deterministic archive pointer only; read this JSON with read_artifact and verify archive_sha256 before use. Facts/plans are classified only when the original has an explicit label; otherwise status is unclassified.',
+            }
+            compacted_content = json.dumps(stub, ensure_ascii=False, separators=(',', ':'))
+            if len(compacted_content) >= len(str(message.get('content', ''))):
                 continue
             if target.exists():
                 if target.is_symlink() or not target.is_file():
@@ -379,26 +397,6 @@ class Conversation:
                     self.agent.event('context_compaction_failed', 'Could not preserve complete context message',
                                      artifact_name=artifact_name, error=str(exc)[:300])
                     break
-
-            stub = {
-                'compacted_context': True,
-                'archive_version': CONTEXT_COMPACTION_VERSION,
-                'session_version': state.get('version'),
-                'request_sha256': request_sha256,
-                'source_messages_sha256': source_messages_sha256,
-                'message_index': index,
-                'role': message.get('role'),
-                'classification': record['classification'],
-                'references': record['references'],
-                'original_message_sha256': record['original_message_sha256'],
-                'archive_sha256': archive_sha256,
-                'archive_path': f'artifacts/{artifact_name}.json',
-                'artifact_name': artifact_name,
-                'evidence_note': 'Deterministic archive pointer only; read this JSON with read_artifact and verify archive_sha256 before use. Facts/plans are classified only when the original has an explicit label; otherwise status is unclassified.',
-            }
-            compacted_content = json.dumps(stub, ensure_ascii=False, separators=(',', ':'))
-            if len(compacted_content) >= len(str(message.get('content', ''))):
-                continue
             message['content'] = compacted_content
             state.setdefault('context_compactions', []).append({
                 'artifact_name': artifact_name,
