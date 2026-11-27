@@ -391,6 +391,12 @@ function draw() {
   subtitleKaraoke?.draw();
   subtitleLayout?.draw();
   finalMixMeter?.draw();
+  const mix=edl().audio_mix||{gain:1,normalize:false,target_lufs:-16},mixForm=q('edit-mix-form');
+  q('edit-mix-panel').hidden=!capabilities.has('audio_mix');
+  mixForm.elements.gain.value=mix.gain;
+  mixForm.elements.normalize.checked=Boolean(mix.normalize);
+  mixForm.elements.target_lufs.value=mix.target_lufs??-16;
+  mixForm.elements.target_lufs.disabled=!mixForm.elements.normalize.checked;
   sfxPanel?.draw();
   candidatesUI?.draw();cropPreview?.selectionChanged();qwenPanel?.draw();componentsUI?.draw();
   q('edit-revision').textContent = 'Revisión ' + state.revision + ' · guardado local';
@@ -494,6 +500,11 @@ q('edit-marker-go').onclick=()=>seekTimeline(Number(q('edit-marker-time').value)
 q('edit-marker-save').onclick=()=>task(()=>command('marker_update',{id:q('edit-marker-select').value,seconds:Number(q('edit-marker-time').value),label:q('edit-marker-label').value}));
 q('edit-marker-remove').onclick=()=>task(()=>command('marker_remove',{id:q('edit-marker-select').value}));
 q('edit-output').onclick=()=>task(()=>command('output',{ratio:q('edit-preset').value,fps:Number(q('edit-fps').value)}));
+const mixForm=q('edit-mix-form');
+mixForm.elements.normalize.onchange=()=>{mixForm.elements.target_lufs.disabled=!mixForm.elements.normalize.checked;};
+mixForm.onsubmit=event=>{event.preventDefault();const f=event.target;task(()=>command('audio_mix',{
+  gain:Number(f.elements.gain.value),normalize:f.elements.normalize.checked,target_lufs:Number(f.elements.target_lufs.value)
+}));};
 q('edit-preview').onclick=()=>task(()=>render(true));q('edit-export').onclick=()=>task(()=>render(false));
 q('edit-render-cancel').onclick=()=>task(async()=>{requireProject();await api(base()+'/render/cancel',{attempt:renderAttempt});await checkRender();});
 q('edit-play').onclick=()=>task(async()=>{const p=q('edit-player');if(!p.currentSrc)throw Error('Selecciona una fuente o prepara la vista previa');if(p.paused)await p.play();else p.pause();});

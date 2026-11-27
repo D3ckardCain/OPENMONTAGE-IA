@@ -373,6 +373,16 @@ def _apply_edit(edl, data):
                         if type(data[flag]) is not bool:
                             raise ValueError('Mute/solo/bloqueo requieren booleanos')
                         item[flag] = data[flag]
+        elif op == 'audio_mix':
+            previous = edl.get('audio_mix', {})
+            if not isinstance(previous, dict):
+                raise ValueError('La mezcla guardada no es válida')
+            gain = number(data.get('gain', previous.get('gain', 1)), 0, 4)
+            normalize = data.get('normalize', previous.get('normalize', False))
+            if type(normalize) is not bool:
+                raise ValueError('Normalizar requiere un booleano')
+            target_lufs = number(data.get('target_lufs', previous.get('target_lufs', -16)), -40, -5)
+            edl['audio_mix'] = {'gain': gain, 'normalize': normalize, 'target_lufs': target_lufs}
         elif op == 'output':
             if data['ratio'] not in PRESETS:
                 raise ValueError('Formato no admitido')
