@@ -67,12 +67,17 @@ def apply_effect(edl, data):
                          'fit': 'pad', 'platform': platform, 'preset_name': name}
         if background:edl['output']['background']=background
     elif op == 'audio_mix':
-        normalize = data.get('normalize', False)
+        previous = edl.get('audio_mix', {})
+        if not isinstance(previous, dict):
+            raise ValueError('La mezcla guardada no es válida')
+        normalize = data.get('normalize', previous.get('normalize', False))
         if type(normalize) is not bool:
             raise ValueError('Normalización requiere booleano')
-        edl['audio_mix'] = {'normalize': normalize,
-                            'target_lufs': edit.number(data.get('target_lufs', -16), -40, -5),
-                            'gain': edit.number(data.get('gain', 1), 0, 4)}
+        edl['audio_mix'] = {
+            'normalize': normalize,
+            'target_lufs': edit.number(data.get('target_lufs', previous.get('target_lufs', -16)), -40, -5),
+            'gain': edit.number(data.get('gain', previous.get('gain', 1)), 0, 4),
+        }
     else:
         return False
     return True
