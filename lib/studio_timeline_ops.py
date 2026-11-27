@@ -10,6 +10,7 @@ CAPABILITIES += ['clip_color', 'color_compare']
 CAPABILITIES += ['clip_color_curves']
 CAPABILITIES += ['clip_speed_ramp','speed_ramp_plan']
 CAPABILITIES += ['clip_smooth_speed','smooth_speed_plan']
+CAPABILITIES += ['layer_align']
 
 
 def assert_editable(edl, data):
@@ -107,6 +108,8 @@ def _ripple_labels(items, removed):
 
 
 def apply_timeline(edl, data):
+    from lib.studio_layer_align import apply as apply_align
+    if apply_align(edl,data):return True
     from lib.studio_smooth_speed import apply as apply_smooth_speed
     if apply_smooth_speed(edl,data):return True
     from lib.studio_speed_ramp import apply as apply_speed_ramp

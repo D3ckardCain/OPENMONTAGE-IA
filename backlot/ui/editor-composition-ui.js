@@ -2,11 +2,13 @@
 import {videoDuration} from './editor-time.js';
 import {initializeLayerKeyframes} from './editor-layer-keyframes.js';
 import {initializeTransformKeyframes} from './editor-layer-transform-keyframes.js';
-export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,run,cursor}){
+import {initializeLayerAlign} from './editor-layer-align.js';
+export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,run,runStrict=run,cursor}){
   const root=document.createElement('div');q('editor-inspector').append(root);
   root.innerHTML=`<details id="edit-transition-panel" hidden><summary>Transici&#243;n por negro</summary><form id="edit-transition-form"><label>Duraci&#243;n por lado (s)<input name="duration_seconds" type="number" min="0.017" max="2" step="0.001" value="0.25" required></label><button type="submit">Aplicar al corte anterior</button><button id="edit-transition-remove" type="button">Quitar transici&#243;n</button></form><p>Oscurece y aten&#250;a el final anterior y el inicio seleccionado. No solapa clips ni cambia tiempos. Fundido cruzado no disponible.</p></details>
   <details id="edit-layers-panel" hidden><summary>Capas de v&#237;deo</summary><label>Capa<select id="edit-layer-select"></select></label><form id="edit-layer-form"><label>Fuente de v&#237;deo<select name="source_id" required></select></label><label>Entrada de fuente (s)<input name="in_seconds" type="number" min="0" step="0.001" required></label><label>Salida de fuente (s)<input name="out_seconds" type="number" min="0.001" step="0.001" required></label><label>Inicio en montaje (s)<input name="start_seconds" type="number" min="0" step="0.001" required></label><label>Velocidad<input name="speed" type="number" min="0.25" max="4" step="0.05" required></label><label>X (0&#8211;1)<input name="x" type="number" min="0" max="1" step="0.01" required></label><label>Y (0&#8211;1)<input name="y" type="number" min="0" max="1" step="0.01" required></label><label>Anchura (0&#8211;1)<input name="width" type="number" min="0.05" max="1" step="0.01" required></label><label>Altura (0&#8211;1)<input name="height" type="number" min="0.05" max="1" step="0.01" required></label><label>Opacidad<input name="opacity" type="number" min="0" max="1" step="0.05" required></label><button type="submit">Guardar capa</button><button id="edit-layer-cursor" type="button">Inicio en cursor</button></form><button id="edit-layer-remove" type="button">Quitar capa</button><button id="edit-layer-lower" type="button">Bajar capa</button><button id="edit-layer-raise" type="button">Subir capa</button><p>Hasta4 capas dentro de la duraci&#243;n del montaje. Encaje seleccionable y movimiento lineal; solo imagen. Su audio se a&#241;ade por la pista de audio. Prepara vista previa para comprobar composici&#243;n.</p></details>`;
   const layerForm=q('edit-layer-form');
+  const alignment=initializeLayerAlign({host:layerForm,getEdl,getLayerId:()=>q('edit-layer-select').value,has,run:runStrict});
   q('edit-transition-panel').querySelector('summary').textContent='Transición entre clips';
   const transitionForm=q('edit-transition-form'),typeLabel=document.createElement('label'),typeSelect=document.createElement('select');
   typeLabel.append('Tipo de transición ',typeSelect);typeSelect.name='transition_type';
@@ -40,6 +42,7 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
     q('edit-transition-remove').disabled=!item?.clip.transition||locked;
   }
   function drawLayer(force=false){
+    alignment.draw();
     const edl=getEdl(),id=q('edit-layer-select').value,layer=edl.layers?.find(l=>l.id===id),sources=Object.entries(edl.sources).filter(([,s])=>s.kind==='video');
     const key=JSON.stringify([getProject(),layer||null,sources.map(([k])=>k),videoDuration(edl)]);
     if(force||key!==layerKey){
