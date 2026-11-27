@@ -371,3 +371,23 @@ def test_uncertain_write_is_not_replayed_after_project_changes_but_other_work_ca
     c.turn()
     assert instance.dispatch.call_count==2
     assert instance.dispatch.call_args.args==('numeric',{'value':2})
+
+
+
+def test_model_usage_from_ollama_is_visible_as_job_event(instance):
+    instance.last_transport={'ollama_usage':{'prompt_eval_count':321,'eval_count':17,
+        'total_duration':800000,'load_duration':100000,'prompt_eval_duration':400000,'eval_duration':300000}}
+    instance.chat.return_value={'role':'assistant','content':'Listo.','tool_calls':[]}
+    c=Conversation(instance,INITIAL.copy(),tools=[])
+    with pytest.raises(Pause,match='awaiting_input'):c.turn()
+    event=next(call for call in instance.event.call_args_list if call.args[0]=='model_usage')
+    assert 'prompt 321 tokens' in event.args[1]
+    assert 'respuesta 17 tokens' in event.args[1]
+    assert 'total 0.8 ms' in event.args[1]
+    assert event.kwargs['ollama_usage']==instance.last_transport['ollama_usage']
+
+
+def test_missing_ollama_usage_does_not_emit_estimated_metrics(instance):
+    instance.chat.return_value={'role':'assistant','content':'Listo.','tool_calls':[]}
+    with pytest.raises(Pause,match='awaiting_input'):Conversation(instance,INITIAL.copy(),tools=[]).turn()
+    assert not any(call.args[0]=='model_usage' for call in instance.event.call_args_list)

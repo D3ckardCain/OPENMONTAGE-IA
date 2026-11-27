@@ -229,6 +229,18 @@ class Conversation:
                 self.save()
                 raise
             attempt.update(status='completed', finished_at=studio.now(), transport=getattr(a,'last_transport',{}))
+            transport=getattr(a,'last_transport',{})
+            usage=transport.get('ollama_usage',{}) if isinstance(transport,dict) else {}
+            if isinstance(usage,dict) and usage:
+                labels=(('prompt_eval_count','prompt'),('eval_count','respuesta'))
+                parts=[f'{label} {usage[key]} tokens' for key,label in labels
+                       if type(usage.get(key)) is int and usage[key]>=0]
+                for key,label in (('load_duration','carga'),('prompt_eval_duration','prompt'),
+                                  ('eval_duration','respuesta'),('total_duration','total')):
+                    value=usage.get(key)
+                    if type(value) is int and value>=0:parts.append(f'{label} {value/1_000_000:.1f} ms')
+                if parts:
+                    a.event('model_usage','Uso reportado por Ollama: '+' · '.join(parts),ollama_usage=usage)
             calls = message.get('tool_calls', [])
             if not isinstance(calls, list) or len(calls) > 16 or any(
                     not isinstance(c, dict) or not isinstance(c.get('function'), dict) for c in calls):
