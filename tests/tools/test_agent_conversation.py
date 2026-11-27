@@ -348,3 +348,26 @@ def test_identical_tool_call_without_project_progress_stops_before_duplicate(ins
     assert instance.dispatch.call_count==1
     assert c.state['tool_call_history'][-1]['before']==c.state['tool_call_history'][-1]['after']
     assert studio.read_json(c.path)['in_flight'] is None
+
+
+def test_uncertain_write_is_not_replayed_after_project_changes_but_other_work_can_continue(instance):
+    instance.chat.side_effect=[message(call(1,id='write-1')),message(call(1,id='write-retry')),
+                                message(call(2,id='independent'))]
+    def dispatch(name,args):
+        if args['value']==1:
+            return {'success':False,'request_id':'request-uncertain-1','error':{
+                'code':'tool_execution_outcome_unknown','outcome':'unknown',
+                'recoverable':True,'retryable':False,'reconcile_before_retry':True}}
+        return {'success':True,'data':{'value':2}}
+    instance.dispatch.side_effect=dispatch
+    c=Conversation(instance,INITIAL.copy(),tools=[])
+    c.turn()
+    assert c.state['tool_call_history'][-1]['outcome']=='unknown'
+    assert c.state['tool_call_history'][-1]['request_id']=='request-uncertain-1'
+    studio.save_json(instance.path/'artifacts'/'synthetic-possible-commit.json',{'revision':2})
+    with pytest.raises(Pause,match='AGENT_TOOL_OUTCOME_UNCERTAIN') as blocked:c.turn()
+    assert 'request-uncertain-1' in str(blocked.value)
+    assert instance.dispatch.call_count==1
+    c.turn()
+    assert instance.dispatch.call_count==2
+    assert instance.dispatch.call_args.args==('numeric',{'value':2})

@@ -253,6 +253,8 @@ class Conversation:
             signature=hashlib.sha256(json.dumps({'name':fn.get('name'),'arguments':args},ensure_ascii=False,sort_keys=True,default=str,separators=(',',':')).encode('utf-8')).hexdigest()
             progress_before=self._progress_fingerprint()
             recent=s.setdefault('tool_call_history',[])
+            uncertain_previous=next((item for item in reversed(recent)
+                                     if item.get('signature')==signature and item.get('outcome')=='unknown'),None)
             repeated=any(item.get('signature')==signature and item.get('before')==item.get('after')==progress_before
                          for item in recent[-2:])
             s['in_flight']={'call_index':s['next_call'],'function':fn,'tool_call_id':call.get('id'),
@@ -261,6 +263,10 @@ class Conversation:
             pause = None
             try:
                 if parse_error is not None:raise parse_error
+                if uncertain_previous:
+                    request_id=uncertain_previous.get('request_id')
+                    suffix=' request_id='+str(request_id) if request_id else ''
+                    raise Pause('blocked','AGENT_TOOL_OUTCOME_UNCERTAIN: la misma llamada pudo haber escrito; reconcilia su estado antes de repetirla.'+suffix)
                 if repeated:raise Pause('blocked','AGENT_LOOP_NO_PROGRESS: llamada idéntica con los mismos argumentos y sin cambios de proyecto; se detuvo antes de repetirla.')
                 result = a.dispatch(fn.get('name'), args)
             except Pause as exc:
@@ -282,11 +288,15 @@ class Conversation:
             content = json.dumps(result, ensure_ascii=False, default=str)
             receipt = {'role': 'tool', 'tool_name': fn.get('name'), 'content': content}
             progress_after=self._progress_fingerprint()
+            error_value=result.get('error') if isinstance(result,dict) else None
+            uncertain= isinstance(error_value,dict) and error_value.get('outcome')=='unknown'
+            outcome='paused' if pause else ('unknown' if uncertain else ('error' if error_value else 'returned'))
             s.setdefault('tool_call_history',[]).append({
                 'signature':signature,'name':fn.get('name'),'tool_call_id':call.get('id'),
+                'request_id':result.get('request_id') if isinstance(result,dict) else None,
                 'before':progress_before,'after':progress_after,
                 'receipt_sha256':hashlib.sha256(content.encode('utf-8')).hexdigest(),
-                'outcome':'paused' if pause else ('error' if isinstance(result,dict) and result.get('error') else 'returned')})
+                'outcome':outcome})
             s['tool_call_history']=s['tool_call_history'][-100:]
             if call.get('id'):
                 receipt['tool_call_id'] = call['id']
