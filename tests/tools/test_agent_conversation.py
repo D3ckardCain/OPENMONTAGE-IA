@@ -336,6 +336,93 @@ def test_uncertain_or_incomplete_batch_is_never_compacted(instance):
     assert studio.read_json(c.path)['in_flight']['call_index'] == 0
 
 
+
+def test_old_user_assistant_context_compacts_in_order_and_keeps_citations(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    old_user = 'Comentario histórico largo con cita [issue #92](https://github.com/example/repo/issues/92) y commit ' + 'a' * 40 + ' ' + ('texto ' * 500)
+    old_assistant = 'Respuesta histórica extensa sin resumen semántico. ' + ('detalle ' * 450)
+    recent = [{'role': 'assistant', 'content': 'último mensaje ' + ('reciente ' * 250)} for _ in range(12)]
+    c.state['messages'] = [{'role': 'user', 'content': old_user},
+                           {'role': 'assistant', 'content': old_assistant}] + recent
+    c.state.update(pending=[], next_call=0, in_flight=None)
+    c.save()
+
+    result = c.compact_old_context_messages()
+    first = json.loads(c.state['messages'][0]['content'])
+    second = json.loads(c.state['messages'][1]['content'])
+
+    assert result['compacted'] == 2
+    assert result['characters_after'] < result['characters_before']
+    assert [m['role'] for m in c.state['messages']] == ['user', 'assistant'] + ['assistant'] * 12
+    assert first['message_index'] == 0 and second['message_index'] == 1
+    assert 'https://github.com/example/repo/issues/92' in first['references']
+    assert '#' + 'a' * 40 in first['references']
+    assert first['classification'] == 'user_statement_unclassified'
+    assert second['classification'] == 'assistant_statement_unclassified'
+    for stub in (first, second):
+        record = instance.dispatch  # prove no tool call is needed to retrieve archive
+        archive = instance.path / stub['archive_path']
+        raw = archive.read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == stub['archive_sha256']
+        saved = json.loads(raw)
+        assert saved['message']['content'] == (old_user if saved['role'] == 'user' else old_assistant)
+        assert saved['message_index'] == stub['message_index']
+        assert saved['source_messages_sha256'] == stub['source_messages_sha256']
+    assert [m['content'] for m in c.state['messages'][-12:]] == [m['content'] for m in recent]
+
+
+def test_context_message_compaction_requires_whole_tool_batches(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    c.state['messages'] = [{'role': 'user', 'content': 'old ' * 30000},
+                           {'role': 'assistant', 'content': '', 'tool_calls': [{'id': 'call-a', 'function': {'name': 'read'}}]},
+                           {'role': 'tool', 'tool_call_id': 'different-call', 'content': 'receipt'},
+                           {'role': 'assistant', 'content': 'recent'}]
+    c.state.update(pending=[], next_call=0, in_flight=None)
+    c.save()
+    before = json.dumps(c.state['messages'], ensure_ascii=False)
+    result = c.compact_old_context_messages()
+    assert result == {'compacted': 0, 'reason': 'message_batch_incomplete'}
+    assert json.dumps(c.state['messages'], ensure_ascii=False) == before
+    assert not list((instance.path / 'artifacts').glob('agent_context_*.json'))
+
+
+def test_context_message_compaction_keeps_authority_decisions_pending_and_uncertain(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    protected = [
+        {'role': 'user', 'content': 'Autorizo la acción y esta decisión queda pendiente: ' + 'x ' * 4000},
+        {'role': 'assistant', 'content': 'AGENT_SESSION_UNCERTAIN: resultado desconocido ' + 'x ' * 4000},
+    ]
+    c.state['messages'] = protected + [{'role': 'assistant', 'content': 'filler ' * 30000}] + [
+        {'role': 'assistant', 'content': 'recent'} for _ in range(12)]
+    c.state.update(pending=[], next_call=0, in_flight=None,
+                   model_attempts=[{'status': 'interrupted_unknown'}])
+    c.save()
+    result = c.compact_old_context_messages()
+    assert result == {'compacted': 0, 'reason': 'attempt_uncertain'}
+    assert c.state['messages'][:2] == protected
+
+    c.state['model_attempts'] = []
+    c.save()
+    result = c.compact_old_context_messages()
+    assert result['compacted'] == 1
+    assert c.state['messages'][0] == protected[0]
+    assert c.state['messages'][1] == protected[1]
+
+
+def test_compacted_context_detects_request_or_version_change(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    original = 'FACT: ' + ('verificado ' * 600)
+    c.state['messages'] = [{'role': 'user', 'content': original}] + [
+        {'role': 'assistant', 'content': 'recent'} for _ in range(12)]
+    c.state.update(pending=[], next_call=0, in_flight=None)
+    c.compact_old_context_messages()
+    stub = json.loads(c.state['messages'][0]['content'])
+    assert stub['classification'] == 'explicit_fact'
+    c.state['messages'][0]['content'] = json.dumps({**stub, 'archive_version': 999})
+    c.save()
+    with pytest.raises(Pause, match='AGENT_CONTEXT_VERSION_CHANGED'):
+        Conversation(instance, INITIAL.copy(), tools=[])
+
 def test_prepared_native_conversion_cancel_resume_with_simulated_model(tmp_path, monkeypatch):
     """Optional native FreeCAD; deterministic fake model, never Ollama or geometry."""
     from lib import production_agent as agent

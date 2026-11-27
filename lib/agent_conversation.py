@@ -5,10 +5,14 @@ without a receipt is deliberately NOT retried: external effects may have occurre
 """
 import hashlib
 import json
+import re
 from copy import deepcopy
 from lib import production_studio as studio
 
 CONTEXT_COMPACT_CHARS = 90000
+CONTEXT_MESSAGE_COMPACT_CHARS = 2048
+CONTEXT_RECENT_MESSAGES = 12
+CONTEXT_COMPACTION_VERSION = 1
 MAX_RECEIPT_ARCHIVE_BYTES = 256 * 1024 * 1024
 
 
@@ -66,6 +70,83 @@ def _bounded_evidence(value, depth=0):
     return str(value)[:240]
 
 
+_CONTEXT_PROTECTED = re.compile(
+    r"\\b(?:authoriz(?:e|ed|ation)|autoriz(?:o|ación)|approval|approved|aprob(?:ado|ación)|"
+    r"decision|decisión|decidido|pending|pendiente|todo|uncertain|incierto|in_flight|"
+    r"plan|planned|planificado|must|debe|should|debería|siguiente tarea|next task)\\b",
+    re.IGNORECASE,
+)
+_CONTEXT_REFERENCE = re.compile(
+    r"https?://[^\\s<>\\])}]+|#[0-9]+|\\b[0-9a-fA-F]{40}\\b|\\b[0-9a-fA-F]{64}\\b"
+)
+_CONTEXT_LABEL = re.compile(r"^\\s*(?:\\[)?(FACT|HECHO|PLAN|SUMMARY|RESUMEN)(?:\\])?\\s*:", re.IGNORECASE)
+
+
+def _context_message_classification(role, content):
+    """Classify only explicit labels; never infer facts or plans from prose."""
+    match = _CONTEXT_LABEL.match(content[:160]) if isinstance(content, str) else None
+    label = match.group(1).upper() if match else None
+    if label in ("FACT", "HECHO"):
+        return "explicit_fact"
+    if label == "PLAN":
+        return "explicit_plan"
+    if label in ("SUMMARY", "RESUMEN"):
+        return "explicit_summary"
+    return "user_statement_unclassified" if role == "user" else "assistant_statement_unclassified"
+
+
+def _complete_message_batches(messages):
+    """Require every historical assistant tool call to have exactly one later result."""
+    awaiting = set()
+    seen = set()
+    for message in messages:
+        role = message.get("role")
+        if awaiting:
+            if role != "tool":
+                return False
+            call_id = message.get("tool_call_id")
+            if not isinstance(call_id, str) or call_id not in awaiting:
+                return False
+            awaiting.remove(call_id)
+            continue
+        if role == "assistant" and message.get("tool_calls"):
+            calls = message["tool_calls"]
+            if not isinstance(calls, list) or not calls:
+                return False
+            for call in calls:
+                call_id = call.get("id") if isinstance(call, dict) else None
+                if not isinstance(call_id, str) or not call_id or call_id in seen:
+                    return False
+                seen.add(call_id)
+                awaiting.add(call_id)
+    return not awaiting
+
+
+def _context_archive_record(message, index, request_sha256, messages_sha256, session_version):
+    content = message.get("content", "")
+    if not isinstance(content, str) or len(content) <= CONTEXT_MESSAGE_COMPACT_CHARS:
+        return None
+    if _CONTEXT_PROTECTED.search(content) or "AGENT_SESSION_UNCERTAIN" in content:
+        return None
+    refs = sorted(set(_CONTEXT_REFERENCE.findall(content)))
+    classification = _context_message_classification(message.get("role"), content)
+    original_sha256 = hashlib.sha256(
+        json.dumps(message, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return {
+        "archive_version": CONTEXT_COMPACTION_VERSION,
+        "session_version": session_version,
+        "request_sha256": request_sha256,
+        "source_messages_sha256": messages_sha256,
+        "message_index": index,
+        "role": message.get("role"),
+        "classification": classification,
+        "references": refs,
+        "original_message_sha256": original_sha256,
+        "message": deepcopy(message),
+    }
+
+
 class Conversation:
     def __init__(self, instance, initial, *, tools, chat_options=None):
         from lib.production_agent import Pause
@@ -91,6 +172,25 @@ class Conversation:
             instance.instruction(path)
         # Fresh state/clarifications arrive only after any saved tool batch is complete.
         self.refresh = deepcopy(initial) if old else None
+        for message in self.state.get('messages', []):
+            if not isinstance(message, dict) or message.get('role') not in ('user', 'assistant'):
+                continue
+            try:
+                stub = json.loads(message.get('content', ''))
+            except (TypeError, ValueError):
+                continue
+            if not isinstance(stub, dict) or not stub.get('compacted_context'):
+                continue
+            if stub.get('archive_version') != CONTEXT_COMPACTION_VERSION or stub.get('session_version') != self.state.get('version'):
+                raise Pause('blocked', 'AGENT_CONTEXT_VERSION_CHANGED: revisa el archivo original antes de continuar.')
+            if stub.get('request_sha256') != digest:
+                raise Pause('blocked', 'AGENT_CONTEXT_REQUEST_CHANGED: el contexto archivado pertenece a otra solicitud.')
+            name = stub.get('artifact_name')
+            if not isinstance(name, str) or not re.fullmatch(r'agent_context_[0-9a-f]{64}', name):
+                raise Pause('blocked', 'AGENT_CONTEXT_REFERENCE_INVALID: referencia de archivo no válida.')
+            archive_path = self.agent.path / 'artifacts' / (name + '.json')
+            if archive_path.is_symlink() or not archive_path.is_file():
+                raise Pause('blocked', 'AGENT_CONTEXT_ARCHIVE_MISSING: recupera el mensaje original antes de continuar.')
         self.save()
 
     def save(self):
@@ -191,6 +291,133 @@ class Conversation:
         return {'compacted': compacted, 'characters_before': original_size,
                 'characters_after': len(json.dumps(messages, ensure_ascii=False, default=str))}
 
+
+    def compact_old_context_messages(self):
+        """Archive old plain user/assistant messages without semantic summarization."""
+        state = self.state
+        messages = state.get('messages', [])
+        if state.get('in_flight') is not None or state.get('next_call', 0) < len(state.get('pending', [])):
+            return {'compacted': 0, 'reason': 'batch_incomplete'}
+        attempts = state.get('model_attempts', [])
+        if any(a.get('status') in ('running', 'interrupted_unknown', 'uncertain') for a in attempts if isinstance(a, dict)):
+            return {'compacted': 0, 'reason': 'attempt_uncertain'}
+        if any(isinstance(m, dict) and isinstance(m.get('content'), str) and 'AGENT_SESSION_UNCERTAIN' in m['content']
+               for m in messages):
+            return {'compacted': 0, 'reason': 'attempt_uncertain'}
+        if not _complete_message_batches(messages):
+            return {'compacted': 0, 'reason': 'message_batch_incomplete'}
+        original_size = len(json.dumps(messages, ensure_ascii=False, default=str))
+        if original_size <= CONTEXT_COMPACT_CHARS:
+            return {'compacted': 0, 'reason': 'under_threshold', 'characters': original_size}
+        cutoff = max(0, len(messages) - CONTEXT_RECENT_MESSAGES)
+        if cutoff <= 0:
+            return {'compacted': 0, 'reason': 'recent_context_preserved', 'characters': original_size}
+        try:
+            project = self.agent.path.resolve()
+            archive_dir = self.agent.path / 'artifacts'
+            if archive_dir.is_symlink():
+                raise OSError('Project artifact directory cannot be a symbolic link')
+            archive_dir.mkdir(parents=True, exist_ok=True)
+            archive_dir.resolve().relative_to(project)
+        except OSError as exc:
+            self.agent.event('context_compaction_failed', 'Could not prepare context archive', error=str(exc)[:300])
+            return {'compacted': 0, 'reason': 'archive_unavailable'}
+
+        source_messages = json.dumps(messages, ensure_ascii=False, sort_keys=True, separators=(',', ':'), default=str)
+        source_messages_sha256 = hashlib.sha256(source_messages.encode('utf-8')).hexdigest()
+        request_sha256 = state.get('request_sha256')
+        total_archives = 0
+        for pattern in ('agent_receipt_*.json', 'agent_context_*.json'):
+            for path in archive_dir.glob(pattern):
+                if path.is_file() and not path.is_symlink():
+                    try:
+                        total_archives += path.stat().st_size
+                    except OSError:
+                        pass
+
+        compacted = 0
+        for index in range(cutoff):
+            message = messages[index]
+            if not isinstance(message, dict) or message.get('role') not in ('user', 'assistant'):
+                continue
+            if message.get('tool_calls') or message.get('compacted_context'):
+                continue
+            record = _context_archive_record(message, index, request_sha256, source_messages_sha256,
+                                             state.get('version'))
+            if record is None:
+                continue
+            encoded_record = json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')
+            archive_sha256 = hashlib.sha256(encoded_record).hexdigest()
+            artifact_name = 'agent_context_' + archive_sha256
+            target = archive_dir / (artifact_name + '.json')
+            if len(encoded_record) >= len(str(message.get('content', ''))):
+                continue
+            if target.exists():
+                if target.is_symlink() or not target.is_file():
+                    continue
+                try:
+                    existing_bytes = target.read_bytes()
+                    if hashlib.sha256(existing_bytes).hexdigest() != archive_sha256 or existing_bytes != encoded_record:
+                        self.agent.event('context_compaction_failed', 'Context archive identity changed', artifact_name=artifact_name)
+                        continue
+                except OSError as exc:
+                    self.agent.event('context_compaction_failed', 'Context archive could not be verified',
+                                     artifact_name=artifact_name, error=str(exc)[:300])
+                    continue
+            else:
+                if total_archives + len(encoded_record) > MAX_RECEIPT_ARCHIVE_BYTES:
+                    self.agent.event('context_compaction_failed', 'Context archive size limit reached',
+                                     archive_bytes=total_archives, limit_bytes=MAX_RECEIPT_ARCHIVE_BYTES)
+                    break
+                try:
+                    with target.open('xb') as stream:
+                        stream.write(encoded_record)
+                    total_archives += len(encoded_record)
+                except FileExistsError:
+                    continue
+                except OSError as exc:
+                    self.agent.event('context_compaction_failed', 'Could not preserve complete context message',
+                                     artifact_name=artifact_name, error=str(exc)[:300])
+                    break
+
+            stub = {
+                'compacted_context': True,
+                'archive_version': CONTEXT_COMPACTION_VERSION,
+                'session_version': state.get('version'),
+                'request_sha256': request_sha256,
+                'source_messages_sha256': source_messages_sha256,
+                'message_index': index,
+                'role': message.get('role'),
+                'classification': record['classification'],
+                'references': record['references'],
+                'original_message_sha256': record['original_message_sha256'],
+                'archive_sha256': archive_sha256,
+                'archive_path': f'artifacts/{artifact_name}.json',
+                'artifact_name': artifact_name,
+                'evidence_note': 'Deterministic archive pointer only; read this JSON with read_artifact and verify archive_sha256 before use. Facts/plans are classified only when the original has an explicit label; otherwise status is unclassified.',
+            }
+            compacted_content = json.dumps(stub, ensure_ascii=False, separators=(',', ':'))
+            if len(compacted_content) >= len(str(message.get('content', ''))):
+                continue
+            message['content'] = compacted_content
+            state.setdefault('context_compactions', []).append({
+                'artifact_name': artifact_name,
+                'archive_sha256': archive_sha256,
+                'original_message_sha256': record['original_message_sha256'],
+                'message_index': index,
+                'role': message.get('role'),
+                'classification': record['classification'],
+                'references': record['references'],
+                'source_messages_sha256': source_messages_sha256,
+                'session_version': state.get('version'),
+            })
+            compacted += 1
+
+        if compacted:
+            self.save()
+        return {'compacted': compacted, 'characters_before': original_size,
+                'characters_after': len(json.dumps(messages, ensure_ascii=False, default=str))}
+
     def _progress_fingerprint(self):
         """Detect local project-state changes for loop control; never proof of completion."""
         import os
@@ -232,6 +459,7 @@ class Conversation:
                 s['messages'].extend(self.refresh[1:])
                 self.refresh = None
             self.compact_completed_context()
+            self.compact_old_context_messages()
             if sum(len(json.dumps(m, ensure_ascii=False)) for m in s['messages']) > 450000:
                 raise Pause('blocked', 'Límite de contexto en caracteres; sesión y recibos archivados se conservan. No es un conteo de tokens.')
             attempt = {'status': 'running', 'started_at': studio.now()}
