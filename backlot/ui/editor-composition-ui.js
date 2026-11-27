@@ -19,10 +19,11 @@ export function initializeCompositionUI({q,getEdl,getProject,getSelection,has,ru
     field.parentElement.firstChild.textContent=cross?'Duración total del solape (s) ':'Duración por lado (s) ';
     const frameStep=(cross?2:1)/fps;
     field.min=String(frameStep);
-    field.step=String(frameStep);
+    // The backend quantizes to frames; fractional HTML steps reject ordinary durations before submit.
+    field.step='any';
     q('edit-transition-panel').querySelector('p').textContent=cross?
       'Solape centrado en el corte: mitad antes y mitad después, con vídeo y audio reales fuera de los recortes. Redondea a un número par de fotogramas. Conserva duración y pistas; requiere margen de ambas fuentes. Revisa las palabras durante el solape.':
-      'Oscurece y atenúa el final anterior y el inicio seleccionado. No solapa clips ni cambia tiempos.';
+      'Oscurece y atenúa el final anterior y el inicio seleccionado. Redondea a fotogramas; no solapa clips ni cambia tiempos.';
   }
   typeSelect.onchange=transitionHelp;
   const extras=document.createElement('div');extras.innerHTML='<label>Encaje<select name="fit"><option value="pad">Bandas</option><option value="crop">Llenar por recorte</option></select></label><label><input name="motion_enabled" type="checkbox"> Movimiento lineal por tiempo absoluto</label><label>Desplazamiento X<input name="motion_dx" type="number" min="-1" max="1" step=".01" value="0"></label><label>Desplazamiento Y<input name="motion_dy" type="number" min="-1" max="1" step=".01" value="0"></label><label>Duración del movimiento (s)<input name="motion_duration" type="number" min=".001" max="7200" step=".001" value="1"></label>';layerForm.append(extras);

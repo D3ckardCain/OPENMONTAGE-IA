@@ -539,7 +539,7 @@ def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
         expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
         page.locator('#edit-output-custom-panel summary').click()
         output=page.locator('#edit-output-custom-form');output.locator('[name=width]').fill('640');output.locator('[name=height]').fill('360')
-        output.locator('[name=platform]').select_option('youtube');output.locator('[type=submit]').click()
+        output.locator('[name=platform]').select_option('youtube');output.locator('[name=fps]').fill('30');output.locator('[type=submit]').click()
         expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
         assert state['edit_decisions']['output']['width']==640
         page.locator('#edit-mix-panel summary').click()
@@ -556,7 +556,7 @@ def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
         page.locator('#edit-transition-form [type=submit]').click()
         expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
         transition=state['edit_decisions']['cuts'][1].get('transition')
-        assert transition and transition.get('duration_seconds')==.25, (
+        assert transition and transition.get('duration_seconds')==8/30, (
             f"transition not committed; operations={[c.get('operation') for c in calls]}; "
             f"notice={page.locator('#edit-message').inner_text()!r}")
         page.locator('#edit-layers-panel summary').click()
