@@ -163,7 +163,7 @@ class AgentTransportOptionsTests(unittest.TestCase):
         worker = self.instance()
         with patch.object(studio, 'local_request', return_value={'message': {'role': 'assistant', 'content': ''}}) as request:
             worker.chat([])
-            self.assertEqual(request.call_args.args[2]['options'], {'num_ctx': 32768, 'num_predict': 8192})
+            self.assertEqual(request.call_args.args[2]['options'], {'num_ctx': 4096, 'num_predict': 2048})
             self.assertNotIn('think', request.call_args.args[2])
             worker.chat([], context_tokens=4096, max_output_tokens=128, thinking=False)
             data = request.call_args.args[2]
