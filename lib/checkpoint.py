@@ -226,6 +226,15 @@ def init_project(
     base = pipeline_dir or PROJECTS_DIR
     project_dir = base / project_id
     for sub in (
+        "datos",
+        "originales",
+        "medios_generados",
+        "audio",
+        "subtitulos",
+        "miniaturas",
+        "edicion",
+        "cache",
+        "exportaciones",
         "artifacts",
         "assets/images",
         "assets/video",
@@ -648,3 +657,4 @@ def get_next_stage(
         if stage not in completed:
             return stage
     return None
+
