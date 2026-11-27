@@ -1,9 +1,18 @@
 // Viewport-only preferences. This module never edits the media project.
+export function editorPanelBudget(height, rows=3, workspace='video') {
+  const viewport=Math.max(1,Number(height)||1), trackRows=Math.max(3,Number(rows)||3);
+  const taskExtra=workspace==='audio'?44:workspace==='subtitles'?36:0;
+  const minTop=Math.min(260,viewport*.36);
+  const available=Math.max(60,viewport-10-minTop);
+  const minTracks=Math.min(360+Math.max(0,trackRows-3)*48+taskExtra,viewport*.5,available);
+  return {minTop,minTracks,maxTracks:Math.max(minTracks,available),defaultTrackShare:(workspace==='audio'||workspace==='subtitles') ? .47 : .44};
+}
+
 export function initializeEditorLayout() {
   const q=id=>document.getElementById(id), root=q('manual-editor'), grid=q('editor-grid');
   const keys={library:'edit-library-size',inspector:'edit-inspector-size',tracks:'edit-track-size'};
   const defaults={library:320,inspector:280,tracks:null}, prefs={};
-  let migrate=false;try{migrate=localStorage.getItem('edit-layout-version')!=='3';}catch{/* storage is optional */}
+  let migrate=false;try{migrate=localStorage.getItem('edit-layout-version')!=='4';}catch{/* storage is optional */}
   for(const [key,id] of Object.entries(keys)){
     let raw;try{raw=localStorage.getItem(id);}catch{/* storage is optional */}
     const n=raw===null||raw===undefined?NaN:Number(raw);
@@ -23,13 +32,14 @@ export function initializeEditorLayout() {
     const minLibrary=showLibrary?(grid.clientWidth>=1000?260:160):0, minInspector=showInspector?180:0;
     const gutters=(Number(showLibrary)+Number(showInspector))*10;
     const sideBudget=Math.max(minLibrary+minInspector,grid.clientWidth-240-gutters);
-    const height=grid.clientHeight, minTop=Math.min(240,height*.4), minTracks=Math.min(220+Number(root.dataset.timelineRows||3)*60,height*.55,Math.max(60,height-10-minTop));
+    const height=grid.clientHeight, workspace=document.body.dataset.editorWorkspace||'video';
+    const budget=editorPanelBudget(height,root.dataset.timelineRows||3,workspace),{minTop,minTracks,maxTracks,defaultTrackShare}=budget;
     if(migrate){
       if(prefs.library<260||prefs.library>grid.clientWidth*.4)prefs.library=defaults.library;
       if(prefs.tracks!==null&&(prefs.tracks<minTracks||prefs.tracks>height*.65)){
         prefs.tracks=null;try{localStorage.removeItem(keys.tracks);}catch{/* storage is optional */}
       }
-      save(keys.library,String(prefs.library));save('edit-layout-version','3');migrate=false;
+      save(keys.library,String(prefs.library));save('edit-layout-version','4');migrate=false;
     }
     let library=showLibrary?Math.max(minLibrary,prefs.library):0;
     let inspector=showInspector?Math.max(minInspector,prefs.inspector):0;
@@ -38,8 +48,8 @@ export function initializeEditorLayout() {
       const factor=extra?Math.max(0,(sideBudget-minLibrary-minInspector)/extra):0;
       library=minLibrary+(library-minLibrary)*factor;inspector=minInspector+(inspector-minInspector)*factor;
     }
-    effective={library:Math.round(library),inspector:Math.round(inspector),tracks:Math.round(clamp(prefs.tracks??height*.42,minTracks,Math.max(minTracks,height-10-minTop)))};
-    limits={library:[minLibrary||160,Math.max(minLibrary||160,Math.floor(sideBudget-inspector))],inspector:[180,Math.max(180,Math.floor(sideBudget-library))],tracks:[Math.round(minTracks),Math.floor(Math.max(minTracks,height-10-minTop))]};
+    effective={library:Math.round(library),inspector:Math.round(inspector),tracks:Math.round(clamp(prefs.tracks??height*defaultTrackShare,minTracks,maxTracks))};
+    limits={library:[minLibrary||160,Math.max(minLibrary||160,Math.floor(sideBudget-inspector))],inspector:[180,Math.max(180,Math.floor(sideBudget-library))],tracks:[Math.round(minTracks),Math.floor(maxTracks)]};
     for(const [key,id] of Object.entries(keys)){
       root.style.setProperty('--'+key,effective[key]+'px');
       const input=q(id);input.min=limits[key][0];input.max=limits[key][1];input.value=Math.max(limits[key][0],effective[key]);
@@ -57,7 +67,7 @@ export function initializeEditorLayout() {
     for(const [id,cls] of [['edit-hide-library','library-hidden'],['edit-hide-inspector','inspector-hidden']]){
       q(id).checked=false;root.classList.remove(cls);save(id,'false');
     }
-    save('edit-layout-version','3');migrate=false;apply();
+    save('edit-layout-version','4');migrate=false;apply();
   };
   for(const [key,id] of Object.entries(keys))q(id).oninput=()=>{prefs[key]=Number(q(id).value);commit(key);};
   for(const key of Object.keys(keys)){
@@ -89,7 +99,7 @@ export function initializeEditorLayout() {
   }
   q('edit-layout-options').addEventListener('keydown',event=>{if(event.key==='Escape'){q('edit-layout-options').open=false;q('edit-layout-options').querySelector('summary').focus();}});
   new ResizeObserver(schedule).observe(grid);
-  window.addEventListener('resize',schedule);window.addEventListener('studio-workspace',schedule);
+  window.addEventListener('resize',schedule);window.addEventListener('studio-workspace',event=>{document.body.dataset.editorWorkspace=event.detail;schedule();});
   window.addEventListener('studio-tracks-layout',schedule);
   apply();
 }
