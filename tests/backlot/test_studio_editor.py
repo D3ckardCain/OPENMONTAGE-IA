@@ -61,6 +61,25 @@ def test_manual_cycle_persistence_provenance_and_undo(project):
     assert all(e['origin'] == 'user' for e in reloaded['events'])
 
 
+def test_import_copies_source_into_project_originals_and_preserves_source(project, tmp_path):
+    pid, _, _ = project
+    original = tmp_path / 'captura.mp4'
+    original.write_bytes(b'authorized source bytes')
+    client = TestClient(create_app(), base_url='http://127.0.0.1:4750')
+
+    response = client.post(
+        f'/api/studio/editor/{pid}/upload?filename=captura.mp4&revision=0',
+        content=original.read_bytes(),
+        headers={'Content-Type': 'application/octet-stream'},
+    )
+
+    assert response.status_code == 200, response.text
+    imported = next(iter(response.json()['edit_decisions']['sources'].values()))
+    assert imported['path'].startswith('originales/')
+    assert (studio.project_path(pid) / imported['path']).read_bytes() == original.read_bytes()
+    assert original.exists() and original.read_bytes() == b'authorized source bytes'
+
+
 @pytest.mark.parametrize('params', [
     {'operation':'trim', 'in_seconds':float('nan'), 'out_seconds':8},
     {'operation':'trim', 'in_seconds':9, 'out_seconds':8},
@@ -384,3 +403,4 @@ def test_hash_read_is_bounded_when_source_changes(content):
         def stat(self): return SimpleNamespace(st_size=4)
         def open(self,mode): return io.BytesIO(content)
     with pytest.raises(edit.Conflict): edit.digest(ChangingFile())
+
