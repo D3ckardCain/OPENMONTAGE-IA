@@ -55,3 +55,32 @@ def test_agent_quality_and_shared_edit_command(project,monkeypatch):
     monkeypatch.setattr(bridge,'request',request)
     result=bridge.StudioProjectEdit().execute({'project_id':pid,'action':'subtitle_quality'})
     assert result.success and len(result.data['cues'])==1
+
+
+def test_timing_report_finds_overlap_and_out_of_range_and_manual_copy_repair(project):
+    pid,key,_=project
+    add(pid,key)
+    source=edit.state(pid)['edit_decisions']
+    corrupted=deepcopy(source)
+    corrupted['cues']=[
+        {'start_seconds':1.,'end_seconds':2.,'text':'No borrar negaciones.'},
+        {'start_seconds':1.8,'end_seconds':10.5,'text':'Segundo cue.'},
+    ]
+    source_before=deepcopy(source)
+    audit=layout.report(corrupted)
+    assert audit['timing']['out_of_range_cues']==[1]
+    assert len(audit['timing']['overlaps'])==1
+    overlap=audit['timing']['overlaps'][0]
+    assert (overlap['earlier_index'],overlap['later_index'])==(0,1)
+    assert overlap['overlap_seconds']==pytest.approx(.2)
+    assert 'Se solapa con subtítulo #1' in audit['cues'][1]['warnings']
+    assert 'Fuera de duración del montaje' in audit['cues'][1]['warnings']
+    assert source==source_before  # QA did not mutate the saved project.
+
+    corrected=deepcopy(corrupted)
+    corrected['cues'][1].update(start_seconds=2.,end_seconds=3.)
+    repaired=layout.report(corrected)
+    assert repaired['timing']['overlaps']==[]
+    assert repaired['timing']['out_of_range_cues']==[]
+    assert repaired['timing_warning_cues']==0
+    assert source==source_before

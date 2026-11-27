@@ -39,3 +39,23 @@ Si el stream contiene muestras pero RMS y sample peak son ambos `-inf`, el recib
 expone `signal_state=silent` y una alerta separada. Es una observación del audio
 decodificado, no un fallo automático: el silencio puede ser intencional. Esta
 medición global no identifica un canal o intervalo silencioso dentro de una pista.
+
+
+## Revisión temporal de subtítulos · #166
+
+El mismo informe de lectura compartido por Studio y el agente contrasta cada cue
+con la duración del montaje, marca intervalos no positivos/no finitos, cues que
+rebasan el final tolerado por el importador SRT y solapamientos. Las referencias
+se dan por índice para que la persona pueda corregir solo el cue afectado con
+`cue_update`; el auditor no desplaza texto ni inventa tiempos. Si el intervalo
+no es válido, CPS se muestra como no disponible.
+
+La regresión usa un EDL en memoria dentro de un proyecto temporal: añade solape
+y exceso de duración, comprueba ambos avisos y corrige únicamente la copia; el
+estado guardado permanece intacto. No crea medios, no invoca modelos y no
+reproduce audio/video.
+
+Límite: no mide las cajas de glifos del render ni demuestra que un texto concreto
+quepa en la zona segura. El contrato existente aplica márgenes al subtítulo
+quemado/ASS y señala que el subtítulo seleccionable no garantiza estilo; la
+comprobación geométrica visual y la revisión humana permanecen pendientes.
