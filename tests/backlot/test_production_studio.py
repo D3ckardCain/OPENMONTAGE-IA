@@ -995,3 +995,24 @@ def test_base_tool_info_exposes_retry_idempotency_and_preconditions():
     assert info['preconditions']['requires_project_output_path'] is True
     assert info['retry_policy']=={'max_retries':2,'backoff_seconds':0.5,'retryable_errors':['timeout']}
     assert info['idempotency_key_fields']==['input_path']
+
+
+def test_local_agent_chat_uses_bounded_defaults_and_allows_explicit_budget(monkeypatch):
+    instance=object.__new__(agent.LocalAgent)
+    instance.cancel=threading.Event()
+    instance._chat=None
+    instance.config={'model':'synthetic-local-model','ollama_url':'http://127.0.0.1:11434'}
+    instance.last_transport={}
+    requests=[]
+    def local_request(base,path,data,**kwargs):
+        requests.append((base,path,data,kwargs))
+        return {'message':{'role':'assistant','content':'synthetic fixture'}}
+    monkeypatch.setattr(studio,'local_request',local_request)
+
+    first=agent.LocalAgent.chat(instance,[],tools=[])
+    second=agent.LocalAgent.chat(instance,[],tools=[],context_tokens=12288,max_output_tokens=512)
+
+    assert first['content']=='synthetic fixture'
+    assert requests[0][2]['options']=={'num_ctx':4096,'num_predict':2048}
+    assert requests[1][2]['options']=={'num_ctx':12288,'num_predict':512}
+    assert all(row[2]['keep_alive']==0 for row in requests)

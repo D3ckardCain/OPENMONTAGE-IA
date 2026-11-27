@@ -156,7 +156,7 @@ class LocalAgent:
                     'instruction':'Corrige esta etapa según el motivo editorial antes de escribir un checkpoint nuevo; conserva la revisión anterior en el historial.'}
         return None
 
-    def chat(self,messages,tools=None,*,context_tokens=32768,max_output_tokens=8192,thinking=None,stream=False,progress=None):
+    def chat(self,messages,tools=None,*,context_tokens=4096,max_output_tokens=2048,thinking=None,stream=False,progress=None):
         if type(context_tokens) is not int or not 1024<=context_tokens<=32768:raise ValueError('Contexto local inválido')
         if type(max_output_tokens) is not int or not 16<=max_output_tokens<=8192:raise ValueError('Límite de salida local inválido')
         if thinking is not None and type(thinking) is not bool:raise ValueError('Modo de pensamiento inválido')

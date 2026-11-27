@@ -17,3 +17,14 @@ Pruebas sintéticas verifican conservación de servicio existente, entorno del h
 Importación oficial terminada correctamente como `openmontage-qwen3-8b:q4_k_m-local`. Tags/show identifican Qwen3 8.2B Q4_K_M, contexto operativo `num_ctx 4096` y capacidades declaradas `tools`, `thinking`, `completion`. El digest del manifiesto de Ollama es `62baa8d58c698816ef8571a2856edfed6e48372d0af5bbe85d5bb7ae328dbdeb`; es distinto de la huella del GGUF porque identifica otro objeto.
 
 Studio devuelve `ollama_ready: true` e `inference_verified: false`. Tras comprobar cola vacía e inactiva, se respaldó settings y se añadió únicamente el modelo al campo antes vacío usando la API existente. Las demás opciones se compararon y conservaron; applications.json sigue idéntico. `/api/ps` devuelve `models: []`: ningún modelo cargado. La nube desactivada se comprobó en el log del servicio. No se ejecutaron chat, generate, tool calling ni evaluaciones de rendimiento. No se afirma comprobación visual nueva del panel.
+
+
+## Presupuesto predeterminado de solicitudes
+
+El puente del agente pide por defecto `num_ctx=4096` y `num_predict=2048`, alineado
+con el contexto local configurado; un caller puede proporcionar límites mayores
+explícitos dentro de las cotas validadas. No hay selección silenciosa de modelos,
+cambio de `keep_alive` ni concurrencia adicional. Prueba sintética del payload
+comprueba estos valores sin llamar a Ollama. El impacto sobre calidad, latencia y
+RAM/VRAM real sigue pendiente de una evaluación local con modelo disponible; el
+tamaño de contexto solicitado no equivale a memoria observada.
