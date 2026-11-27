@@ -129,6 +129,9 @@ def verify(project_id,outputs):
                     warnings=[]
                     if metrics['loudness_below_gate']:
                         warnings.append('loudness_below_gate; no demuestra por sí sola un archivo vacío')
+                    signal_state = 'silent' if metrics['rms_dbfs'] is None and metrics['sample_peak_dbfs'] is None else 'present'
+                    if signal_state == 'silent':
+                        warnings.append('decoded_audio_silent; non-zero sample count with no measured energy')
                     if metrics['sample_peak_at_or_above_full_scale']:
                         warnings.append('sample_peak_at_or_above_full_scale')
                     if metrics['true_peak_above_full_scale']:
@@ -137,6 +140,7 @@ def verify(project_id,outputs):
                         warnings.append('audio_coverage_differs_from_video_duration')
                     audio_check={
                         'status':'warning' if warnings else 'measured',
+                        'signal_state':signal_state,
                         'scope':'first_audio_stream',
                         'stream_count':len(audio),
                         'coverage_seconds':coverage_seconds,

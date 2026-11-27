@@ -149,7 +149,7 @@ def test_audio_signal_metrics_reuse_full_decode_and_report_clipping_and_low_loud
     audio_metadata['streams'].append({'codec_type':'audio','codec_name':'aac','sample_rate':'48000','channels':2})
     log='''[astats] Overall
 [astats] Peak level dB: 0.000
-[astats] RMS level dB: -inf
+[astats] RMS level dB: -18.250
 [astats] Number of samples: 48000
 Summary:
   Integrated loudness:
@@ -170,4 +170,30 @@ Summary:
     assert check['metrics']['sample_peak_at_or_above_full_scale']
     assert check['metrics']['true_peak_above_full_scale']
     assert check['metrics']['loudness_below_gate']
+    assert check['signal_state']=='present'
     assert check['status']=='warning' and len(check['warnings'])==3
+
+def test_silent_decoded_audio_is_distinguished_from_low_loudness(render,monkeypatch):
+    project,path=render
+    audio_metadata=metadata()
+    audio_metadata['streams'].append({'codec_type':'audio','codec_name':'aac','sample_rate':'48000','channels':2})
+    log='''[astats] Overall
+[astats] Peak level dB: -inf
+[astats] RMS level dB: -inf
+[astats] Number of samples: 48000
+Summary:
+  Integrated loudness:
+    I: -inf LUFS
+    Threshold: -inf LUFS
+  Loudness range:
+    LRA: -inf LU
+  True peak:
+    Peak: -inf dBFS
+'''
+    transport(monkeypatch,audio_metadata,decoded_stderr=log)
+    checks.verify('one',[{'path':str(path),'audio_codec':'aac'}])
+    check=studio.read_json(project/'render_verification.json')['outputs'][0]['audio_signal_check']
+    assert check['signal_state']=='silent'
+    assert check['status']=='warning'
+    assert 'decoded_audio_silent; non-zero sample count with no measured energy' in check['warnings']
+    assert check['metrics']['samples_per_channel']==48000

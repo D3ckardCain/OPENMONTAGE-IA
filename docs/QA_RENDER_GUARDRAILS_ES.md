@@ -25,3 +25,10 @@ El parser de las métricas reutiliza el medidor local de mezcla final y no rende
 Los filtros por stream siguen la sintaxis oficial de [FFmpeg CLI](https://ffmpeg.org/ffmpeg.html)
 y los medidores de [EBU R128](https://ffmpeg.org/ffmpeg-filters.html#ebur128).
 La prueba nueva usa metadata/logs sintéticos y no inspecciona medios de usuario.
+
+
+
+Si el stream contiene muestras pero RMS y sample peak son ambos `-inf`, el recibo
+expone `signal_state=silent` y una alerta separada. Es una observación del audio
+decodificado, no un fallo automático: el silencio puede ser intencional. Esta
+medición global no identifica un canal o intervalo silencioso dentro de una pista.
