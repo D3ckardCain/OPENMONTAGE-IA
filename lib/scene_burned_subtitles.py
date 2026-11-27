@@ -37,7 +37,7 @@ def _timestamp(seconds):
     return f'{centis//360000}:{centis//6000%60:02d}:{centis//100%60:02d}.{centis%100:02d}'
 
 
-def _ass(cues,width,height,subtitle_style=None,safe_area=None):
+def _ass(cues,width,height,subtitle_style=None,safe_area=None,highlights=None):
     vertical=height>width
     fontsize=max(24,round(width*(.052 if vertical else .038)))
     margin=max(24,round(height*(.12 if vertical else .09)))
@@ -59,8 +59,14 @@ def _ass(cues,width,height,subtitle_style=None,safe_area=None):
             'Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\n'
             +style+'\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n')
     lines=[]
-    for cue in cues:
+    for index,cue in enumerate(cues):
         safe=cue['text'].replace('\\','\\\\').replace('{','\\{').replace('}','\\}').replace('\r','').replace('\n','\\N')
+        if highlights is not None:
+            def escape(text):return text.replace('\\','\\\\').replace('{','\\{').replace('}','\\}').replace('\r','').replace('\n','\\N')
+            def color(value):return '{\\1c&H'+value[5:7]+value[3:5]+value[1:3]+'&}'
+            item=highlights[index];span=item['span'];safe=color(item['inactive'])+escape(cue['text'])
+            if span:
+                a,b=span;safe=color(item['inactive'])+escape(cue['text'][:a])+color(item['active'])+escape(cue['text'][a:b])+color(item['inactive'])+escape(cue['text'][b:])
         lines.append(f"Dialogue: 0,{_timestamp(cue['start_seconds'])},{_timestamp(cue['end_seconds'])},Main,,0,0,0,,{anchor}{safe}")
     return header+'\n'.join(lines)+'\n'
 

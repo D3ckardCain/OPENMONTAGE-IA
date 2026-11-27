@@ -5,6 +5,7 @@ import { initializeSfx } from './editor-sfx.js';
 import { initializeMixMeter } from './editor-mix-meter.js';
 import { appendVolumeAutomation } from './editor-volume-automation.js';
 import { initializeSubtitleLayout } from './editor-subtitle-layout.js';
+import { initializeSubtitleKaraoke } from './editor-subtitle-karaoke.js';
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
@@ -22,6 +23,7 @@ let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
 let finalMixMeter=null;
 let subtitleLayout=null;
+let subtitleKaraoke=null;
 let compositionUI=null;
 let candidatesUI=null,cropPreview=null,qwenPanel=null,componentsUI=null,sfxPanel=null;
 let cancelSupported=false,renderAttempt=null;
@@ -380,6 +382,7 @@ function pruneSelection(){
   if(!items.some(c=>c.id===selection.id))selection=selectedIds.size?{...selection,id:[...selectedIds][0]}:null;
 }
 function draw() {
+  subtitleKaraoke?.draw();
   subtitleLayout?.draw();
   finalMixMeter?.draw();
   sfxPanel?.draw();
@@ -513,6 +516,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture
 effectsUI=initializeEffectsUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),runBalance:(op,params)=>task(()=>command(op,params),true),has:name=>capabilities.has(name),cursor:()=>cursor});
 finalMixMeter=initializeMixMeter({host:q('edit-mix-panel'),getProject:()=>project,getRevision:()=>state?.revision,getDigest:()=>state?.render_sha256,has:name=>capabilities.has(name)});
 subtitleLayout=initializeSubtitleLayout({host:q('edit-cps'),getProject:()=>project,getEdl:edl,has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),inspect:index=>{q('edit-cue-index').value=index+1;drawCueInspector();seekTimeline(edl().cues[index].start_seconds);}});
+subtitleKaraoke=initializeSubtitleKaraoke({host:q('edit-cps'),getProject:()=>project,getEdl:edl,has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),seek:seekTimeline});
 candidatesUI=initializeCandidatesUI({q,getEdl:edl,getProject:()=>project,getRevision:()=>state?.revision,inspectWords:setId=>api(base()+'/subtitle-words?set_id='+encodeURIComponent(setId)),loadSubtitleDraft:setId=>api(base()+'/subtitle-draft?set_id='+encodeURIComponent(setId)),loadSilenceProposal:proposal=>api(base()+'/silence-proposal',proposal),run:(op,params)=>task(()=>command(op,params),true),has:name=>capabilities.has(name),reviewSource:showSource});
 cropPreview=initializeCropPreview({q,getEdl:edl,getSelection:selected,sourceUrl});
 compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});

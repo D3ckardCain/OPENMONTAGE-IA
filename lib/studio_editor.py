@@ -124,6 +124,11 @@ def render_digest(edl, contract=RENDER_CONTRACT):
     """AV identity excludes markers, edit locks and unused-source provenance."""
     content = {key: deepcopy(edl[key]) for key in ('cuts', 'audio_tracks', 'cues', 'output', 'subtitle_style')}
     content['render_contract'] = contract
+    if edl['cues'] and edl['subtitle_style'].get('mode')=='burn' and edl.get('subtitle_karaoke',{}).get('enabled'):
+        from lib.studio_subtitle_karaoke import normalize as normalize_karaoke,CONTRACT as karaoke_contract
+        settings=normalize_karaoke(edl['subtitle_karaoke']);content['subtitle_karaoke']=settings;content['subtitle_karaoke_contract']=karaoke_contract
+        dataset=next((v for v in edl.get('candidate_sets',[]) if v.get('id')==settings['set_id']),{})
+        content['subtitle_karaoke_basis_hash']=edit_digest({k:dataset.get(k) for k in ('words','coverage','source_sha256','transcript_sha256')})
     if edl['cues'] and edl['subtitle_style'].get('mode')=='burn' and 'subtitle_layout' in edl:
         content['subtitle_safe_area']=deepcopy(edl['subtitle_layout']['safe_area'])
         content['subtitle_layout_contract']='subtitle-reading-layout-v1'
@@ -424,6 +429,9 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    if 'subtitle_karaoke' in edl:
+        from lib.studio_subtitle_karaoke import normalize as normalize_karaoke
+        normalize_karaoke(edl['subtitle_karaoke'])
     if 'subtitle_layout' in edl:
         from lib.studio_subtitle_layout import normalize as normalize_subtitle_layout
         normalize_subtitle_layout(edl['subtitle_layout'])

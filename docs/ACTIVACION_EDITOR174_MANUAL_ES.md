@@ -2,7 +2,7 @@
 
 La política de ejecución rechazó el comando que detenía exclusivamente Studio PID153088 en4750 y lo arrancaba desde `C:\OPENMONTAGE-IA\.venv`. Mensaje disponible: `blocked by policy`, sin razón adicional. La acción no se ejecutó; no se intentó otra vía. El servidor QA4766 ya está cerrado. El inventario y la recuperación de hashes ya terminaron; no se deben relanzar. Conserva las descargas y otros trabajos activos.
 
-Antes del rechazo: worker inactivo, tarea local inactiva, cola pausada sin elementos. Se guardaron224 JSON de proyectos/configuración en una copia privada. El paquete se amplió después y debe activarse **una sola vez completo**, no por cada commit: sourceSHA256 esperado `8d86d4f55bc0909e2a920f3474336f14f89dc8252d6fd3aafd88aba966d51af1`,51archivos; capabilities `layer_position_keyframes`, `layer_transform_keyframes`, `audio_balance`, `crossfade`, `sfx_catalog`/`sfx_favorites` y `audio_processing`, `track_mixer`, `audio_ducking`, `mix_meter`, `track_volume_points`, `ripple_volume_points`. La identidad UI se informa por separado. Las comprobaciones de trabajos deben ser actuales antes de ejecutar el bloque manual.
+Antes del rechazo: worker inactivo, tarea local inactiva, cola pausada sin elementos. Se guardaron224 JSON de proyectos/configuración en una copia privada. El paquete se amplió después y debe activarse **una sola vez completo**, no por cada commit: sourceSHA256 esperado `e3e416521ae9c6c2a424f3a97d63cbaf45ed4ea6ef8cf1e779f2596ecec16082`,52archivos; capabilities `layer_position_keyframes`, `layer_transform_keyframes`, `audio_balance`, `crossfade`, `sfx_catalog`/`sfx_favorites` y `audio_processing`, `track_mixer`, `audio_ducking`, `mix_meter`, `track_volume_points`, `ripple_volume_points`. La identidad UI se informa por separado. Las comprobaciones de trabajos deben ser actuales antes de ejecutar el bloque manual.
 
 ## Paso manual exacto
 
@@ -35,7 +35,7 @@ Invoke-RestMethod http://127.0.0.1:4750/api/studio/editor/capabilities -TimeoutS
 
 Debe aparecer saludOK, `restart_required:false`, el sourceSHA256 esperado y las capabilities agrupadas. Eso acredita activación de backend, no escucha humana ni nueva exportación. No repetir las pruebas, renders o ciclos QA ya aprobados; solo comprobar presencia y funcionamiento pendiente en el panel principal con una copia.
 
-La confirmacion del reinicio manual sigue pendiente: no ejecutar este bloque automaticamente ni consultar4750 antes de esa confirmacion. Entregas nuevas y evidencia: [mezclador exportado](EDITOR_MEZCLADOR_EXPORT_ES.md), [ducking](EDITOR_DUCKING_ES.md). Identidad UI actual esperada: `5559dbede3624f7d802902576bf6103575b84f5ca916c20eee6ca151bb4c807a`,43archivos. Las ocho descargas requieren otra confirmacion independiente; conservar Wan VACE Low valido.
+La confirmacion del reinicio manual sigue pendiente: no ejecutar este bloque automaticamente ni consultar4750 antes de esa confirmacion. Entregas nuevas y evidencia: [mezclador exportado](EDITOR_MEZCLADOR_EXPORT_ES.md), [ducking](EDITOR_DUCKING_ES.md). Identidad UI actual esperada: `54bcb4ccc0c0052a17f8eb8902949ffcac26198004f3fdd7a78b385f3106b81b`,44archivos. Las ocho descargas requieren otra confirmacion independiente; conservar Wan VACE Low valido.
 
 La medicion persistente tambien forma parte de esta activacion agrupada: [uso y evidencia](EDITOR_MEDICION_MEZCLA_FINAL_ES.md). Se preserva el medidor mono previo del reproductor. No repetir el ensayo MP4 de ducking ya aprobado.
 
@@ -44,3 +44,5 @@ Automatizacion de volumen tambien agrupada, sin reinicio adicional: [manual y va
 Incluye ahora [ripple opcional de puntos](EDITOR_VOLUMEN_RIPPLE_ES.md), desactivado por defecto. Se mantiene una sola activacion tras confirmacion manual, sin repetir renders.
 
 Incluye lectura y zona segura de subtitulos, capabilities subtitle_layout/subtitle_reflow. Sigue pendiente confirmacion del reinicio, no se consulta4750 ahora.
+
+Se suma subtitle_karaoke, sin reinicio adicional: revisar datos guardados y formato ASS/quemado; seleccionable no promete resaltado.

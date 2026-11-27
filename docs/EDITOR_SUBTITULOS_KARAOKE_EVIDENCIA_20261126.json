@@ -1,0 +1,243 @@
+{
+  "new_focused_cases_passed": 9,
+  "ui": {
+    "scope": "Real UI/API4779, existing Portuguese words/media in QA copy; two new short format exports only",
+    "saved_word_review": true,
+    "undo_redo_reopen": true,
+    "soft_identity_ignores_karaoke": true,
+    "soft": {
+      "status": "completed",
+      "attempt": "acb36238a1fb433581dc954ce8442c9c",
+      "revision": 8,
+      "origin": "user",
+      "edit_sha256": "f5fd64deb5dcadc1c84949465f4c5da1da3bf0398a785a289e71dfe9cebc6c08",
+      "render_sha256": "11195f247537635a419e89e11529046f42b21a445b2c45bd217cfe4c66660374",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-27T00:58:08.229081+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-27T00:58:08.632170+00:00",
+      "path": "assets/editor-renders/acb36238a1fb433581dc954ce8442c9c/montage.mp4",
+      "url": "/media/edit-qa129-pt-activation/assets/editor-renders/acb36238a1fb433581dc954ce8442c9c/montage.mp4",
+      "sha256": "93e729ce0146a5d35ee037fca3959f683d99ac0e7b3fa88a1a5508ac84a502d9",
+      "bytes": 205747,
+      "duration": 4,
+      "subtitle_mode": "mov_text",
+      "source_sha256": {
+        "afdca3ead9154188b43c2799258fa8f7": "8c91014b94ee773afb32260534eff3113fd27ef3f11f9af7d27dab9f8cb31670"
+      },
+      "current": true
+    },
+    "burn": {
+      "status": "completed",
+      "attempt": "97227818c32745a0b800891130a60f61",
+      "revision": 9,
+      "origin": "user",
+      "edit_sha256": "3f75169fc06010ae9f90fe0bb1d2e170c514039ba9c320b2c33101c01f314ecb",
+      "render_sha256": "9046e6f2c70d9e8fe9dc45e9e4afbd4d1086d79e55d5c338b55917db583407f4",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-27T00:58:09.019408+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-27T00:58:09.417866+00:00",
+      "path": "assets/editor-renders/97227818c32745a0b800891130a60f61/montage.mp4",
+      "url": "/media/edit-qa129-pt-activation/assets/editor-renders/97227818c32745a0b800891130a60f61/montage.mp4",
+      "sha256": "c5070cfe9dd001f97ab9c30753920a9f3e270930598684f47ea8b9c81871f70a",
+      "bytes": 219614,
+      "duration": 4,
+      "subtitle_mode": "burn",
+      "source_sha256": {
+        "afdca3ead9154188b43c2799258fa8f7": "8c91014b94ee773afb32260534eff3113fd27ef3f11f9af7d27dab9f8cb31670"
+      },
+      "current": true
+    },
+    "page_errors": [],
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "e3e416521ae9c6c2a424f3a97d63cbaf45ed4ea6ef8cf1e779f2596ecec16082",
+        "files": 52
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "e3e416521ae9c6c2a424f3a97d63cbaf45ed4ea6ef8cf1e779f2596ecec16082",
+        "files": 52
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "368ec3ecf6b338c4bd83a3725a1a9603e9c322013d23c85084558873d2108153",
+        "files": 44
+      },
+      "restart_required": false,
+      "pid": 52812,
+      "loaded_at_utc": "2026-11-27T00:57:20.015897+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "subtitle_karaoke",
+          "subtitle_layout",
+          "subtitle_reflow",
+          "ripple_volume_points",
+          "track_volume_points",
+          "mix_meter",
+          "audio_ducking",
+          "track_mixer",
+          "audio_processing",
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "e3e416521ae9c6c2a424f3a97d63cbaf45ed4ea6ef8cf1e779f2596ecec16082"
+      }
+    },
+    "main4750_checked": false,
+    "human_listening": false
+  },
+  "output_formats": {
+    "scope": "Existing Portuguese stored ASR, 4s QA; new soft and word-highlight burn exports. No ASR/synthesis/new model.",
+    "sampled_word_frames": [
+      {
+        "seconds": 0.12,
+        "colored_caption_pixels": 64,
+        "centroid_x": 179.03125,
+        "bbox": [
+          161,
+          312,
+          208,
+          323
+        ]
+      },
+      {
+        "seconds": 0.52,
+        "colored_caption_pixels": 91,
+        "centroid_x": 244.6813186813187,
+        "bbox": [
+          217,
+          311,
+          266,
+          323
+        ]
+      }
+    ],
+    "expected_word1": {
+      "text": "Lamin",
+      "span": [
+        0,
+        5
+      ],
+      "start_seconds": 0.0,
+      "end_seconds": 0.36,
+      "occurrence_id": "fb47d9c1bc384f68b78875552e87b68c:b015277c9508428982dd0f5695ea021e:0",
+      "source": {
+        "start_seconds": 0.0,
+        "end_seconds": 0.36,
+        "start_rational": [
+          0,
+          1
+        ],
+        "end_rational": [
+          9,
+          25
+        ]
+      },
+      "timing_evidence": "declared_not_independently_verified"
+    },
+    "expected_word2": {
+      "text": "Yamal",
+      "span": [
+        6,
+        11
+      ],
+      "start_seconds": 0.36,
+      "end_seconds": 0.78,
+      "occurrence_id": "fb47d9c1bc384f68b78875552e87b68c:b015277c9508428982dd0f5695ea021e:1",
+      "source": {
+        "start_seconds": 0.36,
+        "end_seconds": 0.78,
+        "start_rational": [
+          9,
+          25
+        ],
+        "end_rational": [
+          39,
+          50
+        ]
+      },
+      "timing_evidence": "declared_not_independently_verified"
+    },
+    "soft_cues_exact": true,
+    "soft_has_no_karaoke_guarantee": true,
+    "burn_no_subtitle_stream": true,
+    "audio_packet_payload_md5_identical": true,
+    "asr_alignment_status": "Declared original evidence, no independent acoustic measurement",
+    "human_listening": false,
+    "main4750_checked": false,
+    "pixel_method": "Saved PNGs reused, caption y300..333, color near yellow with tolerance for antialiasing/H264 chroma. Visually inspected both frames; no acoustic inference or repeated decode."
+  },
+  "qa4779": "closed",
+  "expected_activation": {
+    "backend": {
+      "status": "available",
+      "sha256": "e3e416521ae9c6c2a424f3a97d63cbaf45ed4ea6ef8cf1e779f2596ecec16082",
+      "files": 52
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "54bcb4ccc0c0052a17f8eb8902949ffcac26198004f3fdd7a78b385f3106b81b",
+      "files": 44
+    }
+  },
+  "main4750_checked": false,
+  "new_asr_or_synthesis": false,
+  "human_listening": false
+}

@@ -271,13 +271,19 @@ def create_editor_router(body):
         output = value['output']
         width, height = (output['width'], output['height']) if output['ratio'] == 'custom' else editor.PRESETS[output['ratio']]
         from lib.scene_burned_subtitles import _ass
-        return PlainTextResponse(_ass(value['cues'], width, height, value['subtitle_style'],value.get('subtitle_layout',{}).get('safe_area')),
+        from lib.studio_subtitle_karaoke import ass as subtitle_ass
+        return PlainTextResponse(invoke(subtitle_ass,value,width,height),
                                  headers={'Content-Disposition': 'attachment; filename="subtitles.ass"'})
 
     @router.get('/{pid}/subtitles/quality')
     def subtitle_quality(pid: str):
         from lib.studio_subtitle_layout import project_report
         return invoke(project_report,pid)
+
+    @router.get('/{pid}/subtitles/karaoke')
+    def subtitle_karaoke(pid: str,set_id: str):
+        from lib.studio_subtitle_karaoke import project_report
+        return invoke(project_report,pid,set_id)
 
     @router.post('/{pid}/render/cancel')
     async def cancel_render(pid: str, request: Request):

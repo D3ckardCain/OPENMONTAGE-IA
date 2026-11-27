@@ -168,6 +168,8 @@ def start(pid, revision, preview=False, origin='user'):
         value = editor.state(pid)
         editor._revision(value, revision)
         edl = deepcopy(value['edit_decisions'])
+        from lib.studio_subtitle_karaoke import validate_render as validate_karaoke
+        validate_karaoke(edl)
         args, filters, width, height = plan(pid, edl, preview)
         job = {'status': 'running', 'attempt': uuid.uuid4().hex, 'revision': revision, 'origin': origin,
                'edit_sha256': value['edit_sha256'],
@@ -241,7 +243,8 @@ def _worker(pid, edl, job, args, filters):
             captions = work / 'captions.srt'
             captions.write_text(editor.srt(edl), encoding='utf-8')
             if burn:
-                (work / 'captions.ass').write_text(_ass(edl['cues'], job['width'], job['height'], edl['subtitle_style'],edl.get('subtitle_layout',{}).get('safe_area')), encoding='utf-8')
+                from lib.studio_subtitle_karaoke import ass as subtitle_ass
+                (work / 'captions.ass').write_text(subtitle_ass(edl,job['width'],job['height']), encoding='utf-8')
                 filters.append(video_label+'ass=captions.ass[captioned]')
                 video_label = '[captioned]'
             else:
