@@ -62,7 +62,8 @@ def create_studio_router():
             r=studio.read_json(f)
             if r.get('manual_edit'):continue
             if r.get('diagnostic_fixture') or r.get('diagnostic_only'):continue
-            projects.append({'project_id':r['project_id'],'title':r['title']})
+            projects.append({'project_id':r['project_id'],'title':r['title'],
+                             'project_path':str(f.parent.resolve())})
         return {'settings':studio.settings(),'pipelines':studio.pipelines(),'projects':projects}
     @router.get('/api/studio/queue')
     def production_queue_state():
@@ -702,7 +703,8 @@ def create_studio_router():
         origin=request.headers.get('origin')
         if origin and origin.rstrip('/')!=str(request.base_url).rstrip('/'):raise HTTPException(403,'Origen no autorizado')
         folder=invoke(studio.project_path,pid)
-        temp=folder/('reference-upload-'+uuid.uuid4().hex+'.tmp');size=0
+        originals=folder/'originales'/'referencias';originals.mkdir(parents=True,exist_ok=True)
+        temp=originals/('reference-upload-'+uuid.uuid4().hex+'.tmp');size=0
         try:
             with temp.open('xb') as stream:
                 async for chunk in request.stream():
@@ -712,8 +714,8 @@ def create_studio_router():
             if not size:raise HTTPException(400,'Video vacío')
             with agent.ACTIVE_LOCK,analysis.LOCK:
                 if agent.ACTIVE or analysis.ACTIVE:raise HTTPException(409,'Hay una tarea local activa; no se reemplazó el video')
-                temp.replace(folder/'reference_video.mp4')
-                studio.save_json(folder/'reference_source.json',{'path':'reference_video.mp4'})
+                temp.replace(originals/'reference_video.mp4')
+                studio.save_json(folder/'reference_source.json',{'path':'originales/referencias/reference_video.mp4'})
                 studio.save_json(folder/'reference_analysis.json',{'status':'not_started','message':'Video cargado, análisis pendiente','bytes':size})
             return {'uploaded':True,'bytes':size,'analysis_started':False}
         finally:temp.unlink(missing_ok=True)
@@ -873,3 +875,4 @@ def create_studio_router():
                     if agent.LocalAgent.permitted(t) and (not name or t.name==name) and (not capability or t.capability==capability)]
         return await asyncio.to_thread(discover)
     return router
+
