@@ -4,6 +4,7 @@ import { initializeComponentsUI } from './editor-components.js';
 import { initializeSfx } from './editor-sfx.js';
 import { initializeMixMeter } from './editor-mix-meter.js';
 import { appendVolumeAutomation } from './editor-volume-automation.js';
+import { initializeSubtitleLayout } from './editor-subtitle-layout.js';
 // Shared server revision is authoritative. No browser-only project fork.
 import { initializeEditorLayout } from './editor-layout.js';
 import { timelineEnd,videoDuration,fitZoom,tickStep,clipStart,sourceTime,splitAtCursor,snapTime,editPoints,trimByDelta,moveCue,clipDuration,previewMatches,audioTrimByDelta } from './editor-time.js';
@@ -20,6 +21,7 @@ let preview = null, sourceKey = null, renderTimer = null, pending = false, works
 let cursor=0, zoomMode='fit', ruler=null, edgeGesture=null;
 let effectsUI=null;
 let finalMixMeter=null;
+let subtitleLayout=null;
 let compositionUI=null;
 let candidatesUI=null,cropPreview=null,qwenPanel=null,componentsUI=null,sfxPanel=null;
 let cancelSupported=false,renderAttempt=null;
@@ -378,6 +380,7 @@ function pruneSelection(){
   if(!items.some(c=>c.id===selection.id))selection=selectedIds.size?{...selection,id:[...selectedIds][0]}:null;
 }
 function draw() {
+  subtitleLayout?.draw();
   finalMixMeter?.draw();
   sfxPanel?.draw();
   candidatesUI?.draw();cropPreview?.selectionChanged();qwenPanel?.draw();componentsUI?.draw();
@@ -509,6 +512,7 @@ window.addEventListener('studio-workspace',event=>{workspace=event.detail;showWo
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&edgeGesture){event.preventDefault();edgeGesture.cancel();return;}if(q('manual-editor').hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='d'&&capabilities.has('duplicate')&&selection){event.preventDefault();q('edit-duplicate').click();return;}if(event.key==='Delete'&&capabilities.has('batch')&&selection){event.preventDefault();q(event.shiftKey?'edit-delete-ripple':'edit-delete-gap').click();return;}if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()!=='z')return;}else if(!event.altKey){if(event.key.toLowerCase()==='m'&&capabilities.has('markers')){event.preventDefault();q('edit-marker-add').click();return;}const key=event.key.toLowerCase();if(key==='f'){event.preventDefault();fitTimeline();return;}if(key==='+'||key==='='){event.preventDefault();zoomTimeline(1.25);return;}if(key==='-'){event.preventDefault();zoomTimeline(1/1.25);return;}if(key==='s'){event.preventDefault();q('edit-split-cursor').click();return;}}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();task(()=>command(event.shiftKey?'redo':'undo'));}});
 effectsUI=initializeEffectsUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),runBalance:(op,params)=>task(()=>command(op,params),true),has:name=>capabilities.has(name),cursor:()=>cursor});
 finalMixMeter=initializeMixMeter({host:q('edit-mix-panel'),getProject:()=>project,getRevision:()=>state?.revision,getDigest:()=>state?.render_sha256,has:name=>capabilities.has(name)});
+subtitleLayout=initializeSubtitleLayout({host:q('edit-cps'),getProject:()=>project,getEdl:edl,has:name=>capabilities.has(name),run:(op,params)=>task(()=>command(op,params),true),inspect:index=>{q('edit-cue-index').value=index+1;drawCueInspector();seekTimeline(edl().cues[index].start_seconds);}});
 candidatesUI=initializeCandidatesUI({q,getEdl:edl,getProject:()=>project,getRevision:()=>state?.revision,inspectWords:setId=>api(base()+'/subtitle-words?set_id='+encodeURIComponent(setId)),loadSubtitleDraft:setId=>api(base()+'/subtitle-draft?set_id='+encodeURIComponent(setId)),loadSilenceProposal:proposal=>api(base()+'/silence-proposal',proposal),run:(op,params)=>task(()=>command(op,params),true),has:name=>capabilities.has(name),reviewSource:showSource});
 cropPreview=initializeCropPreview({q,getEdl:edl,getSelection:selected,sourceUrl});
 compositionUI=initializeCompositionUI({q,getEdl:edl,getProject:()=>project,getSelection:selected,run:(op,params)=>task(()=>command(op,params)),has:name=>capabilities.has(name),cursor:()=>cursor});

@@ -37,7 +37,7 @@ def _timestamp(seconds):
     return f'{centis//360000}:{centis//6000%60:02d}:{centis//100%60:02d}.{centis%100:02d}'
 
 
-def _ass(cues,width,height,subtitle_style=None):
+def _ass(cues,width,height,subtitle_style=None,safe_area=None):
     vertical=height>width
     fontsize=max(24,round(width*(.052 if vertical else .038)))
     margin=max(24,round(height*(.12 if vertical else .09)))
@@ -48,6 +48,12 @@ def _ass(cues,width,height,subtitle_style=None):
     style=f'Style: Main,Arial,{fontsize},&H00FFFFFF,&H000000FF,&H00000000,&H80000000,0,0,0,0,100,100,0,0,1,3,1,2,{max(24,width//18)},{max(24,width//18)},{margin},1'
     if subtitle_style:
         parts=style.split(',');parts[2]=str(fontsize);parts[18]=str(alignment);style=','.join(parts)
+    anchor=''
+    if safe_area is not None:
+        parts=style.split(',');parts[19]=str(round(width*safe_area['left']));parts[20]=str(round(width*safe_area['right']));style=','.join(parts)
+        x=width*(safe_area['left']+(1-safe_area['left']-safe_area['right'])/2)
+        y=height*(safe_area['top'] if alignment==8 else 1-safe_area['bottom'] if alignment==2 else safe_area['top']+(1-safe_area['top']-safe_area['bottom'])/2)
+        anchor=f'{{\\pos({x:.3f},{y:.3f})\\an{alignment}}}'
     header=('[Script Info]\nScriptType: v4.00+\nWrapStyle: 0\nScaledBorderAndShadow: yes\n'
             f'PlayResX: {width}\nPlayResY: {height}\n\n[V4+ Styles]\n'
             'Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\n'
@@ -55,7 +61,7 @@ def _ass(cues,width,height,subtitle_style=None):
     lines=[]
     for cue in cues:
         safe=cue['text'].replace('\\','\\\\').replace('{','\\{').replace('}','\\}').replace('\r','').replace('\n','\\N')
-        lines.append(f"Dialogue: 0,{_timestamp(cue['start_seconds'])},{_timestamp(cue['end_seconds'])},Main,,0,0,0,,{safe}")
+        lines.append(f"Dialogue: 0,{_timestamp(cue['start_seconds'])},{_timestamp(cue['end_seconds'])},Main,,0,0,0,,{anchor}{safe}")
     return header+'\n'.join(lines)+'\n'
 
 

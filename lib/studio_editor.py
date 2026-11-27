@@ -124,6 +124,9 @@ def render_digest(edl, contract=RENDER_CONTRACT):
     """AV identity excludes markers, edit locks and unused-source provenance."""
     content = {key: deepcopy(edl[key]) for key in ('cuts', 'audio_tracks', 'cues', 'output', 'subtitle_style')}
     content['render_contract'] = contract
+    if edl['cues'] and edl['subtitle_style'].get('mode')=='burn' and 'subtitle_layout' in edl:
+        content['subtitle_safe_area']=deepcopy(edl['subtitle_layout']['safe_area'])
+        content['subtitle_layout_contract']='subtitle-reading-layout-v1'
     if any(c.get('transition', {}).get('type') == 'crossfade' for c in edl['cuts']):
         from lib.studio_crossfade import RENDER_CONTRACT as crossfade_contract
         content['crossfade_render_contract'] = crossfade_contract
@@ -421,6 +424,9 @@ def _apply_edit(edl, data):
 
 
 def _validate_edit(edl):
+    if 'subtitle_layout' in edl:
+        from lib.studio_subtitle_layout import normalize as normalize_subtitle_layout
+        normalize_subtitle_layout(edl['subtitle_layout'])
     from lib.studio_volume_automation import validate as validate_volume
     validate_volume(edl)
     from lib.studio_ducking import validate as validate_ducking

@@ -241,7 +241,7 @@ def _worker(pid, edl, job, args, filters):
             captions = work / 'captions.srt'
             captions.write_text(editor.srt(edl), encoding='utf-8')
             if burn:
-                (work / 'captions.ass').write_text(_ass(edl['cues'], job['width'], job['height'], edl['subtitle_style']), encoding='utf-8')
+                (work / 'captions.ass').write_text(_ass(edl['cues'], job['width'], job['height'], edl['subtitle_style'],edl.get('subtitle_layout',{}).get('safe_area')), encoding='utf-8')
                 filters.append(video_label+'ass=captions.ass[captioned]')
                 video_label = '[captioned]'
             else:
