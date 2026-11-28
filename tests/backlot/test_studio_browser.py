@@ -1761,3 +1761,89 @@ def test_agent_memory_can_be_corrected_and_retired_without_cross_project_access(
         expect(page.locator('#agent-memory-status')).to_contain_text('solo lectura')
         assert [post['operation'] for post in posts]==['remember','forget']
         browser.close()
+
+
+def test_t2v_availability_identity_and_saved_receipt_recovery(staged_backlot_server):
+    """Current Studio flow only; all Wan transport is fixture-backed, with no prompt submission."""
+    import json
+    from copy import deepcopy
+    from pathlib import Path
+
+    fixture = json.loads(Path("tests/fixtures/editor_existing_project_layout.json").read_text(encoding="utf-8"))
+    pid = fixture["project_id"]
+    request_id = "a" * 32
+    state = deepcopy(fixture["state"])
+    identity = {"restart_required": True, "resident": {"sha256": "1" * 64}, "disk": {"sha256": "2" * 64}}
+    availability = {"available": False, "reason": "Falta un modelo Wan del perfil"}
+    result = {"request_id": request_id, "label": "QA sintético guardado", "bytes": 123456,
+              "completed_at": "2026-11-28T00:00:00Z", "model": "wan22-14b-t2v-4step"}
+    calls = {"availability": 0, "results": 0, "video": 0, "submit": []}
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(executable_path=os.environ.get("OPENMONTAGE_TEST_CHROMIUM"))
+        page = browser.new_page()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.route("**/api/health", lambda route: route.fulfill(json={"ok": True, "app": "backlot"}))
+        page.route("**/api/studio/identity", lambda route: route.fulfill(json=identity))
+        page.route("**/api/studio/bootstrap", lambda route: route.fulfill(json={"projects": [{"project_id": pid, "title": "QA T2V fixture"}]}))
+        page.route("**/api/studio/storage", lambda route: route.fulfill(json={"available": True, "active_projects_dir": "fixture", "configured_projects_dir": "fixture"}))
+        page.route("**/api/studio/editor/capabilities", lambda route: route.fulfill(json={"commands": []}))
+        page.route("**/api/studio/editor/projects", lambda route: route.fulfill(json=[{"project_id": pid, "title": "QA T2V fixture"}]))
+        page.route("**/api/studio/comfy-history/projects/**", lambda route: route.fulfill(json={"items": []}))
+        page.route(f"**/api/studio/editor/{pid}", lambda route: route.fulfill(json=state))
+        page.route(f"**/api/studio/editor/{pid}/render", lambda route: route.fulfill(json={"status": "idle"}))
+        page.route(f"**/api/studio/editor/{pid}/source/**", lambda route: route.fulfill(status=204))
+
+        def t2v(route):
+            url = route.request.url.split("?")[0]
+            if url.endswith("/availability"):
+                calls["availability"] += 1
+                route.fulfill(json=availability)
+            elif url.endswith("/results"):
+                calls["results"] += 1
+                route.fulfill(json=[result])
+            elif url.endswith("/video"):
+                calls["video"] += 1
+                route.fulfill(status=204)
+            elif route.request.method == "POST":
+                calls["submit"].append(route.request.post_data_json)
+                route.fulfill(status=500, json={"detail": "generation must not be submitted by this test"})
+            else:
+                route.fulfill(status=404, json={"detail": "unexpected fixture route"})
+
+        page.route(f"**/api/studio/editor/{pid}/text-to-video/**", t2v)
+        page.goto(f"{staged_backlot_server}/studio?project={pid}#video")
+
+        mode = page.locator("#mode-text-to-video")
+        expect(mode).to_be_disabled()
+        expect(page.locator("#text-to-video-status")).to_contain_text("activación")
+        assert calls == {"availability": 0, "results": 0, "video": 0, "submit": []}
+
+        identity["restart_required"] = False
+        page.reload()
+        expect(page.locator("#text-to-video-status")).to_contain_text("Falta un modelo Wan")
+        expect(mode).to_be_disabled()
+        assert calls["availability"] == 1
+        assert calls["results"] == 0 and calls["submit"] == []
+
+        availability.update(available=True, profile="wan22-14b-t2v-4step",
+                            workflow="wan22-t2v-4step.json", required_models=6)
+        page.reload()
+        expect(mode).to_be_enabled()
+        expect(page.locator("#text-to-video-prompt")).to_be_enabled()
+        expect(page.locator("#text-to-video-results")).to_contain_text("QA sintético guardado")
+        expect(page.locator("#media-list .text-video-media")).to_have_count(1)
+        page.locator("#mode-text-to-video").click()
+        expect(page.locator("#text-to-video-form")).to_be_visible()
+        expect(page.locator("#text-to-video-submit")).to_be_enabled()
+
+        page.locator("#text-to-video-results button.quiet-button").first.click()
+        expect(page.locator("#preview-video")).to_have_attribute(
+            "src", f"/api/studio/editor/{pid}/text-to-video/requests/{request_id}/video"
+        )
+        expect(page.locator("#viewer-empty")).to_be_hidden()
+        expect(page.locator("#text-to-video-results button.primary-button")).to_be_enabled()
+        assert calls["availability"] == 2 and calls["results"] == 1 and calls["video"] == 1
+        assert calls["submit"] == [] and not errors
+        browser.close()
