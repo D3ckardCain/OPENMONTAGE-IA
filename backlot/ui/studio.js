@@ -59,6 +59,7 @@ initialize().then(()=>{const initial=location.hash.slice(1);if(names[initial])se
 
 function monitorPercent(value){return Number.isFinite(value)?`${Math.round(value)}`:'—'}
 function monitorGB(value){return Number.isFinite(value)?`${(value/1073741824).toFixed(1)} GB`:'desconocido'}
+function monitorGBCompact(value){return Number.isFinite(value)?String(Math.round(value/1073741824)):'—'}
 function updateMonitorText(id,value){const node=$(`#${id}`);if(node)node.textContent=value}
 async function refreshSystemMonitor(){
   const root=$('#system-monitor');if(!root)return;
@@ -69,7 +70,7 @@ async function refreshSystemMonitor(){
   const gpu=Array.isArray(data.gpus)?data.gpus[0]:null;updateMonitorText('system-gpu-use',monitorPercent(gpu?.usage_percent));updateMonitorText('system-gpu-temp',Number.isFinite(gpu?.temperature_c)?String(Math.round(gpu.temperature_c)):'—');
   const memory=data.memory||{};updateMonitorText('system-memory-use',monitorPercent(memory.usage_percent));
   const memoryNode=$('#system-memory');memoryNode.title=`RAM: ${monitorGB(memory.used_bytes)} usados de ${monitorGB(memory.total_bytes)}`;
-  const disks=Array.isArray(data.disks)?data.disks:[];const diskText=disks.length?disks.map(d=>`${String(d.name||'').replace(/[\\/]+$/,'')||'Disco'} ${monitorPercent(d.usage_percent)}%`).join(' · '):'—';updateMonitorText('system-disks-value',diskText);
+  const disks=Array.isArray(data.disks)?data.disks:[];const diskText=disks.length?disks.map(d=>{const name=String(d.name||'').replace(/[\\/]+$/,'')||'Disco';const total=d.total_bytes,free=d.free_bytes;const used=Number.isFinite(total)&&Number.isFinite(free)?Math.max(0,total-free):null;const percent=Number.isFinite(d.usage_percent)?`${monitorPercent(d.usage_percent)}% · `:'';return Number.isFinite(used)&&Number.isFinite(total)?`${name} ${percent}${monitorGBCompact(used)}/${monitorGBCompact(total)} GB`:`${name} —`}).join(' · '):'—';updateMonitorText('system-disks-value',diskText);
   $('#system-disks').title=disks.length?disks.map(d=>`${d.name}: ${monitorPercent(d.usage_percent)}% ocupado; ${monitorGB(d.free_bytes)} libres de ${monitorGB(d.total_bytes)}`).join(' | '):'No se detectaron volúmenes fijos disponibles';
   $('#system-gpu').title=gpu?`${gpu.name}: uso y temperatura del primer adaptador NVIDIA reportado por nvidia-smi`:'No hay lectura NVIDIA disponible; se muestran guiones';
   $('#system-monitor-status').textContent=`Actualizado ${data.collected_at||'sin fecha'}`;
