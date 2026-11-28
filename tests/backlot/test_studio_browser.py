@@ -1542,7 +1542,7 @@ def test_agent_project_context_and_uncertain_clarification_retry_are_idempotent(
             if path==f'/api/studio/editor/{pid}':route.fulfill(json=editor_state);return
             if path==f'/api/studio/comfy-history/projects/{pid}':route.fulfill(json={'reports':[]});return
             if path==f'/api/studio/projects/{pid}':route.fulfill(json=project);return
-            if path==f'/api/studio/clarifications/{pid}':
+            if path==f'/api/studio/clarifications/{pid}' and method=='GET':
                 route.fulfill(json={'clarifications':list(clarifications),'active':False});return
             if path==f'/api/studio/clarifications/{pid}' and method=='POST':
                 payload=route.request.post_data_json;posts.append(payload)
