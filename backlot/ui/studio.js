@@ -272,3 +272,48 @@ const openEditorBeforeTextVideo=openEditor;
 openEditor=async function(pid){const changed=state.pid!==pid;if(changed){state.selectedSource=null;state.selectedClip=null;state.selectedGeneratedRequestId=null;clearTextVideoPreview()}await openEditorBeforeTextVideo(pid);if(state.pid===pid&&state.edit)await loadTextVideoProject(pid);else{state.textToVideo.available=false;state.textToVideo.results=[];textVideoControls();renderTextVideoResults()}};
 $('#timeline-add')?.addEventListener('click',event=>{if(state.selectedGeneratedRequestId){event.preventDefault();event.stopImmediatePropagation();addGeneratedTextVideo(state.selectedGeneratedRequestId)}},true);
 $('#project-select')?.addEventListener('change',()=>{if(!state.pid){state.textToVideo.epoch++;state.textToVideo.available=false;state.textToVideo.results=[];state.textToVideo.pendingId=null;state.selectedGeneratedRequestId=null;clearTextVideoPreview();textVideoStatus('Selecciona un proyecto para comprobar el flujo local.');textVideoControls();renderTextVideoResults()}});
+
+
+const editorPanelLayoutKey='openmontage.studio.editor-layout.v1';
+let editorPanelLayout={media:.18,inspector:.18,timeline:.32};
+try{const saved=JSON.parse(localStorage.getItem(editorPanelLayoutKey)||'null');if(saved&&typeof saved==='object'){for(const key of ['media','inspector','timeline'])if(Number.isFinite(saved[key]))editorPanelLayout[key]=saved[key]}}catch{}
+function clampLayout(v,min,max){return Math.min(max,Math.max(min,v))}
+function applyEditorPanelLayout(){
+  const root=$('.edit-workbench');if(!root)return;
+  const width=root.clientWidth,height=root.clientHeight;
+  const mediaHandle=$('#resize-media'),inspectorHandle=$('#resize-inspector'),timelineHandle=$('#resize-timeline');
+  const mobile=matchMedia('(max-width:760px)').matches;
+  if(mobile){[mediaHandle,inspectorHandle,timelineHandle].forEach(x=>{if(x)x.hidden=true});root.style.removeProperty('grid-template-columns');root.style.removeProperty('grid-template-rows');return}
+  if(width<480||height<260)return;
+  const gap=parseFloat(getComputedStyle(root).columnGap)||12;
+  const rowGap=parseFloat(getComputedStyle(root).rowGap)||12;
+  const compact=width<=1150;
+  const mediaMin=compact?170:185,inspectorMin=190,monitorMin=compact?300:360;
+  const mediaMax=Math.max(mediaMin,width-monitorMin-gap-(compact?0:inspectorMin+gap));
+  const media=clampLayout(width*clampLayout(editorPanelLayout.media,.12,.36),mediaMin,mediaMax);
+  let inspector=inspectorMin;
+  if(!compact)inspector=clampLayout(width*clampLayout(editorPanelLayout.inspector,.12,.32),inspectorMin,width-media-monitorMin-2*gap);
+  root.style.gridTemplateColumns=compact?media+'px minmax('+monitorMin+'px,1fr)':media+'px minmax('+monitorMin+'px,1fr) '+inspector+'px';
+  const minTimeline=width>=1900?190:160,minTop=width>=1900?310:270;
+  const timeline=clampLayout(height*clampLayout(editorPanelLayout.timeline,.2,.55),minTimeline,Math.max(minTimeline,height-minTop-rowGap));
+  root.style.gridTemplateRows='minmax('+minTop+'px,1fr) '+timeline+'px'+(compact?' minmax(130px,auto)':'');
+  if(mediaHandle){mediaHandle.hidden=false;mediaHandle.style.left=(media+gap/2-6)+'px';mediaHandle.style.height=Math.max(0,height-timeline-rowGap)+'px';mediaHandle.setAttribute('aria-valuenow',String(Math.round(media)))}
+  if(inspectorHandle){inspectorHandle.hidden=compact;inspectorHandle.style.left=(width-inspector-gap/2-6)+'px';inspectorHandle.style.height=Math.max(0,height-timeline-rowGap)+'px';inspectorHandle.setAttribute('aria-valuenow',String(Math.round(inspector)))}
+  if(timelineHandle){timelineHandle.hidden=false;timelineHandle.style.top=(height-timeline-rowGap/2-6)+'px';timelineHandle.setAttribute('aria-valuenow',String(Math.round(timeline)))}
+}
+function persistEditorPanelLayout(){try{localStorage.setItem(editorPanelLayoutKey,JSON.stringify(editorPanelLayout))}catch{}}
+function editPanelLayoutFromPointer(kind,event,rect){
+  const root=$('.edit-workbench'),gap=parseFloat(getComputedStyle(root).columnGap)||12,rowGap=parseFloat(getComputedStyle(root).rowGap)||12;
+  if(kind==='media')editorPanelLayout.media=clampLayout((event.clientX-rect.left-gap/2)/rect.width,.12,.36);
+  else if(kind==='inspector')editorPanelLayout.inspector=clampLayout((rect.right-event.clientX-gap/2)/rect.width,.12,.32);
+  else editorPanelLayout.timeline=clampLayout((rect.bottom-event.clientY-rowGap/2)/rect.height,.2,.55);
+  applyEditorPanelLayout();
+}
+for(const [id,kind] of [['resize-media','media'],['resize-inspector','inspector'],['resize-timeline','timeline']]){
+  const handle=$('#'+id);if(!handle)continue;
+  handle.addEventListener('pointerdown',event=>{if(handle.hidden)return;event.preventDefault();const rect=$('.edit-workbench').getBoundingClientRect();try{handle.setPointerCapture(event.pointerId)}catch{};const move=e=>editPanelLayoutFromPointer(kind,e,rect),finish=()=>{handle.removeEventListener('pointermove',move);persistEditorPanelLayout();applyEditorPanelLayout()};handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',finish,{once:true});handle.addEventListener('pointercancel',finish,{once:true})});
+  handle.addEventListener('keydown',event=>{const step=event.shiftKey?40:12;let delta=0;if(kind==='media'&&['ArrowLeft','ArrowRight'].includes(event.key))delta=event.key==='ArrowRight'?step:-step;else if(kind==='inspector'&&['ArrowLeft','ArrowRight'].includes(event.key))delta=event.key==='ArrowLeft'?step:-step;else if(kind==='timeline'&&['ArrowUp','ArrowDown'].includes(event.key))delta=event.key==='ArrowUp'?step:-step;else return;event.preventDefault();const root=$('.edit-workbench'),rect=root.getBoundingClientRect();if(kind==='media')editorPanelLayout.media=clampLayout((rect.width*editorPanelLayout.media+delta)/rect.width,.12,.36);else if(kind==='inspector')editorPanelLayout.inspector=clampLayout((rect.width*editorPanelLayout.inspector+delta)/rect.width,.12,.32);else editorPanelLayout.timeline=clampLayout((rect.height*editorPanelLayout.timeline+delta)/rect.height,.2,.55);applyEditorPanelLayout();persistEditorPanelLayout()});
+}
+window.addEventListener('resize',()=>requestAnimationFrame(applyEditorPanelLayout));
+$$('.nav-item').forEach(button=>button.addEventListener('click',()=>requestAnimationFrame(applyEditorPanelLayout)));
+applyEditorPanelLayout();
