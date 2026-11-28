@@ -1663,7 +1663,7 @@ def test_agent_memory_can_be_corrected_and_retired_without_cross_project_access(
         assert page.locator('#agent-memory-list script').count()==0
         activity['active']=True
         expect(page.locator('#agent-memory-add')).to_be_disabled(timeout=10000)
-        expect(page.locator('#agent-memory-list .agent-memory-item').last.get_by_role('button',name='Retirar del índice')).to_be_disabled()
+        expect(page.locator('#agent-memory-save')).to_be_disabled()
         expect(page.locator('#agent-memory-status')).to_contain_text('solo lectura')
         assert [post['operation'] for post in posts]==['remember','forget']
         browser.close()
