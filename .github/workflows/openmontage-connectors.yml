@@ -58,7 +58,7 @@ jobs:
         run: python -m pytest tests/tools/test_reference_analysis.py tests/tools/test_producer_reference_action.py tests/tools/test_comfy_job_records.py tests/tools/test_i2v_image_transfer.py tests/tools/test_agent_source_image.py tests/tools/test_production_input_image.py tests/tools/test_comfy_history_report.py tests/tools/test_comfy_history_routes.py -q
 
   browser-regressions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
