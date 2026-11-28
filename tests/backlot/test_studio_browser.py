@@ -1515,3 +1515,60 @@ def test_wan_text_to_video_receipt_preview_and_add_use_project_scoped_api(staged
         expect(page.locator('#edit-revision')).to_have_text('Revisión 1')
         assert added==[{'revision':0}]
         browser.close()
+
+def test_agent_project_context_and_uncertain_clarification_retry_are_idempotent(staged_backlot_server):
+    """Synthetic browser transport; one lost response must not duplicate a note."""
+    import json
+    from pathlib import Path
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    pid=fixture['project_id'];editor_state=fixture['state'];clarifications=[];posts=[]
+    request={'title':'QA context fixture','brief':'No cortar la negación <script>alert(1)</script>.','language':'es','pipeline':'fixture'}
+    project={'request':request,'job':{'status':'ready','events':[]},'stages':[],
+             'active':False,'production_pipeline_available':True}
+    identity={'schema_version':1,'api_protocol':1,'restart_required':False,
+              'resident':{'sha256':'a'*64},'disk':{'sha256':'a'*64}}
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.on('pageerror',lambda error:pytest.fail(f'JavaScript error: {error}'))
+        def api(route):
+            path=route.request.url.split('?',1)[0];method=route.request.method
+            if path.endswith('/api/health'):route.fulfill(json={'ok':True,'app':'backlot'});return
+            if path.endswith('/api/studio/identity'):route.fulfill(json=identity);return
+            if path.endswith('/api/studio/bootstrap'):route.fulfill(json={'projects':[{'project_id':pid,'title':request['title']}],'settings':{}});return
+            if path.endswith('/api/studio/storage'):route.fulfill(json={'active_projects_dir':'/fixture','configured_projects_dir':'/fixture','available':True});return
+            if path.endswith('/api/studio/editor/capabilities'):route.fulfill(json={'commands':[]});return
+            if path.endswith('/api/studio/editor/projects'):route.fulfill(json=[{'project_id':pid,'title':request['title']}]);return
+            if path==f'/api/studio/editor/{pid}':route.fulfill(json=editor_state);return
+            if path==f'/api/studio/comfy-history/projects/{pid}':route.fulfill(json={'reports':[]});return
+            if path==f'/api/studio/projects/{pid}':route.fulfill(json=project);return
+            if path==f'/api/studio/clarifications/{pid}':
+                route.fulfill(json={'clarifications':list(clarifications),'active':False});return
+            if path==f'/api/studio/clarifications/{pid}' and method=='POST':
+                payload=route.request.post_data_json;posts.append(payload)
+                existing=next((item for item in clarifications if item['request_id']==payload['request_id']),None)
+                if not posts[:-1]:
+                    clarifications.append({'request_id':payload['request_id'],'message':payload['message'],'at':'2026-11-28T12:00:00Z'})
+                    route.fulfill(status=503,json={'detail':'Respuesta perdida después de guardar'});return
+                if existing is None:clarifications.append({'request_id':payload['request_id'],'message':payload['message'],'at':'2026-11-28T12:01:00Z'})
+                route.fulfill(json={'saved':True,'duplicate':existing is not None});return
+            route.fulfill(status=404,json={'detail':'No fixture for '+method+' '+path})
+        page.route('**/api/**',api)
+        page.goto(staged_backlot_server+f'/studio?project={pid}#video')
+        page.locator('#agent-toggle').click()
+        expect(page.locator('#agent-request')).to_contain_text('QA context fixture')
+        expect(page.locator('#agent-request')).to_contain_text(request['brief'])
+        assert page.locator('#agent-request script').count()==0
+        field=page.locator('#agent-clarification-text')
+        field.fill(request['brief'])
+        page.locator('#agent-clarification-form button[type=submit]').click()
+        expect(page.locator('#agent-clarification-status')).to_contain_text('Respuesta no confirmada')
+        field.fill(request['brief'])
+        page.locator('#agent-clarification-form button[type=submit]').click()
+        expect(page.locator('.agent-clarification')).to_have_count(1)
+        expect(page.locator('#agent-clarifications')).to_contain_text(request['brief'])
+        assert len(posts)==2 and posts[0]['request_id']==posts[1]['request_id']
+        assert posts[0]['message']==posts[1]['message']==request['brief']
+        assert page.locator('#agent-clarifications script').count()==0
+        browser.close()
+
