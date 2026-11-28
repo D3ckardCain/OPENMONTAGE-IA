@@ -222,6 +222,24 @@ def test_recent_matching_views_can_out_rank_lifetime_channel_views():
     assert result['order']==['matching_publication_views_sum_desc','subscriberCount_public_rounded_desc']
 
 
+def test_channel_ordering_supports_metrics_directions_and_unknown_last():
+    from tools.research.youtube_channels import sort_channels
+    rows=[
+        {'id':'a','title':'Zulu','viewCount':500,'subscriberCount_public_rounded':100,'videoCount':5,
+         'content_review':{'matching_publication_views_sum':1000,'matched':2,'latest_matching_publication':'2026-01-02T00:00:00Z'}},
+        {'id':'b','title':'Alfa','viewCount':100,'subscriberCount_public_rounded':300,'videoCount':20,
+         'content_review':{'matching_publication_views_sum':2000,'matched':1,'latest_matching_publication':'2026-01-03T00:00:00Z'}},
+        {'id':'c','title':'Media','viewCount':200,'subscriberCount_public_rounded':None,'videoCount':None,
+         'content_review':{'matching_publication_views_sum':None,'matched':None,'latest_matching_publication':None}},
+    ]
+    sort_channels(rows,'subscriber_count','desc'); assert [r['id'] for r in rows]==['b','a','c']
+    sort_channels(rows,'video_count','asc'); assert [r['id'] for r in rows]==['a','b','c']
+    sort_channels(rows,'title','asc'); assert [r['id'] for r in rows]==['b','c','a']
+    sort_channels(rows,'matching_publications','desc'); assert [r['id'] for r in rows]==['a','b','c']
+    sort_channels(rows,'latest_matching_publication','desc'); assert [r['id'] for r in rows]==['b','a','c']
+    sort_channels(rows,'channel_views','asc'); assert [r['id'] for r in rows]==['b','c','a']
+
+
 def test_unknown_matching_views_do_not_become_zero_or_partial_sum():
     missing=video('aaaaaaaaaaa');missing['statistics']={}
     api=API([channel(A,1000,999),channel(B,100,1)],{
@@ -231,7 +249,9 @@ def test_unknown_matching_views_do_not_become_zero_or_partial_sum():
     assert result['results'][1]['content_review']['matching_publication_views_sum'] is None
 
 
-@pytest.mark.parametrize('filters',[{'sort_by':'rpm'},{'sort_by':'matching_publication_views'}])
+@pytest.mark.parametrize('filters',[{'sort_by':'rpm'},{'sort_by':'matching_publication_views'},
+    {'sort_by':'matching_publications'},{'sort_by':'latest_matching_publication'},
+    {'sort_by':'subscriber_count','sort_direction':'sideways'}])
 def test_invalid_or_undated_recent_order_rejected_before_network(filters):
     api=API([])
     with pytest.raises(Unavailable):search(api,**filters)

@@ -50,6 +50,8 @@ def test_studio_restores_historical_channel_filters_and_payload(staged_backlot_s
         page.locator('[name="max_views"]').fill("500000")
         page.locator('[name="language"]').select_option("es")
         page.locator('[name="country"]').fill("mx")
+        page.locator('[name="sort_by"]').select_option("subscriber_count")
+        page.locator('[name="sort_direction"]').select_option("asc")
         page.locator("#channel-filter-form button[type=submit]").click()
         page.locator("#channel-query").fill("fútbol femenino")
         with page.expect_response(
@@ -66,7 +68,8 @@ def test_studio_restores_historical_channel_filters_and_payload(staged_backlot_s
                 "sample_size": 5,
                 "published_within": "month",
                 "discovery_mode": "recent_publications",
-                "sort_by": "matching_publication_views",
+                "sort_by": "subscriber_count",
+                "sort_direction": "asc",
                 "content_type": "any",
                 "min_matching_publications": 2,
                 "min_views": 1000,

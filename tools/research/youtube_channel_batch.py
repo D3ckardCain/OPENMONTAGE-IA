@@ -63,11 +63,11 @@ class YouTubeChannelBatch(YouTubeChannelSearch):
         except Exception:
             failure={'code':'UNKNOWN_ERROR','message':'El lote se detuvo por un fallo de consulta. No se reintenta automáticamente.','retryable':False}
         result=list(rows.values())
-        sort_channels(result,filters.sort_by)
+        sort_channels(result,filters.sort_by,filters.sort_direction)
         pending=queries[len(completed):]
         data={'result_type':'channels','source':'YouTube Data API',
             'started_at_utc':started,'retrieved_at_utc':datetime.now(timezone.utc).isoformat(),
-            'results':result,'order':channel_order(filters.sort_by),
+            'results':result,'order':channel_order(filters.sort_by,filters.sort_direction),
             'queries':queries,'completed_queries':completed,'pending_queries':pending,
             'failed_query':failed_query,'complete':failure is None,'partial':bool(completed) and failure is not None,
             'stale_fallback':False,'requests':requests,'max_requests':limit,

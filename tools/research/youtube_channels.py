@@ -31,6 +31,7 @@ class ChannelFilters:
     min_matching_publications: int = 1
     sample_size: int = 10
     sort_by: str = 'channel_views'
+    sort_direction: str = 'desc'
     discovery_mode: str = 'channels'
 
     @property
@@ -65,27 +66,66 @@ class ChannelFilters:
             raise Unavailable('Modo de descubrimiento inválido')
         if self.discovery_mode == 'recent_publications' and self.published_within == 'any':
             raise Unavailable('Selecciona un periodo para descubrir canales por publicaciones recientes')
-        if self.sort_by not in {'channel_views','matching_publication_views'}:
+        if self.sort_by not in {'channel_views','matching_publication_views','subscriber_count','video_count','matching_publications','latest_matching_publication','title'}:
             raise Unavailable('Orden inválido')
-        if self.sort_by == 'matching_publication_views' and self.published_within == 'any':
+        if self.sort_by in {'matching_publication_views','matching_publications','latest_matching_publication'} and self.published_within == 'any':
             raise Unavailable('Selecciona un periodo de publicaciones para ordenar por coincidencias recientes')
         if self.published_within not in {'any','hour','day','week','month','year'}:
             raise Unavailable('Periodo inválido')
 
 
-def channel_order(sort_by):
-    primary = 'matching_publication_views_sum' if sort_by == 'matching_publication_views' else 'viewCount'
-    return [primary+'_desc','subscriberCount_public_rounded_desc']
+def channel_order(sort_by, sort_direction='desc'):
+    primary = {
+        'channel_views':'viewCount',
+        'matching_publication_views':'matching_publication_views_sum',
+        'subscriber_count':'subscriberCount_public_rounded',
+        'video_count':'videoCount',
+        'matching_publications':'matching_publications_count',
+        'latest_matching_publication':'latest_matching_publication',
+        'title':'title',
+    }[sort_by]
+    order=[primary+'_'+sort_direction]
+    if sort_by in {'channel_views','matching_publication_views'}:
+        return order+['subscriberCount_public_rounded_desc']
+    else:
+        order.extend(['subscriberCount_public_rounded_desc','viewCount_desc'])
+    order.append('id_asc')
+    return order
 
 
-def sort_channels(rows, sort_by):
-    def key(row):
-        views = ((row.get('content_review') or {}).get('matching_publication_views_sum')
-                 if sort_by == 'matching_publication_views' else row['viewCount'])
-        subs = row['subscriberCount_public_rounded']
-        return (views is None, -views if views is not None else 0,
-                -subs if subs is not None else 1, row['id'])
-    rows.sort(key=key)
+def sort_channels(rows, sort_by, sort_direction='desc'):
+    import calendar
+    allowed={'channel_views','matching_publication_views','subscriber_count',
+             'video_count','matching_publications','latest_matching_publication','title'}
+    if sort_by not in allowed or sort_direction not in {'asc','desc'}:
+        raise Unavailable('Invalid sort')
+    def value(row):
+        review=row.get('content_review') or {}
+        if sort_by=='channel_views': return row.get('viewCount')
+        if sort_by=='matching_publication_views': return review.get('matching_publication_views_sum')
+        if sort_by=='subscriber_count': return row.get('subscriberCount_public_rounded')
+        if sort_by=='video_count': return row.get('videoCount')
+        if sort_by=='matching_publications': return review.get('matched')
+        if sort_by=='latest_matching_publication':
+            raw=review.get('latest_matching_publication')
+            try:
+                parsed=datetime.fromisoformat(raw.replace('Z','+00:00')) if isinstance(raw,str) else None
+                return calendar.timegm(parsed.utctimetuple())+parsed.microsecond/1_000_000 if parsed and parsed.utcoffset() is not None else None
+            except (ValueError,TypeError,AttributeError):
+                return None
+        title=row.get('title')
+        return title.casefold() if isinstance(title,str) and title else None
+    def tie_key(row):
+        subs=row.get('subscriberCount_public_rounded')
+        views=row.get('viewCount')
+        if sort_by in {'channel_views','matching_publication_views'}:
+            return (subs is None,-(subs or 0),row.get('id',''))
+        return (subs is None,-(subs or 0),views is None,-(views or 0),row.get('id',''))
+    rows.sort(key=tie_key)
+    present=[row for row in rows if value(row) is not None]
+    missing=[row for row in rows if value(row) is None]
+    present.sort(key=value,reverse=sort_direction=='desc')
+    rows[:]=present+missing
 
 
 def sample_analysis(videos,requested):
@@ -256,15 +296,15 @@ class ChannelSearch(YouTube):
         else:
             for row in rows:
                 row.pop('uploads_playlist',None)
-        sort_channels(rows,filters.sort_by)
+        sort_channels(rows,filters.sort_by,filters.sort_direction)
         return dict(source='YouTube Data API',retrieved_at_utc=datetime.now(timezone.utc).isoformat(),
-            result_type='channels',order=channel_order(filters.sort_by),
+            result_type='channels',order=channel_order(filters.sort_by,filters.sort_direction),
             scope=dict(query=query.strip(),lookup_mode=identity_kind,candidate_discovery=discovery,
                        pages_requested=pages,pages_applicable=identity_kind=='keywords',search_pages_exhausted=exhausted,
                        candidate_channels=len(ids),global_coverage=False,
                        content_filter_scope='recent_upload_sample' if filters.inspect_uploads else 'not_requested'),
             filters=asdict(filters),results=rows,excluded=excluded,requests=dict(self.calls),
-            notes=['Orden seleccionado: '+filters.sort_by+'; suscriptores como segundo criterio.',
+            notes=['Orden seleccionado: '+filters.sort_by+' '+filters.sort_direction+'; los datos ausentes en el criterio quedan al final.',
                    'La suma de vistas de publicaciones coincidentes corresponde solo a la muestra, no a vistas ganadas por el canal durante el periodo.',
                    'La antigüedad se mide desde la creación del canal, no desde su primer video ni un cambio de propietario.',
                    'La fecha de publicación no mide vistas ganadas dentro del periodo por un canal antiguo.',
