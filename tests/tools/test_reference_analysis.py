@@ -25,7 +25,7 @@ def test_upload_does_not_analyze_and_reports_are_project_scoped(project):
     with TestClient(create_app(),base_url='http://127.0.0.1:4750') as client:
         base='/api/studio/reference-video/one'
         assert client.post(base+'/upload',content=b'uploaded-test-bytes').json()['analysis_started'] is False
-        assert (project/'reference_video.mp4').read_bytes()==b'uploaded-test-bytes'
+        assert (project/'originales'/'referencias'/'reference_video.mp4').read_bytes()==b'uploaded-test-bytes'
         assert client.get(base).json()['status']=='not_started'
         assert client.get('/api/studio/reference-video/absent').status_code==404
         assert client.post(base+'/upload',content=b'').status_code==400
@@ -36,7 +36,7 @@ def test_active_analysis_blocks_source_replacement(project):
     analysis.ACTIVE.add('one')
     with TestClient(create_app(),base_url='http://127.0.0.1:4750') as client:
         assert client.post('/api/studio/reference-video/one/upload',content=b'x').status_code==409
-    assert not (project/'reference_video.mp4').exists()
+    assert not (project/'originales'/'referencias'/'reference_video.mp4').exists()
 
 
 def test_analysis_options_fail_before_starting_work(project):
