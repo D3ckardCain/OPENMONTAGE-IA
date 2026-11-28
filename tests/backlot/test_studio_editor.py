@@ -23,7 +23,8 @@ def project(tmp_path, monkeypatch):
     monkeypatch.setattr(edit, 'probe', lambda path: {'duration': 10., 'kind': 'video', 'audio': True, 'width': 640, 'height': 360})
     pid = edit.create('Montaje offline')['project_id']
     path = studio.project_path(pid) / 'assets/source.mp4'
-    path.parent.mkdir(parents=True)
+    # Manual project creation initializes the standard assets/ folders.
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(b'not-media: mocked probe, no AV fixture')
     value = edit.register(pid, 'assets/source.mp4', 0)
     key = next(iter(value['edit_decisions']['sources']))
