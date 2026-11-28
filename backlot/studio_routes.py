@@ -4,6 +4,7 @@ import json
 import hmac
 import ipaddress
 import secrets
+import re
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request, Query
@@ -352,18 +353,37 @@ def create_studio_router():
         data=await body(request)
         if set(data)!={'reason'}:raise HTTPException(400,'Indica solo reason')
         return invoke(agent.request_revision,pid,data['reason'])
+    @router.get('/api/studio/clarifications/{pid}')
+    def clarifications(pid:str):
+        p=invoke(studio.project_path,pid)
+        with agent.ACTIVE_LOCK:
+            values=studio.read_json(p/'user_clarifications.json',[])
+            if not isinstance(values,list):values=[]
+            return {'clarifications':values[-30:],'active':pid in agent.ACTIVE}
     @router.post('/api/studio/clarifications/{pid}')
     async def clarify(pid:str,request:Request):
         data=await body(request)
+        if set(data)-{'message','request_id'}:raise HTTPException(400,'Campos de aclaración desconocidos')
         text=data.get('message')
         if not isinstance(text,str) or not 1<=len(text.strip())<=12000:raise HTTPException(400,'Escribe la aclaración')
+        request_id=data.get('request_id')
+        if request_id is not None and (not isinstance(request_id,str) or not re.fullmatch(r'[a-f0-9]{32}',request_id)):
+            raise HTTPException(400,'Identificador de aclaración inválido')
         p=invoke(studio.project_path,pid)
         with agent.ACTIVE_LOCK:
-            if pid in agent.ACTIVE:raise HTTPException(409,'Detén los agentes antes de añadir instrucciones')
             values=studio.read_json(p/'user_clarifications.json',[])
-            values.append({'at':studio.now(),'message':text})
+            if not isinstance(values,list):values=[]
+            if request_id:
+                existing=next((item for item in values if isinstance(item,dict) and item.get('request_id')==request_id),None)
+                if existing:
+                    if existing.get('message')!=text:raise HTTPException(409,'El identificador ya pertenece a otra aclaración')
+                    return {'saved':True,'duplicate':True,'clarification':existing}
+            if pid in agent.ACTIVE:raise HTTPException(409,'Detén los agentes antes de añadir instrucciones')
+            item={'at':studio.now(),'message':text}
+            if request_id:item['request_id']=request_id
+            values.append(item)
             studio.save_json(p/'user_clarifications.json',values[-30:])
-        return {'saved':True}
+        return {'saved':True,'duplicate':False,'clarification':item}
     @router.get('/api/studio/download-plan')
     def pending_download_plan():
         from lib.download_plan import plan
