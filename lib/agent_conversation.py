@@ -106,6 +106,9 @@ class Conversation:
             raise Pause('blocked', 'AGENT_CONTEXT_VERSION_CHANGED: la versión de compactación cambió; conserva y revisa los archivos originales antes de reanudar.')
         self._verify_context_archives()
         self.state.setdefault('context_compaction_version', 1)
+        # A missing boundary in older sessions is conservative: preserve receipts until
+        # a successful model response proves it has consumed them.
+        self.state.setdefault('model_consumed_message_count', 0)
         self.state.setdefault('tool_call_history', [])
         for attempt in self.state.get('model_attempts', []):
             if attempt.get('status') == 'running':
@@ -178,12 +181,15 @@ class Conversation:
             except (OSError, ValueError) as exc:
                 raise Pause('blocked', f'AGENT_CONTEXT_ARCHIVE_CHANGED: {name}; {exc}. El original no se sobrescribió.') from exc
 
-    def compact_completed_context(self):
-        """Archive bulky old tool receipts only at a completed call-batch boundary."""
+    def compact_completed_context(self, *, consumed_message_count):
+        """Archive receipts only after a later successful model call consumed them."""
         state = self.state
         if state.get('in_flight') is not None or state.get('next_call', 0) < len(state.get('pending', [])):
             return {'compacted': 0, 'reason': 'batch_incomplete'}
         messages = state.get('messages', [])
+        if type(consumed_message_count) is not int:
+            consumed_message_count = 0
+        consumed_message_count = max(0, min(consumed_message_count, len(messages)))
         original_size = len(json.dumps(messages, ensure_ascii=False, default=str))
         if original_size <= CONTEXT_COMPACT_CHARS:
             return {'compacted': 0, 'reason': 'under_threshold', 'characters': original_size}
@@ -199,15 +205,26 @@ class Conversation:
             self.agent.event('context_compaction_failed', 'Could not prepare receipt archive', error=str(exc)[:300])
             return {'compacted': 0, 'reason': 'archive_unavailable'}
 
+        call_positions = {}
+        for index, item in enumerate(messages):
+            if item.get('role') != 'assistant':
+                continue
+            for call in item.get('tool_calls', []) if isinstance(item.get('tool_calls'), list) else []:
+                call_id = call.get('id') if isinstance(call, dict) else None
+                if isinstance(call_id, str) and call_id:
+                    call_positions.setdefault(call_id, index)
+
         compacted = 0
-        for message in messages:
-            if message.get('role') != 'tool':
+        for message_index, message in enumerate(messages):
+            if message_index >= consumed_message_count or message.get('role') != 'tool':
+                continue
+            call_id = message.get('tool_call_id')
+            if not isinstance(call_id, str) or call_positions.get(call_id, message_index) >= message_index:
                 continue
             content = message.get('content', '')
             if not isinstance(content, str) or not content:
                 continue
             content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
-            call_id = message.get('tool_call_id')
             archive_id = hashlib.sha256(f'{call_id or "no-call-id"}:{content_hash}'.encode('utf-8')).hexdigest()
             archive_name = f'agent_receipt_{archive_id}'
             target = archive_dir / f'{archive_name}.json'
@@ -335,13 +352,15 @@ class Conversation:
                 s['messages'][0] = self.refresh[0]
                 s['messages'].extend(self.refresh[1:])
                 self.refresh = None
-            self.compact_completed_context()
+            self.compact_completed_context(
+                consumed_message_count=s.get('model_consumed_message_count', 0))
             if sum(len(json.dumps(m, ensure_ascii=False)) for m in s['messages']) > 450000:
                 raise Pause('blocked', 'Límite de contexto en caracteres; sesión y recibos archivados se conservan. No es un conteo de tokens.')
             attempt = {'status': 'running', 'started_at': studio.now()}
             s.setdefault('model_attempts', []).append(attempt)
             s['model_attempts'] = s['model_attempts'][-100:]
             self.save()
+            message_count_before_chat = len(s['messages'])
             try:
                 message = a.chat(s['messages'], self.tools, **self.chat_options)
                 if a.cancel.is_set():
@@ -365,6 +384,8 @@ class Conversation:
                 if metrics:
                     a.event('model_usage', 'Uso informado por Ollama: ' + ' · '.join(metrics),
                             ollama_usage=usage)
+            s['model_consumed_message_count'] = message_count_before_chat
+            self.save()
             calls = message.get('tool_calls', [])
             if not isinstance(calls, list) or len(calls) > 16 or any(
                     not isinstance(c, dict) or not isinstance(c.get('function'), dict) for c in calls):
