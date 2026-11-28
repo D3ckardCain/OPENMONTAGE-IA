@@ -51,7 +51,7 @@ function renderAgentActivity(projectState={}){
 let agentActivityTimer=null,agentActivityRequest=0;
 function stopAgentActivityPolling(){if(agentActivityTimer){clearInterval(agentActivityTimer);agentActivityTimer=null}agentActivityRequest++}
 function startAgentActivityPolling(){stopAgentActivityPolling();if($('#agent-drawer').hidden)return;agentActivityTimer=setInterval(()=>{if(!document.hidden&&!$('#agent-drawer').hidden)loadAgentActivity()},5000)}
-let agentMemorySnapshotPid=null;
+let agentMemorySnapshotPid=null,agentMemoryRequest=0;
 function memoryKindLabel(kind){return kind==='explicit_preference'?'Preferencia explícita':kind==='creative_decision'?'Decisión creativa':String(kind||'Memoria')}
 function renderAgentMemory(data){
   const root=$('#agent-memory-list'),status=$('#agent-memory-status');if(!root||!status)return;root.replaceChildren();
@@ -84,11 +84,12 @@ function openAgentMemoryForm(entry=null){
   $('#agent-memory-text').focus()
 }
 function closeAgentMemoryForm(){const form=$('#agent-memory-form');if(!form)return;form.hidden=true;form.reset();delete form.dataset.supersedesId}
-async function loadAgentMemory(pid=state.pid,activityRequest=agentActivityRequest){
-  const status=$('#agent-memory-status');if(!pid){agentMemorySnapshotPid=null;if(status)status.textContent='Elige un proyecto para consultar su memoria.';return}
+async function loadAgentMemory(pid=state.pid){
+  const status=$('#agent-memory-status'),requestId=++agentMemoryRequest;
+  if(!pid){agentMemorySnapshotPid=null;$('#agent-memory-list')?.replaceChildren();if(status)status.textContent='Elige un proyecto para consultar su memoria.';return}
   if(agentMemorySnapshotPid!==pid){$('#agent-memory-list')?.replaceChildren();closeAgentMemoryForm()}
   status.textContent='Leyendo memoria local del proyecto…';const data=await tryApi('/api/studio/projects/'+encodeURIComponent(pid)+'/memory');
-  if(activityRequest!==agentActivityRequest||pid!==state.pid)return;
+  if(requestId!==agentMemoryRequest||pid!==state.pid)return;
   if(data.__error){status.textContent='No se pudo consultar la memoria local; no se envió ningún cambio.';return}
   agentMemorySnapshotPid=pid;renderAgentMemory(data)
 }
@@ -98,7 +99,7 @@ async function changeAgentMemory(payload){
   status.textContent=payload.operation==='forget'?'Retirando del índice local…':'Guardando nueva versión en el proyecto…';let confirmed=false;
   try{await req('/api/studio/projects/'+encodeURIComponent(pid)+'/memory',{method:'POST',body:payload});confirmed=true;status.textContent=payload.operation==='forget'?'Entrada retirada del índice; recibo conservado.':'Nueva versión guardada con procedencia.'}
   catch(error){status.textContent='Respuesta incierta; se consultará la memoria antes de considerar otro intento.'}
-  await loadAgentMemory(pid,agentActivityRequest);return confirmed
+  await loadAgentMemory(pid);return confirmed
 }
 async function submitAgentMemory(event){
   event.preventDefault();const form=$('#agent-memory-form'),text=$('#agent-memory-text').value.trim(),source=$('#agent-memory-source').value.trim();
@@ -121,7 +122,7 @@ async function loadAgentActivity(){
     if(!hasCurrentSnapshot)root.textContent='Actividad no disponible; se reintentará automáticamente.';
     return;
   }
-  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data);await loadAgentClarifications(pid,requestId,data.active===true);if(agentMemorySnapshotPid!==pid)await loadAgentMemory(pid,requestId)
+  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data);await loadAgentClarifications(pid,requestId,data.active===true);if(agentMemorySnapshotPid!==pid)await loadAgentMemory(pid)
 }
 async function loadAgentClarifications(pid,activityRequest,active){
   const host=$('#agent-clarifications');if(!host)return;
@@ -149,7 +150,7 @@ async function submitAgentClarification(event){
 $('#agent-clarification-form')?.addEventListener('submit',submitAgentClarification);
 $('#agent-memory-form')?.addEventListener('submit',submitAgentMemory);
 $('#agent-memory-add')?.addEventListener('click',()=>openAgentMemoryForm());
-$('#agent-memory-refresh')?.addEventListener('click',()=>loadAgentMemory(state.pid,agentActivityRequest));
+$('#agent-memory-refresh')?.addEventListener('click',()=>loadAgentMemory(state.pid));
 $('#agent-memory-cancel')?.addEventListener('click',closeAgentMemoryForm);
 let agentActionPending=false;
 async function runAgentAction(action){if(agentActionPending)return;const result=$('#agent-action-result'),buttons=[$('#agent-start'),$('#agent-stop'),$('#agent-approve')];if(!state.pid||state.identity?.restart_required!==false){result.textContent='Acción no disponible: activa y verifica el backend compatible.';return}agentActionPending=true;buttons.forEach(button=>button.disabled=true);result.textContent='Enviando acción…';try{const response=await req(`/api/studio/projects/${encodeURIComponent(state.pid)}/${action}`,{method:'POST',body:{}});result.textContent=action==='stop'?(response.requested?'Detención solicitada; el cierre del proceso aún no está confirmado.':'No hay agente activo que detener.') :action==='approve'?'Aprobación registrada; se solicitó continuar la siguiente etapa.':'Inicio solicitado; revisa el estado del agente.';await loadAgentActivity()}catch(error){result.textContent='La acción no se confirmó: '+error.message}finally{agentActionPending=false;buttons.forEach(button=>button.disabled=false)}}
