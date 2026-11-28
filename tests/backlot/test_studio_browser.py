@@ -1851,7 +1851,7 @@ def test_t2v_availability_identity_and_saved_receipt_recovery(staged_backlot_ser
             f"/api/studio/editor/{pid}/text-to-video/requests/{request_id}/video",
         )
         assert video_status == 204
-        assert calls["availability"] == 2 and calls["results"] == 1 and calls["video"] == 1
+        assert calls["availability"] == 2 and calls["results"] == 1 and calls["video"] == 2
         assert calls["submit"] == [] and not errors
         browser.close()
 
