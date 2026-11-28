@@ -41,7 +41,7 @@ def test_measures_pixel_bbox_with_temporary_ass_and_persists_nothing(monkeypatch
 
 
 def test_outside_bbox_is_reported_without_changing_edl(monkeypatch):
-    source=edl();before=deepcopy(source);frame=bytearray(160*90);frame[5*160+5]=255
+    source=edl();before=deepcopy(source);frame=bytearray(160*128);frame[5*160+5]=255
     monkeypatch.setattr(glyphs,'require_media',lambda name:'/local/ffmpeg')
     monkeypatch.setattr(glyphs.subprocess,'run',lambda *a,**k:type('Result',(),{
         'returncode':0,'stdout':bytes(frame),'stderr':b''})())
