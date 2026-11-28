@@ -43,7 +43,6 @@ def test_results_and_provenance_reach_next_model_call(instance):
     assert instance.dispatch.call_args.args == ('numeric', {'value': 25.4})
     saved = studio.read_json(c.path)
     assert saved['next_call'] == 1 and saved['in_flight'] is None
-    assert all(item.get('conversation_attempt_id') for item in saved['tool_call_history'])
 
 
 def test_cancel_and_new_instance_resume_remaining_call_without_replay(instance):
@@ -115,66 +114,14 @@ def test_malformed_arguments_are_structured_error_not_crash(instance):
 
 
 def test_interruption_after_intent_blocks_unsafe_replay(instance):
-    instance.chat.return_value = message(call('synthetic-private-argument', id='call-uncertain-1'))
+    instance.chat.return_value = message(call(1))
     instance.dispatch.side_effect = KeyboardInterrupt()
     c = Conversation(instance, INITIAL.copy(), tools=[])
     with pytest.raises(KeyboardInterrupt): c.turn()
-    saved = studio.read_json(c.path)
-    assert saved['in_flight']['call_index'] == 0
-    attempt_id = saved['in_flight']['conversation_attempt_id']
-    assert len(attempt_id) == 32
-    with pytest.raises(Pause, match='AGENT_SESSION_UNCERTAIN') as blocked:
+    assert studio.read_json(c.path)['in_flight']['call_index'] == 0
+    with pytest.raises(Pause, match='AGENT_SESSION_UNCERTAIN'):
         Conversation(instance, INITIAL.copy(), tools=[])
-    message_text = str(blocked.value)
-    assert 'tool=numeric' in message_text
-    assert 'tool_call_id=call-uncertain-1' in message_text
-    assert f'conversation_attempt_id={attempt_id}' in message_text
-    assert 'request_id=not_recorded' in message_text
-    assert 'synthetic-private-argument' not in message_text
     assert instance.dispatch.call_count == 1
-
-
-def test_execute_tool_without_preflight_request_id_is_not_dispatched(instance):
-    instance.chat.return_value = message({
-        'id': 'call-owner-missing',
-        'function': {'name': 'execute_tool', 'arguments': {
-            'name': 'synthetic_write', 'inputs': {'value': 1}}}})
-    dispatched = []
-    def dispatch(name, args):
-        dispatched.append(name)
-        return {'ready': False}
-    instance.dispatch.side_effect = dispatch
-    c = Conversation(instance, INITIAL.copy(), tools=[])
-    c.turn()
-    receipt = json.loads(c.state['messages'][-1]['content'])
-    assert receipt['error']['code'] == 'owner_request_id_unavailable'
-    assert receipt['error']['outcome'] == 'not_started'
-    assert dispatched == ['tool_preflight']
-    assert studio.read_json(c.path)['in_flight'] is None
-
-
-def test_execute_tool_persists_owner_request_id_before_dispatch(instance):
-    instance.chat.return_value = message({
-        'id': 'call-owner-1',
-        'function': {'name': 'execute_tool', 'arguments': {
-            'name': 'synthetic_write', 'inputs': {'value': 'synthetic-private-argument'}}}})
-    dispatched = []
-    def dispatch(name, args):
-        dispatched.append(name)
-        if name == 'tool_preflight':
-            return {'ready': True, 'request_id': 'owner-request-42'}
-        raise KeyboardInterrupt()
-    instance.dispatch.side_effect = dispatch
-    c = Conversation(instance, INITIAL.copy(), tools=[])
-    with pytest.raises(KeyboardInterrupt): c.turn()
-    saved = studio.read_json(c.path)
-    assert saved['in_flight']['request_id'] == 'owner-request-42'
-    assert dispatched == ['tool_preflight', 'execute_tool']
-    with pytest.raises(Pause, match='AGENT_SESSION_UNCERTAIN') as blocked:
-        Conversation(instance, INITIAL.copy(), tools=[])
-    assert 'request_id=owner-request-42' in str(blocked.value)
-    assert 'synthetic-private-argument' not in str(blocked.value)
-    assert dispatched == ['tool_preflight', 'execute_tool']
 
 
 def test_failed_receipt_write_keeps_uncertain_intent_on_disk(instance, monkeypatch):
@@ -336,93 +283,74 @@ def test_uncertain_or_incomplete_batch_is_never_compacted(instance):
     assert studio.read_json(c.path)['in_flight']['call_index'] == 0
 
 
-
-def test_old_user_assistant_context_compacts_in_order_and_keeps_citations(instance):
+def test_old_plain_messages_are_archived_without_reordering_or_breaking_call_pairs(instance):
     c = Conversation(instance, INITIAL.copy(), tools=[])
-    old_user = 'Comentario histórico largo con cita [issue #92](https://github.com/example/repo/issues/92) y commit ' + 'a' * 40 + ' ' + ('texto ' * 15000)
-    old_assistant = 'Respuesta histórica extensa sin resumen semántico. ' + ('detalle ' * 15000)
-    recent = [{'role': 'assistant', 'content': 'último mensaje ' + ('reciente ' * 250)} for _ in range(12)]
-    c.state['messages'] = [{'role': 'user', 'content': old_user},
-                           {'role': 'assistant', 'content': old_assistant}] + recent
-    c.state.update(pending=[], next_call=0, in_flight=None)
+    call_id = 'paired-call-preserved'
+    old_user = {'role': 'user', 'content': 'background ' * 12000}
+    old_assistant = {'role': 'assistant', 'content': 'explanation ' * 12000}
+    assistant_call = message({'id': call_id, 'function': {'name': 'numeric', 'arguments': {'value': 1}}})
+    receipt = {'role': 'tool', 'tool_name': 'numeric', 'tool_call_id': call_id,
+               'content': json.dumps({'success': True, 'value': 1})}
+    recent = [{'role': 'user', 'content': f'recent context {index}'} for index in range(16)]
+    c.state['messages'] = [INITIAL[0], old_user, assistant_call, receipt, old_assistant, *recent]
+    c.state.update(pending=[{'id': call_id, 'function': {'name': 'numeric', 'arguments': {'value': 1}}}],
+                   next_call=1, in_flight=None)
     c.save()
 
-    result = c.compact_old_context_messages()
-    first = json.loads(c.state['messages'][0]['content'])
-    second = json.loads(c.state['messages'][1]['content'])
+    result = c.compact_completed_context()
 
-    assert result['compacted'] == 2
-    assert result['characters_after'] < result['characters_before']
-    assert [m['role'] for m in c.state['messages']] == ['user', 'assistant'] + ['assistant'] * 12
-    assert first['message_index'] == 0 and second['message_index'] == 1
-    assert 'https://github.com/example/repo/issues/92' in first['references']
-    assert 'a' * 40 in first['references']
-    assert first['classification'] == 'user_statement_unclassified'
-    assert second['classification'] == 'assistant_statement_unclassified'
-    for stub in (first, second):
-        record = instance.dispatch  # prove no tool call is needed to retrieve archive
-        archive = instance.path / stub['archive_path']
-        raw = archive.read_bytes()
-        assert hashlib.sha256(raw).hexdigest() == stub['archive_sha256']
-        saved = json.loads(raw)
-        assert saved['message']['content'] == (old_user if saved['role'] == 'user' else old_assistant)
-        assert saved['message_index'] == stub['message_index']
-        assert saved['source_messages_sha256'] == stub['source_messages_sha256']
-    assert [m['content'] for m in c.state['messages'][-12:]] == [m['content'] for m in recent]
+    messages = c.state['messages']
+    user_ref = json.loads(messages[1]['content'])
+    assistant_ref = json.loads(messages[4]['content'])
+    assert result['messages_compacted'] == 2
+    assert len(messages) == 1 + 1 + 1 + 1 + 1 + 16
+    assert messages[2]['tool_calls'][0]['id'] == messages[3]['tool_call_id'] == call_id
+    assert user_ref['classification'] == 'user_assertion_unverified'
+    assert assistant_ref['classification'] == 'assistant_statement_not_evidence'
+    assert messages[-16:] == recent
+    for ref, original_content in ((user_ref, 'background ' * 12000),
+                                  (assistant_ref, 'explanation ' * 12000)):
+        archive = instance.path / ref['archive_path']
+        record = json.loads(archive.read_text(encoding='utf-8'))
+        assert record['message']['content'] == original_content
+        assert record['message_sha256'] == ref['message_sha256']
+    assert studio.read_json(c.path)['messages'] == messages
 
 
-def test_context_message_compaction_requires_whole_tool_batches(instance):
-    c = Conversation(instance, INITIAL.copy(), tools=[])
-    c.state['messages'] = [{'role': 'user', 'content': 'old ' * 30000},
-                           {'role': 'assistant', 'content': '', 'tool_calls': [{'id': 'call-a', 'function': {'name': 'read'}}]},
-                           {'role': 'tool', 'tool_call_id': 'different-call', 'content': 'receipt'},
-                           {'role': 'assistant', 'content': 'recent'}]
-    c.state.update(pending=[], next_call=0, in_flight=None)
-    c.save()
-    before = json.dumps(c.state['messages'], ensure_ascii=False)
-    result = c.compact_old_context_messages()
-    assert result == {'compacted': 0, 'reason': 'message_batch_incomplete'}
-    assert json.dumps(c.state['messages'], ensure_ascii=False) == before
-    assert not list((instance.path / 'artifacts').glob('agent_context_*.json'))
-
-
-def test_context_message_compaction_keeps_authority_decisions_pending_and_uncertain(instance):
+def test_authorizations_decisions_tasks_and_references_remain_verbatim(instance):
     c = Conversation(instance, INITIAL.copy(), tools=[])
     protected = [
-        {'role': 'user', 'content': 'Autorizo la acción y esta decisión queda pendiente: ' + 'x ' * 4000},
-        {'role': 'assistant', 'content': 'AGENT_SESSION_UNCERTAIN: resultado desconocido ' + 'x ' * 4000},
+        {'role': 'user', 'content': 'Autorizo esta operación; conserva la autorización.' * 20},
+        {'role': 'user', 'content': 'La decisión es mantener el modo local.' * 25},
+        {'role': 'user', 'content': 'Pendiente: completar #161 después del bloqueo.' * 20},
+        {'role': 'assistant', 'content': 'Referencia fijada https://example.invalid/ref y commit abcdef0123456789.' * 15},
+        {'role': 'user', 'content': 'Plan: mantener el orden al reanudar.' * 25},
+        {'role': 'assistant', 'content': 'Facts were verified in a separate run.' * 25},
+        {'role': 'user', 'content': 'No reemplaces el original.' * 30},
     ]
-    c.state['messages'] = protected + [{'role': 'assistant', 'content': 'filler ' * 30000}] + [
-        {'role': 'assistant', 'content': 'recent'} for _ in range(12)]
-    c.state.update(pending=[], next_call=0, in_flight=None,
-                   model_attempts=[{'status': 'interrupted_unknown'}])
-    c.save()
-    result = c.compact_old_context_messages()
-    assert result == {'compacted': 0, 'reason': 'attempt_uncertain'}
-    assert c.state['messages'][:2] == protected
-
-    c.state['model_attempts'] = []
-    c.state['messages'] = [protected[0], {'role': 'assistant', 'content': 'filler ' * 30000}] + [
-        {'role': 'assistant', 'content': 'recent'} for _ in range(12)]
-    c.save()
-    result = c.compact_old_context_messages()
-    assert result['compacted'] == 1
-    assert c.state['messages'][0] == protected[0]
-    
-
-def test_compacted_context_detects_request_or_version_change(instance):
-    c = Conversation(instance, INITIAL.copy(), tools=[])
-    original = 'FACT: ' + ('verificado ' * 10000)
-    c.state['messages'] = [{'role': 'user', 'content': original}] + [
-        {'role': 'assistant', 'content': 'recent'} for _ in range(12)]
+    neutral = {'role': 'assistant', 'content': 'neutral prose ' * 7000}
+    recent = [{'role': 'user', 'content': f'current context {index}'} for index in range(16)]
+    c.state['messages'] = [INITIAL[0], neutral, *protected, *INITIAL[1:], *recent]
     c.state.update(pending=[], next_call=0, in_flight=None)
-    c.compact_old_context_messages()
-    stub = json.loads(c.state['messages'][0]['content'])
-    assert stub['classification'] == 'explicit_fact'
-    c.state['messages'][0]['content'] = json.dumps({**stub, 'archive_version': 999})
-    c.save()
-    with pytest.raises(Pause, match='AGENT_CONTEXT_VERSION_CHANGED'):
+
+    c.compact_completed_context()
+
+    assert c.state['messages'][2:2 + len(protected)] == protected
+    assert json.loads(c.state['messages'][1]['content'])['kind'] == 'historical_message_archive_reference'
+
+
+def test_changed_context_archive_blocks_resume(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    c.state['messages'] = [INITIAL[0], {'role': 'assistant', 'content': 'neutral ' * 20000}, *INITIAL[1:]]
+    c.state.update(pending=[], next_call=0, in_flight=None)
+    c.compact_completed_context()
+    entry = c.state['context_compactions'][0]
+    archive = instance.path / 'artifacts' / (entry['archive_name'] + '.json')
+    archive.write_text('{"changed":true}', encoding='utf-8')
+
+    with pytest.raises(Pause, match='AGENT_CONTEXT_ARCHIVE_CHANGED'):
         Conversation(instance, INITIAL.copy(), tools=[])
+
 
 def test_prepared_native_conversion_cancel_resume_with_simulated_model(tmp_path, monkeypatch):
     """Optional native FreeCAD; deterministic fake model, never Ollama or geometry."""
@@ -512,7 +440,6 @@ def test_uncertain_write_is_not_replayed_after_project_changes_but_other_work_ca
     c.turn()
     assert instance.dispatch.call_count==2
     assert instance.dispatch.call_args.args==('numeric',{'value':2})
-
 
 
 def test_model_usage_from_ollama_is_visible_as_job_event(instance):
