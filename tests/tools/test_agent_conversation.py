@@ -209,7 +209,7 @@ def test_completed_large_receipt_is_archived_and_summarized_without_losing_pair(
     ])
     c.state.update(pending=[{'id': call_id, 'function': {'name': 'read_fixture'}}], next_call=1, in_flight=None)
 
-    result = c.compact_completed_context()
+    result = c.compact_completed_context(consumed_message_count=len(c.state['messages']))
     summary = json.loads(c.state['messages'][-1]['content'])
     archive = instance.path / summary['archive_path']
     record = json.loads(archive.read_text(encoding='utf-8'))
@@ -249,7 +249,7 @@ def test_aggregate_medium_receipts_compact_without_breaking_pairs(instance):
     c.state.update(pending=pending, next_call=len(pending), in_flight=None)
     c.save()
 
-    result = c.compact_completed_context()
+    result = c.compact_completed_context(consumed_message_count=len(c.state['messages']))
 
     assert result['compacted'] >= 1
     assert result['characters_before'] > 90000
@@ -268,6 +268,34 @@ def test_aggregate_medium_receipts_compact_without_breaking_pairs(instance):
     assert studio.read_json(c.path)['messages'] == c.state['messages']
     instance.dispatch.assert_not_called()
 
+def test_tool_receipt_waits_for_a_later_model_call_before_compaction(instance):
+    c = Conversation(instance, INITIAL.copy(), tools=[])
+    call_id = 'unconsumed-large-receipt'
+    complete = json.dumps({'data': {'text': 'z' * 91000}}, separators=(',', ':'))
+    c.state['messages'].extend([
+        {'role': 'assistant', 'content': '', 'tool_calls': [{'id': call_id, 'function': {'name': 'read_fixture'}}]},
+        {'role': 'tool', 'tool_name': 'read_fixture', 'tool_call_id': call_id, 'content': complete},
+    ])
+    c.state.update(pending=[{'id': call_id, 'function': {'name': 'read_fixture'}}],
+                   next_call=1, in_flight=None)
+    boundary = len(c.state['messages']) - 1
+
+    before_consumption = c.compact_completed_context(consumed_message_count=boundary)
+
+    assert before_consumption['compacted'] == 0
+    assert c.state['messages'][-1]['content'] == complete
+    assert not list((instance.path / 'artifacts').glob('agent_receipt_*.json'))
+
+    c.state['model_consumed_message_count'] = len(c.state['messages'])
+    after_consumption = c.compact_completed_context(
+        consumed_message_count=c.state['model_consumed_message_count'])
+
+    assert after_consumption['compacted'] == 1
+    summary = json.loads(c.state['messages'][-1]['content'])
+    archive = instance.path / summary['archive_path']
+    assert json.loads(json.loads(archive.read_text(encoding='utf-8'))['content']) == {'data': {'text': 'z' * 91000}}
+
+
 def test_uncertain_or_incomplete_batch_is_never_compacted(instance):
     c = Conversation(instance, INITIAL.copy(), tools=[])
     complete = json.dumps({'data': {'text': 'y' * 20000}})
@@ -277,7 +305,7 @@ def test_uncertain_or_incomplete_batch_is_never_compacted(instance):
     c.save()
 
     before = c.state['messages'][-1]['content']
-    result = c.compact_completed_context()
+    result = c.compact_completed_context(consumed_message_count=len(c.state['messages']))
 
     assert result == {'compacted': 0, 'reason': 'batch_incomplete'}
     assert c.state['messages'][-1]['content'] == before
@@ -299,7 +327,7 @@ def test_old_plain_messages_are_archived_without_reordering_or_breaking_call_pai
                    next_call=1, in_flight=None)
     c.save()
 
-    result = c.compact_completed_context()
+    result = c.compact_completed_context(consumed_message_count=len(c.state['messages']))
 
     messages = c.state['messages']
     user_ref = json.loads(messages[1]['content'])
@@ -335,7 +363,7 @@ def test_authorizations_decisions_tasks_and_references_remain_verbatim(instance)
     c.state['messages'] = [INITIAL[0], neutral, *protected, *INITIAL[1:], *recent]
     c.state.update(pending=[], next_call=0, in_flight=None)
 
-    c.compact_completed_context()
+    c.compact_completed_context(consumed_message_count=len(c.state['messages']))
 
     assert c.state['messages'][2:2 + len(protected)] == protected
     assert json.loads(c.state['messages'][1]['content'])['kind'] == 'historical_message_archive_reference'
@@ -345,7 +373,7 @@ def test_changed_context_archive_blocks_resume(instance):
     c = Conversation(instance, INITIAL.copy(), tools=[])
     c.state['messages'] = [INITIAL[0], {'role': 'assistant', 'content': 'neutral ' * 20000}, *INITIAL[1:], *[{'role': 'user', 'content': f'recent {index}'} for index in range(16)]]
     c.state.update(pending=[], next_call=0, in_flight=None)
-    c.compact_completed_context()
+    c.compact_completed_context(consumed_message_count=len(c.state['messages']))
     entry = c.state['context_compactions'][0]
     archive = instance.path / 'artifacts' / (entry['archive_name'] + '.json')
     archive.write_text('{"changed":true}', encoding='utf-8')
@@ -393,13 +421,17 @@ def test_prepared_native_conversion_cancel_resume_with_simulated_model(tmp_path,
 
 def test_large_receipt_over_100k_is_archived_before_context_reuse(instance):
     complete=json.dumps({'data':{'text':'x'*110000}},separators=(',',':'))
-    instance.chat.side_effect=[message(call(1)),{'role':'assistant','content':'Resultado recibido.'}]
+    instance.chat.side_effect=[message(call(1,id='large-receipt-1')),{'role':'assistant','content':'Resultado recibido.'}]
     instance.dispatch.return_value={'payload':complete}
     c=Conversation(instance,INITIAL.copy(),tools=[])
     c.turn()
     assert len(c.state['messages'][-1]['content'])>100000
     with pytest.raises(Pause) as waiting:c.turn()
     assert waiting.value.status=='awaiting_input'
+    tool_receipt=next(m for m in reversed(c.state['messages'])
+                      if m.get('role')=='tool' and m.get('tool_name')=='numeric')
+    assert json.loads(tool_receipt['content'])['payload'] == complete
+    c.compact_completed_context(consumed_message_count=c.state['model_consumed_message_count'])
     tool_receipt=next(m for m in reversed(c.state['messages'])
                       if m.get('role')=='tool' and m.get('tool_name')=='numeric')
     summary=json.loads(tool_receipt['content'])
