@@ -68,6 +68,8 @@ class ChannelFilters:
             raise Unavailable('Selecciona un periodo para descubrir canales por publicaciones recientes')
         if self.sort_by not in {'channel_views','matching_publication_views','subscriber_count','video_count','matching_publications','latest_matching_publication','title'}:
             raise Unavailable('Orden inválido')
+        if self.sort_direction not in {'asc','desc'}:
+            raise Unavailable('Sentido del orden inválido')
         if self.sort_by in {'matching_publication_views','matching_publications','latest_matching_publication'} and self.published_within == 'any':
             raise Unavailable('Selecciona un periodo de publicaciones para ordenar por coincidencias recientes')
         if self.published_within not in {'any','hour','day','week','month','year'}:
