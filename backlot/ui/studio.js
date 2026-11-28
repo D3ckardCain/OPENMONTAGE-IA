@@ -32,7 +32,23 @@ function renderAgentActivity(projectState={}){
 let agentActivityTimer=null,agentActivityRequest=0;
 function stopAgentActivityPolling(){if(agentActivityTimer){clearInterval(agentActivityTimer);agentActivityTimer=null}agentActivityRequest++}
 function startAgentActivityPolling(){stopAgentActivityPolling();if($('#agent-drawer').hidden)return;agentActivityTimer=setInterval(()=>{if(!document.hidden&&!$('#agent-drawer').hidden)loadAgentActivity()},5000)}
-async function loadAgentActivity(){const root=$('#events');if(!root)return;const pid=state.pid;if(!pid){renderAgentActivity({});return}const requestId=++agentActivityRequest;root.textContent='Cargando actividad local…';const data=await tryApi(`/api/studio/projects/${encodeURIComponent(pid)}`);if(requestId!==agentActivityRequest||pid!==state.pid)return;if(data.__error){$('#agent-status').textContent='No se pudo leer el estado: '+data.__error;root.textContent='La actividad no está disponible.';$('#agent-stages').replaceChildren();$('#agent-stages').hidden=true;$('#agent-artifacts').replaceChildren();$('#agent-artifacts').hidden=true;$('#agent-controls').hidden=true;return}renderAgentActivity(data)}
+let agentActivitySnapshotPid=null;
+async function loadAgentActivity(){
+  const root=$('#events');if(!root)return;const pid=state.pid;
+  if(!pid){agentActivitySnapshotPid=null;renderAgentActivity({});return}
+  const requestId=++agentActivityRequest,hasCurrentSnapshot=agentActivitySnapshotPid===pid;
+  if(!hasCurrentSnapshot){$('#agent-status').textContent='Cargando estado local…';root.textContent='Cargando actividad local…';$('#agent-stages').replaceChildren();$('#agent-stages').hidden=true;$('#agent-artifacts').replaceChildren();$('#agent-artifacts').hidden=true;$('#agent-controls').hidden=true}
+  const data=await tryApi(`/api/studio/projects/${encodeURIComponent(pid)}`);
+  if(requestId!==agentActivityRequest||pid!==state.pid)return;
+  if(data.__error){
+    $('#agent-status').textContent=hasCurrentSnapshot
+      ?'Conexión temporalmente no disponible · se conserva la última lectura y se volverá a consultar.'
+      :'No se pudo leer el estado: '+data.__error;
+    if(!hasCurrentSnapshot)root.textContent='Actividad no disponible; se reintentará automáticamente.';
+    return;
+  }
+  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data)
+}
 let agentActionPending=false;
 async function runAgentAction(action){if(agentActionPending)return;const result=$('#agent-action-result'),buttons=[$('#agent-start'),$('#agent-stop'),$('#agent-approve')];if(!state.pid||state.identity?.restart_required!==false){result.textContent='Acción no disponible: activa y verifica el backend compatible.';return}agentActionPending=true;buttons.forEach(button=>button.disabled=true);result.textContent='Enviando acción…';try{const response=await req(`/api/studio/projects/${encodeURIComponent(state.pid)}/${action}`,{method:'POST',body:{}});result.textContent=action==='stop'?(response.requested?'Detención solicitada; el cierre del proceso aún no está confirmado.':'No hay agente activo que detener.') :action==='approve'?'Aprobación registrada; se solicitó continuar la siguiente etapa.':'Inicio solicitado; revisa el estado del agente.';await loadAgentActivity()}catch(error){result.textContent='La acción no se confirmó: '+error.message}finally{agentActionPending=false;buttons.forEach(button=>button.disabled=false)}}
 $('#agent-start').onclick=()=>runAgentAction('resume');$('#agent-stop').onclick=()=>runAgentAction('stop');$('#agent-approve').onclick=()=>runAgentAction('approve');
