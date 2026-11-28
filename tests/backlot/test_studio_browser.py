@@ -1363,13 +1363,10 @@ def test_wan_text_to_video_receipt_preview_and_add_use_project_scoped_api(staged
         'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg','cuts':[],'audio_tracks':[],'cues':[],'sources':{},
         'output':{'ratio':'16:9','fps':24,'fit':'pad'},
         'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
-    request_id='c'*32
-    receipt={'request_id':request_id,'project_id':pid,'state':'completed','profile':'wan22-14b-t2v-4step',
-        'completed_at':'2026-11-28T12:00:00Z','video_url':f'/api/studio/editor/{pid}/text-to-video/requests/{request_id}/video',
-        'bytes':1234,'model':'Wan 2.2 fixture'}
-    results=[]
     posts=[]
     added=[]
+    def video_url(request_id):
+        return f'/api/studio/editor/{pid}/text-to-video/requests/{request_id}/video'
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page()
@@ -1382,19 +1379,31 @@ def test_wan_text_to_video_receipt_preview_and_add_use_project_scoped_api(staged
         page.route('**/api/studio/editor/'+pid+'/text-to-video/availability',
                    lambda route:route.fulfill(json={'available':True,'profile':'wan22-14b-t2v-4step',
                        'workflow':'wan22-t2v-4step.json','required_models':6}))
-        page.route('**/api/studio/editor/'+pid+'/text-to-video/results',
-                   lambda route:route.fulfill(json=results))
+        def list_results(route):
+            if not posts:
+                route.fulfill(json=[])
+                return
+            request_id=posts[0]['request_id']
+            route.fulfill(json=[{'request_id':request_id,'label':'Vídeo generado · Wan 2.2',
+                'model':'Wan 2.2 fixture','bytes':1234,'completed_at':'2026-11-28T12:00:00Z',
+                'video_url':video_url(request_id)}])
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/results',list_results)
         def submit(route):
-            posts.append(route.request.post_data_json)
-            results.append(receipt)
-            route.fulfill(status=202,json={'request_id':request_id,'state':'queued'})
+            data=route.request.post_data_json
+            posts.append(data)
+            route.fulfill(status=202,json={'request_id':data['request_id'],'state':'queued'})
         page.route('**/api/studio/editor/'+pid+'/text-to-video',submit)
-        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/'+request_id,
-                   lambda route:route.fulfill(json=receipt))
-        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/'+request_id+'/video',
+        def status(route):
+            request_id=route.request.url.rsplit('/',1)[-1]
+            route.fulfill(json={'request_id':request_id,'project_id':pid,'state':'completed',
+                'profile':'wan22-14b-t2v-4step','completed_at':'2026-11-28T12:00:00Z',
+                'video_url':video_url(request_id),'bytes':1234,'model':'Wan 2.2 fixture'})
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/*',status)
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/*/video',
                    lambda route:route.fulfill(status=204,content_type='video/mp4',body=b''))
         def add(route):
             added.append(route.request.post_data_json)
+            request_id=route.request.url.split('/requests/',1)[1].rsplit('/add',1)[0]
             after=dict(edit)
             after['revision']=1
             after['edit_decisions']=dict(edit['edit_decisions'])
@@ -1402,7 +1411,7 @@ def test_wan_text_to_video_receipt_preview_and_add_use_project_scoped_api(staged
                 'path':f'medios_generados/wan-t2v-{request_id}.mp4','kind':'video','duration':2,
                 'origin':'wan_t2v_receipt','original_name':'Vídeo generado · Wan 2.2'}}
             route.fulfill(json={'source_id':'generated-source','clip_id':'clip-1','edit':after})
-        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/'+request_id+'/add',add)
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/*/add',add)
         page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
         expect(page.locator('#mode-text-to-video')).to_be_enabled()
         expect(page.locator('#text-to-video-mode-status')).to_have_text('Wan 2.2 local · disponible')
@@ -1412,10 +1421,12 @@ def test_wan_text_to_video_receipt_preview_and_add_use_project_scoped_api(staged
         page.locator('#text-to-video-submit').click()
         expect(page.locator('#text-to-video-status')).to_contain_text('Vídeo listo',timeout=5000)
         expect(page.locator('#text-to-video-results')).to_contain_text('Wan 2.2')
-        assert posts==[{'prompt':prompt,'request_id':posts[0]['request_id']}]
-        assert len(posts[0]['request_id'])==32
+        assert len(posts)==1
+        assert posts[0]['prompt']==prompt
+        request_id=posts[0]['request_id']
+        assert len(request_id)==32 and all(char in '0123456789abcdef' for char in request_id)
         page.locator('#text-to-video-results').get_by_role('button',name='Vista previa').click()
-        expect(page.locator('#preview-video')).to_have_attribute('src',receipt['video_url'])
+        expect(page.locator('#preview-video')).to_have_attribute('src',video_url(request_id))
         page.locator('#text-to-video-results').get_by_role('button',name='Añadir a la línea de tiempo').click()
         expect(page.locator('#edit-revision')).to_have_text('Revisión 1')
         assert added==[{'revision':0}]
