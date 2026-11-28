@@ -64,3 +64,10 @@ comprobación geométrica visual y la revisión humana permanecen pendientes.
 ## Reparación selectiva de un cue · regresión de API y agente
 
 La prueba focalizada inyecta un cue fuera del montaje solo en el proyecto sintético temporal, lo detecta por la API de calidad y corrige ese cue mediante el comando compartido `agent-command/cue_update`. Comprueba que cortes, pistas de audio, fuentes y salida no cambian, y que deshacer/rehacer, guardar y reabrir reproducen el estado esperado. El medio es un byte fixture con probe simulado: no se decodifica, exporta ni presenta como evidencia audiovisual real. No mide glifos ni zona segura, que siguen pendientes.
+
+
+## Medición de caja de glifos en subtítulos quemados · #166
+
+La acción opcional «Medir glifos» dibuja solo el cue seleccionado sobre un fotograma negro sintético del tamaño de salida, con el FFmpeg/libass local y la misma función ASS del render. Lee el buffer en memoria, devuelve su caja de píxeles frente al rectángulo seguro y elimina el archivo ASS temporal al terminar. No decodifica el vídeo, no escribe en el proyecto y no altera tiempos/texto. La respuesta incluye la revisión del EDL para descartar mediciones obsoletas.
+
+No aplica a subtítulos seleccionables/soft; exige modo quemado. La medición detecta píxeles del render, incluida la sustitución local de fuentes, pero no comprueba legibilidad, contraste contra el vídeo real, contenido semántico, cues no seleccionados, sincronía audiovisual ni aprobación humana. Una caja dentro del margen tampoco acredita que el subtítulo sea comprensible.

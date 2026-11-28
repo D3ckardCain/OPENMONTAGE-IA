@@ -358,6 +358,11 @@ def create_editor_router(body):
         from lib.studio_subtitle_layout import project_report
         return invoke(project_report,pid)
 
+    @router.get('/{pid}/subtitles/quality/cues/{cue_index}/glyphs')
+    def subtitle_glyph_bounds(pid: str, cue_index: int):
+        from lib.studio_subtitle_glyph_bounds import project_measure
+        return invoke(project_measure,pid,cue_index)
+
     @router.get('/{pid}/subtitles/karaoke')
     def subtitle_karaoke(pid: str,set_id: str):
         from lib.studio_subtitle_karaoke import project_report
