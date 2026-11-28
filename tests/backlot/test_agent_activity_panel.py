@@ -21,7 +21,7 @@ class AgentActivityPanelTests(unittest.TestCase):
         self.assertIn('projectState?.artifacts', script.text)
         self.assertIn('safeProjectMediaUrl', script.text)
         self.assertIn('state.identity?.restart_required===false', script.text)
-        self.assertIn('Solicitar detención', html)
+        self.assertIn('Solicitar detención', html.text)
         self.assertIn('el cierre del proceso aún no está confirmado', script.text)
         self.assertIn("runAgentAction('approve')", script.text)
         self.assertIn("kind==='model_usage'", script.text)
