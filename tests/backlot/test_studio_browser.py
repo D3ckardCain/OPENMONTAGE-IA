@@ -1252,8 +1252,8 @@ def test_studio_editor_chrome_responsive_controls_and_icons(staged_backlot_serve
 
 
 
-def test_pending_production_action_ignores_duplicate_click(staged_backlot_server):
-    """Only one approval POST is sent while a synthetic request is pending."""
+def test_pending_agent_approval_ignores_duplicate_click(staged_backlot_server):
+    """A forced duplicate event cannot submit a second approval while pending."""
     import time
     calls=[]
     def delayed_approval(route):
@@ -1263,19 +1263,25 @@ def test_pending_production_action_ignores_duplicate_click(staged_backlot_server
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page()
-        # Isolate the UI state explicitly; this test measures duplicate
-        # submissions, not checkpoint construction or the production API.
+        # Isolate identity and project state; exercise the current agent drawer
+        # without depending on a real job or the production API.
+        page.route('**/api/studio/identity',lambda route:route.fulfill(json={'restart_required':False}))
         page.route('**/api/studio/projects/gate-idea',lambda route:route.fulfill(json={
             'request':{'title':'Synthetic approval fixture'},
             'job':{'status':'awaiting_human','message':'Review fixture','events':[]},
-            'stages':[],'artifacts':[],'outputs':[],'board_url':'/fixture',
+            'active':False,
+            'stages':[{'name':'Review fixture','status':'awaiting_human'}],
+            'artifacts':[],'outputs':[],'board_url':'/fixture',
             'reference_video_url':'','channel_research':None,'channel_performance':None,
         }))
         page.route('**/api/studio/projects/gate-idea/approve',delayed_approval)
         page.goto(staged_backlot_server+'/studio?project=gate-idea')
-        expect(page.locator('#approve')).to_be_visible()
-        page.locator('#approve').evaluate("el=>{el.click();el.dispatchEvent(new MouseEvent('click',{bubbles:true}));}")
+        page.locator('#agent-toggle').click()
+        expect(page.locator('#agent-drawer')).to_be_visible()
+        approval=page.locator('#agent-approve')
+        expect(approval).to_be_visible()
+        approval.evaluate("el=>{el.click();el.dispatchEvent(new MouseEvent('click',{bubbles:true}));}")
         page.wait_for_timeout(700)
         assert calls==['POST']
-        expect(page.locator('#approve')).not_to_have_attribute('aria-busy','true')
+        expect(page.locator('#agent-action-result')).to_contain_text('Aprobación registrada')
         browser.close()
