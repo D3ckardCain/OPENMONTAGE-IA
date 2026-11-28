@@ -82,6 +82,7 @@ class StudioSystemMonitorTests(unittest.TestCase):
         self.assertIn('id="system-gpu-temp">—', html)
         self.assertIn("'/api/studio/system-metrics'", js)
         self.assertIn("system-monitor-status", js)
+        self.assertIn("data.collected_at||'sin fecha'}", js)
         self.assertIn(".system-monitor{", css)
 
 

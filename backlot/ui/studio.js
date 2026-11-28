@@ -72,6 +72,6 @@ async function refreshSystemMonitor(){
   const disks=Array.isArray(data.disks)?data.disks:[];const diskText=disks.length?disks.map(d=>`${String(d.name||'').replace(/[\\/]+$/,'')||'Disco'} ${monitorPercent(d.usage_percent)}%`).join(' · '):'—';updateMonitorText('system-disks-value',diskText);
   $('#system-disks').title=disks.length?disks.map(d=>`${d.name}: ${monitorPercent(d.usage_percent)}% ocupado; ${monitorGB(d.free_bytes)} libres de ${monitorGB(d.total_bytes)}`).join(' | '):'No se detectaron volúmenes fijos disponibles';
   $('#system-gpu').title=gpu?`${gpu.name}: uso y temperatura del primer adaptador NVIDIA reportado por nvidia-smi`:'No hay lectura NVIDIA disponible; se muestran guiones';
-  $('#system-monitor-status').textContent=`Actualizado ${data.collected_at||'sin fecha}`;
+  $('#system-monitor-status').textContent=`Actualizado ${data.collected_at||'sin fecha'}`;
 }
 refreshSystemMonitor();setInterval(refreshSystemMonitor,5000);
