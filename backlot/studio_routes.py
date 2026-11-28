@@ -2,6 +2,7 @@
 import asyncio
 import json
 import hmac
+import ipaddress
 import secrets
 from tempfile import TemporaryDirectory
 from pathlib import Path
@@ -77,6 +78,19 @@ def create_studio_router():
     def production_metrics():
         from lib.production_metrics import snapshot
         return invoke(snapshot)
+    @router.get('/api/studio/system-metrics')
+    def local_system_metrics(request:Request):
+        client=request.client
+        try:
+            address=ipaddress.ip_address(client.host) if client else None
+        except ValueError:
+            address=None
+        if address is None or not address.is_loopback:
+            raise HTTPException(403,'Las métricas del equipo solo se consultan desde este dispositivo')
+        from backlot.system_monitor import snapshot
+        from fastapi.responses import JSONResponse
+        return JSONResponse(snapshot(),headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
+
     @router.post('/api/studio/queue/{action}')
     async def production_queue_action(action:str,request:Request):
         from lib import production_queue

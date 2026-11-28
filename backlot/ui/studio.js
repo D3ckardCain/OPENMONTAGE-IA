@@ -55,3 +55,23 @@ $('#agent-project-link').onclick=e=>{e.preventDefault();if(state.pid)setModule('
 $('#subtitle-download').onclick=e=>{if(!state.pid){e.preventDefault();toast('Selecciona un proyecto editable')}};
 window.addEventListener('hashchange',()=>setModule(location.hash.slice(1)));
 initialize().then(()=>{const initial=location.hash.slice(1);if(names[initial])setModule(initial);else if(state.pid){$('#project-select').value=state.pid;openEditor(state.pid)}}).catch(e=>{console.error(e);$('#connection-label').textContent='Error de conexión'});
+
+
+function monitorPercent(value){return Number.isFinite(value)?`${Math.round(value)}`:'—'}
+function monitorGB(value){return Number.isFinite(value)?`${(value/1073741824).toFixed(1)} GB`:'desconocido'}
+function updateMonitorText(id,value){const node=$(`#${id}`);if(node)node.textContent=value}
+async function refreshSystemMonitor(){
+  const root=$('#system-monitor');if(!root)return;
+  const data=await tryApi('/api/studio/system-metrics');
+  if(data.__error){root.dataset.state='unavailable';root.title='El backend activo no expone las métricas locales; se muestran guiones. Sin telemetría externa.';$('#system-monitor-status').textContent='Métricas locales no disponibles en este backend';return}
+  root.dataset.state='ready';root.title='Lecturas locales del sistema operativo; ninguna telemetría sale del equipo.';
+  const cpu=data.cpu||{};updateMonitorText('system-cpu-use',monitorPercent(cpu.usage_percent));updateMonitorText('system-cpu-temp',Number.isFinite(cpu.temperature_c)?String(Math.round(cpu.temperature_c)):'—');
+  const gpu=Array.isArray(data.gpus)?data.gpus[0]:null;updateMonitorText('system-gpu-use',monitorPercent(gpu?.usage_percent));updateMonitorText('system-gpu-temp',Number.isFinite(gpu?.temperature_c)?String(Math.round(gpu.temperature_c)):'—');
+  const memory=data.memory||{};updateMonitorText('system-memory-use',monitorPercent(memory.usage_percent));
+  const memoryNode=$('#system-memory');memoryNode.title=`RAM: ${monitorGB(memory.used_bytes)} usados de ${monitorGB(memory.total_bytes)}`;
+  const disks=Array.isArray(data.disks)?data.disks:[];const diskText=disks.length?disks.map(d=>`${String(d.name||'').replace(/[\\/]+$/,'')||'Disco'} ${monitorPercent(d.usage_percent)}%`).join(' · '):'—';updateMonitorText('system-disks-value',diskText);
+  $('#system-disks').title=disks.length?disks.map(d=>`${d.name}: ${monitorPercent(d.usage_percent)}% ocupado; ${monitorGB(d.free_bytes)} libres de ${monitorGB(d.total_bytes)}`).join(' | '):'No se detectaron volúmenes fijos disponibles';
+  $('#system-gpu').title=gpu?`${gpu.name}: uso y temperatura del primer adaptador NVIDIA reportado por nvidia-smi`:'No hay lectura NVIDIA disponible; se muestran guiones';
+  $('#system-monitor-status').textContent=`Actualizado ${data.collected_at||'sin fecha}`;
+}
+refreshSystemMonitor();setInterval(refreshSystemMonitor,5000);

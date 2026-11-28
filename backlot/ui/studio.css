@@ -17,3 +17,18 @@
 
 .button-context-help{flex:1 1 auto;min-width:0;max-width:48vw;margin:0 12px;color:#aab3bd;font-size:11px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.button-context-help[hidden]{display:none}.context-help-setting{display:flex;flex-direction:column;gap:5px;padding:0 14px 12px;color:var(--text);font-size:13px}.context-help-setting label{display:flex;align-items:center;gap:9px;min-height:36px;cursor:pointer}.context-help-setting input{width:16px;height:16px;accent-color:var(--blue)}.context-help-setting small{color:var(--muted);font-size:11px;line-height:1.45}
 @media(max-width:560px){.button-context-help{max-width:34vw;margin:0 6px;font-size:10px}.topbar{padding:0 8px}.top-actions{gap:4px}}
+
+/* Franja mínima de métricas locales en la barra de herramientas de la timeline. */
+.timeline-tools>div{align-items:center;min-width:0}
+.system-monitor{display:flex;align-items:center;gap:9px;min-width:0;max-width:min(55vw,720px);overflow:hidden;padding:0 8px;border-left:1px solid var(--line);color:var(--muted);font:10px/1.2 var(--font);white-space:nowrap;flex:0 1 auto}
+.system-reading{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.system-reading>span{color:#9da7b3;font-weight:600}
+.system-reading>b{color:#c9d1d9;font-weight:600}
+.system-reading>small{font-size:9px;color:#8b949e}
+.system-reading>i{font-style:normal;color:#6e7681;padding:0 1px}
+.disk-reading{min-width:0;overflow:hidden}
+#system-disks-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.system-monitor[data-state="unavailable"] .system-reading>b{color:#8b949e}
+.system-monitor-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1200px){.system-monitor{gap:6px;max-width:42vw;font-size:9px}.system-reading{gap:2px}}
+@media(max-width:760px){.timeline-tools{justify-content:flex-start;overflow-x:auto}.timeline-tools>span{flex:0 0 auto}.timeline-tools>div{flex:0 0 auto;margin-left:auto}.system-monitor{max-width:52vw;gap:5px}}
