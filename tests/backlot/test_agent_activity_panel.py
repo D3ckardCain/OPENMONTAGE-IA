@@ -22,6 +22,7 @@ class AgentActivityPanelTests(unittest.TestCase):
         self.assertIn('safeProjectMediaUrl', script.text)
         self.assertIn('state.identity?.restart_required===false', script.text)
         self.assertIn('function startAgentActivityPolling()', script.text)
+        self.assertIn('if(open){startAgentActivityPolling();loadAgentActivity()}', script.text)
         self.assertIn('setInterval(()=>{if(!document.hidden&&!$(\'#agent-drawer\').hidden)loadAgentActivity()},5000)', script.text)
         self.assertIn('requestId!==agentActivityRequest||pid!==state.pid', script.text)
         self.assertIn('stopAgentActivityPolling()', script.text)
