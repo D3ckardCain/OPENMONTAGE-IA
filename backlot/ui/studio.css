@@ -32,3 +32,10 @@
 .system-monitor-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:1200px){.system-monitor{gap:6px;max-width:42vw;font-size:9px}.system-reading{gap:2px}}
 @media(max-width:760px){.timeline-tools{justify-content:flex-start;overflow-x:auto}.timeline-tools>span{flex:0 0 auto}.timeline-tools>div{flex:0 0 auto;margin-left:auto}.system-monitor{max-width:52vw;gap:5px}}
+
+/* Cada unidad usa un color propio; ocupación y capacidad mantienen el gris de las métricas. */
+#system-disks-value{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.disk-unit{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font:inherit}
+.disk-dot{width:6px;height:6px;border-radius:50%;background:var(--disk-color);flex:0 0 6px}
+.disk-label{color:var(--disk-color);font-weight:650}
+.disk-value{color:#c9d1d9;font-weight:500;font-variant-numeric:tabular-nums}
