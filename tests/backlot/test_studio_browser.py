@@ -35,20 +35,34 @@ def test_projects_menu_refreshes_agent_created_projects_without_losing_selection
         assert len(project_reads)>=2
         browser.close()
 
-def test_save_keeps_preview_but_edit_invalidates_it(staged_backlot_server):
-    """Transport/DOM regression only; real FFmpeg evidence is a separate opt-in run."""
-    state = {'revision':0,'edit_sha256':'a'*64,'undo':[],'redo':[],'events':[],
-             'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg','cuts':[], 'audio_tracks':[],
-                'cues':[],'sources':{},'output':{'ratio':'16:9','fps':24,'fit':'pad'},
+def test_rendered_preview_survives_save_but_content_edit_invalidates_it(staged_backlot_server):
+    """Synthetic transport checks preview identity; no FFmpeg/media claim."""
+    state = {'revision':0,'edit_sha256':'a'*64,'render_sha256':'a'*64,'undo':[],'redo':[],'events':[],
+             'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg',
+                'cuts':[{'id':'clip-1','source':'assets/clip.mp4','source_id':'source-1',
+                         'in_seconds':0,'out_seconds':4,'speed':1,'muted':False,'gain':1,
+                         'fade_in':0,'fade_out':0,'start_seconds':0}],
+                'audio_tracks':[],'cues':[],
+                'sources':{'source-1':{'path':'assets/clip.mp4','original_name':'clip.mp4',
+                    'kind':'video','duration':4,'audio':False,'sha256':'c'*64}},
+                'output':{'ratio':'16:9','fps':24,'fit':'pad'},
                 'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
     job = {'status':'completed','attempt':'fixture','revision':0,'edit_sha256':'a'*64,
-           'current':True,'preview':True,'url':'/fixture-editor-preview.mp4','subtitle_mode':'none'}
+           'render_sha256':'a'*64,'current':True,'preview':True,
+           'url':'/fixture-editor-preview.mp4','subtitle_mode':'none'}
+    calls=[]
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page()
         page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':'save-fixture','title':'JSON fixture'}]))
         page.route('**/api/studio/editor/save-fixture',lambda route:route.fulfill(json=state))
-        page.route('**/api/studio/editor/save-fixture/render',lambda route:route.fulfill(json=job))
+        def render(route):
+            if route.request.method=='POST':
+                calls.append(route.request.post_data_json)
+                route.fulfill(json={'status':'completed','preview':True})
+            else:
+                route.fulfill(json=job)
+        page.route('**/api/studio/editor/save-fixture/render',render)
         page.route('**/fixture-editor-preview.mp4',lambda route:route.fulfill(status=204))
         def command(route):
             data=route.request.post_data_json
@@ -56,20 +70,22 @@ def test_save_keeps_preview_but_edit_invalidates_it(staged_backlot_server):
             state['revision']+=1
             if data['operation']=='output':
                 state['edit_sha256']='b'*64
+                state['render_sha256']='b'*64
                 state['edit_decisions']['output']['ratio']=data['ratio']
             route.fulfill(json=state)
         page.route('**/api/studio/editor/save-fixture/command',command)
         page.goto(staged_backlot_server+'/studio?project=save-fixture#video')
-        expect(page.locator('#edit-player')).to_have_attribute('src','/fixture-editor-preview.mp4')
+        expect(page.locator('#preview-refresh')).to_be_enabled()
+        page.locator('#preview-refresh').click()
+        expect(page.locator('#preview-video')).to_have_attribute('src','/fixture-editor-preview.mp4',timeout=5000)
+        assert calls==[{'revision':0,'preview':True}]
         page.locator('#edit-save').click()
-        expect(page.locator('#edit-revision')).to_have_text('Revisión 1 · guardado local')
-        expect(page.locator('#edit-player')).to_have_attribute('src','/fixture-editor-preview.mp4')
-        page.locator('#edit-reopen').click()
-        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        expect(page.locator('#edit-player')).to_have_attribute('src','/fixture-editor-preview.mp4')
-        page.locator('#edit-preset').select_option('9:16');page.locator('#edit-output').click()
-        expect(page.locator('#edit-revision')).to_have_text('Revisión 2 · guardado local')
-        expect(page.locator('#edit-player')).not_to_have_attribute('src','/fixture-editor-preview.mp4')
+        expect(page.locator('#edit-revision')).to_contain_text('1')
+        expect(page.locator('#preview-video')).to_have_attribute('src','/fixture-editor-preview.mp4')
+        page.locator('#aspect-select').select_option('9:16')
+        expect(page.locator('#edit-revision')).to_contain_text('2')
+        expect(page.locator('#preview-video')).not_to_have_attribute('src','/fixture-editor-preview.mp4')
+        expect(page.locator('#preview-status')).to_contain_text('El montaje cambió')
         browser.close()
 
 
