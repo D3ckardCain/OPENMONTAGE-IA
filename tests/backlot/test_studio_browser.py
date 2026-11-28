@@ -1328,3 +1328,95 @@ def test_sports_failed_query_clears_previous_result_and_disables_copy(staged_bac
         expect(page.locator('#sports-copy')).to_be_disabled()
         assert calls==[{'competition':'champions','action':'definitions'}]*2
         browser.close()
+
+
+def test_wan_text_to_video_stays_disabled_until_backend_identity_matches(staged_backlot_server):
+    """An old resident backend must not trigger preflight or expose the prompt."""
+    pid='qa-t2v-stale-backend'
+    identity={'restart_required':True,'resident':{'sha256':'a'*64},'disk':{'sha256':'b'*64}}
+    edit={'revision':0,'undo':[],'redo':[],'events':[],'edit_decisions':{
+        'version':'1.0','render_runtime':'ffmpeg','cuts':[],'audio_tracks':[],'cues':[],'sources':{},
+        'output':{'ratio':'16:9','fps':24,'fit':'pad'},
+        'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
+    preflight=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.route('**/api/studio/identity',lambda route:route.fulfill(json=identity))
+        page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':pid,'title':'QA T2V · identidad antigua'}]))
+        page.route('**/api/studio/editor/'+pid,lambda route:route.fulfill(json=edit))
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/availability',
+                   lambda route:(preflight.append(route.request.url),route.fulfill(json={'available':True})))
+        page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
+        expect(page.locator('#mode-text-to-video')).to_be_disabled()
+        expect(page.locator('#text-to-video-prompt')).to_be_disabled()
+        expect(page.locator('#text-to-video-status')).to_contain_text('necesita activación')
+        assert preflight==[]
+        browser.close()
+
+
+def test_wan_text_to_video_receipt_preview_and_add_use_project_scoped_api(staged_backlot_server):
+    """Synthetic UI/API transport only; it does not contact ComfyUI or infer."""
+    pid='qa-t2v-ui-flow'
+    identity={'restart_required':False,'resident':{'sha256':'a'*64},'disk':{'sha256':'a'*64}}
+    edit={'revision':0,'undo':[],'redo':[],'events':[],'workspace':{'project_path':'/projects/qa-t2v-ui-flow'},
+        'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg','cuts':[],'audio_tracks':[],'cues':[],'sources':{},
+        'output':{'ratio':'16:9','fps':24,'fit':'pad'},
+        'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
+    request_id='c'*32
+    receipt={'request_id':request_id,'project_id':pid,'state':'completed','profile':'wan22-14b-t2v-4step',
+        'completed_at':'2026-11-28T12:00:00Z','video_url':f'/api/studio/editor/{pid}/text-to-video/requests/{request_id}/video',
+        'bytes':1234,'model':'Wan 2.2 fixture'}
+    results=[]
+    posts=[]
+    added=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.on('pageerror',lambda error:pytest.fail(f'Error de página: {error}'))
+        page.route('**/api/studio/identity',lambda route:route.fulfill(json=identity))
+        page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':pid,'title':'QA T2V sintético'}]))
+        page.route('**/api/studio/editor/'+pid,lambda route:route.fulfill(json=edit))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda route:route.fulfill(json={'status':'idle'}))
+        page.route('**/api/studio/comfy-history/projects/'+pid,lambda route:route.fulfill(json={'reports':[]}))
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/availability',
+                   lambda route:route.fulfill(json={'available':True,'profile':'wan22-14b-t2v-4step',
+                       'workflow':'wan22-t2v-4step.json','required_models':6}))
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/results',
+                   lambda route:route.fulfill(json=results))
+        def submit(route):
+            posts.append(route.request.post_data_json)
+            results.append(receipt)
+            route.fulfill(status=202,json={'request_id':request_id,'state':'queued'})
+        page.route('**/api/studio/editor/'+pid+'/text-to-video',submit)
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/'+request_id,
+                   lambda route:route.fulfill(json=receipt))
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/'+request_id+'/video',
+                   lambda route:route.fulfill(status=204,content_type='video/mp4',body=b''))
+        def add(route):
+            added.append(route.request.post_data_json)
+            after=dict(edit)
+            after['revision']=1
+            after['edit_decisions']=dict(edit['edit_decisions'])
+            after['edit_decisions']['sources']={'generated-source':{
+                'path':f'medios_generados/wan-t2v-{request_id}.mp4','kind':'video','duration':2,
+                'origin':'wan_t2v_receipt','original_name':'Vídeo generado · Wan 2.2'}}
+            route.fulfill(json={'source_id':'generated-source','clip_id':'clip-1','edit':after})
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/requests/'+request_id+'/add',add)
+        page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
+        expect(page.locator('#mode-text-to-video')).to_be_enabled()
+        expect(page.locator('#text-to-video-mode-status')).to_have_text('Wan 2.2 local · disponible')
+        page.locator('#mode-text-to-video').click()
+        prompt='Nubes sintéticas sobre un paisaje geométrico'
+        page.locator('#text-to-video-prompt').fill(prompt)
+        page.locator('#text-to-video-submit').click()
+        expect(page.locator('#text-to-video-status')).to_contain_text('Vídeo listo',timeout=5000)
+        expect(page.locator('#text-to-video-results')).to_contain_text('Wan 2.2')
+        assert posts==[{'prompt':prompt,'request_id':posts[0]['request_id']}]
+        assert len(posts[0]['request_id'])==32
+        page.locator('#text-to-video-results').get_by_role('button',name='Vista previa').click()
+        expect(page.locator('#preview-video')).to_have_attribute('src',receipt['video_url'])
+        page.locator('#text-to-video-results').get_by_role('button',name='Añadir a la línea de tiempo').click()
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 1')
+        assert added==[{'revision':0}]
+        browser.close()
