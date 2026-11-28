@@ -81,10 +81,11 @@ def test_output_mix_rejects_invalid_values_atomically(project, payload):
 
 def test_output_mix_controls_are_connected_and_gated_by_capability():
     root = Path(__file__).resolve().parents[2]
-    js = (root / 'backlot' / 'ui' / 'editor.js').read_text(encoding='utf-8')
+    js = (root / 'backlot' / 'ui' / 'studio.js').read_text(encoding='utf-8')
     html = (root / 'backlot' / 'ui' / 'studio.html').read_text(encoding='utf-8')
-    assert "mixForm.onsubmit" in js
-    assert "command('audio_mix'" in js
-    assert "hidden=!capabilities.has('audio_mix')" in js
-    assert 'id="edit-mix-form"' in html
+    assert "operation:'audio_mix'" in js
+    assert "hasCapability('audio_mix')" in js
+    assert 'function renderOutputMix' in js
+    assert 'id="audio-output-mix-panel"' in html
+    assert 'id="audio-output-mix-form"' in html
     assert 'name="target_lufs"' in html
