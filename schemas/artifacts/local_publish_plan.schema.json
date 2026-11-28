@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "openmontage/artifacts/local_publish_plan",
+  "title": "Local Publication Draft",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "plan_id",
+    "revision",
+    "status",
+    "execution",
+    "created_at",
+    "media",
+    "targets",
+    "remote_submission"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "const": "draft"
+    },
+    "execution": {
+      "const": "local_plan_only"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "media": {
+      "type": "object",
+      "required": [
+        "project_relative_path",
+        "sha256"
+      ],
+      "properties": {
+        "project_relative_path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "platform",
+          "destination_id",
+          "visibility",
+          "timezone",
+          "scheduled_for",
+          "title",
+          "description",
+          "tags",
+          "request_id",
+          "remote_status"
+        ],
+        "properties": {
+          "platform": {
+            "enum": [
+              "youtube",
+              "facebook_page",
+              "instagram_professional"
+            ]
+          },
+          "destination_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "visibility": {
+            "enum": [
+              "public",
+              "private",
+              "unlisted"
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "scheduled_for": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "request_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "remote_status": {
+            "const": "not_submitted"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "remote_submission": {
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}
