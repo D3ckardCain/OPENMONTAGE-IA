@@ -78,3 +78,9 @@ Evidencia y bloqueos: [VALIDACION_EDITOR_MANUAL_ES.md](VALIDACION_EDITOR_MANUAL_
 Validación posterior del motor con un vídeo existente, audio real y subtítulos manuales: [VALIDACION_EDITOR_MEDIOS_REALES_ES.md](VALIDACION_EDITOR_MEDIOS_REALES_ES.md). Incluye el protocolo reproducible y separa API aislada/render real de revisión del panel local.
 
 La [validación del servidor activo](VALIDACION_EDITOR_HTTP_ACTIVO_ES.md) comprueba por HTTP real ese ciclo, exportación y herramienta del agente sin reiniciar Studio. La revisión de la ventana local sigue diferenciada.
+
+## Ajustar la distribución del editor
+
+En ventanas de escritorio, arrastra los separadores entre **Medios**, **Vista previa** e **Inspector** para cambiar sus anchos; arrastra el separador de la línea de tiempo para ajustar su altura. También puedes enfocar cada separador y usar las flechas del teclado; con Mayús el paso es mayor. La distribución se guarda localmente en este navegador y se recalcula al cambiar el tamaño de la ventana. En pantallas estrechas los paneles se apilan y los separadores se ocultan.
+
+La preferencia de distribución no modifica el montaje ni los datos del proyecto.
