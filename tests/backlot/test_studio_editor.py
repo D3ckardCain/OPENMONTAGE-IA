@@ -39,6 +39,21 @@ def add(pid, key):
     return command(pid, 'add', source_id=key)['edit_decisions']['cuts'][-1]['id']
 
 
+
+def test_editor_only_project_has_explicit_empty_production_state(project):
+    pid, _, _ = project
+    request = studio.read_json(studio.project_path(pid) / 'production_request.json')
+    assert 'pipeline' not in request
+    response = TestClient(create_app(), base_url='http://127.0.0.1:4750').get(
+        f'/api/studio/projects/{pid}'
+    )
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result['production_pipeline_available'] is False
+    assert result['stages'] == []
+    assert result['request'] == request
+
+
 def test_manual_cycle_persistence_provenance_and_undo(project):
     pid, key, path = project
     original = path.read_bytes()
