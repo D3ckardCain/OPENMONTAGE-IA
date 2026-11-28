@@ -17,8 +17,8 @@ function renderAgentActivity(projectState={}){
   const root=$('#events'),status=$('#agent-status'),stagesRoot=$('#agent-stages'),artifactsRoot=$('#agent-artifacts'),controls=$('#agent-controls');
   if(!root)return;
   const job=projectState?.job&&typeof projectState.job==='object'?projectState.job:{},stages=Array.isArray(projectState?.stages)?projectState.stages:[],events=Array.isArray(job.events)?job.events:[];
-  const active=projectState?.active===true,jobStatus=String(job.status||'unknown'),completed=stages.filter(item=>item?.status==='completed').length;
-  status.textContent=state.pid?(agentJobLabels[jobStatus]||'Estado sin clasificar')+' · '+(active?'Agente activo':'Agente inactivo')+(stages.length?' · '+completed+'/'+stages.length+' etapas completadas':''):'Elige un proyecto para ver su estado.';
+  const active=projectState?.active===true,jobStatus=String(job.status||'unknown'),completed=stages.filter(item=>item?.status==='completed').length,productionAvailable=projectState?.production_pipeline_available!==false;
+  status.textContent=state.pid?(productionAvailable?(agentJobLabels[jobStatus]||'Estado sin clasificar'):'Proyecto de edición')+' · '+(active?'Agente activo':'Agente inactivo')+(stages.length?' · '+completed+'/'+stages.length+' etapas completadas':''):'Elige un proyecto para ver su estado.';
   stagesRoot.replaceChildren();stagesRoot.hidden=!stages.length;
   for(const stage of stages){if(!stage||typeof stage!=='object')continue;const row=document.createElement('li'),name=document.createElement('strong'),value=document.createElement('span');row.dataset.status=String(stage.status||'pending');name.textContent=String(stage.name||'Etapa');value.textContent=agentStageLabels[stage.status]||'Estado sin clasificar';row.append(name,value);if(stage.error){const error=document.createElement('small');error.textContent=String(stage.error);row.append(error)}stagesRoot.append(row)}
   artifactsRoot.replaceChildren();const artifactGroups=[['Artefactos',projectState?.artifacts],['Entregas',projectState?.outputs]];let artifactCount=0;
