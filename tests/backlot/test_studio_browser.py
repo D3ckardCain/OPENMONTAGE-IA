@@ -986,12 +986,12 @@ def test_sports_query_clears_previous_result_and_preserves_unknowns(staged_backl
     schema={
         'coverage_note':'Solo UEFA',
         'competitions':['champions'],
-        'parameters':{
+        'parameters':{'properties':{
             'edition':{'type':'integer','minimum':1955},
             'player_id':{'type':'string'},
             'metrics':{'type':'array'},
             'phase':{'type':'string','enum':['TOURNAMENT','ALL']},
-        },
+        }},
         'actions':[
             {'name':'compare_players','fields':['competition'],'required':['competition']},
             {'name':'player','fields':['competition','edition','player_id','metrics','phase'],
