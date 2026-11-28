@@ -305,7 +305,7 @@ function applyEditorPanelLayout(){
 function persistEditorPanelLayout(){try{localStorage.setItem(editorPanelLayoutKey,JSON.stringify(editorPanelLayout))}catch{}}
 function editPanelLayoutFromPointer(kind,event,rect,start){
   if(kind==='media')editorPanelLayout.media=clampLayout((start.mediaWidth+event.clientX-start.x)/rect.width,.12,.36);
-  else if(kind==='inspector')editorPanelLayout.inspector=clampLayout((start.inspectorWidth-start.x+event.clientX)/rect.width,.12,.32);
+  else if(kind==='inspector')editorPanelLayout.inspector=clampLayout((start.inspectorWidth+start.x-event.clientX)/rect.width,.12,.32);
   else{const delta=start.compact?event.clientY-start.y:start.y-event.clientY;editorPanelLayout.timeline=clampLayout((start.timelineHeight+delta)/rect.height,.2,.55)}
   applyEditorPanelLayout();
 }
