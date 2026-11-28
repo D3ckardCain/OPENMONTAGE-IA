@@ -444,40 +444,54 @@ def test_advanced_timeline_uses_capabilities_and_atomic_model(staged_backlot_ser
 
 
 def test_render_cancel_button_sends_attempt_and_allows_new_attempt(staged_backlot_server):
-    """UI transport contract only; real child exit is tested independently."""
+    """Current Studio cancellation UI; synthetic EDL and intercepted transport only."""
     import json
-    from copy import deepcopy
-    from pathlib import Path
-    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
-    pid=fixture['project_id'];job={'status':'running','attempt':'owned-attempt'};calls=[]
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page(viewport={'width':1920,'height':1080});errors=[]
-        page.on('pageerror',lambda e:errors.append(str(e)))
-        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Cancel metadata fixture'}]))
-        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=fixture['state']))
-        def render_status(route):
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        pid='render-cancel-fixture'
+        state={'revision':0,'edit_sha256':'a'*64,'render_sha256':'a'*64,'undo':[],'redo':[],'events':[],
+          'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg','cuts':[{
+            'id':'clip-1','source':'assets/clip.mp4','source_id':'source-1','in_seconds':0,'out_seconds':4,
+            'speed':1,'muted':False,'gain':1,'fade_in':0,'fade_out':0,'start_seconds':0}],
+            'audio_tracks':[],'cues':[],'sources':{'source-1':{'path':'assets/clip.mp4','original_name':'clip.mp4',
+            'kind':'video','duration':4,'audio':False,'bytes':1,'mtime_ns':1,'sha256':'c'*64}},
+            'output':{'ratio':'16:9','fps':24,'fit':'pad'},'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
+        job={'status':'idle'};starts=[];cancels=[]
+        page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':pid,'title':'Fixture de cancelación; sin medios'}]))
+        page.route('**/api/studio/editor/'+pid,lambda route:route.fulfill(json=state))
+        def render(route):
             if route.request.method=='POST':
-                calls.append(route.request.post_data_json);job.update(status='running',attempt='second-attempt')
-            route.fulfill(json=deepcopy(job))
-        page.route('**/api/studio/editor/'+pid+'/render',render_status)
+                starts.append(route.request.post_data_json)
+                attempt=f'owned-attempt-{len(starts)}';job.update(status='running',attempt=attempt,preview=True)
+                route.fulfill(json=dict(job));return
+            route.fulfill(json=dict(job))
+        page.route('**/api/studio/editor/'+pid+'/render',render)
         def cancel(route):
-            calls.append(route.request.post_data_json);assert calls[-1]=={'attempt':'owned-attempt'}
-            route.fulfill(json={**job,'status':'cancelling'});job.update(status='cancelled',process_stopped=True)
+            payload=route.request.post_data_json;cancels.append(payload)
+            assert payload=={'attempt':job['attempt']}
+            job.update(status='cancelling');route.fulfill(json=dict(job))
+            job.update(status='cancelled',process_stopped=True)
         page.route('**/api/studio/editor/'+pid+'/render/cancel',cancel)
         page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
+        page.locator('#preview-refresh').click()
         expect(page.locator('#edit-render-cancel')).to_be_visible()
+        expect(page.locator('#preview-refresh')).to_be_disabled()
         expect(page.locator('#edit-export')).to_be_disabled()
         page.locator('#edit-render-cancel').click()
-        expect(page.locator('#edit-render-status')).to_contain_text('Render cancelado')
+        expect(page.locator('#preview-status')).to_contain_text('cancelled')
         expect(page.locator('#edit-render-cancel')).to_be_hidden()
+        expect(page.locator('#preview-refresh')).to_be_enabled()
         expect(page.locator('#edit-export')).to_be_enabled()
-        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        page.locator('#edit-preview').click();expect(page.locator('#edit-render-cancel')).to_be_visible()
-        assert calls==[{'attempt':'owned-attempt'},{'revision':fixture['state']['revision'],'preview':True}]
+        page.locator('#preview-refresh').click()
+        expect(page.locator('#edit-render-cancel')).to_be_visible()
+        page.locator('#edit-render-cancel').click()
+        expect(page.locator('#preview-status')).to_contain_text('cancelled')
+        assert starts==[{'revision':0,'preview':True},{'revision':0,'preview':True}]
+        assert cancels==[{'attempt':'owned-attempt-1'},{'attempt':'owned-attempt-2'}]
         assert not errors
         browser.close()
-
 
 def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
     """Actual model and browser controls; intercepted transport, not local AV QA."""
