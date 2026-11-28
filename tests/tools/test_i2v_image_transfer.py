@@ -54,7 +54,7 @@ def test_invalid_parameters_and_modified_image_never_upload(prepared):
     root,record=prepared;client=FakeClient()
     with pytest.raises(ValueError,match='cuatro'):
         prepare_i2v_image('wan',{'project_id':'one','text':'Motion','steps':20},client,root/'ledger.json')
-    (studio.PROJECTS_DIR/'one'/'source_images'/record['filename']).write_bytes(b'changed')
+    (studio.PROJECTS_DIR/'one'/record['relative_path']).write_bytes(b'changed')
     with pytest.raises(ValueError,match='cambió'):
         prepare_i2v_image('wan',{'project_id':'one','text':'Motion'},client,root/'ledger.json')
     assert not client.uploads
