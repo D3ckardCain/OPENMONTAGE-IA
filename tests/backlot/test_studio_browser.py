@@ -1603,6 +1603,7 @@ def test_agent_memory_can_be_corrected_and_retired_without_cross_project_access(
     from urllib.parse import urlparse
     fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
     pid=fixture['project_id'];request={'title':'Memoria QA','brief':'Conservar la negación y la procedencia.'}
+    activity={'active':False}
     project={'request':request,'job':{'status':'ready','events':[]},'stages':[],'active':False,'production_pipeline_available':True}
     identity={'schema_version':1,'api_protocol':1,'restart_required':False,'resident':{'sha256':'a'*64},'disk':{'sha256':'a'*64}}
     old={'memory_id':'a'*32,'kind':'explicit_preference','text':'Conservar negaciones.','source_type':'user_statement','source_ref':'conversation:message-10','project_revision':'old','captured_revision_matches':False,'created_at':'2026-11-27T12:00:00Z','instruction_eligible':False,'active':True}
@@ -1622,12 +1623,15 @@ def test_agent_memory_can_be_corrected_and_retired_without_cross_project_access(
             if path.endswith('/api/studio/editor/projects'):route.fulfill(json=[{'project_id':pid,'title':request['title']}]);return
             if path==f'/api/studio/editor/{pid}':route.fulfill(json=fixture['state']);return
             if path==f'/api/studio/comfy-history/projects/{pid}':route.fulfill(json={'reports':[]});return
-            if path==f'/api/studio/projects/{pid}' and method=='GET':route.fulfill(json=project);return
-            if path==f'/api/studio/clarifications/{pid}' and method=='GET':route.fulfill(json={'clarifications':[],'active':False});return
+            if path==f'/api/studio/projects/{pid}' and method=='GET':
+                project['active']=activity['active'];route.fulfill(json=project);return
+            if path==f'/api/studio/clarifications/{pid}' and method=='GET':route.fulfill(json={'clarifications':[],'active':activity['active']});return
             if path==f'/api/studio/projects/{pid}/memory' and method=='GET':
-                route.fulfill(json={'project_id':pid,'scope':'project','entries':list(entries),'truncated':False,'agent_active':False});return
+                route.fulfill(json={'project_id':pid,'scope':'project','entries':list(entries),'truncated':False,'agent_active':activity['active']});return
             if path==f'/api/studio/projects/{pid}/memory' and method=='POST':
                 payload=route.request.post_data_json;posts.append(payload)
+                if activity['active']:
+                    route.fulfill(status=409,json={'detail':'Agent active'});return
                 if payload['operation']=='remember':
                     entries[0]={**old,'active':False};entries.append({**new,'kind':payload['kind'],'text':payload['text'],'source_ref':payload['source_ref']})
                     route.fulfill(json={'stored':True,'duplicate':False,'memory_id':new['memory_id']});return
@@ -1641,6 +1645,7 @@ def test_agent_memory_can_be_corrected_and_retired_without_cross_project_access(
         page.locator('#project-select').select_option(pid)
         page.locator('#agent-toggle').click()
         expect(page.locator('#agent-memory-list .agent-memory-item')).to_have_count(1)
+        expect(page.locator('#agent-memory-add')).to_be_enabled()
         expect(page.locator('#agent-memory-list')).to_contain_text('Guardada con otra revisión del proyecto')
         first=page.locator('#agent-memory-list .agent-memory-item').first
         first.get_by_role('button',name='Corregir').click()
@@ -1656,4 +1661,9 @@ def test_agent_memory_can_be_corrected_and_retired_without_cross_project_access(
         assert posts[0]['supersedes_id']==old['memory_id']
         assert posts[0]['source_ref']==new['source_ref']
         assert page.locator('#agent-memory-list script').count()==0
+        activity['active']=True
+        expect(page.locator('#agent-memory-add')).to_be_disabled(timeout=10000)
+        expect(page.locator('#agent-memory-list .agent-memory-item').last.get_by_role('button',name='Retirar del índice')).to_be_disabled()
+        expect(page.locator('#agent-memory-status')).to_contain_text('solo lectura')
+        assert [post['operation'] for post in posts]==['remember','forget']
         browser.close()

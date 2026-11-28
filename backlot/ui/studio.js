@@ -51,12 +51,12 @@ function renderAgentActivity(projectState={}){
 let agentActivityTimer=null,agentActivityRequest=0;
 function stopAgentActivityPolling(){if(agentActivityTimer){clearInterval(agentActivityTimer);agentActivityTimer=null}agentActivityRequest++}
 function startAgentActivityPolling(){stopAgentActivityPolling();if($('#agent-drawer').hidden)return;agentActivityTimer=setInterval(()=>{if(!document.hidden&&!$('#agent-drawer').hidden)loadAgentActivity()},5000)}
-let agentMemorySnapshotPid=null,agentMemoryRequest=0;
+let agentMemorySnapshotPid=null,agentMemoryAgentActive=null,agentMemoryRequest=0;
 function memoryKindLabel(kind){return kind==='explicit_preference'?'Preferencia explícita':kind==='creative_decision'?'Decisión creativa':String(kind||'Memoria')}
 function renderAgentMemory(data){
   const root=$('#agent-memory-list'),status=$('#agent-memory-status');if(!root||!status)return;root.replaceChildren();
   if(data.__error||!Array.isArray(data.entries)){status.textContent='No se pudo leer la memoria del proyecto; puedes actualizar para reintentar.';return}
-  const active=!!data.agent_active,compatible=state.identity?.restart_required===false,canWrite=!!state.pid&&compatible&&!active;const addButton=$('#agent-memory-add'),saveButton=$('#agent-memory-save');if(addButton)addButton.disabled=!canWrite;if(saveButton)saveButton.disabled=!canWrite;
+  const active=!!data.agent_active;agentMemoryAgentActive=active;const compatible=state.identity?.restart_required===false,canWrite=!!state.pid&&compatible&&!active;const addButton=$('#agent-memory-add'),saveButton=$('#agent-memory-save');if(addButton)addButton.disabled=!canWrite;if(saveButton)saveButton.disabled=!canWrite;
   status.textContent=data.truncated?'Se muestran las entradas recientes; hay más historial.':data.entries.length?'Memoria local con origen y revisión del proyecto.':'Todavía no hay preferencias ni decisiones guardadas.';
   for(const entry of data.entries){
     const row=document.createElement('li');row.className='agent-memory-item';row.dataset.memoryId=String(entry.memory_id||'');
@@ -76,7 +76,7 @@ function renderAgentMemory(data){
   else if(active)status.textContent='El agente está usando este proyecto; memoria en modo de solo lectura.';
 }
 function openAgentMemoryForm(entry=null){
-  if(!state.pid||state.identity?.restart_required!==false){$('#agent-memory-status').textContent='Backend pendiente de activación; memoria en solo lectura.';return}
+  if(!state.pid||state.identity?.restart_required!==false){$('#agent-memory-status').textContent='Backend pendiente de activación; memoria en solo lectura.';return}if(agentMemoryAgentActive!==false){$('#agent-memory-status').textContent=agentMemoryAgentActive?'El agente está usando este proyecto; memoria en solo lectura.':'Espera a cargar el estado del proyecto antes de editar memoria.';return}
   const form=$('#agent-memory-form');if(!form)return;form.hidden=false;$('#agent-memory-kind').value=entry?.kind||'explicit_preference';
   $('#agent-memory-text').value=entry?.text||'';$('#agent-memory-source').value='';form.dataset.supersedesId=entry?.memory_id||'';
   $('#agent-memory-save').textContent=entry?'Guardar corrección':'Guardar versión';
@@ -86,8 +86,8 @@ function openAgentMemoryForm(entry=null){
 function closeAgentMemoryForm(){const form=$('#agent-memory-form');if(!form)return;form.hidden=true;form.reset();delete form.dataset.supersedesId}
 async function loadAgentMemory(pid=state.pid){
   const status=$('#agent-memory-status'),requestId=++agentMemoryRequest;
-  if(!pid){agentMemorySnapshotPid=null;$('#agent-memory-list')?.replaceChildren();if(status)status.textContent='Elige un proyecto para consultar su memoria.';return}
-  if(agentMemorySnapshotPid!==pid){$('#agent-memory-list')?.replaceChildren();closeAgentMemoryForm()}
+  if(!pid){agentMemorySnapshotPid=null;agentMemoryAgentActive=null;$('#agent-memory-list')?.replaceChildren();$('#agent-memory-add').disabled=true;$('#agent-memory-save').disabled=true;closeAgentMemoryForm();if(status)status.textContent='Elige un proyecto para consultar su memoria.';return}
+  if(agentMemorySnapshotPid!==pid){agentMemoryAgentActive=null;$('#agent-memory-list')?.replaceChildren();$('#agent-memory-add').disabled=true;$('#agent-memory-save').disabled=true;closeAgentMemoryForm()}
   status.textContent='Leyendo memoria local del proyecto…';const data=await tryApi('/api/studio/projects/'+encodeURIComponent(pid)+'/memory');
   if(requestId!==agentMemoryRequest||pid!==state.pid)return;
   if(data.__error){status.textContent='No se pudo consultar la memoria local; no se envió ningún cambio.';return}
@@ -95,7 +95,7 @@ async function loadAgentMemory(pid=state.pid){
 }
 async function changeAgentMemory(payload){
   const pid=state.pid,status=$('#agent-memory-status');if(!pid)return false;
-  if(state.identity?.restart_required!==false){status.textContent='Backend pendiente de activación; no se envió el cambio.';return false}
+  if(state.identity?.restart_required!==false){status.textContent='Backend pendiente de activación; no se envió el cambio.';return false}if(agentMemoryAgentActive!==false){status.textContent=agentMemoryAgentActive?'El agente está usando este proyecto; no se envió el cambio.':'Espera a cargar el estado del proyecto; no se envió el cambio.';return false}
   status.textContent=payload.operation==='forget'?'Retirando del índice local…':'Guardando nueva versión en el proyecto…';let confirmed=false;
   try{await req('/api/studio/projects/'+encodeURIComponent(pid)+'/memory',{method:'POST',body:payload});confirmed=true;status.textContent=payload.operation==='forget'?'Entrada retirada del índice; recibo conservado.':'Nueva versión guardada con procedencia.'}
   catch(error){status.textContent='Respuesta incierta; se consultará la memoria antes de considerar otro intento.'}
@@ -110,7 +110,7 @@ async function submitAgentMemory(event){
 let agentActivitySnapshotPid=null;
 async function loadAgentActivity(){
   const root=$('#events');if(!root)return;const pid=state.pid;
-  if(!pid){agentActivitySnapshotPid=null;agentMemorySnapshotPid=null;$('#agent-memory-list')?.replaceChildren();$('#agent-memory-status').textContent='Elige un proyecto para consultar su memoria.';closeAgentMemoryForm();renderAgentActivity({});return}
+  if(!pid){agentActivitySnapshotPid=null;agentMemorySnapshotPid=null;agentMemoryAgentActive=null;$('#agent-memory-add').disabled=true;$('#agent-memory-save').disabled=true;$('#agent-memory-list')?.replaceChildren();$('#agent-memory-status').textContent='Elige un proyecto para consultar su memoria.';closeAgentMemoryForm();renderAgentActivity({});return}
   const requestId=++agentActivityRequest,hasCurrentSnapshot=agentActivitySnapshotPid===pid;
   if(!hasCurrentSnapshot){$('#agent-status').textContent='Cargando estado local…';root.textContent='Cargando actividad local…';$('#agent-stages').replaceChildren();$('#agent-stages').hidden=true;$('#agent-artifacts').replaceChildren();$('#agent-artifacts').hidden=true;$('#agent-controls').hidden=true}
   const data=await tryApi(`/api/studio/projects/${encodeURIComponent(pid)}`);
@@ -122,7 +122,7 @@ async function loadAgentActivity(){
     if(!hasCurrentSnapshot)root.textContent='Actividad no disponible; se reintentará automáticamente.';
     return;
   }
-  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data);await loadAgentClarifications(pid,requestId,data.active===true);if(agentMemorySnapshotPid!==pid)await loadAgentMemory(pid)
+  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data);await loadAgentClarifications(pid,requestId,data.active===true);if(agentMemorySnapshotPid!==pid||agentMemoryAgentActive!==(data.active===true))await loadAgentMemory(pid)
 }
 async function loadAgentClarifications(pid,activityRequest,active){
   const host=$('#agent-clarifications');if(!host)return;
