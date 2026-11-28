@@ -477,6 +477,9 @@ def test_render_cancel_button_sends_attempt_and_allows_new_attempt(staged_backlo
         page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
         page.locator('#preview-refresh').click()
         expect(page.locator('#edit-render-cancel')).to_be_visible()
+        page.reload()
+        expect(page.locator('#edit-render-cancel')).to_be_visible()
+        assert starts==[{'revision':0,'preview':True}]
         expect(page.locator('#preview-refresh')).to_be_disabled()
         expect(page.locator('#edit-export')).to_be_disabled()
         page.locator('#edit-render-cancel').click()
