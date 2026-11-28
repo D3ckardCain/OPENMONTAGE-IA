@@ -380,9 +380,17 @@ class Conversation:
             fn = s['pending'][s['next_call']]['function']
             call = s['pending'][s['next_call']]
             args = fn.get('arguments', {})
+            argument_error = None
             if isinstance(args, str):
-                try: args = json.loads(args)
-                except (ValueError, TypeError): args = {'_invalid_arguments': args}
+                try:
+                    args = json.loads(args)
+                except (ValueError, TypeError):
+                    argument_error = 'Los argumentos no son JSON válido'
+                    args = {'_invalid_arguments_sha256': hashlib.sha256(args.encode('utf-8', 'replace')).hexdigest()}
+            if not isinstance(args, dict):
+                raw = json.dumps(args, ensure_ascii=False, sort_keys=True, default=str)
+                argument_error = 'Se esperaba un objeto de argumentos'
+                args = {'_invalid_arguments_sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest()}
             fingerprint = self._tool_fingerprint(fn.get('name'), args)
             history = s.setdefault('tool_call_history', [])
             previous = next((entry for entry in reversed(history)
@@ -426,7 +434,12 @@ class Conversation:
             pause = None
             progress_before = self._project_progress_fingerprint()
             try:
-                result = a.dispatch(fn.get('name'), args)
+                if argument_error:
+                    result = {'success': False, 'error': {'code': 'invalid_tool_arguments',
+                        'message': argument_error, 'outcome': 'not_started', 'recoverable': True,
+                        'retryable': False}}
+                else:
+                    result = a.dispatch(fn.get('name'), args)
             except Pause as exc:
                 pause = exc
                 result = {'paused': exc.status, 'message': str(exc)}

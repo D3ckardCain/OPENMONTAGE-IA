@@ -338,7 +338,8 @@ def test_director_two_stages_resume_preserves_artifact_and_guided_gate(isolated,
     resumed.run()
     assert seen and (path/'artifacts/brief.json').read_bytes()==artifact
     assert studio.read_json(path/('checkpoint_'+first['name']+'.json'))['human_approved'] is True
-    assert studio.read_json(path/'job.json')['status']=='awaiting_human'
+    job = studio.read_json(path/'job.json')
+    assert job['status']=='awaiting_human', job
     assert studio.read_json(path/('checkpoint_'+second['name']+'.json'))['human_approved'] is False
     assert not studio.production_state(pid)['outputs']
 

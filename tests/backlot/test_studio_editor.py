@@ -76,8 +76,8 @@ def test_import_copies_source_into_project_originals_and_preserves_source(projec
     )
 
     assert response.status_code == 200, response.text
-    imported = next(iter(response.json()['edit_decisions']['sources'].values()))
-    assert imported['path'].startswith('originales/')
+    imported = next(source for source in response.json()['edit_decisions']['sources'].values()
+                     if source['path'].startswith('originales/'))
     assert (studio.project_path(pid) / imported['path']).read_bytes() == original.read_bytes()
     assert original.exists() and original.read_bytes() == b'authorized source bytes'
 

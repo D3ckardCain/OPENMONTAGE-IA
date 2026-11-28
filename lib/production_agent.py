@@ -96,7 +96,7 @@ TOOLS=[
  descriptor('list_tools','Descubre herramientas locales con páginas compactas; usa tool_info para el contrato completo. No ejecuta herramientas.',{'capability':{'type':'string'},'offset':{'type':'integer','minimum':0},'limit':{'type':'integer','minimum':1,'maximum':50}}),
  descriptor('tool_info','Lee contrato real, disponibilidad, instalación y skills de una herramienta.',{'name':{'type':'string'}},['name']),
  descriptor('tool_preflight','Comprueba esquema, disponibilidad, requisitos, coste y tiempo estimado sin ejecutar la herramienta.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
- descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'}},['name','inputs']),
+ descriptor('execute_tool','Ejecuta una herramienta local disponible de coste cero; usa rutas del proyecto.',{'name':{'type':'string'},'inputs':{'type':'object'},'request_id':{'type':'string','pattern':'^[A-Za-z0-9_-]{1,120}$'}},['name','inputs']),
  descriptor('wan_presets','Lee perfiles WAN locales y su configuración actual.'),
  descriptor('select_wan_preset','Selecciona explícitamente el perfil WAN previamente anunciado y registra el cambio; no descarga modelos.',{'preset':{'enum':['wan22-5b-t2v','wan22-14b-t2v-4step','wan22-14b-i2v-4step']}},['preset']),
  descriptor('language_resources','Consulta archivos locales de voz, traducción y transcripción para el idioma objetivo. Para Kokoro devuelve nombres de voces con prefijo compatible; usa uno de ellos explícitamente. No carga modelos ni certifica pronunciación.'),

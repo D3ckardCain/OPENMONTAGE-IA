@@ -109,7 +109,9 @@ def test_malformed_arguments_are_structured_error_not_crash(instance):
     instance.chat.return_value = message({'function': {'name': 'numeric', 'arguments': '{bad json'}})
     c = Conversation(instance, INITIAL.copy(), tools=[])
     c.turn()
-    assert 'error' in json.loads(c.state['messages'][-1]['content'])
+    receipt = json.loads(c.state['messages'][-1]['content'])
+    assert receipt['error']['code'] == 'invalid_tool_arguments'
+    assert receipt['error']['outcome'] == 'not_started'
     instance.dispatch.assert_not_called()
 
 
