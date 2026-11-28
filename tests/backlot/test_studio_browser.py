@@ -1818,10 +1818,12 @@ def test_t2v_availability_identity_and_saved_receipt_recovery(staged_backlot_ser
         mode = page.locator("#mode-text-to-video")
         expect(mode).to_be_disabled()
         expect(page.locator("#text-to-video-status")).to_contain_text("activación")
+        expect(page.locator("#backend-warning")).to_be_visible()
         assert calls == {"availability": 0, "results": 0, "video": 0, "submit": []}
 
         identity["restart_required"] = False
         page.reload()
+        expect(page.locator("#backend-warning")).to_be_hidden()
         expect(page.locator("#text-to-video-status")).to_contain_text("Falta un modelo Wan")
         expect(mode).to_be_disabled()
         assert calls["availability"] == 1
