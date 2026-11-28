@@ -387,7 +387,7 @@ def create_studio_router():
     @router.get('/api/studio/projects/{pid}/memory')
     def project_memory_list(pid: str, limit: int = 50):
         from lib import project_memory
-        result = invoke(project_memory.list_records, pid, limit=limit)
+        result = invoke(lambda project_id: project_memory.list_records(project_id, limit=limit), pid)
         with agent.ACTIVE_LOCK:
             result['agent_active'] = pid in agent.ACTIVE
         return result
@@ -412,9 +412,9 @@ def create_studio_router():
                 raise HTTPException(400, 'Completa la preferencia/decisión y su referencia de origen')
             if data.get('kind') not in {'explicit_preference', 'creative_decision'}:
                 raise HTTPException(400, 'La edición manual solo admite preferencias y decisiones creativas')
-            return invoke(project_memory.remember, pid, kind=data['kind'], text=data['text'],
-                          source_type='user_statement', source_ref=data['source_ref'],
-                          supersedes_id=data.get('supersedes_id'))
+            return invoke(lambda project_id: project_memory.remember(
+                project_id, kind=data['kind'], text=data['text'], source_type='user_statement',
+                source_ref=data['source_ref'], supersedes_id=data.get('supersedes_id')), pid)
 
     @router.get('/api/studio/download-plan')
     def pending_download_plan():
