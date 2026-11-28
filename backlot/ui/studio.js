@@ -99,8 +99,67 @@ const sportsActionLabels={collectible_card:'Ficha de colección',resolve_players
 const competitionLabels={champions:'Liga de Campeones UEFA',women_champions:'Liga de Campeones Femenina UEFA',europa:'Liga Europa UEFA',conference:'Liga Conferencia UEFA',euro:'Eurocopa UEFA',nations:'Liga de Naciones UEFA',supercup:'Supercopa UEFA',finalissima:'Finalissima',qualifiers:'Clasificación europea'};
 async function loadSportsSchema(){if(state.sportsSchema)return;const schema=await tryApi('/api/studio/football/schema');if(schema.__error){$('#sports-connector').textContent='Cobertura: UEFA \u00b7 esquema no disponible';$('#sports-connector').classList.add('neutral');return}state.sportsSchema=schema;$('#sports-connector').textContent='Cobertura: UEFA \u00b7 bajo demanda';$('#sports-connector').classList.add('neutral');$('#sports-competition').replaceChildren(...(schema.competitions||[]).map(c=>new Option(competitionLabels[c]||'Competici\u00f3n UEFA',c)));$('#sports-action').replaceChildren(...(schema.actions||[]).map(a=>new Option(sportsActionLabels[a.name]||'Consulta deportiva',a.name)));if(schema.actions?.some(a=>a.name==='compare_players'))$('#sports-action').value='compare_players';$('#sports-action').onchange=renderSportsFields;renderSportsFields();const note=document.createElement('span');note.textContent=schema.coverage_note||'Cobertura limitada a UEFA';$('#sports-route-note').replaceChildren(note)}
 function renderSportsFields(){const root=$('#sports-fields');root.replaceChildren();const action=state.sportsSchema?.actions?.find(a=>a.name===$('#sports-action').value);if(!action)return;const properties=state.sportsSchema.parameters?.properties||{};for(const field of action.fields||[]){if(field==='competition')continue;const label=document.createElement('label');label.textContent=sportsFieldLabels[field]||'Parámetro';let input;if(field==='entity'&&action.choices?.entity){input=document.createElement('select');input.append(...action.choices.entity.map(x=>new Option(x==='player'?'Jugador':x==='team'?'Equipo':x==='players'?'Jugadores':'Equipos',x)))}else if(field==='phase'&&properties.phase?.enum){input=document.createElement('select');input.append(...properties.phase.enum.map(x=>new Option(x==='TOURNAMENT'?'Torneo':x==='QUALIFYING'?'Clasificación':'Todas las fases',x)))}else if(field==='order'&&properties.order?.enum){input=document.createElement('select');input.append(...properties.order.enum.map(x=>new Option(x==='ASC'?'Ascendente':'Descendente',x)))}else if(field==='lineups'){input=document.createElement('input');input.type='checkbox'}else if(field==='names'||field==='metrics'){input=document.createElement('textarea');input.rows=field==='names'?2:1;input.placeholder=field==='names'?'Nombre 1, Nombre 2': 'standard, all o métricas separadas por comas'}else{input=document.createElement('input');input.type=properties[field]?.type==='integer'?'number':'text';input.autocomplete='off'}input.name=field;input.dataset.fieldType=field==='names'?'names':field==='metrics'?'metrics':field==='lineups'?'boolean':properties[field]?.type||'string';input.dataset.required=(action.required||[]).includes(field)?'true':'false';label.append(input);root.append(label)}}
-$('#sports-form').onsubmit=async e=>{e.preventDefault();const action=$('#sports-action').value,inputs={competition:$('#sports-competition').value,action};for(const el of $('#sports-fields').querySelectorAll('[name]')){const type=el.dataset.fieldType;let v=type==='boolean'?el.checked:el.value.trim();if(type!=='boolean'&&!v&&el.dataset.required==='true'){toast(`Completa el campo ${el.name}`);return}if(type==='boolean'){inputs[el.name]=v;continue}if(!v)continue;if(type==='names')v=v.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);else if(type==='metrics'&&v!=='standard'&&v!=='all')v=v.split(',').map(x=>x.trim()).filter(Boolean);else if(type==='integer'){v=Number(v);if(!Number.isSafeInteger(v)){toast(`${el.name} debe ser un número entero`);return}}inputs[el.name]=v}const root=$('#sports-results');root.innerHTML='<div class="empty-state">Consultando la fuente…</div>';try{const result=await req('/api/studio/football/query',{method:'POST',body:inputs});state.lastSports=result;renderSportsResult(result);$('#sports-copy').disabled=false}catch(err){root.replaceChildren();const p=document.createElement('p');p.textContent=err.message;root.append(p)}};
-function renderSportsResult(result){const root=$('#sports-results');root.replaceChildren();if(!result.success){const card=document.createElement('article');card.className='result-card';card.innerHTML=`<h3>Consulta sin resultado</h3><p>${esc(result.error||'La fuente no devolvió datos')}</p>`;root.append(card);return}const data=result.data||{};const card=document.createElement('article');card.className='result-card';const h=document.createElement('h3');h.textContent=sportsActionLabels[$('#sports-action').value]||'Resultado oficial';const meta=document.createElement('p');meta.textContent=`Fuente: ${data.fuente||'UEFA'} · Consulta local: ${new Date().toISOString()} · Estadísticas persistidas: no`;card.append(h,meta);for(const [key,value] of Object.entries(data.alcance||{})){const p=document.createElement('p');p.textContent=`${sportsFieldLabels[key]||'Contexto'}: ${value??'desconocido'}`;card.append(p)}const rows=Array.isArray(data.registros)?data.registros:Array.isArray(data.records)?data.records:[];if(rows.length){const list=document.createElement('div');list.className='result-rows';for(const row of rows){const p=document.createElement('p');p.textContent=Object.entries(row).map(([k,v])=>`${sportsFieldLabels[k]||k}: ${v??'desconocido'}`).join(' · ');list.append(p)}card.append(list)}else{const pre=document.createElement('pre');pre.textContent=JSON.stringify(data,null,2);card.append(pre)}const note=document.createElement('p');note.textContent=result.note||'Respeta temporada, fase, fuente y contexto devueltos por la respuesta oficial.';card.append(note);root.append(card)}$('#sports-copy').onclick=async()=>{if(!state.lastSports)return;await navigator.clipboard.writeText(JSON.stringify(state.lastSports.data,null,2));toast('Comparativa copiada')};
+function prepareSportsFollowup(query){
+  if(!query||typeof query!=='object'||Array.isArray(query)){toast('La consulta sugerida no tiene un formato válido.');return}
+  const schema=state.sportsSchema,action=schema?.actions?.find(item=>item.name===query.action);
+  if(!action||!(schema.competitions||[]).includes(query.competition)){
+    toast('La sugerencia no coincide con el esquema UEFA cargado.');return
+  }
+  $('#sports-action').value=query.action;$('#sports-competition').value=query.competition;renderSportsFields();
+  for(const field of $('#sports-fields').querySelectorAll('[name]')){
+    if(!Object.prototype.hasOwnProperty.call(query,field.name))continue;
+    const value=query[field.name];
+    if(field.type==='checkbox'){field.checked=value===true;continue}
+    if(Array.isArray(value))field.value=value.join(', ');
+    else if(typeof value==='string'||typeof value==='number')field.value=String(value);
+  }
+  toast('Consulta preparada. Revisa los campos y pulsa «Consultar fuente».')
+}
+$('#sports-form').onsubmit=async e=>{
+  e.preventDefault();const action=$('#sports-action').value,inputs={competition:$('#sports-competition').value,action};
+  for(const el of $('#sports-fields').querySelectorAll('[name]')){
+    const type=el.dataset.fieldType;let v=type==='boolean'?el.checked:el.value.trim();
+    if(type!=='boolean'&&!v&&el.dataset.required==='true'){toast(`Completa el campo ${el.name}`);return}
+    if(type==='boolean'){inputs[el.name]=v;continue}
+    if(!v)continue;
+    if(type==='names')v=v.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);
+    else if(type==='metrics'&&v!=='standard'&&v!=='all')v=v.split(',').map(x=>x.trim()).filter(Boolean);
+    else if(type==='integer'){v=Number(v);if(!Number.isSafeInteger(v)){toast(`${el.name} debe ser un número entero`);return}}
+    inputs[el.name]=v
+  }
+  const root=$('#sports-results');state.lastSports=null;$('#sports-copy').disabled=true;root.innerHTML='<div class="empty-state">Consultando la fuente…</div>';
+  try{const result=await req('/api/studio/football/query',{method:'POST',body:inputs});renderSportsResult(result)}
+  catch(err){state.lastSports=null;$('#sports-copy').disabled=true;root.replaceChildren();const p=document.createElement('p');p.textContent=err.message;root.append(p)}
+};
+function renderSportsResult(result){
+  const root=$('#sports-results');root.replaceChildren();
+  if(!result?.success){
+    state.lastSports=null;$('#sports-copy').disabled=true;
+    const card=document.createElement('article');card.className='result-card';
+    const heading=document.createElement('h3');heading.textContent='Consulta sin resultado';
+    const message=document.createElement('p');message.textContent=result?.error||'La fuente no devolvió datos';
+    card.append(heading,message);root.append(card);return
+  }
+  state.lastSports=result;$('#sports-copy').disabled=false;
+  const data=result.data||{},card=document.createElement('article');card.className='result-card';
+  const h=document.createElement('h3');h.textContent=sportsActionLabels[$('#sports-action').value]||'Resultado oficial';
+  const meta=document.createElement('p');meta.textContent=`Fuente: ${data.fuente||'UEFA'} · Consulta local: ${new Date().toISOString()} · Estadísticas persistidas: no`;card.append(h,meta);
+  for(const [key,value] of Object.entries(data.alcance||{})){const p=document.createElement('p');p.textContent=`${sportsFieldLabels[key]||'Contexto'}: ${value??'desconocido'}`;card.append(p)}
+  const rows=Array.isArray(data.registros)?data.registros:Array.isArray(data.records)?data.records:[];
+  if(rows.length){const list=document.createElement('div');list.className='result-rows';for(const row of rows){const p=document.createElement('p');p.textContent=Object.entries(row).map(([k,v])=>`${sportsFieldLabels[k]||k}: ${v??'desconocido'}`).join(' · ');list.append(p)}card.append(list)}
+  else{const pre=document.createElement('pre');pre.textContent=JSON.stringify(data,null,2);card.append(pre)}
+  const note=document.createElement('p');note.textContent=result.note||'Respeta temporada, fase, fuente y contexto devueltos por la respuesta oficial.';card.append(note);
+  const followups=Array.isArray(result.followups)?result.followups:Array.isArray(data.followups)?data.followups:[];
+  const actions=document.createElement('div');actions.className='sports-followups';
+  for(const item of followups.slice(0,20)){
+    if(!item||typeof item.label!=='string'||!item.label.trim()||item.label.length>120)continue;
+    const button=document.createElement('button');button.type='button';button.className='quiet-button';button.textContent=item.label.trim();
+    button.addEventListener('click',()=>prepareSportsFollowup(item.query));actions.append(button)
+  }
+  if(actions.childElementCount){const title=document.createElement('h4');title.textContent='Siguientes consultas';card.append(title,actions)}
+  root.append(card)
+}
+$('#sports-copy').onclick=async()=>{if(!state.lastSports)return;await navigator.clipboard.writeText(JSON.stringify(state.lastSports.data,null,2));toast('Comparativa copiada')};
 $('#agent-project-link').onclick=e=>{e.preventDefault();if(state.pid)setModule('video');else setModule('projects')};
 $('#subtitle-download').onclick=e=>{if(!state.pid){e.preventDefault();toast('Selecciona un proyecto editable')}};
 window.addEventListener('hashchange',()=>setModule(location.hash.slice(1)));

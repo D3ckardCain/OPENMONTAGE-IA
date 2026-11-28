@@ -1265,3 +1265,65 @@ def test_agent_activity_keeps_last_snapshot_during_temporary_read_failure(staged
         assert len(reads)>=3
         assert writes==[]
         browser.close()
+
+
+def test_sports_followup_prepares_form_without_sending_second_query(staged_backlot_server):
+    """A returned follow-up fills the new Comparativas form; the user submits it."""
+    schema={'coverage_note':'Solo UEFA','competitions':['champions'],
+      'parameters':{'edition':{'type':'integer'},'player_id':{'type':'string'},'metrics':{'type':'array'}},
+      'actions':[{'name':'definitions','fields':['competition'],'required':['competition']},
+        {'name':'player','fields':['competition','edition','player_id','metrics'],
+         'required':['competition','edition','player_id','metrics']}]}
+    calls=[]
+    def query(route):
+        calls.append(route.request.post_data_json)
+        route.fulfill(json={'success':True,'note':'Fixture sintético','data':{
+          'fuente':'UEFA','registros':[{'nombre':'Jugador de prueba'}]},
+          'followups':[{'label':'Preparar jugador de prueba','query':{
+            'action':'player','competition':'champions','edition':2027,
+            'player_id':'12345','metrics':['goals']}}]})
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json=schema))
+        page.route('**/api/studio/football/query',query)
+        page.goto(staged_backlot_server+'/studio#sports')
+        page.locator('#main-nav [data-module="sports"]').click()
+        expect(page.locator('#sports-competition option')).to_have_count(1)
+        page.locator('#sports-form button[type="submit"]').click()
+        page.get_by_role('button',name='Preparar jugador de prueba').click()
+        expect(page.locator('#sports-action')).to_have_value('player')
+        expect(page.locator('#sports-fields [name="edition"]')).to_have_value('2027')
+        expect(page.locator('#sports-fields [name="player_id"]')).to_have_value('12345')
+        expect(page.locator('#sports-fields [name="metrics"]')).to_have_value('goals')
+        assert calls==[{'competition':'champions','action':'definitions'}]
+        browser.close()
+
+
+def test_sports_failed_query_clears_previous_result_and_disables_copy(staged_backlot_server):
+    """A failed later lookup cannot leave an older report available to copy."""
+    calls=[]
+    def query(route):
+        calls.append(route.request.post_data_json)
+        if len(calls)==1:
+            route.fulfill(json={'success':True,'data':{'fuente':'UEFA','fixture':'resultado anterior'}})
+        else:
+            route.fulfill(status=503,json={'detail':'Fuente temporalmente no disponible'})
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        schema={'competitions':['champions'],'parameters':{},
+          'actions':[{'name':'definitions','fields':['competition'],'required':['competition']}]}
+        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json=schema))
+        page.route('**/api/studio/football/query',query)
+        page.goto(staged_backlot_server+'/studio#sports')
+        page.locator('#main-nav [data-module="sports"]').click()
+        page.locator('#sports-form button[type="submit"]').click()
+        expect(page.locator('#sports-results')).to_contain_text('resultado anterior')
+        expect(page.locator('#sports-copy')).to_be_enabled()
+        page.locator('#sports-form button[type="submit"]').click()
+        expect(page.locator('#sports-results')).to_contain_text('Fuente temporalmente no disponible')
+        expect(page.locator('#sports-results')).not_to_contain_text('resultado anterior')
+        expect(page.locator('#sports-copy')).to_be_disabled()
+        assert calls==[{'competition':'champions','action':'definitions'}]*2
+        browser.close()
