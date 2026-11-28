@@ -341,7 +341,7 @@ def test_authorizations_decisions_tasks_and_references_remain_verbatim(instance)
 
 def test_changed_context_archive_blocks_resume(instance):
     c = Conversation(instance, INITIAL.copy(), tools=[])
-    c.state['messages'] = [INITIAL[0], {'role': 'assistant', 'content': 'neutral ' * 20000}, *INITIAL[1:]]
+    c.state['messages'] = [INITIAL[0], {'role': 'assistant', 'content': 'neutral ' * 20000}, *INITIAL[1:], *[{'role': 'user', 'content': f'recent {index}'} for index in range(16)]]
     c.state.update(pending=[], next_call=0, in_flight=None)
     c.compact_completed_context()
     entry = c.state['context_compactions'][0]
