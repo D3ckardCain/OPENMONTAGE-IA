@@ -1231,7 +1231,7 @@ def test_agent_activity_keeps_last_snapshot_during_temporary_read_failure(staged
     project = {'active':True,'production_pipeline_available':True,
         'job':{'status':'running','events':[{'kind':'stage','message':'Lectura inicial disponible','at':'2026-11-28T00:00:00Z'}]},
         'stages':[{'name':'Guion','status':'in_progress'}],'artifacts':[],'outputs':[]}
-    reads=[]; writes=[]
+    reads=[]; writes=[]; recovery={'enabled':False}
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page(viewport={'width':1280,'height':800})
@@ -1248,11 +1248,11 @@ def test_agent_activity_keeps_last_snapshot_during_temporary_read_failure(staged
         def project_state(route):
             assert route.request.method=='GET'
             reads.append(route.request.method)
-            if len(reads)==2:
+            if len(reads)>=2 and not recovery['enabled']:
                 route.abort('failed')
                 return
             result=deepcopy(project)
-            if len(reads)>=3:
+            if recovery['enabled']:
                 result['job']['events']=[{'kind':'stage','message':'Lectura recuperada','at':'2026-11-28T00:00:05Z'}]
             route.fulfill(json=result)
         page.route('**/api/studio/projects/'+pid,project_state)
@@ -1261,6 +1261,7 @@ def test_agent_activity_keeps_last_snapshot_during_temporary_read_failure(staged
         expect(page.locator('#events')).to_contain_text('Lectura inicial disponible')
         expect(page.locator('#agent-status')).to_contain_text('Conexión temporalmente no disponible',timeout=3000)
         expect(page.locator('#events')).to_contain_text('Lectura inicial disponible')
+        recovery['enabled']=True
         expect(page.locator('#events')).to_contain_text('Lectura recuperada',timeout=3000)
         assert len(reads)>=3
         assert writes==[]
