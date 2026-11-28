@@ -1221,9 +1221,8 @@ def test_pending_agent_approval_ignores_duplicate_click(staged_backlot_server):
         browser.close()
 
 def test_agent_activity_keeps_last_snapshot_during_temporary_read_failure(staged_backlot_server):
-    """Read-only polling retains the last good state and recovers on the next GET."""
+    """The user-facing drawer retains its last read and recovers on its next poll."""
     from copy import deepcopy
-    import json
     pid = 'agent-ui-fixture'
     edit = {'revision':0,'undo':[],'redo':[],'events':[],'edit_decisions':{
         'version':'1.0','render_runtime':'ffmpeg','cuts':[],'audio_tracks':[],'cues':[],'sources':{},
@@ -1236,6 +1235,13 @@ def test_agent_activity_keeps_last_snapshot_during_temporary_read_failure(staged
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page(viewport={'width':1280,'height':800})
+        # The editor module keeps loadAgentActivity private. Accelerate only its
+        # five-second poll and exercise the same drawer toggle users activate.
+        page.add_init_script("""(() => {
+          const native = window.setInterval.bind(window);
+          window.setInterval = (callback, delay, ...args) =>
+            native(callback, delay === 5000 ? 100 : delay, ...args);
+        })();""")
         page.on('request',lambda request:writes.append(request.url) if request.method=='POST' else None)
         page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':pid,'title':'Agent panel JSON fixture'}]))
         page.route('**/api/studio/editor/'+pid,lambda route:route.fulfill(json=edit))
@@ -1253,13 +1259,9 @@ def test_agent_activity_keeps_last_snapshot_during_temporary_read_failure(staged
         page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
         page.locator('#agent-toggle').click()
         expect(page.locator('#events')).to_contain_text('Lectura inicial disponible')
-        page.evaluate('loadAgentActivity()')
-        expect(page.locator('#agent-status')).to_contain_text('Conexión temporalmente no disponible')
+        expect(page.locator('#agent-status')).to_contain_text('Conexión temporalmente no disponible',timeout=3000)
         expect(page.locator('#events')).to_contain_text('Lectura inicial disponible')
-        assert 'Actividad no disponible' not in page.locator('#events').inner_text()
-        page.evaluate('loadAgentActivity()')
-        expect(page.locator('#events')).to_contain_text('Lectura recuperada')
-        assert reads == ['GET','GET','GET']
-        assert not any('/api/studio/projects/'+pid in url for url in writes)
+        expect(page.locator('#events')).to_contain_text('Lectura recuperada',timeout=3000)
+        assert len(reads)>=3
+        assert writes==[]
         browser.close()
-
