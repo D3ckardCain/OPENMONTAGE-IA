@@ -119,7 +119,11 @@ def _chain(instance, base, model, tag, show):
             return result
         if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != SOURCE_SHA256:
             raise ValueError('AGENT_PROBE_CHANGED: reinicia Studio')
-        result = original(name, args)
+        preflight = original('tool_preflight', args)
+        if not isinstance(preflight, dict) or preflight.get('ready') is not True or not preflight.get('request_id'):
+            raise ValueError('AGENT_CHAIN_PROTOCOL: preflight local incompleto; no se ejecutó la herramienta')
+        preflight_ids.append(preflight['request_id'])
+        result = original(name, {**args, 'request_id': preflight['request_id']})
         if not result['success']:
             raise ValueError('AGENT_CHAIN_TOOL: ' + str(result.get('error')))
         receipts.append(result)
