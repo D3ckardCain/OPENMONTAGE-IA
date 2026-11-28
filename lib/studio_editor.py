@@ -36,11 +36,13 @@ def number(value, low=0, high=86400):
     return float(value)
 
 
-def media_path(project, relative):
-    if not isinstance(relative, str) or '\\' in relative or not (
-        relative.startswith('assets/') or relative.startswith('originales/')
-    ):
-        raise ValueError('El medio debe estar dentro de originales/ o assets/ del proyecto')
+def media_path(project, relative, *, allow_generated=False):
+    allowed = isinstance(relative, str) and (
+        relative.startswith('assets/') or relative.startswith('originales/') or
+        (allow_generated and relative.startswith('medios_generados/'))
+    )
+    if not allowed or '\\' in relative:
+        raise ValueError('El medio debe estar dentro de las carpetas permitidas del proyecto')
     path = project / relative
     path.resolve().relative_to(project.resolve())
     if any(p in ('.', '..') for p in Path(relative).parts) or path.is_symlink() or not path.is_file():
@@ -251,6 +253,57 @@ def register(pid, relative, expected, origin='user', original_name=None):
         edl['sources'][key] = {**info, **before, 'path': relative, 'sha256': sha,
                               'original_name': original_name or path.name, 'imported_at': studio.now(), 'origin': origin}
         return _commit(pid, value, edl, origin, 'import')
+
+
+def register_generated_and_add(pid, relative, expected):
+    """Atomically register the backend-validated T2V output and add it to video."""
+    import re
+    if not isinstance(relative, str) or not re.fullmatch(
+        r'medios_generados/wan-t2v-[a-f0-9]{32}\.mp4', relative
+    ):
+        raise ValueError('El resultado generado no corresponde a un MP4 Wan T2V')
+    with guard(pid):
+        value = state(pid)
+        _revision(value, expected)
+        project = studio.project_path(pid)
+        path = media_path(project, relative, allow_generated=True)
+        if path.suffix.lower() not in EXTENSIONS:
+            raise ValueError('Formato multimedia no admitido')
+        before = identity(path)
+        if before['bytes'] <= 0 or before['bytes'] > 2_000_000_000:
+            raise ValueError('El resultado está vacío o supera el límite de 2 GB')
+        info = probe(path)
+        sha = digest(path)
+        if before != identity(path):
+            raise Conflict('El resultado cambió durante la importación')
+
+        edl = deepcopy(value['edit_decisions'])
+        source_id = next((key for key, source in edl['sources'].items()
+                          if source.get('path') == relative), None)
+        if source_id:
+            source = edl['sources'][source_id]
+            if source.get('sha256') != sha or source.get('bytes') != before['bytes']:
+                raise Conflict('El medio ya registrado no coincide con el recibo completado')
+        else:
+            if len(edl['sources']) >= 200:
+                raise ValueError('Límite local: 200 fuentes por proyecto')
+            source_id = uuid.uuid4().hex
+            edl['sources'][source_id] = {
+                **info, **before, 'path': relative, 'sha256': sha,
+                'original_name': path.name, 'imported_at': studio.now(),
+                'origin': 'wan_t2v_receipt',
+            }
+        source = edl['sources'][source_id]
+        clip_id = uuid.uuid4().hex
+        edl['cuts'].append({
+            'id': clip_id, 'source': source['path'], 'source_id': source_id,
+            'in_seconds': 0, 'out_seconds': source['duration'], 'speed': 1,
+            'muted': False, 'gain': 1, 'fade_in': 0, 'fade_out': 0,
+            'start_seconds': 0,
+        })
+        _validate_edit(edl)
+        result = _commit(pid, value, edl, 'user', 'add_generated_video')
+        return {**result, 'source_id': source_id, 'clip_id': clip_id}
 
 
 def _item(items, key):
@@ -498,8 +551,17 @@ def source(pid, source_id):
         info = edl['sources'][source_id]
     except KeyError as exc:
         raise ValueError('Fuente no encontrada') from exc
-    path = media_path(studio.project_path(pid), info['path'])
+    relative = info['path']
+    generated_t2v = (
+        info.get('origin') == 'wan_t2v_receipt'
+        and isinstance(relative, str)
+        and __import__('re').fullmatch(
+            r'medios_generados/wan-t2v-[a-f0-9]{32}\.mp4', relative
+        )
+    )
+    path = media_path(
+        studio.project_path(pid), relative, allow_generated=bool(generated_t2v)
+    )
     if identity(path) != {key: info[key] for key in ('bytes', 'mtime_ns')}:
         raise Conflict('El medio cambió desde su importación; vuelve a importarlo')
     return path
-

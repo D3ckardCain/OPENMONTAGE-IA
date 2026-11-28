@@ -25,6 +25,53 @@ def create_editor_router(body):
     def capabilities():
         return editor_capabilities()
 
+    @router.get('/{pid}/text-to-video/availability')
+    def text_to_video_availability(pid: str):
+        from lib.studio_text_to_video import availability
+        return invoke(availability, pid)
+
+    @router.post('/{pid}/text-to-video', status_code=202)
+    async def text_to_video(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_text_to_video import GenerationUnavailable, start
+        data = await body(request, 12000)
+        try:
+            return await run_in_threadpool(start, pid, data)
+        except GenerationUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        except editor.Conflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @router.get('/{pid}/text-to-video/results')
+    def text_to_video_results(pid: str):
+        from lib.studio_text_to_video import completed_results
+        return invoke(completed_results, pid)
+
+    @router.post('/{pid}/text-to-video/requests/{request_id}/add')
+    async def text_to_video_add(pid: str, request_id: str, request: Request):
+        from lib.studio_text_to_video import add_to_timeline
+        data = await body(request, 2000)
+        if not isinstance(data, dict) or set(data) != {'revision'}:
+            raise HTTPException(400, 'La solicitud solo admite la revisión editable actual')
+        return invoke(add_to_timeline, pid, request_id, data['revision'])
+
+    @router.get('/{pid}/text-to-video/requests/{request_id}')
+    def text_to_video_status(pid: str, request_id: str):
+        from lib.studio_text_to_video import status
+        return invoke(status, pid, request_id)
+
+    @router.get('/{pid}/text-to-video/requests/{request_id}/video')
+    def text_to_video_video(pid: str, request_id: str):
+        from lib.studio_text_to_video import video_path
+        path = invoke(video_path, pid, request_id)
+        return FileResponse(path, media_type='video/mp4', filename=path.name,
+                            headers={'Cache-Control': 'private, no-store',
+                                     'X-Content-Type-Options': 'nosniff'})
+
     @router.post('/{pid}/smooth-speed-plan')
     async def smooth_speed_plan(pid:str,request:Request):
         from lib.studio_smooth_speed import project_plan
@@ -341,4 +388,3 @@ def create_editor_router(body):
         return invoke(render.start, pid, data.get('revision'), data.get('preview', False), 'agent')
 
     return router
-
