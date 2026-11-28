@@ -982,42 +982,80 @@ def test_final_catalog_availability_errors_and_disconnected_disk(staged_backlot_
         browser.close()
 
 
-def test_official_football_queries_clear_old_results_on_failure(staged_backlot_server):
+def test_sports_query_clears_previous_result_and_preserves_unknowns(staged_backlot_server):
+    schema={
+        'coverage_note':'Solo UEFA',
+        'competitions':['champions'],
+        'parameters':{
+            'edition':{'type':'integer','minimum':1955},
+            'player_id':{'type':'string'},
+            'metrics':{'type':'array'},
+            'phase':{'type':'string','enum':['TOURNAMENT','ALL']},
+        },
+        'actions':[
+            {'name':'compare_players','fields':['competition'],'required':['competition']},
+            {'name':'player','fields':['competition','edition','player_id','metrics','phase'],
+             'required':['competition','edition','player_id','metrics'],'defaults':{'phase':'TOURNAMENT'}},
+            {'name':'definitions','fields':['competition'],'required':['competition']},
+        ],
+    }
+    calls=[]
+    def query(route):
+        calls.append(route.request.post_data_json)
+        route.fulfill(json={
+            'success':len(calls)==1,
+            'data':{
+                'fuente':'UEFA',
+                'registros':[{
+                    'nombre':'<img src=x onerror=alert(1)>',
+                    'fixture_stat':'fresh-result','goals':0,'assists':None,
+                }],
+            } if len(calls)==1 else None,
+            'error':'Fuente temporalmente no disponible',
+            'note':'Consulta de fixture sintético',
+        })
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
-        page=browser.new_page()
-        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
-        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json={'coverage_note':'Solo UEFA','competitions':['champions'],'parameters':{'edition':{'type':'integer','minimum':1955},'player_id':{'type':'string'},'metrics':{'type':'array'},'phase':{'type':'string','enum':['TOURNAMENT','ALL']}},'actions':[{'name':'definitions','fields':['competition'],'required':['competition']},{'name':'player','fields':['competition','edition','player_id','metrics','phase'],'required':['competition','edition','player_id','metrics'],'defaults':{'phase':'TOURNAMENT'}}]}))
-        calls=[]
-        def query(route):
-            calls.append(route.request.post_data_json)
-            route.fulfill(json={'success':len(calls)==1,'data':{'fixture_stat':'fresh-result','fuente':'UEFA','registros':[{'nombre':'<img src=x onerror=alert(1)>','estadisticas':{'goals':0,'assists':None}}],'advertencia':'Alcance de prueba','consultas':[{'url':'https://www.uefa.com/fixture','consultado_utc':'fixture-time'}]} if len(calls)==1 else None,'error':'Fuente temporalmente no disponible','note':'Consulta sin respaldo antiguo'})
+        page=browser.new_page();errors=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={
+            'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188',
+                        'model':'fixture','resource_roots':[]},'pipelines':[],'projects':[],
+        }))
+        page.route('**/api/studio/football/schema',lambda route:route.fulfill(json=schema))
         page.route('**/api/studio/football/query',query)
-        page.goto(staged_backlot_server+'/studio#football')
-        page.locator('#football-load').click()
-        page.locator('#football-query').click()
-        page.wait_for_function('document.querySelector("#football-result").textContent.includes("fresh-result")')
-        assert page.locator('#football-result tbody tr').count()==1
-        assert page.locator('#football-result').get_by_role('cell',name='0',exact=True).count()==1
-        assert page.locator('#football-result').get_by_role('cell',name='Dato no disponible',exact=True).count()==1
-        assert page.locator('#football-result img').count()==0
-        assert page.get_by_role('link',name='Fuente oficial',exact=True).get_attribute('href')=='https://www.uefa.com/fixture'
-        page.locator('#football-query').click()
-        page.get_by_text('Fuente temporalmente no disponible',exact=True).wait_for()
-        assert 'fresh-result' not in page.locator('#football-result').inner_text()
-        assert calls==[{'action':'definitions','competition':'champions'}]*2
-        page.locator('#football-action').select_option('player')
-        page.locator('[data-football-field=edition]').fill('2027')
-        page.locator('[data-football-field=player_id]').fill('12345')
-        page.locator('[data-football-field=metrics]').fill('goals, assists')
-        page.locator('[data-football-field=phase]').select_option('ALL')
-        page.locator('#football-query').click()
-        page.wait_for_function('document.querySelector("#football-query").disabled===false')
-        assert calls[-1]=={'action':'player','competition':'champions','edition':2027,'player_id':'12345','metrics':['goals','assists'],'phase':'ALL'}
-        page.locator('#football-action').select_option('definitions')
-        assert page.locator('[data-football-field]').count()==0
+        page.goto(staged_backlot_server+'/studio#sports')
+        expect(page.locator('#sports-action')).to_have_value('compare_players')
+        page.locator('#sports-form button[type="submit"]').click()
+        page.wait_for_function('document.querySelector("#sports-results").textContent.includes("fresh-result")')
+        result=page.locator('#sports-results')
+        assert result.get_by_text('goals: 0',exact=False).count()==1
+        assert result.get_by_text('assists: desconocido',exact=False).count()==1
+        assert result.locator('img').count()==0
+        expect(page.locator('#sports-copy')).to_be_enabled()
+        page.locator('#sports-form button[type="submit"]').click()
+        expect(result).to_contain_text('Fuente temporalmente no disponible')
+        assert 'fresh-result' not in result.inner_text()
+        expect(page.locator('#sports-copy')).to_be_disabled()
+        assert calls==[
+            {'competition':'champions','action':'compare_players'},
+            {'competition':'champions','action':'compare_players'},
+        ]
+        page.locator('#sports-action').select_option('player')
+        page.locator('#sports-fields [name="edition"]').fill('2027')
+        page.locator('#sports-fields [name="player_id"]').fill('12345')
+        page.locator('#sports-fields [name="metrics"]').fill('goals, assists')
+        page.locator('#sports-fields [name="phase"]').select_option('ALL')
+        page.locator('#sports-form button[type="submit"]').click()
+        expect(result).to_contain_text('Fuente temporalmente no disponible')
+        assert calls[-1]=={
+            'competition':'champions','action':'player','edition':2027,
+            'player_id':'12345','metrics':['goals','assists'],'phase':'ALL',
+        }
+        page.locator('#sports-action').select_option('definitions')
+        assert page.locator('#sports-fields [name]').count()==0
+        assert errors==[]
         browser.close()
-
 
 def test_football_definition_picker_uses_entity_and_competition_scope(staged_backlot_server):
     with sync_playwright() as pw:
