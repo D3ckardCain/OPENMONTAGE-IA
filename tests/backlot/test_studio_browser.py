@@ -471,6 +471,9 @@ def test_render_cancel_button_sends_attempt_and_allows_new_attempt(staged_backlo
         def cancel(route):
             payload=route.request.post_data_json;cancels.append(payload)
             assert payload=={'attempt':job['attempt']}
+            if len(cancels)==1:
+                route.abort()
+                return
             job.update(status='cancelling');route.fulfill(json=dict(job))
             job.update(status='cancelled',process_stopped=True)
         page.route('**/api/studio/editor/'+pid+'/render/cancel',cancel)
@@ -483,6 +486,10 @@ def test_render_cancel_button_sends_attempt_and_allows_new_attempt(staged_backlo
         expect(page.locator('#preview-refresh')).to_be_disabled()
         expect(page.locator('#edit-export')).to_be_disabled()
         page.locator('#edit-render-cancel').click()
+        expect(page.locator('#preview-status')).to_contain_text('ya puedes reintentar la cancelación')
+        expect(page.locator('#edit-render-cancel')).to_be_enabled()
+        assert starts==[{'revision':0,'preview':True}]
+        page.locator('#edit-render-cancel').click()
         expect(page.locator('#preview-status')).to_contain_text('cancelled')
         expect(page.locator('#edit-render-cancel')).to_be_hidden()
         expect(page.locator('#preview-refresh')).to_be_enabled()
@@ -492,7 +499,7 @@ def test_render_cancel_button_sends_attempt_and_allows_new_attempt(staged_backlo
         page.locator('#edit-render-cancel').click()
         expect(page.locator('#preview-status')).to_contain_text('cancelled')
         assert starts==[{'revision':0,'preview':True},{'revision':0,'preview':True}]
-        assert cancels==[{'attempt':'owned-attempt-1'},{'attempt':'owned-attempt-2'}]
+        assert cancels==[{'attempt':'owned-attempt-1'},{'attempt':'owned-attempt-1'},{'attempt':'owned-attempt-2'}]
         assert not errors
         browser.close()
 

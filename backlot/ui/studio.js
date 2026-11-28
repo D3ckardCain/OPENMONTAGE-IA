@@ -198,7 +198,7 @@ function syncRenderControls(){
   const canCancel=current&&!!task.attempt&&(activeStates.includes(task.status)||activeStates.includes(task.lastStatus));
   const cancel=$('#edit-render-cancel');
   cancel.hidden=!canCancel;
-  cancel.disabled=!!task?.cancelRequested||task?.status==='cancelling';
+  cancel.disabled=!!task?.cancelPending||!!task?.cancelRequested||task?.status==='cancelling';
   cancel.textContent=task?.status==='cancelling'||task?.cancelRequested?'Cancelando…':'Cancelar render';
 }
 function setRenderStatus(pid,message){if(state.pid===pid)$('#preview-status').textContent=message}
@@ -221,7 +221,7 @@ async function resumeRender(pid){
   const result=await tryApi(`/api/studio/editor/${encodeURIComponent(pid)}/render`);
   if(state.pid!==pid||result.__error||!['running','cancelling'].includes(result.status))return;
   const token=++state.renderPollToken;
-  state.renderTask={pid,preview:result.preview===true,attempt:result.attempt||null,status:result.status,lastStatus:result.status,pending:true,cancelRequested:result.status==='cancelling',token};
+  state.renderTask={pid,preview:result.preview===true,attempt:result.attempt||null,status:result.status,lastStatus:result.status,pending:true,cancelRequested:result.status==='cancelling',cancelPending:false,token};
   syncRenderControls();setRenderStatus(pid,result.status==='cancelling'?'Reanudando seguimiento de cancelación…':'Render en curso; seguimiento recuperado.');
   pollRender(token);
 }
@@ -239,7 +239,9 @@ function pollRender(token){
       if(typeof result.attempt==='string'&&result.attempt)current.attempt=result.attempt;
       if(['running','cancelling'].includes(result.status)){
         current.status=result.status;current.lastStatus=result.status;
-        setRenderStatus(current.pid,result.status==='cancelling'?'Cancelación solicitada; esperando confirmación del proceso…':'Render en curso…');
+        if(result.status==='cancelling')current.cancelRequested=true;
+        if(result.status==='running'&&current.cancelRequested&&!current.cancelPending){current.cancelRequested=false;setRenderStatus(current.pid,'La consulta confirma que el render sigue activo; ya puedes reintentar la cancelación de este mismo intento.');}
+        else setRenderStatus(current.pid,result.status==='cancelling'?'Cancelación solicitada; esperando confirmación del proceso…':'Render en curso…');
         syncRenderControls();
       }else if(['completed','failed','cancelled','error','idle'].includes(result.status)){
         checking=false;finishRender(current,result);return;
@@ -257,7 +259,7 @@ async function startRender(preview){
   if(existing?.pid===state.pid&&existing.pending){pollRender(existing.token);return}
   if(!state.pid||!state.edit)return;
   stopRenderPolling();const token=++state.renderPollToken,pid=state.pid;
-  const task={pid,preview,attempt:null,status:'starting',lastStatus:null,pending:true,cancelRequested:false,token};state.renderTask=task;
+  const task={pid,preview,attempt:null,status:'starting',lastStatus:null,pending:true,cancelRequested:false,cancelPending:false,token};state.renderTask=task;
   syncRenderControls();setRenderStatus(pid,preview?'Preparando vista previa…':'Exportando…');
   try{
     const result=await req(`/api/studio/editor/${encodeURIComponent(pid)}/render`,{method:'POST',body:{revision:state.edit.revision,preview}});
@@ -272,15 +274,15 @@ async function startRender(preview){
 }
 async function cancelRender(){
   const task=state.renderTask;
-  if(!task||task.pid!==state.pid||!task.pending||!task.attempt||task.cancelRequested)return;
-  task.cancelRequested=true;task.status='cancelling';syncRenderControls();setRenderStatus(task.pid,'Solicitando cancelación…');
+  if(!task||task.pid!==state.pid||!task.pending||!task.attempt||task.cancelRequested||task.cancelPending)return;
+  task.cancelRequested=true;task.cancelPending=true;task.status='cancelling';syncRenderControls();setRenderStatus(task.pid,'Solicitando cancelación…');
   try{
     const result=await req(`/api/studio/editor/${encodeURIComponent(task.pid)}/render/cancel`,{method:'POST',body:{attempt:task.attempt}});
     if(state.renderTask?.token!==task.token)return;
-    task.status=result.status||'cancelling';task.lastStatus=task.status;setRenderStatus(task.pid,'Cancelación solicitada; verificando que termine el proceso.');
+    task.cancelPending=false;task.status=result.status||'cancelling';task.lastStatus=task.status;setRenderStatus(task.pid,'Cancelación solicitada; verificando que termine el proceso.');
   }catch(error){
     if(state.renderTask?.token!==task.token)return;
-    task.status='unknown';setRenderStatus(task.pid,`Respuesta de cancelación incierta (${error.message}); consultando estado sin repetir.`);
+    task.cancelPending=false;task.status='unknown';setRenderStatus(task.pid,`Respuesta de cancelación incierta (${error.message}); consultando estado sin repetir.`);
   }
   syncRenderControls();pollRender(task.token);
 }
