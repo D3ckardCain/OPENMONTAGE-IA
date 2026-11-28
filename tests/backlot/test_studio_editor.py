@@ -68,8 +68,9 @@ def test_import_copies_source_into_project_originals_and_preserves_source(projec
     original.write_bytes(b'authorized source bytes')
     client = TestClient(create_app(), base_url='http://127.0.0.1:4750')
 
+    revision = edit.state(pid)['revision']
     response = client.post(
-        f'/api/studio/editor/{pid}/upload?filename=captura.mp4&revision=0',
+        f'/api/studio/editor/{pid}/upload?filename=captura.mp4&revision={revision}',
         content=original.read_bytes(),
         headers={'Content-Type': 'application/octet-stream'},
     )
@@ -222,8 +223,9 @@ def test_api_shared_state_media_and_upload(project):
     assert client.get('/api/studio/bootstrap').json()['projects'] == []
     page = unescape(client.get('/studio').text)
     assert '<!-- MANUAL_EDITOR -->' not in page
-    assert 'id="edit-player" controls' in page and 'Vídeo' in page and 'Subtítulos' in page
-    assert 'id="legacy-studio"' in page and 'id="applications-load"' in page
+    assert 'id="preview-video" controls playsinline' in page and 'Vídeo' in page and 'Subtítulos' in page
+    assert 'id="module-video"' in page and 'id="text-to-video-form"' in page
+    assert 'id="legacy-studio"' not in page and 'id="applications-load"' not in page
 
 
 def test_export_worker_uses_snapshot_and_checks_result(project, monkeypatch):
