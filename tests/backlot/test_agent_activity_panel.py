@@ -18,6 +18,8 @@ class AgentActivityPanelTests(unittest.TestCase):
         self.assertIn('function renderAgentActivity(projectState={})', script.text)
         self.assertIn('events.slice(-12).reverse()', script.text)
         self.assertIn('projectState?.stages', script.text)
+        self.assertIn('projectState?.production_pipeline_available!==false', script.text)
+        self.assertIn('Proyecto de edición', script.text)
         self.assertIn('projectState?.artifacts', script.text)
         self.assertIn('safeProjectMediaUrl', script.text)
         self.assertIn('state.identity?.restart_required===false', script.text)
