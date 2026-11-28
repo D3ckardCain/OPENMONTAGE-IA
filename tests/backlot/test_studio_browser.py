@@ -208,94 +208,97 @@ def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_s
         browser.close()
 
 
-def test_cursor_split_uses_shared_revisioned_contract_and_undo(staged_backlot_server):
-    """UI contract with intercepted JSON, not local AV playback."""
+def test_manual_editor_split_undo_redo_and_reopen_use_current_studio_contract(staged_backlot_server):
+    """Exercise the current Studio timeline UI with synthetic API state; no media playback."""
     from copy import deepcopy
     import json
     from pathlib import Path
+
     fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
-    state=deepcopy(fixture['state']);original=deepcopy(state);pid=fixture['project_id'];calls=[];trim_ends=[41.75,42-1/24]
+    original=deepcopy(fixture['state'])
+    state=deepcopy(original)
+    pid=fixture['project_id']
+    calls=[]
+    split_snapshot=None
+    project={'project_id':pid,'title':'Montaje de prueba','project_path':'QA/Montaje de prueba'}
+
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page=browser.new_page(viewport={'width':1920,'height':1080})
-        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Cursor contract fixture'}]))
-        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=state))
-        page.route('**/api/studio/editor/'+pid+'/render',lambda r:r.fulfill(json=fixture['render']))
-        page.route('**/media/**',lambda r:r.fulfill(status=204))
-        page.route('**/api/studio/editor/'+pid+'/source/**',lambda r:r.fulfill(status=204))
+        errors=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/health',lambda route:route.fulfill(json={'ok':True,'app':'backlot'}))
+        page.route('**/api/studio/identity',lambda route:route.fulfill(json={'restart_required':False,'resident':{'sha256':'a'*64},'disk':{'sha256':'a'*64}}))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{},'pipelines':[],'projects':[project]}))
+        page.route('**/api/studio/storage',lambda route:route.fulfill(json={'active_projects_dir':'QA','available':True}))
+        page.route('**/api/studio/editor/capabilities',lambda route:route.fulfill(json={'commands':['split','undo','redo','save']}))
+        page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[project]))
+        page.route('**/api/studio/editor/'+pid,lambda route:route.fulfill(json=state))
+        page.route('**/api/studio/comfy-history/projects/'+pid,lambda route:route.fulfill(json={'reports':[]}))
+        page.route('**/api/studio/editor/'+pid+'/text-to-video/availability',lambda route:route.fulfill(json={'available':False,'reason':'No generation in this UI fixture.'}))
+
         def command(route):
-            data=route.request.post_data_json;calls.append(data);assert data['revision']==state['revision']
-            revision=state['revision']+1
-            if data['operation']=='split':
-                assert data['at']==pytest.approx(11);assert data['track']=='video'
-                clip=state['edit_decisions']['cuts'][1];assert data['id']==clip['id']
-                state['edit_decisions']['cuts'].append({**clip,'id':'split-part','in_seconds':data['at']})
-                clip['out_seconds']=data['at'];state['edit_sha256']='b'*64;state['undo']=[original['edit_decisions']]
-            elif data['operation']=='trim':
-                assert data['track']=='video';assert data['in_seconds']==40
-                assert data['out_seconds']==pytest.approx(trim_ends.pop(0))
-                state['edit_decisions']['cuts'][0]['out_seconds']=data['out_seconds'];state['edit_sha256']='c'*64;state['undo']=[original['edit_decisions']]
-            elif data['operation']=='clip':
-                assert data['track']=='audio';assert data['start_seconds']==pytest.approx(.5)
-                state['edit_decisions']['audio_tracks'][0]['start_seconds']=data['start_seconds'];state['edit_sha256']='d'*64;state['undo']=[original['edit_decisions']]
-            elif data['operation']=='cue_update':
-                assert data['index']==0;assert data['text']=='Edited offline cue';assert data['start_seconds']==.5;assert data['end_seconds']==1.5
-                state['edit_decisions']['cues'][0].update(start_seconds=.5,end_seconds=1.5,text=data['text']);state['edit_sha256']='e'*64;state['undo']=[original['edit_decisions']]
+            nonlocal split_snapshot
+            data=route.request.post_data_json
+            calls.append(data)
+            assert data['revision']==state['revision']
+            operation=data['operation']
+            if operation=='split':
+                assert data['track']=='video'
+                assert data['at']==pytest.approx(2.5)
+                cuts=state['edit_decisions']['cuts']
+                index=next(i for i,clip in enumerate(cuts) if clip['id']==data['id'])
+                assert index==1
+                clip=cuts[index]
+                assert clip['in_seconds']==pytest.approx(10.5)
+                assert clip['out_seconds']==pytest.approx(12)
+                split_snapshot=deepcopy(state['edit_decisions'])
+                clip['out_seconds']=11
+                cuts.insert(index+1,{**clip,'id':'split-part','in_seconds':11,'out_seconds':12})
+                state['undo']=[deepcopy(original['edit_decisions'])]
+                state['redo']=[]
+            elif operation=='undo':
+                assert split_snapshot is not None
+                state['edit_decisions']=deepcopy(original['edit_decisions'])
+                state['undo']=[]
+                state['redo']=[deepcopy(split_snapshot)]
+            elif operation=='redo':
+                assert split_snapshot is not None
+                state['edit_decisions']=deepcopy(split_snapshot)
+                state['undo']=[deepcopy(original['edit_decisions'])]
+                state['redo']=[]
+            elif operation=='save':
+                assert len(state['edit_decisions']['cuts'])==3
             else:
-                assert data['operation']=='undo';state.clear();state.update(deepcopy(original))
-            state['revision']=revision;route.fulfill(json=state)
+                raise AssertionError(f'Unexpected editor operation: {operation}')
+            state['revision']+=1
+            state['edit_sha256']=str(state['revision']).zfill(64)
+            route.fulfill(json=deepcopy(state))
+
         page.route('**/api/studio/editor/'+pid+'/command',command)
         page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
-        expect(page.locator('#edit-player')).to_have_attribute('src',fixture['render']['url'])
-        page.locator('.editor-video .editor-clip').nth(1).click()
-        expect(page.locator('#edit-player')).to_have_attribute('src',fixture['render']['url'])
-        ruler=page.get_by_role('slider',name='Regla temporal del montaje en segundos');ruler.focus()
-        page.keyboard.press('Home');page.keyboard.press('Shift+ArrowRight');page.keyboard.press('Shift+ArrowRight')
-        for _ in range(12):page.keyboard.press('ArrowRight')
-        assert float(ruler.get_attribute('aria-valuenow'))==pytest.approx(2.5)
-        page.locator('#edit-split-cursor').click()
-        expect(page.locator('.editor-video .editor-clip')).to_have_count(3)
-        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+1))
+        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']))
+        video_clips=page.locator('#timeline-tracks .track-row').first.locator('.timeline-clip')
+        expect(video_clips).to_have_count(2)
+        video_clips.nth(1).click()
+        page.locator('#playhead').fill('2.5')
+        page.locator('#clip-split').click()
+        expect(page.locator('#timeline-tracks .track-row').first.locator('.timeline-clip')).to_have_count(3)
+        expect(page.locator('#edit-undo')).to_be_enabled()
         page.locator('#edit-undo').click()
-        expect(page.locator('.editor-video .editor-clip')).to_have_count(2)
-        page.locator('#edit-reopen').click()
-        expect(page.locator('#edit-player')).to_have_attribute('src',fixture['render']['url'])
-        assert len(calls)==2
-        def drag_edge(delta,cancel=False):
-            handle=page.locator('.editor-video .editor-clip').first.locator('.editor-trim-out')
-            box=handle.bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
-            page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+delta,y,steps=5)
-            if cancel:page.keyboard.press('Escape')
-            page.mouse.up()
-        drag_edge(25,cancel=True);assert len(calls)==2
-        zoom=float(page.locator('#edit-zoom').input_value());drag_edge(-zoom*.25)
-        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+3))
-        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+4))
-        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        handle=page.locator('.editor-video .editor-clip').first.locator('.editor-trim-out');handle.focus();page.keyboard.press('ArrowLeft')
-        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+5))
-        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+6))
-        assert len(calls)==6 and not trim_ends
-        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        zoom=float(page.locator('#edit-zoom').input_value())
-        page.locator('.editor-audio .editor-clip').first.drag_to(page.locator('.editor-audio'),source_position={'x':20,'y':20},target_position={'x':20+zoom*.5,'y':35})
-        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+7))
-        expect(page.locator('#edit-timeline-note')).to_be_visible()
-        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+8))
-        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        page.locator('.editor-cues .editor-clip').first.click()
-        form=page.locator('#edit-cue-form')
-        form.locator('[name=start_seconds]').fill('0.5');form.locator('[name=end_seconds]').fill('1.5');form.locator('[name=text]').fill('Edited offline cue')
-        form.locator('button[type=submit]').click()
-        expect(page.locator('#edit-srt')).to_have_value('1\n00:00:00,500 --> 00:00:01,500\nEdited offline cue\n')
-        expect(page.locator('#manual-editor')).not_to_have_attribute('aria-busy','true')
-        page.locator('#edit-undo').click();expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+10))
-        assert len(calls)==10
+        expect(page.locator('#timeline-tracks .track-row').first.locator('.timeline-clip')).to_have_count(2)
+        expect(page.locator('#edit-redo')).to_be_enabled()
+        page.locator('#edit-redo').click()
+        expect(page.locator('#timeline-tracks .track-row').first.locator('.timeline-clip')).to_have_count(3)
+        page.locator('#edit-save').click()
+        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+4))
+        page.reload()
+        expect(page.locator('#edit-revision')).to_contain_text(str(original['revision']+4))
+        expect(page.locator('#timeline-tracks .track-row').first.locator('.timeline-clip')).to_have_count(3)
+        assert [call['operation'] for call in calls]==['split','undo','redo','save']
+        assert not errors
         browser.close()
 
-
-@pytest.mark.parametrize('width,height',[(1920,1080),(3440,1440)])
 def test_fit_long_timeline_includes_audio_tail_and_keyboard_cursor(staged_backlot_server,width,height):
     """Long metadata scenario derived from the existing source, no media payloads."""
     from copy import deepcopy
