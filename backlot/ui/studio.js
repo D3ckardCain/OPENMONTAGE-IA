@@ -13,12 +13,31 @@ $('#refresh-status').onclick=()=>initialize(true);$('#agent-toggle').onclick=()=
 const agentJobLabels={ready:'Listo',running:'En curso',awaiting_human:'Revisión pendiente',awaiting_input:'Espera una respuesta',interrupted:'Interrumpido',stopped:'Detenido',blocked:'Bloqueado',completed:'Completado',failed:'Fallido'};
 const agentStageLabels={pending:'Pendiente',in_progress:'En curso',completed:'Completada',awaiting_human:'Revisión',blocked:'Bloqueada',failed:'Fallida',skipped:'Omitida'};
 function safeProjectMediaUrl(value){try{const url=new URL(String(value||''),location.origin),prefix='/media/'+encodeURIComponent(state.pid)+'/';return url.origin===location.origin&&url.pathname.startsWith(prefix)?url.pathname+url.search:null}catch{return null}}
+function renderAgentRequest(request){
+  const root=$('#agent-request');if(!root)return;root.replaceChildren();
+  if(!request||typeof request!=='object'){root.textContent='No hay un encargo de producción asociado a este proyecto.';return}
+  const card=document.createElement('article');card.className='agent-request-card';
+  const title=document.createElement('strong');title.textContent=String(request.title||'Proyecto sin título');card.append(title);
+  const brief=typeof request.brief==='string'?request.brief:'';
+  if(brief){const summary=document.createElement('p');summary.textContent=brief.length>320?brief.slice(0,320).trimEnd()+'…':brief;card.append(summary);if(brief.length>320){const details=document.createElement('details'),label=document.createElement('summary'),full=document.createElement('p');label.textContent='Ver encargo completo';full.textContent=brief;details.append(label,full);card.append(details)}}
+  const meta=document.createElement('small'),language=typeof request.language==='string'&&request.language?request.language:'idioma no indicado';meta.textContent='Idioma: '+language;card.append(meta);root.append(card)
+}
+function agentClarificationStorageKey(pid){return 'openmontage.agent-clarification-pending.'+pid}
+function readAgentClarificationPending(pid){try{return JSON.parse(localStorage.getItem(agentClarificationStorageKey(pid))||'null')}catch{return null}}
+function saveAgentClarificationPending(pid,value){try{localStorage.setItem(agentClarificationStorageKey(pid),JSON.stringify(value));return true}catch{return false}}
+function clearAgentClarificationPending(pid){try{localStorage.removeItem(agentClarificationStorageKey(pid))}catch{}}
+function renderAgentClarifications(rows){
+  const root=$('#agent-clarifications');if(!root)return;root.replaceChildren();
+  if(!Array.isArray(rows)||!rows.length){const empty=document.createElement('li');empty.className='empty-state';empty.textContent='Aún no hay aclaraciones guardadas.';root.append(empty);return}
+  for(const item of rows.slice(-30).reverse()){if(!item||typeof item!=='object')continue;const row=document.createElement('li');row.className='agent-clarification';const text=document.createElement('p'),time=document.createElement('time');text.textContent=String(item.message||'Aclaración sin texto');row.append(text);if(typeof item.at==='string'&&item.at){time.dateTime=item.at;time.textContent=item.at;row.append(time)}root.append(row)}
+}
 function renderAgentActivity(projectState={}){
   const root=$('#events'),status=$('#agent-status'),stagesRoot=$('#agent-stages'),artifactsRoot=$('#agent-artifacts'),controls=$('#agent-controls');
   if(!root)return;
   const job=projectState?.job&&typeof projectState.job==='object'?projectState.job:{},stages=Array.isArray(projectState?.stages)?projectState.stages:[],events=Array.isArray(job.events)?job.events:[];
   const active=projectState?.active===true,jobStatus=String(job.status||'unknown'),completed=stages.filter(item=>item?.status==='completed').length,productionAvailable=projectState?.production_pipeline_available!==false;
   status.textContent=state.pid?(productionAvailable?(agentJobLabels[jobStatus]||'Estado sin clasificar'):'Proyecto de edición')+' · '+(active?'Agente activo':'Agente inactivo')+(stages.length?' · '+completed+'/'+stages.length+' etapas completadas':''):'Elige un proyecto para ver su estado.';
+  renderAgentRequest(projectState?.request);const clarificationButton=$('#agent-clarification-save');if(clarificationButton)clarificationButton.disabled=!state.pid||active||state.identity?.restart_required!==false;
   stagesRoot.replaceChildren();stagesRoot.hidden=!stages.length;
   for(const stage of stages){if(!stage||typeof stage!=='object')continue;const row=document.createElement('li'),name=document.createElement('strong'),value=document.createElement('span');row.dataset.status=String(stage.status||'pending');name.textContent=String(stage.name||'Etapa');value.textContent=agentStageLabels[stage.status]||'Estado sin clasificar';row.append(name,value);if(stage.error){const error=document.createElement('small');error.textContent=String(stage.error);row.append(error)}stagesRoot.append(row)}
   artifactsRoot.replaceChildren();const artifactGroups=[['Artefactos',projectState?.artifacts],['Entregas',projectState?.outputs]];let artifactCount=0;
@@ -47,8 +66,32 @@ async function loadAgentActivity(){
     if(!hasCurrentSnapshot)root.textContent='Actividad no disponible; se reintentará automáticamente.';
     return;
   }
-  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data)
+  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data);await loadAgentClarifications(pid,requestId,data.active===true)
 }
+async function loadAgentClarifications(pid,activityRequest,active){
+  const host=$('#agent-clarifications');if(!host)return;
+  const data=await tryApi(`/api/studio/clarifications/${encodeURIComponent(pid)}`);
+  if(activityRequest!==agentActivityRequest||pid!==state.pid)return;
+  if(data.__error||!Array.isArray(data.clarifications)){renderAgentClarifications([]);$('#agent-clarification-status').textContent='No se pudieron leer las aclaraciones guardadas.';$('#agent-clarification-save').disabled=true;return}
+  renderAgentClarifications(data.clarifications);const pending=readAgentClarificationPending(pid),saved=pending&&data.clarifications.find(item=>item?.request_id===pending.request_id);
+  if(saved){clearAgentClarificationPending(pid);$('#agent-clarification-text').value='';$('#agent-clarification-status').textContent='La aclaración pendiente ya estaba guardada en el proyecto.'}
+  else if(pending){const field=$('#agent-clarification-text');if(!field.value)field.value=String(pending.message||'');$('#agent-clarification-status').textContent='La respuesta anterior no se confirmó. Puedes reintentar el mismo texto; se reutilizará el mismo identificador.'}
+  else $('#agent-clarification-status').textContent='Solo se guarda en el proyecto seleccionado. Las nuevas notas se bloquean mientras el agente trabaja.';
+  const button=$('#agent-clarification-save');if(button)button.disabled=active||data.active===true||state.identity?.restart_required!==false
+}
+async function submitAgentClarification(event){
+  event.preventDefault();const pid=state.pid,field=$('#agent-clarification-text'),button=$('#agent-clarification-save'),status=$('#agent-clarification-status'),message=field.value.trim();
+  if(!pid||!message)return;
+  if(state.identity?.restart_required!==false){status.textContent='Backend pendiente de activación; no se guardó la aclaración.';return}
+  let pending=readAgentClarificationPending(pid);
+  if(pending&&pending.message!==message){status.textContent='Primero reconcilia la aclaración pendiente. Reintentar usa el mismo texto y el mismo identificador.';return}
+  if(!pending){const bytes=crypto.getRandomValues(new Uint8Array(16));pending={request_id:[...bytes].map(value=>value.toString(16).padStart(2,'0')).join(''),message};if(!saveAgentClarificationPending(pid,pending)){status.textContent='No se pudo guardar el identificador local; no se envió la aclaración.';return}}
+  button.disabled=true;status.textContent='Guardando aclaración en el proyecto…';
+  try{const result=await req(`/api/studio/clarifications/${encodeURIComponent(pid)}`,{method:'POST',body:pending});clearAgentClarificationPending(pid);field.value='';status.textContent=result.duplicate?'Esta aclaración ya estaba guardada.':'Aclaración guardada en el proyecto.';await loadAgentActivity()}
+  catch(error){status.textContent=`Respuesta no confirmada (${error.message}). Reintenta el mismo texto; el identificador se conserva para evitar duplicados.`}
+  finally{button.disabled=!state.pid||state.identity?.restart_required!==false}
+}
+$('#agent-clarification-form')?.addEventListener('submit',submitAgentClarification);
 let agentActionPending=false;
 async function runAgentAction(action){if(agentActionPending)return;const result=$('#agent-action-result'),buttons=[$('#agent-start'),$('#agent-stop'),$('#agent-approve')];if(!state.pid||state.identity?.restart_required!==false){result.textContent='Acción no disponible: activa y verifica el backend compatible.';return}agentActionPending=true;buttons.forEach(button=>button.disabled=true);result.textContent='Enviando acción…';try{const response=await req(`/api/studio/projects/${encodeURIComponent(state.pid)}/${action}`,{method:'POST',body:{}});result.textContent=action==='stop'?(response.requested?'Detención solicitada; el cierre del proceso aún no está confirmado.':'No hay agente activo que detener.') :action==='approve'?'Aprobación registrada; se solicitó continuar la siguiente etapa.':'Inicio solicitado; revisa el estado del agente.';await loadAgentActivity()}catch(error){result.textContent='La acción no se confirmó: '+error.message}finally{agentActionPending=false;buttons.forEach(button=>button.disabled=false)}}
 $('#agent-start').onclick=()=>runAgentAction('resume');$('#agent-stop').onclick=()=>runAgentAction('stop');$('#agent-approve').onclick=()=>runAgentAction('approve');
