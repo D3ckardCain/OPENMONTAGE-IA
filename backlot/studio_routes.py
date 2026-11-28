@@ -384,6 +384,38 @@ def create_studio_router():
             values.append(item)
             studio.save_json(p/'user_clarifications.json',values[-30:])
         return {'saved':True,'duplicate':False,'clarification':item}
+    @router.get('/api/studio/projects/{pid}/memory')
+    def project_memory_list(pid: str, limit: int = 50):
+        from lib import project_memory
+        result = invoke(project_memory.list_records, pid, limit=limit)
+        with agent.ACTIVE_LOCK:
+            result['agent_active'] = pid in agent.ACTIVE
+        return result
+
+    @router.post('/api/studio/projects/{pid}/memory')
+    async def project_memory_change(pid: str, request: Request):
+        from lib import project_memory
+        data = await body(request, 8000)
+        operation = data.get('operation')
+        with agent.ACTIVE_LOCK:
+            if pid in agent.ACTIVE:
+                raise HTTPException(409, 'Detén el agente antes de cambiar la memoria del proyecto')
+            if operation == 'forget':
+                if set(data) != {'operation', 'memory_id'}:
+                    raise HTTPException(400, 'La acción retirar solo admite el identificador de memoria')
+                return invoke(project_memory.forget, pid, data.get('memory_id'))
+            if operation != 'remember':
+                raise HTTPException(400, 'Operación de memoria inválida')
+            allowed = {'operation', 'kind', 'text', 'source_ref', 'supersedes_id'}
+            required = {'operation', 'kind', 'text', 'source_ref'}
+            if not required.issubset(data) or set(data) - allowed:
+                raise HTTPException(400, 'Completa la preferencia/decisión y su referencia de origen')
+            if data.get('kind') not in {'explicit_preference', 'creative_decision'}:
+                raise HTTPException(400, 'La edición manual solo admite preferencias y decisiones creativas')
+            return invoke(project_memory.remember, pid, kind=data['kind'], text=data['text'],
+                          source_type='user_statement', source_ref=data['source_ref'],
+                          supersedes_id=data.get('supersedes_id'))
+
     @router.get('/api/studio/download-plan')
     def pending_download_plan():
         from lib.download_plan import plan

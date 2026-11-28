@@ -182,6 +182,32 @@ def search(project_id, query, *, limit=10):
             'semantic_search': False, 'cross_project_search': False}
 
 
+def list_records(project_id, *, limit=50):
+    """List bounded project-local memory history without dropping tombstones."""
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise ValueError('Memory list limit must be 1 to 100')
+    current_revision, _ = _project_revision(project_id)
+    project = studio.project_path(project_id)
+    path = project / DB_RELATIVE
+    if path.is_symlink():
+        raise ValueError('Project memory database cannot be a symbolic link')
+    if not path.is_file():
+        return {'project_id': project_id, 'scope': 'project', 'current_project_revision': current_revision,
+                'entries': [], 'truncated': False}
+    with _LOCK, closing(_connect(project_id)) as db:
+        rows = db.execute('SELECT * FROM memory_records ORDER BY created_at DESC,id DESC LIMIT ?',
+                          (limit + 1,)).fetchall()
+    truncated = len(rows) > limit
+    entries = []
+    for row in rows[:limit]:
+        item = _result(row, current_revision)
+        item['active'] = bool(row['active'])
+        entries.append(item)
+    return {'project_id': project_id, 'scope': 'project', 'current_project_revision': current_revision,
+            'entries': entries, 'truncated': truncated, 'semantic_search': False,
+            'cross_project_search': False}
+
+
 def forget(project_id, memory_id):
     if not isinstance(memory_id, str) or not re.fullmatch(r'[0-9a-f]{32}', memory_id):
         raise ValueError('Invalid memory ID')

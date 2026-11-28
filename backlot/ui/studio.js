@@ -51,6 +51,59 @@ function renderAgentActivity(projectState={}){
 let agentActivityTimer=null,agentActivityRequest=0;
 function stopAgentActivityPolling(){if(agentActivityTimer){clearInterval(agentActivityTimer);agentActivityTimer=null}agentActivityRequest++}
 function startAgentActivityPolling(){stopAgentActivityPolling();if($('#agent-drawer').hidden)return;agentActivityTimer=setInterval(()=>{if(!document.hidden&&!$('#agent-drawer').hidden)loadAgentActivity()},5000)}
+let agentMemorySnapshotPid=null;
+function memoryKindLabel(kind){return kind==='explicit_preference'?'Preferencia explícita':kind==='creative_decision'?'Decisión creativa':String(kind||'Memoria')}
+function renderAgentMemory(data){
+  const root=$('#agent-memory-list'),status=$('#agent-memory-status');if(!root||!status)return;root.replaceChildren();
+  if(data.__error||!Array.isArray(data.entries)){status.textContent='No se pudo leer la memoria del proyecto; puedes actualizar para reintentar.';return}
+  const active=!!data.agent_active,compatible=state.identity?.restart_required===false,canWrite=!!state.pid&&compatible&&!active;
+  status.textContent=data.truncated?'Se muestran las entradas recientes; hay más historial.':data.entries.length?'Memoria local con origen y revisión del proyecto.':'Todavía no hay preferencias ni decisiones guardadas.';
+  for(const entry of data.entries){
+    const row=document.createElement('li');row.className='agent-memory-item';row.dataset.memoryId=String(entry.memory_id||'');
+    const heading=document.createElement('strong');heading.textContent=memoryKindLabel(entry.kind);
+    const body=document.createElement('p');body.textContent=String(entry.text||'');
+    const meta=document.createElement('small');const revision=entry.captured_revision_matches?'Coincide con la revisión actual':'Guardada con otra revisión del proyecto';meta.textContent=String(entry.source_type||'origen no declarado')+' · '+String(entry.source_ref||'sin referencia')+' · '+revision+' · '+(entry.active?'Activa':'Retirada del índice');
+    const trust=document.createElement('small');trust.textContent='Contexto solamente; no sustituye las instrucciones actuales.';
+    row.append(heading,body,meta,trust);
+    if(entry.active){
+      const actions=document.createElement('div');actions.className='agent-memory-actions';
+      if(['explicit_preference','creative_decision'].includes(entry.kind)){const edit=document.createElement('button');edit.type='button';edit.className='quiet-button';edit.textContent='Corregir';edit.title='Guarda la corrección como una versión nueva y conserva esta referencia';edit.disabled=!canWrite;edit.onclick=()=>openAgentMemoryForm(entry);actions.append(edit)}
+      const forget=document.createElement('button');forget.type='button';forget.className='quiet-button';forget.textContent='Retirar del índice';forget.title='Deja de recuperar esta memoria; conserva el recibo local';forget.disabled=!canWrite;forget.onclick=()=>changeAgentMemory({operation:'forget',memory_id:entry.memory_id});actions.append(forget);row.append(actions)
+    }
+    root.append(row)
+  }
+  if(!compatible)status.textContent='Backend pendiente de activación; memoria en modo de solo lectura.';
+  else if(active)status.textContent='El agente está usando este proyecto; memoria en modo de solo lectura.';
+}
+function openAgentMemoryForm(entry=null){
+  const form=$('#agent-memory-form');if(!form)return;form.hidden=false;$('#agent-memory-kind').value=entry?.kind||'explicit_preference';
+  $('#agent-memory-text').value=entry?.text||'';$('#agent-memory-source').value='';form.dataset.supersedesId=entry?.memory_id||'';
+  $('#agent-memory-save').textContent=entry?'Guardar corrección':'Guardar versión';
+  $('#agent-memory-status').textContent=entry?'La corrección creará una versión nueva y retirará del índice la anterior.':'La entrada se guardará solo en este proyecto.';
+  $('#agent-memory-text').focus()
+}
+function closeAgentMemoryForm(){const form=$('#agent-memory-form');if(!form)return;form.hidden=true;form.reset();delete form.dataset.supersedesId}
+async function loadAgentMemory(pid=state.pid,activityRequest=agentActivityRequest){
+  const status=$('#agent-memory-status');if(!pid){agentMemorySnapshotPid=null;if(status)status.textContent='Elige un proyecto para consultar su memoria.';return}
+  status.textContent='Leyendo memoria local del proyecto…';const data=await tryApi('/api/studio/projects/'+encodeURIComponent(pid)+'/memory');
+  if(activityRequest!==agentActivityRequest||pid!==state.pid)return;
+  if(data.__error){status.textContent='No se pudo consultar la memoria local; no se envió ningún cambio.';return}
+  agentMemorySnapshotPid=pid;renderAgentMemory(data)
+}
+async function changeAgentMemory(payload){
+  const pid=state.pid,status=$('#agent-memory-status');if(!pid)return;
+  if(state.identity?.restart_required!==false){status.textContent='Backend pendiente de activación; no se envió el cambio.';return}
+  status.textContent=payload.operation==='forget'?'Retirando del índice local…':'Guardando nueva versión en el proyecto…';
+  try{await req('/api/studio/projects/'+encodeURIComponent(pid)+'/memory',{method:'POST',body:payload});status.textContent=payload.operation==='forget'?'Entrada retirada del índice; recibo conservado.':'Nueva versión guardada con procedencia.'}
+  catch(error){status.textContent='Respuesta incierta; se consultará la memoria antes de considerar otro intento.'}
+  await loadAgentMemory(pid,agentActivityRequest)
+}
+async function submitAgentMemory(event){
+  event.preventDefault();const form=$('#agent-memory-form'),text=$('#agent-memory-text').value.trim(),source=$('#agent-memory-source').value.trim();
+  if(!state.pid||!text||!source)return;const payload={operation:'remember',kind:$('#agent-memory-kind').value,text,source_ref:source};
+  if(form.dataset.supersedesId)payload.supersedes_id=form.dataset.supersedesId;
+  await changeAgentMemory(payload);closeAgentMemoryForm()
+}
 let agentActivitySnapshotPid=null;
 async function loadAgentActivity(){
   const root=$('#events');if(!root)return;const pid=state.pid;
@@ -66,7 +119,7 @@ async function loadAgentActivity(){
     if(!hasCurrentSnapshot)root.textContent='Actividad no disponible; se reintentará automáticamente.';
     return;
   }
-  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data);await loadAgentClarifications(pid,requestId,data.active===true)
+  agentActivitySnapshotPid=pid;delete root.dataset.stale;renderAgentActivity(data);await loadAgentClarifications(pid,requestId,data.active===true);if(agentMemorySnapshotPid!==pid)await loadAgentMemory(pid,requestId)
 }
 async function loadAgentClarifications(pid,activityRequest,active){
   const host=$('#agent-clarifications');if(!host)return;
@@ -92,6 +145,10 @@ async function submitAgentClarification(event){
   finally{button.disabled=!state.pid||state.identity?.restart_required!==false}
 }
 $('#agent-clarification-form')?.addEventListener('submit',submitAgentClarification);
+$('#agent-memory-form')?.addEventListener('submit',submitAgentMemory);
+$('#agent-memory-add')?.addEventListener('click',()=>openAgentMemoryForm());
+$('#agent-memory-refresh')?.addEventListener('click',()=>loadAgentMemory(state.pid,agentActivityRequest));
+$('#agent-memory-cancel')?.addEventListener('click',closeAgentMemoryForm);
 let agentActionPending=false;
 async function runAgentAction(action){if(agentActionPending)return;const result=$('#agent-action-result'),buttons=[$('#agent-start'),$('#agent-stop'),$('#agent-approve')];if(!state.pid||state.identity?.restart_required!==false){result.textContent='Acción no disponible: activa y verifica el backend compatible.';return}agentActionPending=true;buttons.forEach(button=>button.disabled=true);result.textContent='Enviando acción…';try{const response=await req(`/api/studio/projects/${encodeURIComponent(state.pid)}/${action}`,{method:'POST',body:{}});result.textContent=action==='stop'?(response.requested?'Detención solicitada; el cierre del proceso aún no está confirmado.':'No hay agente activo que detener.') :action==='approve'?'Aprobación registrada; se solicitó continuar la siguiente etapa.':'Inicio solicitado; revisa el estado del agente.';await loadAgentActivity()}catch(error){result.textContent='La acción no se confirmó: '+error.message}finally{agentActionPending=false;buttons.forEach(button=>button.disabled=false)}}
 $('#agent-start').onclick=()=>runAgentAction('resume');$('#agent-stop').onclick=()=>runAgentAction('stop');$('#agent-approve').onclick=()=>runAgentAction('approve');

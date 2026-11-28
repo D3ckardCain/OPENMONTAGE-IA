@@ -1594,3 +1594,66 @@ def test_agent_project_context_and_uncertain_clarification_retry_are_idempotent(
         assert page.locator('#agent-clarifications script').count()==0
         browser.close()
 
+
+
+def test_agent_memory_can_be_corrected_and_retired_without_cross_project_access(staged_backlot_server):
+    """Synthetic UI/API transport, scoped to the selected project and current revision."""
+    import json
+    from pathlib import Path
+    from urllib.parse import urlparse
+    fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
+    pid=fixture['project_id'];request={'title':'Memoria QA','brief':'Conservar la negación y la procedencia.'}
+    project={'request':request,'job':{'status':'ready','events':[]},'stages':[],'active':False,'production_pipeline_available':True}
+    identity={'schema_version':1,'api_protocol':1,'restart_required':False,'resident':{'sha256':'a'*64},'disk':{'sha256':'a'*64}}
+    old={'memory_id':'a'*32,'kind':'explicit_preference','text':'Conservar negaciones.','source_type':'user_statement','source_ref':'conversation:message-10','project_revision':'old','captured_revision_matches':False,'created_at':'2026-11-27T12:00:00Z','instruction_eligible':False,'active':True}
+    new={'memory_id':'b'*32,'kind':'explicit_preference','text':'Conservar negaciones y su contexto.','source_type':'user_statement','source_ref':'conversation:message-11','project_revision':'current','captured_revision_matches':True,'created_at':'2026-11-28T12:00:00Z','instruction_eligible':False,'active':True}
+    entries=[old];posts=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page()
+        page.on('pageerror',lambda error:pytest.fail(f'JavaScript error: {error}'))
+        def api(route):
+            path=urlparse(route.request.url).path;method=route.request.method
+            if path.endswith('/api/health'):route.fulfill(json={'ok':True,'app':'backlot'});return
+            if path.endswith('/api/studio/identity'):route.fulfill(json=identity);return
+            if path.endswith('/api/studio/bootstrap'):route.fulfill(json={'projects':[{'project_id':pid,'title':request['title']}],'settings':{}});return
+            if path.endswith('/api/studio/storage'):route.fulfill(json={'active_projects_dir':'/fixture','configured_projects_dir':'/fixture','available':True});return
+            if path.endswith('/api/studio/editor/capabilities'):route.fulfill(json={'commands':[]});return
+            if path.endswith('/api/studio/editor/projects'):route.fulfill(json=[{'project_id':pid,'title':request['title']}]);return
+            if path==f'/api/studio/editor/{pid}':route.fulfill(json=fixture['state']);return
+            if path==f'/api/studio/comfy-history/projects/{pid}':route.fulfill(json={'reports':[]});return
+            if path==f'/api/studio/projects/{pid}' and method=='GET':route.fulfill(json=project);return
+            if path==f'/api/studio/clarifications/{pid}' and method=='GET':route.fulfill(json={'clarifications':[],'active':False});return
+            if path==f'/api/studio/projects/{pid}/memory' and method=='GET':
+                route.fulfill(json={'project_id':pid,'scope':'project','entries':list(entries),'truncated':False,'agent_active':False});return
+            if path==f'/api/studio/projects/{pid}/memory' and method=='POST':
+                payload=route.request.post_data_json;posts.append(payload)
+                if payload['operation']=='remember':
+                    entries[0]={**old,'active':False};entries.append({**new,'kind':payload['kind'],'text':payload['text'],'source_ref':payload['source_ref']})
+                    route.fulfill(json={'stored':True,'duplicate':False,'memory_id':new['memory_id']});return
+                if payload['operation']=='forget':
+                    for item in entries:
+                        if item['memory_id']==payload['memory_id']:item['active']=False
+                    route.fulfill(json={'forgotten':True,'memory_id':payload['memory_id']});return
+            route.fulfill(status=404,json={'detail':'No fixture for '+method+' '+path})
+        page.route('**/api/**',api)
+        page.goto(staged_backlot_server+f'/studio?project={pid}#video')
+        page.locator('#project-select').select_option(pid)
+        page.locator('#agent-toggle').click()
+        expect(page.locator('#agent-memory-list .agent-memory-item')).to_have_count(1)
+        expect(page.locator('#agent-memory-list')).to_contain_text('Guardada con otra revisión del proyecto')
+        first=page.locator('#agent-memory-list .agent-memory-item').first
+        first.get_by_role('button',name='Corregir').click()
+        page.locator('#agent-memory-text').fill(new['text'])
+        page.locator('#agent-memory-source').fill(new['source_ref'])
+        page.locator('#agent-memory-form').get_by_role('button',name='Guardar corrección').click()
+        expect(page.locator('#agent-memory-list .agent-memory-item')).to_have_count(2)
+        expect(page.locator('#agent-memory-list')).to_contain_text('Retirada del índice')
+        expect(page.locator('#agent-memory-list')).to_contain_text('Coincide con la revisión actual')
+        page.locator('#agent-memory-list .agent-memory-item').last.get_by_role('button',name='Retirar del índice').click()
+        expect(page.locator('#agent-memory-list .agent-memory-item').last).to_contain_text('Retirada del índice')
+        assert [post['operation'] for post in posts]==['remember','forget']
+        assert posts[0]['supersedes_id']==old['memory_id']
+        assert posts[0]['source_ref']==new['source_ref']
+        assert page.locator('#agent-memory-list script').count()==0
+        browser.close()

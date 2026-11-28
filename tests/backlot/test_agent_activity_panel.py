@@ -11,6 +11,8 @@ class AgentActivityPanelTests(unittest.TestCase):
         self.assertEqual(html.status_code, 200)
         self.assertIn('id="events" class="agent-activity" role="log"', html.text)
         self.assertIn('aria-live="polite"', html.text)
+        self.assertIn('id="agent-memory-list"', html.text)
+        self.assertIn('id="agent-memory-form"', html.text)
         self.assertNotIn('<pre id="events">', html.text)
 
         script = client.get('/ui/studio.js')
@@ -35,6 +37,10 @@ class AgentActivityPanelTests(unittest.TestCase):
         self.assertIn("usage[key]", script.text)
         self.assertIn("ev.outcome==='unknown'", script.text)
         self.assertNotIn("$('#events').textContent=", script.text)
+        self.assertIn('async function loadAgentMemory(', script.text)
+        self.assertIn('captured_revision_matches', script.text)
+        self.assertIn('Retirar del índice', script.text)
+        self.assertIn("operation:'forget'", script.text)
 
         css = client.get('/ui/studio.css')
         self.assertEqual(css.status_code, 200)
