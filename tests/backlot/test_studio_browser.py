@@ -252,9 +252,9 @@ def test_manual_editor_split_undo_redo_and_reopen_use_current_studio_contract(st
                 clip=cuts[index]
                 assert clip['in_seconds']==pytest.approx(10.5)
                 assert clip['out_seconds']==pytest.approx(12)
-                split_snapshot=deepcopy(state['edit_decisions'])
                 clip['out_seconds']=11
                 cuts.insert(index+1,{**clip,'id':'split-part','in_seconds':11,'out_seconds':12})
+                split_snapshot=deepcopy(state['edit_decisions'])
                 state['undo']=[deepcopy(original['edit_decisions'])]
                 state['redo']=[]
             elif operation=='undo':
@@ -299,6 +299,7 @@ def test_manual_editor_split_undo_redo_and_reopen_use_current_studio_contract(st
         assert not errors
         browser.close()
 
+@pytest.mark.parametrize('width,height',[(1920,1080),(3440,1440)])
 def test_fit_long_timeline_includes_audio_tail_and_keyboard_cursor(staged_backlot_server,width,height):
     """Long metadata scenario derived from the existing source, no media payloads."""
     from copy import deepcopy
