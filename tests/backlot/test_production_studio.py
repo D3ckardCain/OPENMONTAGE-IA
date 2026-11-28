@@ -383,11 +383,26 @@ def test_clarifications_and_interrupted_resume_state(isolated):
     pid=project();p=studio.project_path(pid)
     studio.save_json(p/'job.json',{'status':'running'})
     assert isolated.get('/api/studio/projects/'+pid).json()['job']['status']=='interrupted'
-    assert isolated.post('/api/studio/clarifications/'+pid,json={'message':'Duración de 60 segundos'}).status_code==200
+    empty=isolated.get('/api/studio/clarifications/'+pid)
+    assert empty.status_code==200 and empty.json()=={'clarifications':[],'active':False}
+    first=isolated.post('/api/studio/clarifications/'+pid,json={'message':'Duración de 60 segundos'})
+    assert first.status_code==200 and first.json()['saved'] and not first.json()['duplicate']
     assert studio.read_json(p/'user_clarifications.json')[0]['message']=='Duración de 60 segundos'
+    request_id='a'*32
+    payload={'message':'No cortar la negación.','request_id':request_id}
+    saved=isolated.post('/api/studio/clarifications/'+pid,json=payload)
+    duplicate=isolated.post('/api/studio/clarifications/'+pid,json=payload)
+    assert saved.status_code==200 and not saved.json()['duplicate']
+    assert duplicate.status_code==200 and duplicate.json()['duplicate']
+    assert len(studio.read_json(p/'user_clarifications.json'))==2
+    conflict=isolated.post('/api/studio/clarifications/'+pid,json={**payload,'message':'otro texto'})
+    assert conflict.status_code==409
+    assert isolated.get('/api/studio/clarifications/'+pid).json()['clarifications'][-1]['request_id']==request_id
     agent.ACTIVE[pid]=(None,threading.Event())
     assert isolated.post('/api/studio/settings',json={}).status_code==409
-    assert isolated.post('/api/studio/clarifications/'+pid,json={'message':'x'}).status_code==409
+    assert isolated.post('/api/studio/clarifications/'+pid,json={'message':'x','request_id':'b'*32}).status_code==409
+    assert isolated.get('/api/studio/clarifications/'+pid).json()['active'] is True
+    assert isolated.post('/api/studio/clarifications/'+pid,json=payload).json()['duplicate']
 
 def test_export_verification_requires_real_video_stream(isolated,monkeypatch):
     pid=project();worker=agent.LocalAgent(pid)
