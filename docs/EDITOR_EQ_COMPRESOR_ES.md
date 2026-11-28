@@ -2,6 +2,8 @@
 
 Extensión local de la cadena del mismo clip editable por usuario y agente. Se reutiliza FFmpeg y los controles de ganancia/fades/mezcla existentes; no se añaden paquetes, modelos ni otra timeline. Alcance **por clip**, no buses de pista ni un mezclador Fairlight completo.
 
+En la interfaz actual de Studio, abre **Vídeo**, selecciona un clip con audio y usa **EQ y compresor** en el inspector. El panel aparece solo si el backend activo anuncia `audio_processing`; si la capability falta, no se presenta un control desconectado. Los parámetros se envían por el comando compartido del proyecto y se guardan en la EDL con el historial.
+
 Selecciona vídeo con audio o un clip de audio. En **EQ y compresor del clip**:
 
 - EQ de campana, una octava de ancho, centrada en 120/1000/6000 Hz. Cada banda admite −12…+12 dB; 0 no añade filtro. No son controles de shelf ni un ecualizador paramétrico completo.

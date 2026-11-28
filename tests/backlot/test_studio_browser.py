@@ -503,6 +503,76 @@ def test_render_cancel_button_sends_attempt_and_allows_new_attempt(staged_backlo
         assert not errors
         browser.close()
 
+def test_audio_processing_controls_use_shared_command_and_reopen(staged_backlot_server):
+    """Current inspector sends bounded processing through shared project command."""
+    import copy
+    import json
+    pid='audio-processing-fixture'
+    state={'revision':0,'edit_sha256':'a'*64,'render_sha256':None,'undo':[],'redo':[],'events':[],
+      'edit_decisions':{'version':'1.0','render_runtime':'ffmpeg','cuts':[{
+        'id':'clip-1','source':'assets/synthetic.mp4','source_id':'source-1','kind':'video',
+        'in_seconds':0,'out_seconds':4,'speed':1,'muted':False,'gain':1,'fade_in':0,'fade_out':0,
+        'start_seconds':0}], 'audio_tracks':[],'layers':[],'titles':[],'cues':[],
+        'sources':{'source-1':{'path':'assets/synthetic.mp4','original_name':'Synthetic clip',
+          'kind':'video','duration':4,'audio':True,'bytes':1,'mtime_ns':1,'sha256':'c'*64}},
+        'output':{'ratio':'16:9','fps':24,'fit':'pad'},
+        'subtitle_style':{'size':32,'position':'bottom','mode':'soft'}}}
+    calls=[];undo=[];redo=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
+        page=browser.new_page(viewport={'width':1920,'height':1080});errors=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/identity',lambda r:r.fulfill(json={'restart_required':False,'resident':{'sha256':'a'*64},'disk':{'sha256':'a'*64}}))
+        page.route('**/api/studio/editor/capabilities',lambda r:r.fulfill(json={'commands':['audio_processing']}))
+        page.route('**/api/studio/editor/projects',lambda r:r.fulfill(json=[{'project_id':pid,'title':'Audio sintético'}]))
+        page.route('**/api/studio/editor/'+pid,lambda r:r.fulfill(json=state))
+        page.route('**/api/studio/editor/'+pid+'/render',lambda r:r.fulfill(json={'status':'idle'}))
+        def command(route):
+            data=route.request.post_data_json;calls.append(data)
+            if data['operation']=='audio_processing':
+                previous=copy.deepcopy(state['edit_decisions']);undo.append(previous);state['undo'].append(previous);redo.clear();state['redo'].clear()
+                state['edit_decisions']['cuts'][0]['audio_processing']=data['processing']
+            elif data['operation']=='undo':
+                next_value=copy.deepcopy(state['edit_decisions']);redo.append(next_value);state['redo'].append(next_value)
+                undo.pop();state['edit_decisions']=state['undo'].pop()
+            elif data['operation']=='redo':
+                previous=copy.deepcopy(state['edit_decisions']);undo.append(previous);state['undo'].append(previous)
+                redo.pop();state['edit_decisions']=state['redo'].pop()
+            state['revision']+=1;route.fulfill(json=state)
+        page.route('**/api/studio/editor/'+pid+'/command',command)
+        page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
+        page.locator('.timeline-clip').first.click()
+        panel=page.locator('#inspector .audio-processing-panel')
+        expect(panel).to_be_visible();panel.locator('summary').click()
+        form=page.locator('#edit-audio-processing')
+        form.locator('[name=bass_db]').fill('6')
+        form.locator('[name=compressor_enabled]').check()
+        form.locator('[name=threshold_db]').fill('-20')
+        form.locator('[name=ratio]').fill('4')
+        form.locator('[name=bypass]').check()
+        form.locator('[type=submit]').click()
+        expect(page.locator('#edit-audio-processing')).to_have_count(1)
+        assert calls[-1]['operation']=='audio_processing'
+        assert calls[-1]['id']=='clip-1' and calls[-1]['track']=='video'
+        assert state['edit_decisions']['cuts'][0]['audio_processing']=={
+          'bypass':True,'eq':{'bass_db':6,'mid_db':0,'treble_db':0},
+          'compressor':{'enabled':True,'threshold_db':-20,'ratio':4,'attack_ms':20,'release_ms':250}}
+        page.reload();page.locator('.timeline-clip').first.click()
+        panel=page.locator('#inspector .audio-processing-panel')
+        expect(panel).to_have_attribute('open','')
+        form=page.locator('#edit-audio-processing')
+        expect(form.locator('[name=bass_db]')).to_have_value('6')
+        expect(form.locator('[name=bypass]')).to_be_checked()
+        page.locator('#edit-undo').click()
+        expect(page.locator('#inspector .audio-processing-panel')).to_be_visible()
+        assert 'audio_processing' not in state['edit_decisions']['cuts'][0]
+        page.locator('#edit-redo').click()
+        assert state['edit_decisions']['cuts'][0]['audio_processing']['bypass'] is True
+        assert [call['operation'] for call in calls]==['audio_processing','undo','redo']
+        assert not errors
+        browser.close()
+
+
 def test_effect_controls_commit_shared_edl_and_reopen(staged_backlot_server):
     """Actual model and browser controls; intercepted transport, not local AV QA."""
     from copy import deepcopy
