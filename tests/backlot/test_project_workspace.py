@@ -19,7 +19,7 @@ def test_workspace_uses_readable_title_and_safe_collision_variant(tmp_path):
 def test_workspace_layout_is_uniform_and_confines_directories(tmp_path):
     root = tmp_path / "projects"
     root.mkdir()
-    _, project = create_project_folder(root, "Edición local")
+    project_id, project = create_project_folder(root, "Edición local")
     initialize_layout(project, project_id, "Edición local")
 
     assert all((project / name).is_dir() for name in STANDARD_DIRS)
