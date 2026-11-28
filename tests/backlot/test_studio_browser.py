@@ -1906,7 +1906,7 @@ def test_video_inspector_exposes_shared_capability_gated_crossfade(staged_backlo
         form.locator('[name="type"]').select_option("crossfade")
         form.locator('[name="duration_seconds"]').fill("0.25")
         form.locator('[type="submit"]').click()
-        expect(page.locator("#manual-editor")).not_to_have_attribute("aria-busy","true")
+        expect(page.locator("#transition-panel")).to_be_visible()
         value=state["edit_decisions"]["cuts"][1]["transition"]
         assert value["duration_seconds"]==0.25 and value["alignment"]=="center_source_handles"
         assert len(calls)==1 and calls[0]["duration_seconds"]==0.25
