@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const state={identity:null,bootstrap:null,storage:null,capabilities:null,projects:[],edit:null,pid:null,selectedSource:null,selectedClip:null,selectedTrack:'video',busy:false,lastSports:null};
+const state={identity:null,bootstrap:null,storage:null,capabilities:null,projects:[],edit:null,pid:null,selectedSource:null,selectedClip:null,selectedTrack:'video',busy:false,lastSports:null,sportsDefinitions:null,sportsDefinitionCompetition:null};
 state.pid=new URLSearchParams(location.search).get('project');
 const names={video:'Vídeo',audio:'Audio',subtitles:'Subtítulos',library:'Biblioteca',projects:'Proyectos',channels:'Investigación',sports:'Comparativas',thumbnails:'Miniaturas',avatars:'Avatares',clips:'Clips y tráileres',settings:'Preferencias'};
 const capabilityLabels={subtitle_karaoke:'Karaoke por palabras',subtitle_layout:'Diseño de subtítulos',subtitle_reflow:'Reflujo de texto',ripple_volume_points:'Automatización de volumen con ripple',track_volume_points:'Automatización de volumen por pista',mix_meter:'Medición de mezcla',audio_ducking:'Ducking de audio',track_mixer:'Mezclador por pista',audio_processing:'Procesamiento de audio',sfx_catalog:'Catálogo de efectos de sonido',crossfade:'Fundidos cruzados',audio_balance:'Balance de audio',layer_transform_keyframes:'Keyframes de transformación',layer_position_keyframes:'Keyframes de posición',batch:'Edición por lotes',duplicate:'Duplicar clip',markers:'Marcadores',flags:'Mute, solo y bloqueo',audio_trim_position:'Corte y posición de audio',delete_keep_gap:'Borrar conservando hueco',ripple_delete:'Borrado ripple',transform:'Transformación',titles:'Títulos',output_custom:'Formato personalizado',audio_mix:'Mezcla de audio',transition:'Transiciones',layers:'Capas',clip_candidates:'Candidatos de clips',subtitle_language:'Idioma de subtítulos',subtitle_words:'Inspección de palabras',subtitle_from_words:'Subtítulos desde palabras',silence_apply:'Aplicar propuesta de silencios',qwen_tts_plan:'Plan de voz Qwen',reference_plan:'Plan desde referencia',component_add:'Añadir componente visual',component_remove:'Quitar componente visual',clip_color:'Color por clip',color_compare:'Comparación de color',clip_color_hsl_hue:'Tono HSL por clip',clip_color_curves:'Curvas de color',clip_speed_ramp:'Rampa de velocidad',speed_ramp_plan:'Plan de velocidad',clip_smooth_speed:'Velocidad suave',smooth_speed_plan:'Plan de velocidad suave',layer_align:'Alinear capa'};
@@ -97,8 +97,56 @@ function renderChannelResults(data){const root=$('#channel-results');root.replac
 $('#manual-data-toggle').onclick=()=>{$('#manual-data-form').hidden=!$('#manual-data-form').hidden};$('#manual-data-save').onclick=()=>{try{const raw=$('#manual-channel-data').value.trim();if(!raw)throw Error('Añade la información y su procedencia');const record={added_at:new Date().toISOString(),source_type:'user_supplied_unverified',content:raw};const all=JSON.parse(localStorage.getItem('om.channel.notes')||'[]');all.push(record);localStorage.setItem('om.channel.notes',JSON.stringify(all));const d=document.createElement('div');d.className='result-card';const p=document.createElement('p');p.textContent=`Aportado por el usuario · ${record.added_at} · no verificado`;const pre=document.createElement('pre');pre.textContent=raw;d.append(p,pre);$('#manual-data-saved').replaceChildren(d);toast('Aporte guardado en este navegador, no en el expediente remoto')}catch(err){toast(err.message)}};
 const sportsActionLabels={collectible_card:'Ficha de colección',resolve_players:'Resolver nombres de jugadores',compare_players:'Comparar jugadores',ranking:'Clasificación',matches:'Partidos',match:'Partido',player:'Datos de jugador',player_history:'Historial de jugador',historical:'Datos históricos',coaches:'Entrenadores',coach_balance:'Balance de entrenador',teams:'Equipos',team:'Equipo',squad:'Plantilla',standings:'Tabla de posiciones',head_to_head:'Enfrentamiento directo',definitions:'Definiciones'};const sportsFieldLabels={competition:'Competición',edition:'Temporada',names:'Nombres de jugadores',metrics:'Métricas',phase:'Fase',entity:'Tipo de entidad',team_id:'ID de equipo',player_id:'ID de jugador',match_id:'ID de partido',coach_id:'ID de entrenador',order:'Orden',lineups:'Incluir alineaciones',team1:'ID de primer equipo',team2:'ID de segundo equipo',metric:'Métrica'};
 const competitionLabels={champions:'Liga de Campeones UEFA',women_champions:'Liga de Campeones Femenina UEFA',europa:'Liga Europa UEFA',conference:'Liga Conferencia UEFA',euro:'Eurocopa UEFA',nations:'Liga de Naciones UEFA',supercup:'Supercopa UEFA',finalissima:'Finalissima',qualifiers:'Clasificación europea'};
-async function loadSportsSchema(){if(state.sportsSchema)return;const schema=await tryApi('/api/studio/football/schema');if(schema.__error){$('#sports-connector').textContent='Cobertura: UEFA \u00b7 esquema no disponible';$('#sports-connector').classList.add('neutral');return}state.sportsSchema=schema;$('#sports-connector').textContent='Cobertura: UEFA \u00b7 bajo demanda';$('#sports-connector').classList.add('neutral');$('#sports-competition').replaceChildren(...(schema.competitions||[]).map(c=>new Option(competitionLabels[c]||'Competici\u00f3n UEFA',c)));$('#sports-action').replaceChildren(...(schema.actions||[]).map(a=>new Option(sportsActionLabels[a.name]||'Consulta deportiva',a.name)));if(schema.actions?.some(a=>a.name==='compare_players'))$('#sports-action').value='compare_players';$('#sports-action').onchange=renderSportsFields;renderSportsFields();const note=document.createElement('span');note.textContent=schema.coverage_note||'Cobertura limitada a UEFA';$('#sports-route-note').replaceChildren(note)}
-function renderSportsFields(){const root=$('#sports-fields');root.replaceChildren();const action=state.sportsSchema?.actions?.find(a=>a.name===$('#sports-action').value);if(!action)return;const properties=state.sportsSchema.parameters?.properties||{};for(const field of action.fields||[]){if(field==='competition')continue;const label=document.createElement('label');label.textContent=sportsFieldLabels[field]||'Parámetro';let input;if(field==='entity'&&action.choices?.entity){input=document.createElement('select');input.append(...action.choices.entity.map(x=>new Option(x==='player'?'Jugador':x==='team'?'Equipo':x==='players'?'Jugadores':'Equipos',x)))}else if(field==='phase'&&properties.phase?.enum){input=document.createElement('select');input.append(...properties.phase.enum.map(x=>new Option(x==='TOURNAMENT'?'Torneo':x==='QUALIFYING'?'Clasificación':'Todas las fases',x)))}else if(field==='order'&&properties.order?.enum){input=document.createElement('select');input.append(...properties.order.enum.map(x=>new Option(x==='ASC'?'Ascendente':'Descendente',x)))}else if(field==='lineups'){input=document.createElement('input');input.type='checkbox'}else if(field==='names'||field==='metrics'){input=document.createElement('textarea');input.rows=field==='names'?2:1;input.placeholder=field==='names'?'Nombre 1, Nombre 2': 'standard, all o métricas separadas por comas'}else{input=document.createElement('input');input.type=properties[field]?.type==='integer'?'number':'text';input.autocomplete='off'}input.name=field;input.dataset.fieldType=field==='names'?'names':field==='metrics'?'metrics':field==='lineups'?'boolean':properties[field]?.type||'string';input.dataset.required=(action.required||[]).includes(field)?'true':'false';label.append(input);root.append(label)}}
+function renderSportsDefinitionPicker(){
+  const root=$('#sports-definition-picker');if(!root)return;
+  root.replaceChildren();
+  const entityField=$('#sports-fields [name="entity"]'),metricsField=$('#sports-fields [name="metrics"]');
+  const competition=$('#sports-competition').value,entity=entityField?.value||'';
+  const actor={player:'PLAYER',players:'PLAYER',team:'TEAM',teams:'TEAM'}[entity];
+  const definitions=state.sportsDefinitions;
+  if(!actor||!metricsField||!Array.isArray(definitions)||state.sportsDefinitionCompetition!==competition){root.hidden=true;return}
+  const items=definitions.filter(item=>item&&typeof item.name==='string'&&Array.isArray(item.actors)&&
+    item.actors.some(value=>String(value).toUpperCase()===actor));
+  if(!items.length){root.hidden=true;return}
+  const label=document.createElement('label');label.textContent='Métrica de las definiciones oficiales';
+  const select=document.createElement('select');select.setAttribute('aria-label',label.textContent);
+  select.append(...items.map(item=>new Option(item.name,item.name)));label.append(select);
+  const button=document.createElement('button');button.type='button';button.className='quiet-button';button.textContent='Añadir métrica elegida';
+  button.addEventListener('click',()=>{
+    const selected=select.value;if(!selected)return;
+    const values=metricsField.value.split(',').map(value=>value.trim()).filter(value=>value&&!['standard','all'].includes(value.toLowerCase()));
+    if(!values.includes(selected))values.push(selected);
+    metricsField.value=values.join(', ');metricsField.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  const note=document.createElement('small');note.textContent='Filtrado por la competición UEFA consultada y el tipo de entidad.';
+  root.append(label,button,note);root.hidden=false;
+}
+async function loadSportsSchema(){if(state.sportsSchema)return;const schema=await tryApi('/api/studio/football/schema');if(schema.__error){$('#sports-connector').textContent='Cobertura: UEFA \u00b7 esquema no disponible';$('#sports-connector').classList.add('neutral');return}state.sportsSchema=schema;$('#sports-connector').textContent='Cobertura: UEFA \u00b7 bajo demanda';$('#sports-connector').classList.add('neutral');$('#sports-competition').replaceChildren(...(schema.competitions||[]).map(c=>new Option(competitionLabels[c]||'Competici\u00f3n UEFA',c)));$('#sports-action').replaceChildren(...(schema.actions||[]).map(a=>new Option(sportsActionLabels[a.name]||'Consulta deportiva',a.name)));if(schema.actions?.some(a=>a.name==='compare_players'))$('#sports-action').value='compare_players';$('#sports-action').onchange=renderSportsFields;$('#sports-competition').onchange=()=>{state.sportsDefinitions=null;state.sportsDefinitionCompetition=null;renderSportsDefinitionPicker()};renderSportsFields();const note=document.createElement('span');note.textContent=schema.coverage_note||'Cobertura limitada a UEFA';$('#sports-route-note').replaceChildren(note)}
+function renderSportsFields(){
+  const root=$('#sports-fields');root.replaceChildren();
+  const action=state.sportsSchema?.actions?.find(a=>a.name===$('#sports-action').value);
+  if(!action){renderSportsDefinitionPicker();return}
+  const properties=state.sportsSchema.parameters?.properties||{};
+  for(const field of action.fields||[]){
+    if(field==='competition')continue;
+    const label=document.createElement('label');label.textContent=sportsFieldLabels[field]||'Parámetro';
+    let input;
+    if(field==='entity'&&action.choices?.entity){
+      input=document.createElement('select');
+      input.append(...action.choices.entity.map(x=>new Option(x==='player'?'Jugador':x==='team'?'Equipo':x==='players'?'Jugadores':'Equipos',x)));
+      input.addEventListener('change',()=>{if(state.sportsDefinitions){const metrics=$('#sports-fields [name="metrics"]');if(metrics)metrics.value=''}renderSportsDefinitionPicker()});
+    }else if(field==='phase'&&properties.phase?.enum){
+      input=document.createElement('select');input.append(...properties.phase.enum.map(x=>new Option(x==='TOURNAMENT'?'Torneo':x==='QUALIFYING'?'Clasificación':'Todas las fases',x)));
+    }else if(field==='order'&&properties.order?.enum){
+      input=document.createElement('select');input.append(...properties.order.enum.map(x=>new Option(x==='ASC'?'Ascendente':'Descendente',x)));
+    }else if(field==='lineups'){input=document.createElement('input');input.type='checkbox'}
+    else if(field==='names'||field==='metrics'){input=document.createElement('textarea');input.rows=field==='names'?2:1;input.placeholder=field==='names'?'Nombre 1, Nombre 2':'standard, all o métricas separadas por comas'}
+    else{input=document.createElement('input');input.type=properties[field]?.type==='integer'?'number':'text';input.autocomplete='off'}
+    input.name=field;input.dataset.fieldType=field==='names'?'names':field==='metrics'?'metrics':field==='lineups'?'boolean':properties[field]?.type||'string';
+    input.dataset.required=(action.required||[]).includes(field)?'true':'false';label.append(input);root.append(label);
+  }
+  renderSportsDefinitionPicker();
+}
 function prepareSportsFollowup(query){
   if(!query||typeof query!=='object'||Array.isArray(query)){toast('La consulta sugerida no tiene un formato válido.');return}
   const schema=state.sportsSchema,action=schema?.actions?.find(item=>item.name===query.action);
@@ -127,8 +175,8 @@ $('#sports-form').onsubmit=async e=>{
     else if(type==='integer'){v=Number(v);if(!Number.isSafeInteger(v)){toast(`${el.name} debe ser un número entero`);return}}
     inputs[el.name]=v
   }
-  const root=$('#sports-results');state.lastSports=null;$('#sports-copy').disabled=true;root.innerHTML='<div class="empty-state">Consultando la fuente…</div>';
-  try{const result=await req('/api/studio/football/query',{method:'POST',body:inputs});renderSportsResult(result)}
+  const root=$('#sports-results');state.lastSports=null;$('#sports-copy').disabled=true;root.innerHTML='<div class="empty-state">Consultando la fuente…</div>';if(action==='definitions'){state.sportsDefinitions=null;state.sportsDefinitionCompetition=null;renderSportsDefinitionPicker()}
+  try{const result=await req('/api/studio/football/query',{method:'POST',body:inputs});renderSportsResult(result);if(action==='definitions'){const items=result?.success&&Array.isArray(result.data?.definiciones)?result.data.definiciones:[];state.sportsDefinitions=items;state.sportsDefinitionCompetition=inputs.competition;renderSportsDefinitionPicker()}}
   catch(err){state.lastSports=null;$('#sports-copy').disabled=true;root.replaceChildren();const p=document.createElement('p');p.textContent=err.message;root.append(p)}
 };
 function renderSportsResult(result){

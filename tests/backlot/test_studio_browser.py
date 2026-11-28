@@ -1022,30 +1022,44 @@ def test_official_football_queries_clear_old_results_on_failure(staged_backlot_s
 def test_football_definition_picker_uses_entity_and_competition_scope(staged_backlot_server):
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
-        page=browser.new_page()
-        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188','model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
-        schema={'coverage_note':'UEFA','competitions':['champions','europa'],'parameters':{'entity':{'type':'string'},'metrics':{'type':'array'}},'actions':[{'name':'definitions','fields':['competition'],'required':['competition']},{'name':'ranking','fields':['competition','entity','metrics'],'required':['competition','entity','metrics'],'choices':{'entity':['player','team']}}]}
+        page=browser.new_page();errors=[];calls=[]
+        page.on('pageerror',lambda error:errors.append(str(error)))
+        page.route('**/api/studio/bootstrap',lambda route:route.fulfill(json={
+            'settings':{'ollama_url':'http://127.0.0.1:11434','comfyui_url':'http://127.0.0.1:8188',
+                        'model':'fixture','resource_roots':[]},'pipelines':[],'projects':[]}))
+        schema={'coverage_note':'Solo UEFA','competitions':['champions','europa'],
+            'parameters':{'entity':{'type':'string'},'metrics':{'type':'array'}},
+            'actions':[{'name':'definitions','fields':['competition'],'required':['competition']},
+                {'name':'ranking','fields':['competition','entity','metrics'],'required':['competition','entity','metrics'],
+                 'choices':{'entity':['player','team']}}]}
         page.route('**/api/studio/football/schema',lambda route:route.fulfill(json=schema))
-        page.route('**/api/studio/football/query',lambda route:route.fulfill(json={'success':True,'note':'Fixture metadata','data':{'definiciones':[{'name':'goals','actors':['PLAYER']},{'name':'possession','actors':['TEAM']}]}}))
-        page.goto(staged_backlot_server+'/studio#football')
-        page.locator('#football-load').click();page.locator('#football-query').click()
-        page.wait_for_function('document.querySelector("#football-result").textContent.includes("Fixture metadata")')
-        page.locator('#football-action').select_option('ranking')
+        def query(route):
+            calls.append(route.request.post_data_json)
+            route.fulfill(json={'success':True,'note':'Fixture metadata','data':{
+                'definiciones':[{'name':'goals','actors':['PLAYER']},{'name':'possession','actors':['TEAM']}]}})
+        page.route('**/api/studio/football/query',query)
+        page.goto(staged_backlot_server+'/studio#sports')
+        expect(page.locator('#sports-action')).to_have_value('definitions')
+        page.locator('#sports-form button[type="submit"]').click()
+        expect(page.locator('#sports-results')).to_contain_text('Fixture metadata')
+        assert calls==[{'competition':'champions','action':'definitions'}]
+        page.locator('#sports-action').select_option('ranking')
         picker=page.get_by_role('combobox',name='Métrica de las definiciones oficiales',exact=True)
         assert picker.locator('option[value=goals]').count()==1
         assert picker.locator('option[value=possession]').count()==0
-        picker.select_option('goals')
         page.get_by_role('button',name='Añadir métrica elegida',exact=True).click()
         page.get_by_role('button',name='Añadir métrica elegida',exact=True).click()
-        assert page.locator('[data-football-field=metrics]').input_value()=='goals'
-        page.locator('[data-football-field=entity]').select_option('team')
-        assert page.locator('[data-football-field=metrics]').input_value()==''
+        metrics=page.locator('#sports-fields [name="metrics"]')
+        assert metrics.input_value()=='goals'
+        page.locator('#sports-fields [name="entity"]').select_option('team')
+        assert metrics.input_value()==''
         assert picker.locator('option[value=possession]').count()==1
         assert picker.locator('option[value=goals]').count()==0
-        page.locator('#football-competition').select_option('europa')
-        assert page.locator('[data-football-metric-picker]').count()==0
+        page.locator('#sports-competition').select_option('europa')
+        assert page.locator('#sports-definition-picker').is_hidden()
+        assert calls==[{'competition':'champions','action':'definitions'}]
+        assert errors==[]
         browser.close()
-
 
 def test_official_id_followup_prepares_form_without_new_query(staged_backlot_server):
     """A reviewed UEFA follow-up fills the redesigned Comparativas form only."""
