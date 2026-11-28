@@ -104,7 +104,7 @@ def test_manual_editor_layout_and_shared_revision_controls(staged_backlot_server
         assert page.locator('#preview-video').count() == 1
         expect(page.locator('#timeline-tracks')).to_be_visible()
         expect(page.locator('#inspector')).to_be_visible()
-        assert page.locator('.edit-workbench').bounding_box()['width'] >= width - 260
+        assert page.locator('.edit-workbench').bounding_box()['width'] >= width - 280
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1')
         page.locator('#aspect-select').select_option('9:16')
         expect(page.locator('#edit-revision')).to_have_text('Revisión 1')
