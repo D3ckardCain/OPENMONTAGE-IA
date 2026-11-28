@@ -106,6 +106,7 @@ class Conversation:
             raise Pause('blocked', 'AGENT_CONTEXT_VERSION_CHANGED: la versión de compactación cambió; conserva y revisa los archivos originales antes de reanudar.')
         self._verify_context_archives()
         self.state.setdefault('context_compaction_version', 1)
+        self.state.setdefault('tool_call_history', [])
         for attempt in self.state.get('model_attempts', []):
             if attempt.get('status') == 'running':
                 attempt.update(status='interrupted_unknown', finished_at=studio.now())
@@ -118,6 +119,39 @@ class Conversation:
     def save(self):
         self.state.update(updated_at=studio.now(), reads=sorted(self.agent.reads))
         studio.save_json(self.path, self.state)
+
+    def _tool_fingerprint(self, name, args):
+        clean = dict(args) if isinstance(args, dict) else {'arguments': args}
+        clean.pop('request_id', None)
+        payload = {'project_id': getattr(self.agent, 'pid', None), 'tool': name, 'arguments': clean}
+        return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                                         separators=(',', ':'), default=str).encode('utf-8')).hexdigest()
+
+    def _project_progress_fingerprint(self):
+        """Hash metadata for bounded project ledgers only; never scan media or model weights."""
+        project = self.agent.path
+        candidates = [project / name for name in ('production_request.json', 'job.json', 'manual_edit.json')]
+        artifact_dir = project / 'artifacts'
+        if artifact_dir.is_dir() and not artifact_dir.is_symlink():
+            candidates.extend(sorted(artifact_dir.glob('*.json'))[:512])
+        rows = []
+        for path in candidates:
+            try:
+                if path.is_symlink() or not path.is_file():
+                    continue
+                relative = path.resolve().relative_to(project.resolve()).as_posix()
+                stat = path.stat()
+                rows.append((relative, stat.st_size, stat.st_mtime_ns))
+            except (OSError, ValueError):
+                continue
+        return hashlib.sha256(json.dumps(rows, separators=(',', ':')).encode('utf-8')).hexdigest()
+
+    def _tool_receipt(self, call, name, result):
+        receipt = {'role': 'tool', 'tool_name': name,
+                   'content': json.dumps(result, ensure_ascii=False, default=str)}
+        if call.get('id'):
+            receipt['tool_call_id'] = call['id']
+        return receipt
 
     def _verify_context_archives(self):
         from lib.production_agent import Pause
@@ -170,7 +204,7 @@ class Conversation:
             if message.get('role') != 'tool':
                 continue
             content = message.get('content', '')
-            if not isinstance(content, str) or len(content) <= 16000:
+            if not isinstance(content, str) or not content:
                 continue
             content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
             call_id = message.get('tool_call_id')
@@ -318,6 +352,19 @@ class Conversation:
                 self.save()
                 raise
             attempt.update(status='completed', finished_at=studio.now(), transport=getattr(a,'last_transport',{}))
+            transport = getattr(a, 'last_transport', {})
+            usage = transport.get('ollama_usage') if isinstance(transport, dict) else None
+            if isinstance(usage, dict):
+                prompt = usage.get('prompt_eval_count')
+                response = usage.get('eval_count')
+                duration = usage.get('total_duration')
+                metrics = []
+                if type(prompt) is int and prompt >= 0: metrics.append(f'prompt {prompt} tokens')
+                if type(response) is int and response >= 0: metrics.append(f'respuesta {response} tokens')
+                if type(duration) is int and duration >= 0: metrics.append(f'total {duration / 1_000_000:g} ms')
+                if metrics:
+                    a.event('model_usage', 'Uso informado por Ollama: ' + ' · '.join(metrics),
+                            ollama_usage=usage)
             calls = message.get('tool_calls', [])
             if not isinstance(calls, list) or len(calls) > 16 or any(
                     not isinstance(c, dict) or not isinstance(c.get('function'), dict) for c in calls):
@@ -331,28 +378,78 @@ class Conversation:
             if a.cancel.is_set():
                 raise Pause('stopped', 'Detenido entre acciones; resultados guardados para reanudar.')
             fn = s['pending'][s['next_call']]['function']
+            call = s['pending'][s['next_call']]
+            args = fn.get('arguments', {})
+            if isinstance(args, str):
+                try: args = json.loads(args)
+                except (ValueError, TypeError): args = {'_invalid_arguments': args}
+            fingerprint = self._tool_fingerprint(fn.get('name'), args)
+            history = s.setdefault('tool_call_history', [])
+            previous = next((entry for entry in reversed(history)
+                             if entry.get('fingerprint') == fingerprint), None)
+            if previous and previous.get('outcome') == 'unknown':
+                request_id = previous.get('request_id')
+                error = {'code': 'tool_execution_outcome_unknown',
+                         'message': 'No se repitió la escritura; revisa el recibo y reconcilia el estado.',
+                         'outcome': 'unknown', 'retryable': False, 'reconcile_before_retry': True,
+                         'request_id': request_id}
+                receipt = self._tool_receipt(call, fn.get('name'), {'success': False, 'error': error,
+                                                                     'request_id': request_id,
+                                                                     'not_replayed': True})
+                s['messages'].append(receipt)
+                s['next_call'] += 1
+                s['in_flight'] = None
+                history.append({'fingerprint': fingerprint, 'tool_name': fn.get('name'),
+                                'request_id': request_id, 'outcome': 'unknown', 'replayed': False,
+                                'before': self._project_progress_fingerprint(),
+                                'after': self._project_progress_fingerprint()})
+                history[:] = history[-200:]
+                self.save()
+                raise Pause('blocked', f'AGENT_TOOL_OUTCOME_UNCERTAIN: request_id={request_id or "no disponible"}; reconcílialo antes de reintentar.')
+            if previous and previous.get('outcome') == 'completed' and previous.get('before') == previous.get('after'):
+                progress = self._project_progress_fingerprint()
+                receipt = self._tool_receipt(call, fn.get('name'), {'success': False,
+                    'error': {'code': 'agent_loop_no_progress', 'outcome': 'not_started',
+                              'message': 'Llamada repetida sin cambio de estado del proyecto.'},
+                    'not_replayed': True})
+                s['messages'].append(receipt)
+                s['next_call'] += 1
+                s['in_flight'] = None
+                history.append({'fingerprint': fingerprint, 'tool_name': fn.get('name'),
+                                'request_id': None, 'outcome': 'not_started', 'replayed': False,
+                                'before': progress, 'after': progress})
+                history[:] = history[-200:]
+                self.save()
+                raise Pause('blocked', 'AGENT_LOOP_NO_PROGRESS: llamada duplicada sin avance; se detuvo antes de ejecutarla.')
             s['in_flight'] = {'call_index': s['next_call'], 'function': fn}
             self.save()
             pause = None
+            progress_before = self._project_progress_fingerprint()
             try:
-                args = fn.get('arguments', {})
-                if isinstance(args, str):
-                    args = json.loads(args)
                 result = a.dispatch(fn.get('name'), args)
             except Pause as exc:
                 pause = exc
                 result = {'paused': exc.status, 'message': str(exc)}
             except Exception as exc:
-                result = {'error': str(exc)[:1200]}
+                result = {'success': False, 'error': {'code': 'tool_execution_outcome_unknown',
+                    'message': str(exc)[:1200], 'outcome': 'unknown', 'recoverable': True,
+                    'retryable': False, 'reconcile_before_retry': True},
+                    'request_id': args.get('request_id') if isinstance(args, dict) else None}
                 a.event('error', str(exc)[:1200])
             content = json.dumps(result, ensure_ascii=False, default=str)
-            if len(content) > 100000:
-                content = json.dumps({'error': 'Resultado demasiado grande; solicita una capacidad o artefacto concreto.'})
-            receipt = {'role': 'tool', 'tool_name': fn.get('name'), 'content': content}
-            call = s['pending'][s['next_call']]
-            if call.get('id'):
-                receipt['tool_call_id'] = call['id']
+            receipt = self._tool_receipt(call, fn.get('name'), result)
             s['messages'].append(receipt)
+            error = result.get('error') if isinstance(result, dict) else None
+            outcome = ('unknown' if isinstance(error, dict) and error.get('outcome') == 'unknown'
+                       else 'not_started' if pause or isinstance(error, dict) and error.get('outcome') == 'not_started'
+                       else 'completed' if not (isinstance(result, dict) and result.get('success') is False)
+                       else 'failed')
+            history.append({'fingerprint': fingerprint, 'tool_name': fn.get('name'),
+                            'request_id': (result.get('request_id') if isinstance(result, dict) else None)
+                                          or (args.get('request_id') if isinstance(args, dict) else None),
+                            'outcome': outcome, 'before': progress_before,
+                            'after': self._project_progress_fingerprint()})
+            history[:] = history[-200:]
             s.update(next_call=s['next_call'] + 1, in_flight=None)
             if pause:
                 # Remaining calls in this model batch have no authority past a gate.
@@ -367,3 +464,4 @@ class Conversation:
             self.save()
             if pause:
                 raise pause
+
