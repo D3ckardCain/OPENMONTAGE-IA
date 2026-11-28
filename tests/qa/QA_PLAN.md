@@ -6,6 +6,13 @@ Run every tool with real API keys, inspect outputs (see images, listen to audio,
 
 ## Test Scripts (all ready to run)
 
+These are manual scripts with work at module scope. Automatic pytest collection
+skips scripts 01–08 unless `OPENMONTAGE_MANUAL_QA=1` is set. Running each script
+directly with Python remains supported. Opting into manual QA does not authorize
+paid providers or replace `OPENMONTAGE_ALLOW_NETWORK`; follow the operator's
+budget and approval constraints. The separately gated HyperFrames pytest tests
+remain collected normally.
+
 | Script | Tools Tested | API Keys Used | Est. Cost |
 |--------|-------------|---------------|-----------|
 | `test_01_tts.py` | `elevenlabs_tts` (ElevenLabs) | ELEVENLABS_API_KEY | ~$0.02 |

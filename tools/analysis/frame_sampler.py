@@ -8,6 +8,7 @@ timestamp-based extraction strategies.
 from __future__ import annotations
 
 import json
+import subprocess
 import re
 import time
 from pathlib import Path
@@ -26,7 +27,7 @@ from tools.base_tool import (
 
 class FrameSampler(BaseTool):
     name = "frame_sampler"
-    version = "0.1.0"
+    version = "0.2.0"
     tier = ToolTier.CORE
     capability = "analysis"
     provider = "ffmpeg"
@@ -45,6 +46,7 @@ class FrameSampler(BaseTool):
         "extract_frames_count",
         "extract_frames_timestamps",
         "extract_frames_scene_guided",
+        "bounded_local_pts_evidence",
     ]
 
     input_schema = {
@@ -54,7 +56,7 @@ class FrameSampler(BaseTool):
             "input_path": {"type": "string"},
             "strategy": {
                 "type": "string",
-                "enum": ["interval", "count", "timestamps", "scene_guided"],
+                "enum": ["interval", "count", "timestamps", "scene_guided", "evidence"],
             },
             "interval_seconds": {
                 "type": "number",
@@ -89,6 +91,11 @@ class FrameSampler(BaseTool):
                 "description": "Max frames to extract (for scene_guided strategy)",
             },
             "output_dir": {"type": "string"},
+            "start_seconds": {"type": "number"},
+            "end_seconds": {"type": "number"},
+            "thumbnail_width": {"type": "integer"},
+            "stored_transcript": {"type": "object"},
+            "source_sha256": {"type": "string"},
             "format": {"type": "string", "enum": ["png", "jpg"], "default": "jpg"},
             "quality": {"type": "integer", "minimum": 1, "maximum": 31, "default": 2},
         },
@@ -100,6 +107,12 @@ class FrameSampler(BaseTool):
     user_visible_verification = ["Inspect extracted frames for representative coverage"]
 
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
+        if inputs.get('strategy') == 'evidence':
+            try:
+                from lib.video_evidence import inspect
+                return ToolResult(success=True, data=inspect(inputs))
+            except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as exc:
+                return ToolResult(success=False, error='Local video evidence: ' + str(exc))
         input_path = Path(inputs["input_path"])
         if not input_path.exists():
             return ToolResult(success=False, error=f"Input not found: {input_path}")

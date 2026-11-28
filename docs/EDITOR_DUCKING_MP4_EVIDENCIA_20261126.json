@@ -1,0 +1,41 @@
+{
+  "scope": "Two completed new MP4 exports compared, no repeat after diagnostic assertion",
+  "project_id": "edit-3a89b7b9db09",
+  "bypass_reused": false,
+  "reason": "No old MP4 matched new Portuguese montage plus unmarked SFX and cue",
+  "bypass": {
+    "attempt": "7f439d708ebb4594bfc73859d452fc30",
+    "path": "assets/editor-renders/7f439d708ebb4594bfc73859d452fc30/montage.mp4",
+    "sha256": "fabf090d6d33cb8f710681182956cee20536a1e4c948240bc650230a182a620f",
+    "render_sha256": "45b3ae728cdbc1cfacb2b20ed7d39a8d72852a9fec8ec44feb8afbb4d72dd64c",
+    "duration": 4,
+    "metadata_source": "existing completed export snapshot and output; not a new render"
+  },
+  "active": {
+    "attempt": "33c5165343f54c6e9272759c5e0c3a0b",
+    "path": "assets/editor-renders/33c5165343f54c6e9272759c5e0c3a0b/montage.mp4",
+    "sha256": "03d76c5b5b36221424a8cdcd6d413ace2dd105a97fb8d1d1a8804c51a3bfb3bb",
+    "render_sha256": "f3a9a9e73c331ef62601f2bc6754da48694878276a36aac3526a0cee93d54267",
+    "duration": 4,
+    "metadata_source": "existing completed export snapshot and output; not a new render"
+  },
+  "music_rms_relative_to_bypass": {
+    "before_voice": 1.0,
+    "during_voice": 0.5688816445971352,
+    "quieter_voice_subwindow": 0.9033488758226201,
+    "after_release": 0.9999343558957433
+  },
+  "unmarked_sfx_gain": {
+    "bypass": 0.9981387862904666,
+    "active": 0.9996129460400492,
+    "active_vs_bypass": 1.001476908592102
+  },
+  "method": "Decoded mixes subtract isolated voice/music references; SFX gain projection 1.5..2.04s. AAC is lossy. Same 1.3..2.7s voice window as approved graph test; quieter 2.2..2.7s subwindow also reported.",
+  "diagnostic_limit": "Initial assertion demanded >20% reduction in quieter subwindow: observed only 9.7%. Actual voice level determines attenuation; no engine change. Two exports recovered, no repeated render.",
+  "video_frames_and_pts_identical": true,
+  "subtitle_cues_identical": true,
+  "samples_per_channel": 192000,
+  "human_listening": false,
+  "main4750_checked": false,
+  "model_downloads_checked": false
+}

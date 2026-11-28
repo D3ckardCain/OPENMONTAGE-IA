@@ -1,0 +1,149 @@
+{
+  "checked_utc": "2026-11-25T23:52:25.348691+00:00",
+  "issue": 117,
+  "phase": "pre-download preparation only",
+  "selected_version": "5.3.0",
+  "keep_version": "4.5.15 LTS",
+  "download_started": false,
+  "installation_started": false,
+  "studio_restarted": false,
+  "operational_compatibility_tested": false,
+  "releases": [
+    {
+      "version": "5.3.0",
+      "url": "https://download.blender.org/release/Blender5.3/blender-5.3.0-windows-x64.zip",
+      "checksum_url": "https://download.blender.org/release/Blender5.3/blender-5.3.0.sha256",
+      "size_bytes": 425299259,
+      "sha256": "3ac567a63d59d9934f7b9213bfb27ba05760e1fb366f8f55c381573ec3eabfa8",
+      "selection": "recommended_parallel_candidate",
+      "metadata_only": true
+    },
+    {
+      "version": "5.2.5",
+      "url": "https://download.blender.org/release/Blender5.2/blender-5.2.5-windows-x64.zip",
+      "checksum_url": "https://download.blender.org/release/Blender5.2/blender-5.2.5.sha256",
+      "size_bytes": 405726688,
+      "sha256": "1fad54a676c3bb08fdcb5a2ae1eaaf02f8c492af02bd5ca292bcdbb28b6bb29a",
+      "selection": "alternative_not_selected",
+      "metadata_only": true
+    },
+    {
+      "version": "4.5.17",
+      "url": "https://download.blender.org/release/Blender4.5/blender-4.5.17-windows-x64.zip",
+      "checksum_url": "https://download.blender.org/release/Blender4.5/blender-4.5.17.sha256",
+      "size_bytes": 398351060,
+      "sha256": "282b9bfc14065d6341c0d70d83992f80bde09d99e0099bff260c94bbec93803d",
+      "selection": "alternative_not_selected",
+      "metadata_only": true
+    }
+  ],
+  "download_destination": "D:/OPENMONTAJE-IA/DESCARGAS_SOFTWARE/Blender/blender-5.3.0-windows-x64.zip",
+  "executable_destination": "D:/OPENMONTAJE-IA/HERRAMIENTAS/Blender/5.3.0/blender-5.3.0-windows-x64/blender.exe",
+  "isolated_user_resources": "D:/OPENMONTAJE-IA/HERRAMIENTAS/Blender/5.3.0/profile",
+  "existing_executable": "D:/OPENMONTAJE-IA/HERRAMIENTAS/Blender/4.5.15/blender-4.5.15-windows-x64/blender.exe",
+  "local_search_scope": [
+    "D:/OPENMONTAJE-IA/HERRAMIENTAS/Blender",
+    "D:/OPENMONTAJE-IA/DESCARGAS_SOFTWARE",
+    "C:/Users/sando/Downloads"
+  ],
+  "recent_candidate_already_found": false,
+  "skills": {
+    "repo": "EL4CTEO/blender-skills",
+    "revision": "1a1cc6c49312f9f370aae86f52b7b907f29c94f6",
+    "minimum_blender": "5.2 LTS",
+    "author_verified": "5.3",
+    "license": "MIT",
+    "installed": false,
+    "validation": "declared_by_author; not executed locally"
+  },
+  "addons": [
+    {
+      "kind": "installed",
+      "version": "1.2.5",
+      "id": "archimesh",
+      "blender_min": "4.2.0",
+      "blender_max": null,
+      "license": [
+        "SPDX:GPL-2.0-or-later"
+      ],
+      "manifest_sha256": "ec4692d119cb93af9496e8cf98bc0d2d459af542d741c23aff3f7c4814b2cce3",
+      "wheel_abi": []
+    },
+    {
+      "kind": "installed",
+      "version": "4.5.11",
+      "id": "molecularnodes",
+      "blender_min": "4.5.0",
+      "blender_max": "5.1.0",
+      "license": [
+        "SPDX:GPL-3.0-or-later"
+      ],
+      "manifest_sha256": "585fdd97865d1e78ddffd492c2fcea0fe75577d8f5e7282001aef9816b96918c",
+      "wheel_abi": [
+        "cp311"
+      ]
+    },
+    {
+      "kind": "existing_archive",
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_SOFTWARE\\Archimesh\\add-on-archimesh-v1.2.5.zip",
+      "bytes": 323488,
+      "id": "archimesh",
+      "version": "1.2.5",
+      "blender_min": "4.2.0",
+      "blender_max": null,
+      "license": [
+        "SPDX:GPL-2.0-or-later"
+      ],
+      "wheel_abi": []
+    },
+    {
+      "kind": "existing_archive",
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_SOFTWARE\\Molecular-Nodes\\add-on-molecularnodes-v520.2.0-windows-x64.zip",
+      "bytes": 133201891,
+      "id": "molecularnodes",
+      "version": "520.2.0",
+      "blender_min": "5.2.0",
+      "blender_max": null,
+      "license": [
+        "SPDX:GPL-3.0-or-later"
+      ],
+      "wheel_abi": [
+        "cp313"
+      ]
+    },
+    {
+      "kind": "existing_archive",
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_SOFTWARE\\Molecular-Nodes\\molecularnodes-4.5.11-windows_x64.zip",
+      "bytes": 132885115,
+      "id": "molecularnodes",
+      "version": "4.5.11",
+      "blender_min": "4.5.0",
+      "blender_max": "5.1.0",
+      "license": [
+        "SPDX:GPL-3.0-or-later"
+      ],
+      "wheel_abi": [
+        "cp311"
+      ]
+    }
+  ],
+  "existing_adapter_blocker": {
+    "file": "tools/graphics/templates/blender-world-runtime.py",
+    "line": 379,
+    "current_engine": "BLENDER_EEVEE_NEXT",
+    "blender_5_engine": "BLENDER_EEVEE",
+    "status": "static incompatibility identified; no code changed in preparation"
+  },
+  "existing_settings_sha256": {
+    ".backlot\\studio\\applications.json": "33073a45e5d34775aae08cef0557bce23b59ddeaf0699be26b70909dce4ccf7b",
+    ".backlot\\studio\\settings.json": "e296102e2ac4508bd3b79688b7520d0b00c609db42b68a511f9e8a6b1aeb2adc",
+    "C:\\Users\\sando\\AppData\\Roaming\\Blender Foundation\\Blender\\4.5\\config\\userpref.blend": "7b8409abdb26f8a9438e96a2f3a629bdb3d5ce9bb43e27cf19b7d81524a92f2e"
+  },
+  "limits": [
+    "No new Blender/addon/model archive downloaded; only bounded textual official metadata fetched",
+    "No executable launched, preferences copied, addon enabled, geometry created or render performed",
+    "No global skill installer/MCP server installed",
+    "No inference/paid service/ComfyUI change",
+    "112 completed receipt recovery and113 hidden agent actions remain pending"
+  ]
+}

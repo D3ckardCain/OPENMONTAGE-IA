@@ -1,0 +1,341 @@
+{
+  "recorded_at": 1795708086.4589145,
+  "status": "Historical provisional snapshot, superseded by final report",
+  "catalog_references": 595,
+  "groups": 49,
+  "physical_paths": 651,
+  "snapshot_availability": [
+    {
+      "root": "C:\\OPENMONTAJE-IA",
+      "available": true,
+      "drive_exists": true
+    },
+    {
+      "root": "D:\\OPENMONTAJE-IA",
+      "available": true,
+      "drive_exists": true
+    },
+    {
+      "root": "E:\\OPENMONTAJE-IA",
+      "available": false,
+      "drive_exists": true
+    },
+    {
+      "root": "F:\\OPENMONTAJE-IA",
+      "available": true,
+      "drive_exists": true
+    }
+  ],
+  "initial_counts": {
+    "new_unverified": 501,
+    "cached_unchanged": 150
+  },
+  "initial_bytes": {
+    "new_unverified": 1369725927957,
+    "cached_unchanged": 56434346665
+  },
+  "progress": {
+    "started": 1795705613.2148917,
+    "updated": 1795708072.2536633,
+    "files_done": 527,
+    "files_total": 651,
+    "bytes_read": 175085886300,
+    "counts": {
+      "verified_cache_reused": 148,
+      "verified_new": 375,
+      "official_digest_unavailable": 2,
+      "different_content_not_corruption_claim": 2
+    }
+  },
+  "missing_catalog_rows": [
+    {
+      "repo": "alibaba-pai/Wan2.2-Fun-A14B-Control-Camera",
+      "path": "configuration.json",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/alibaba-pai--Wan2.2-Fun-A14B-Control-Camera/configuration.json",
+      "wrong_type": []
+    },
+    {
+      "repo": "alibaba-pai/Wan2.2-Fun-A14B-Control-Camera",
+      "path": "README_en.md",
+      "destination": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/alibaba-pai--Wan2.2-Fun-A14B-Control-Camera/README_en.md",
+      "wrong_type": []
+    }
+  ],
+  "exceptions": [
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-VL-8B-Instruct\\tokenizer.json",
+      "identity": [
+        2728866502,
+        281474976712468,
+        7032403,
+        1794473406876210200,
+        1794473406375125800
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "git_blob_sha1": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421",
+      "status": "verified_new_official_git_blob",
+      "official_sha256_available": false,
+      "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "bytes_hashed": 7032403
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model.safetensors.index.json",
+      "sha256_reused": "9e5a9d081046ccfcb7d3875501f4fed9972021b57694f983374fabd067418c99",
+      "semantic_json_equal": false,
+      "changed_top_level_keys": [
+        "metadata",
+        "weight_map"
+      ],
+      "different_weight_map_entries": 331,
+      "example_differences": [
+        {
+          "name": "adapter.audio_embedder.bias",
+          "actual": "model-00001-of-00013.safetensors",
+          "official": "model-00001-of-00007.safetensors"
+        },
+        {
+          "name": "adapter.audio_embedder.weight",
+          "actual": "model-00001-of-00013.safetensors",
+          "official": "model-00004-of-00007.safetensors"
+        },
+        {
+          "name": "adapter.rope.bands",
+          "actual": "model-00013-of-00013.safetensors",
+          "official": "model-00006-of-00007.safetensors"
+        }
+      ],
+      "status": "different_index_content_requires_review",
+      "official_reference": "https://huggingface.co/GAIR/daVinci-MagiHuman/resolve/7fe95e50c11bd92bdadf94cd51dbec18427f8e0c/base/model.safetensors.index.json"
+    },
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen2.5-VL-7B-Instruct\\tokenizer.json",
+      "identity": [
+        4101616990,
+        1125899906920855,
+        7031645,
+        1794007443024728600,
+        1794066343478748500
+      ],
+      "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "git_blob_sha1": "443909a61d429dff23010e5bddd28ff530edda00",
+      "status": "verified_new_official_git_blob",
+      "official_sha256_available": false,
+      "revision": "cc594898137f460bfe9f0759e9844b3ce807cfb5",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "bytes_hashed": 7031645
+    }
+  ],
+  "functional": {
+    "minilm": {
+      "family": "minilm",
+      "success": true,
+      "shape": [
+        3,
+        384
+      ],
+      "norms": [
+        1.0000000054331653,
+        0.9999999563516176,
+        0.9999999683759652
+      ],
+      "cosine_similar": 0.8462699992598003,
+      "cosine_unrelated": 0.18204790638977403,
+      "runtime_seconds_including_imports": 38.71456027030945,
+      "device": "cpu",
+      "network_blocked": true,
+      "mock": false,
+      "new_inferences": 1,
+      "model_revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+      "license": "Apache-2.0",
+      "weights_preverified": true,
+      "output": "projects/qa-full-downloads-20261126/artifacts/minilm/result.json",
+      "semantic_quality_generalized": false
+    },
+    "siglip": {
+      "status": "bounded_attempt_stopped",
+      "response_produced": false,
+      "reason": "Several minutes without response; only own QA Python processes stopped. Cause not established; not a model corruption claim.",
+      "followup": "90s watchdog reached torch linear forward. Limiting QA CPU threads to2 did not complete within90s either; owned workers exited. No further retries or corruption claim.",
+      "cuda_followup": "Existing unmodified Qwen environment, RTX4060 with7.45GB free before loading, conservative4.08GB margin passed.90s watchdog expired inside model.to(cuda), not a completed inference. Worker exited; no immediate retries."
+    },
+    "silero": {
+      "family": "silero",
+      "success": true,
+      "synthetic_silence_seconds": 2,
+      "sample_rate": 16000,
+      "speech_windows": 0,
+      "network_blocked": true,
+      "device": "cpu",
+      "new_inferences": 1,
+      "torch_loaded": false,
+      "runtime_seconds": 0.5779999999795109,
+      "revision": "e71cae966052b992a7eca6b17738916ce0eca4ec",
+      "license": "MIT",
+      "scope": "Silence smoke test only; not speech accuracy or approved silence edit retest"
+    },
+    "grounding_dino": {
+      "status": "bounded_cpu_forward_timeout_90s",
+      "response_produced": false,
+      "weights_hash_reused": true,
+      "runtime_environment": "native-analysis isolated",
+      "network_blocked": true,
+      "worker_exited": true,
+      "cause_established": false
+    }
+  },
+  "preserved": [
+    ".venv",
+    "ComfyUI",
+    "originals",
+    "existing environments"
+  ],
+  "large_qwen_issue82": "Resolved verified identity cache reused; no rehash or disk diagnosis",
+  "audio8": "No payload found in searched roots/FDM; separate fixed manifest; not loaded",
+  "limits": [
+    "Located does not mean verified",
+    "Verified weights do not establish runtime compatibility or quality",
+    "Reference groups overlap; paths are not distinct models",
+    "Hash scan still active; no final all-complete claim"
+  ],
+  "new_small_auxiliaries": [
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-Fun-A14B-Control-Camera\\configuration.json",
+      "bytes": 1121,
+      "revision": "da1f119dcf5626b2fa41219ce42ac175752f3892",
+      "url": "https://huggingface.co/alibaba-pai/Wan2.2-Fun-A14B-Control-Camera/resolve/da1f119dcf5626b2fa41219ce42ac175752f3892/configuration.json",
+      "official_git_blob": "f8c46894c46931a3c9c6cc1abd49aa037a0792ec",
+      "official_sha256_available": false,
+      "sha256": "0459fd62549fa78e18181a0892aed1d60d430c8f4eacc6509a75e2f813476e76",
+      "identity": [
+        2728866502,
+        2251799813954826,
+        1121,
+        1795707062206076400,
+        1795707062062241100
+      ],
+      "status": "New small auxiliary verified once; no overwrite"
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-Fun-A14B-Control-Camera\\README_en.md",
+      "bytes": 17401,
+      "revision": "da1f119dcf5626b2fa41219ce42ac175752f3892",
+      "url": "https://huggingface.co/alibaba-pai/Wan2.2-Fun-A14B-Control-Camera/resolve/da1f119dcf5626b2fa41219ce42ac175752f3892/README_en.md",
+      "official_git_blob": "2b243d1a59497ae73420029f1bbd88ab7224a2b4",
+      "official_sha256_available": false,
+      "sha256": "0bef774c4a0e7e008376f2ad99412c883ae31a153e2b7912b660d95c57964b62",
+      "identity": [
+        2728866502,
+        3096224744086795,
+        17401,
+        1795707063199162800,
+        1795707063199162800
+      ],
+      "status": "New small auxiliary verified once; no overwrite"
+    }
+  ],
+  "located_references_after_aux_completion": 595,
+  "editor174_real_isolated_validation": {
+    "base": "http://127.0.0.1:4766",
+    "project": "edit-65bae2512c9e",
+    "isolated_projects": "C:\\OPENMONTAGE-IA\\projects\\qa174-isolated-root",
+    "isolated_configuration": true,
+    "resident": {
+      "status": "available",
+      "sha256": "3619bef131adba6e0af8311bb4f8140419535f0c70bef09a94e8d1737b8c63a2",
+      "files": 40
+    },
+    "real_api": true,
+    "real_panel": true,
+    "apply": true,
+    "undo_redo": true,
+    "save_reopen": true,
+    "agent_write_visible_and_user_undo": true,
+    "uncertain_write_recovered_without_retry": null,
+    "original_stat_unchanged": true,
+    "errors": [],
+    "main4750_restarted": false,
+    "new_render": false,
+    "human_audiovisual_review": false
+  },
+  "new_differences": [
+    {
+      "path": "F:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\GAIR--daVinci-MagiHuman\\base\\model.safetensors.index.json",
+      "identity": [
+        4101616990,
+        3659174697239405,
+        27480,
+        1794132845459975300,
+        1794196207312900700
+      ],
+      "hash_read": true,
+      "references": [
+        {
+          "repo": "GAIR/daVinci-MagiHuman",
+          "revision": "7fe95e50c11bd92bdadf94cd51dbec18427f8e0c",
+          "path": "base/model.safetensors.index.json",
+          "bytes": 27480,
+          "sha256": null,
+          "git_blob": "09d2c7682f035305a65c1a0d040dbec884fc532b",
+          "reference": "official_fixed_revision_metadata",
+          "matches": false
+        }
+      ],
+      "status": "different_content_not_corruption_claim",
+      "bytes_hashed": 27480,
+      "sha256": "9e5a9d081046ccfcb7d3875501f4fed9972021b57694f983374fabd067418c99",
+      "git_blob_sha1": "650d3c0f922f5c3f4e94e424eca5364cee27913e",
+      "structure": {
+        "kind": "json",
+        "valid": true,
+        "code_executed": false
+      }
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\model.safetensors",
+      "identity": [
+        2728866502,
+        281474976721724,
+        3833402552,
+        1794552758251768500,
+        1794551714072272600
+      ],
+      "hash_read": false,
+      "references": [
+        {
+          "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+          "revision": "5ecdb67327fd37bb2e042aab12ff7391903235d3",
+          "path": "model.safetensors",
+          "bytes": 3833402552,
+          "sha256": "391e8db219f292c515297cdceeb43e4eae67cdde35fa57e79a6a8a532fca0522",
+          "git_blob": "efa387326985d203594f4b672e25f973525f377c",
+          "reference": "official_fixed_revision_metadata",
+          "matches": false
+        },
+        {
+          "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+          "revision": "5ecdb67327fd37bb2e042aab12ff7391903235d3",
+          "path": "model.safetensors",
+          "bytes": 3833402552,
+          "sha256": "391e8db219f292c515297cdceeb43e4eae67cdde35fa57e79a6a8a532fca0522",
+          "git_blob": "efa387326985d203594f4b672e25f973525f377c",
+          "reference": "official_fixed_revision_metadata",
+          "matches": false
+        }
+      ],
+      "status": "different_content_not_corruption_claim",
+      "cached_from": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Qwen--Qwen3-TTS-12Hz-1.7B-VoiceDesign\\model.safetensors",
+      "cache_source": ".runtime\\qwen-tts\\verified-models.json",
+      "sha256": "38b1d5971bdbd982b561cccec982669a53b0537c3cf5e9bd4778ed07bb2f5137",
+      "git_blob_sha1": null,
+      "structure": null
+    }
+  ],
+  "final_report": "docs/DESCARGAS_COMPLETAS_RESULTADO_20261126.json"
+}

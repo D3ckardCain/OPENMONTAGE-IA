@@ -1,0 +1,30 @@
+{
+  "camera-script": {
+    "repo": "aigc-apps/VideoX-Fun",
+    "path": "examples/wan2.2_fun/predict_v2v_control_camera.py",
+    "sha": "a270638caa77cc1af0d0273bd2005e15d45041a3",
+    "revision": "32f7582451c1f716e67158500de7506999a41f0b",
+    "sha256": "f18959da8a58514142ddeaffb26ccf44ce1991b6af68ffc67b1727eeb369c63e"
+  },
+  "control-script": {
+    "repo": "aigc-apps/VideoX-Fun",
+    "path": "examples/wan2.2_fun/predict_v2v_control.py",
+    "sha": "b79294aa9ef54bb4041af29966e5272a3b3b0b92",
+    "revision": "32f7582451c1f716e67158500de7506999a41f0b",
+    "sha256": "54631a258a387abfc046b2aab95c994d3e86455878185e2da5a7e6801d56d4be"
+  },
+  "s2v-script": {
+    "repo": "Wan-Video/Wan2.2",
+    "path": "generate.py",
+    "sha": "3a5cbcdd208e0acbe5c2c90478551660407ea26c",
+    "revision": "1ea34ff48f87168174e12956e200b1d908b1c5ff",
+    "sha256": "cae024b99a3d105fe273a8dfe724ea656f9c1a876ccc8534a8c2fbfb716950e7"
+  },
+  "framepack-script": {
+    "repo": "lllyasviel/FramePack",
+    "path": "demo_gradio.py",
+    "sha": "c59ed58a3430ebd64787523a6bbbee421f380cde",
+    "revision": "97fe5dbe06ac1f337ece08935b1076a35eefeeb9",
+    "sha256": "35784cd34ee8165e67ca0d3bdab0253ffce094a4f07206b4dab18130ad8021b5"
+  }
+}

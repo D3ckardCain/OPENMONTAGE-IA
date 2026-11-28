@@ -1,0 +1,140 @@
+{
+  "scope": "Read-only disk snapshot of existing project; history omitted; CI metadata transport only, NOT media playback; render.current derived by EDL hash equality as API does",
+  "project_id": "edit-827337e03f38",
+  "title": "QA #92 existing NOAA project",
+  "state": {
+    "revision": 27,
+    "edit_decisions": {
+      "version": "1.0",
+      "render_runtime": "ffmpeg",
+      "cuts": [
+        {
+          "id": "a67e196c61c844718a3142e1852aecdd",
+          "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+          "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+          "in_seconds": 40.0,
+          "out_seconds": 42.0,
+          "speed": 1,
+          "muted": true,
+          "gain": 1,
+          "fade_in": 0,
+          "fade_out": 0,
+          "start_seconds": 0
+        },
+        {
+          "id": "28f8ff932a874066aeb43fdf37f99166",
+          "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+          "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+          "in_seconds": 10.5,
+          "out_seconds": 12.0,
+          "speed": 1,
+          "muted": true,
+          "gain": 1,
+          "fade_in": 0,
+          "fade_out": 0,
+          "start_seconds": 0
+        }
+      ],
+      "audio_tracks": [
+        {
+          "id": "41d21b6a36e343fc94924725d3e24da6",
+          "source": "assets/qa-evidence/existing-source-audio.wav",
+          "source_id": "ffe89d475f134d5ea44f92697db4f42f",
+          "in_seconds": 0.0,
+          "out_seconds": 3.5,
+          "speed": 1,
+          "muted": false,
+          "gain": 0.25,
+          "fade_in": 0.25,
+          "fade_out": 0.25,
+          "start_seconds": 0.0
+        }
+      ],
+      "cues": [
+        {
+          "start_seconds": 0.75,
+          "end_seconds": 1.75,
+          "text": "QA #92:\nTEXTO MANUAL DE PRUEBA"
+        }
+      ],
+      "sources": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": {
+          "duration": 76.743333,
+          "kind": "video",
+          "audio": true,
+          "width": 1920,
+          "height": 1080,
+          "bytes": 40145569,
+          "mtime_ns": 1795543437107168800,
+          "path": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+          "sha256": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+          "original_name": "ex2502-dive04-0323-pinnoctopus_1920x1080.mp4",
+          "imported_at": "2026-11-24T18:03:57.222346+00:00",
+          "origin": "user"
+        },
+        "ffe89d475f134d5ea44f92697db4f42f": {
+          "duration": 4.0,
+          "kind": "audio",
+          "audio": true,
+          "width": null,
+          "height": null,
+          "bytes": 768078,
+          "mtime_ns": 1795543476517252700,
+          "path": "assets/qa-evidence/existing-source-audio.wav",
+          "sha256": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab",
+          "original_name": "existing-source-audio.wav",
+          "imported_at": "2026-11-24T18:04:36.985848+00:00",
+          "origin": "user"
+        }
+      },
+      "output": {
+        "ratio": "16:9",
+        "fps": 24,
+        "fit": "pad"
+      },
+      "subtitle_style": {
+        "size": 40.0,
+        "position": "bottom",
+        "mode": "burn"
+      },
+      "subtitle_sources": [
+        {
+          "path": "assets/imports/42cd5d77b2a8404ba8454ca81f75496e.srt",
+          "original_name": "qa-manual.srt",
+          "sha256": "3fab6e29836ac01064e19d36859d055e429106ae16f020660cacd8a3c2000617",
+          "bytes": 69,
+          "origin": "user",
+          "exact_original_bytes": true,
+          "imported_at": "2026-11-24T18:04:50.648364+00:00"
+        }
+      ]
+    },
+    "undo": [],
+    "redo": [],
+    "events": [],
+    "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad"
+  },
+  "render": {
+    "status": "completed",
+    "attempt": "ed823b46a1c54cbbae4bc0aa21faed3a",
+    "revision": 26,
+    "origin": "user",
+    "edit_sha256": "c51fc30363e28cbfd0c12a84680e5b2408f44d3bbd2ab342ee8e36c2872718ad",
+    "preview": false,
+    "started_at": "2026-11-24T18:09:22.133513+00:00",
+    "width": 1920,
+    "height": 1080,
+    "completed_at": "2026-11-24T18:09:27.527426+00:00",
+    "path": "assets/editor-renders/ed823b46a1c54cbbae4bc0aa21faed3a/montage.mp4",
+    "url": "/media/edit-827337e03f38/assets/editor-renders/ed823b46a1c54cbbae4bc0aa21faed3a/montage.mp4",
+    "sha256": "72af68d538d06a7ccccc89a3ce554d64a3defa7a53779a80a70a324c0cdda734",
+    "bytes": 6210256,
+    "duration": 3.5,
+    "subtitle_mode": "burn",
+    "source_sha256": {
+      "9c2a6d0fded14410aaaf4731d5fc7609": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+      "ffe89d475f134d5ea44f92697db4f42f": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab"
+    },
+    "current": true
+  }
+}

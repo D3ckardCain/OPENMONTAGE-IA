@@ -24,6 +24,7 @@ ARTIFACT_NAMES = [
     "edit_decisions",
     "render_report",
     "publish_log",
+    "local_publish_plan",
     "review",
     "cost_log",
     "decision_log",
@@ -31,6 +32,7 @@ ARTIFACT_NAMES = [
     "final_review",
     "character_qa_report",
     "video_analysis_brief",
+    "cultural_audio_audit",
 ]
 
 

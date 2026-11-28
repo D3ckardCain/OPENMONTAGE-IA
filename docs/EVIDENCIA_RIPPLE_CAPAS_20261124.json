@@ -1,0 +1,510 @@
+{
+  "observed_at_utc": "2026-11-24T22:58:08.909431+00:00",
+  "issue_comment": "https://github.com/D3ckardCain/OPENMONTAGE-IA/issues/92#issuecomment-7146510875",
+  "scope": "Real isolated API on copied existing project/media, not active Studio or AV playback",
+  "before": {
+    "phase": "before",
+    "scope": "Actual isolated API on copied existing project media; no rendering or live Studio request",
+    "source_project": "edit-827337e03f38",
+    "copy_project": "edit-ripple-7146510875",
+    "protected_sha256": {
+      ".backlot\\studio\\settings.json": "497ddcd071b06f9ad4109e3123cdb36ebc6bb5a1f33ab53e556fe931b09ad952",
+      ".backlot\\studio\\applications.json": "33073a45e5d34775aae08cef0557bce23b59ddeaf0699be26b70909dce4ccf7b",
+      "projects\\edit-827337e03f38\\artifacts\\manual_edit.json": "29afe82ebc61b99601e7ad6fda4a00d256fccb84cf77a2016edf3a34189ac71b"
+    },
+    "gui_observed": false,
+    "av_rendered": false,
+    "listening": false,
+    "server_restarted": false,
+    "http_status": 400,
+    "response": {
+      "detail": "La capa debe caber en la duración del montaje; ajusta su intervalo primero"
+    },
+    "rejected_atomically": true,
+    "status": "reproduced",
+    "protected_files_unchanged": true,
+    "source_media_unchanged": true
+  },
+  "after": {
+    "phase": "after",
+    "scope": "Actual isolated API on copied existing project media; no rendering or live Studio request",
+    "source_project": "edit-827337e03f38",
+    "copy_project": "edit-ripple-7146510875",
+    "protected_sha256": {
+      ".backlot\\studio\\settings.json": "497ddcd071b06f9ad4109e3123cdb36ebc6bb5a1f33ab53e556fe931b09ad952",
+      ".backlot\\studio\\applications.json": "33073a45e5d34775aae08cef0557bce23b59ddeaf0699be26b70909dce4ccf7b",
+      "projects\\edit-827337e03f38\\artifacts\\manual_edit.json": "29afe82ebc61b99601e7ad6fda4a00d256fccb84cf77a2016edf3a34189ac71b"
+    },
+    "gui_observed": false,
+    "av_rendered": false,
+    "listening": false,
+    "server_restarted": false,
+    "http_status": 200,
+    "response": {
+      "revision": 1,
+      "edit_decisions": {
+        "version": "1.0",
+        "render_runtime": "ffmpeg",
+        "cuts": [
+          {
+            "speed": 1,
+            "muted": false,
+            "gain": 1,
+            "fade_in": 0,
+            "fade_out": 0,
+            "start_seconds": 0,
+            "id": "a605fe20b33443a1a8a54433b4e555ca",
+            "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+            "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+            "in_seconds": 0,
+            "out_seconds": 2
+          },
+          {
+            "speed": 1,
+            "muted": false,
+            "gain": 1,
+            "fade_in": 0,
+            "fade_out": 0,
+            "start_seconds": 0,
+            "id": "4a48761db45a4a54a8942465ddfe69c6",
+            "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+            "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+            "in_seconds": 4,
+            "out_seconds": 6
+          }
+        ],
+        "audio_tracks": [
+          {
+            "speed": 1,
+            "muted": false,
+            "gain": 1,
+            "fade_in": 0,
+            "fade_out": 0,
+            "start_seconds": 2.0,
+            "id": "cf3db5b6abc943898f8799c323a8bc9e",
+            "source_id": "ffe89d475f134d5ea44f92697db4f42f",
+            "source": "assets/qa-evidence/existing-source-audio.wav",
+            "in_seconds": 0,
+            "out_seconds": 1.0
+          }
+        ],
+        "cues": [
+          {
+            "text": "Manual QA cue",
+            "start_seconds": 2.0,
+            "end_seconds": 3.0
+          }
+        ],
+        "sources": {
+          "9c2a6d0fded14410aaaf4731d5fc7609": {
+            "duration": 76.743333,
+            "kind": "video",
+            "audio": true,
+            "width": 1920,
+            "height": 1080,
+            "bytes": 40145569,
+            "mtime_ns": 1795543437107168800,
+            "path": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+            "sha256": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+            "original_name": "ex2502-dive04-0323-pinnoctopus_1920x1080.mp4",
+            "imported_at": "2026-11-24T18:03:57.222346+00:00",
+            "origin": "user"
+          },
+          "ffe89d475f134d5ea44f92697db4f42f": {
+            "duration": 4.0,
+            "kind": "audio",
+            "audio": true,
+            "width": null,
+            "height": null,
+            "bytes": 768078,
+            "mtime_ns": 1795543476517252700,
+            "path": "assets/qa-evidence/existing-source-audio.wav",
+            "sha256": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab",
+            "original_name": "existing-source-audio.wav",
+            "imported_at": "2026-11-24T18:04:36.985848+00:00",
+            "origin": "user"
+          }
+        },
+        "output": {
+          "ratio": "16:9",
+          "fps": 24,
+          "fit": "pad"
+        },
+        "subtitle_style": {
+          "size": 40.0,
+          "position": "bottom",
+          "mode": "burn"
+        },
+        "subtitle_sources": [
+          {
+            "path": "assets/imports/42cd5d77b2a8404ba8454ca81f75496e.srt",
+            "original_name": "qa-manual.srt",
+            "sha256": "3fab6e29836ac01064e19d36859d055e429106ae16f020660cacd8a3c2000617",
+            "bytes": 69,
+            "origin": "user",
+            "exact_original_bytes": true,
+            "imported_at": "2026-11-24T18:04:50.648364+00:00"
+          }
+        ],
+        "markers": [
+          {
+            "id": "ef38041642834d919c055382baf7fad3",
+            "label": "QA following",
+            "seconds": 2.5
+          }
+        ],
+        "layers": [
+          {
+            "id": "3bc9e778aa2941018ec600fe4291dc1b",
+            "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+            "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+            "in_seconds": 0,
+            "out_seconds": 1.0,
+            "start_seconds": 2.0,
+            "speed": 1,
+            "x": 0.65,
+            "y": 0.05,
+            "width": 0.3,
+            "height": 0.3,
+            "opacity": 1
+          }
+        ],
+        "titles": [
+          {
+            "id": "79e0b0459bd0494d90e004e727ebb5b2",
+            "text": "QA ripple copy",
+            "start_seconds": 2.0,
+            "end_seconds": 3.0,
+            "size": 80,
+            "position": "top"
+          }
+        ]
+      },
+      "undo": [
+        {
+          "version": "1.0",
+          "render_runtime": "ffmpeg",
+          "cuts": [
+            {
+              "speed": 1,
+              "muted": false,
+              "gain": 1,
+              "fade_in": 0,
+              "fade_out": 0,
+              "start_seconds": 0,
+              "id": "a605fe20b33443a1a8a54433b4e555ca",
+              "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+              "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+              "in_seconds": 0,
+              "out_seconds": 2
+            },
+            {
+              "speed": 1,
+              "muted": false,
+              "gain": 1,
+              "fade_in": 0,
+              "fade_out": 0,
+              "start_seconds": 0,
+              "id": "3e2ce1d6d4454a11bb88b5d7f4cf6d56",
+              "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+              "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+              "in_seconds": 2,
+              "out_seconds": 4
+            },
+            {
+              "speed": 1,
+              "muted": false,
+              "gain": 1,
+              "fade_in": 0,
+              "fade_out": 0,
+              "start_seconds": 0,
+              "id": "4a48761db45a4a54a8942465ddfe69c6",
+              "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+              "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+              "in_seconds": 4,
+              "out_seconds": 6
+            }
+          ],
+          "audio_tracks": [
+            {
+              "speed": 1,
+              "muted": false,
+              "gain": 1,
+              "fade_in": 0,
+              "fade_out": 0,
+              "start_seconds": 4,
+              "id": "cf3db5b6abc943898f8799c323a8bc9e",
+              "source_id": "ffe89d475f134d5ea44f92697db4f42f",
+              "source": "assets/qa-evidence/existing-source-audio.wav",
+              "in_seconds": 0,
+              "out_seconds": 1
+            }
+          ],
+          "cues": [
+            {
+              "text": "Manual QA cue",
+              "start_seconds": 4,
+              "end_seconds": 5
+            }
+          ],
+          "sources": {
+            "9c2a6d0fded14410aaaf4731d5fc7609": {
+              "duration": 76.743333,
+              "kind": "video",
+              "audio": true,
+              "width": 1920,
+              "height": 1080,
+              "bytes": 40145569,
+              "mtime_ns": 1795543437107168800,
+              "path": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+              "sha256": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+              "original_name": "ex2502-dive04-0323-pinnoctopus_1920x1080.mp4",
+              "imported_at": "2026-11-24T18:03:57.222346+00:00",
+              "origin": "user"
+            },
+            "ffe89d475f134d5ea44f92697db4f42f": {
+              "duration": 4.0,
+              "kind": "audio",
+              "audio": true,
+              "width": null,
+              "height": null,
+              "bytes": 768078,
+              "mtime_ns": 1795543476517252700,
+              "path": "assets/qa-evidence/existing-source-audio.wav",
+              "sha256": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab",
+              "original_name": "existing-source-audio.wav",
+              "imported_at": "2026-11-24T18:04:36.985848+00:00",
+              "origin": "user"
+            }
+          },
+          "output": {
+            "ratio": "16:9",
+            "fps": 24,
+            "fit": "pad"
+          },
+          "subtitle_style": {
+            "size": 40.0,
+            "position": "bottom",
+            "mode": "burn"
+          },
+          "subtitle_sources": [
+            {
+              "path": "assets/imports/42cd5d77b2a8404ba8454ca81f75496e.srt",
+              "original_name": "qa-manual.srt",
+              "sha256": "3fab6e29836ac01064e19d36859d055e429106ae16f020660cacd8a3c2000617",
+              "bytes": 69,
+              "origin": "user",
+              "exact_original_bytes": true,
+              "imported_at": "2026-11-24T18:04:50.648364+00:00"
+            }
+          ],
+          "markers": [
+            {
+              "id": "ef38041642834d919c055382baf7fad3",
+              "label": "QA following",
+              "seconds": 4.5
+            }
+          ],
+          "layers": [
+            {
+              "id": "3bc9e778aa2941018ec600fe4291dc1b",
+              "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+              "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+              "in_seconds": 0,
+              "out_seconds": 1,
+              "start_seconds": 4,
+              "speed": 1,
+              "x": 0.65,
+              "y": 0.05,
+              "width": 0.3,
+              "height": 0.3,
+              "opacity": 1
+            }
+          ],
+          "titles": [
+            {
+              "id": "79e0b0459bd0494d90e004e727ebb5b2",
+              "text": "QA ripple copy",
+              "start_seconds": 4,
+              "end_seconds": 5,
+              "size": 80,
+              "position": "top"
+            }
+          ]
+        }
+      ],
+      "redo": [],
+      "events": [
+        {
+          "revision": 1,
+          "origin": "user",
+          "operation": "ripple_delete",
+          "at": "2026-11-24T22:53:30.696178+00:00"
+        }
+      ],
+      "edit_sha256": "377f0a972668c0ebd55c0d891efac2f428e36e033545286828948bad2056315a",
+      "render_sha256": "597f7e2abfa68eb78a136466547c8b02b9f492a14e47ffc2cf66d77abaf6a605"
+    },
+    "layer_filter": "[3:v:0]trim=start=0:end=1.0,setpts=(PTS-STARTPTS)/1+2.0/TB,scale=576:324:force_original_aspect_ratio=decrease,pad=576:324:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=24,format=rgba,colorchannelmixer=aa=1[layer0]",
+    "status": "passed",
+    "undo_redo_shared_api": true,
+    "expected_edl": {
+      "version": "1.0",
+      "render_runtime": "ffmpeg",
+      "cuts": [
+        {
+          "speed": 1,
+          "muted": false,
+          "gain": 1,
+          "fade_in": 0,
+          "fade_out": 0,
+          "start_seconds": 0,
+          "id": "a605fe20b33443a1a8a54433b4e555ca",
+          "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+          "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+          "in_seconds": 0,
+          "out_seconds": 2
+        },
+        {
+          "speed": 1,
+          "muted": false,
+          "gain": 1,
+          "fade_in": 0,
+          "fade_out": 0,
+          "start_seconds": 0,
+          "id": "4a48761db45a4a54a8942465ddfe69c6",
+          "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+          "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+          "in_seconds": 4,
+          "out_seconds": 6
+        }
+      ],
+      "audio_tracks": [
+        {
+          "speed": 1,
+          "muted": false,
+          "gain": 1,
+          "fade_in": 0,
+          "fade_out": 0,
+          "start_seconds": 2.0,
+          "id": "cf3db5b6abc943898f8799c323a8bc9e",
+          "source_id": "ffe89d475f134d5ea44f92697db4f42f",
+          "source": "assets/qa-evidence/existing-source-audio.wav",
+          "in_seconds": 0,
+          "out_seconds": 1.0
+        }
+      ],
+      "cues": [
+        {
+          "text": "Manual QA cue",
+          "start_seconds": 2.0,
+          "end_seconds": 3.0
+        }
+      ],
+      "sources": {
+        "9c2a6d0fded14410aaaf4731d5fc7609": {
+          "duration": 76.743333,
+          "kind": "video",
+          "audio": true,
+          "width": 1920,
+          "height": 1080,
+          "bytes": 40145569,
+          "mtime_ns": 1795543437107168800,
+          "path": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+          "sha256": "27eea5e10838e5b05cd87ac5e9ab4ff80aba6aa7311f8c1ab19eb2d4f5e61e5b",
+          "original_name": "ex2502-dive04-0323-pinnoctopus_1920x1080.mp4",
+          "imported_at": "2026-11-24T18:03:57.222346+00:00",
+          "origin": "user"
+        },
+        "ffe89d475f134d5ea44f92697db4f42f": {
+          "duration": 4.0,
+          "kind": "audio",
+          "audio": true,
+          "width": null,
+          "height": null,
+          "bytes": 768078,
+          "mtime_ns": 1795543476517252700,
+          "path": "assets/qa-evidence/existing-source-audio.wav",
+          "sha256": "6e3b17c57caa5eb73ae81de0910b013353d968f6dd897afb2000dfc555402aab",
+          "original_name": "existing-source-audio.wav",
+          "imported_at": "2026-11-24T18:04:36.985848+00:00",
+          "origin": "user"
+        }
+      },
+      "output": {
+        "ratio": "16:9",
+        "fps": 24,
+        "fit": "pad"
+      },
+      "subtitle_style": {
+        "size": 40.0,
+        "position": "bottom",
+        "mode": "burn"
+      },
+      "subtitle_sources": [
+        {
+          "path": "assets/imports/42cd5d77b2a8404ba8454ca81f75496e.srt",
+          "original_name": "qa-manual.srt",
+          "sha256": "3fab6e29836ac01064e19d36859d055e429106ae16f020660cacd8a3c2000617",
+          "bytes": 69,
+          "origin": "user",
+          "exact_original_bytes": true,
+          "imported_at": "2026-11-24T18:04:50.648364+00:00"
+        }
+      ],
+      "markers": [
+        {
+          "id": "ef38041642834d919c055382baf7fad3",
+          "label": "QA following",
+          "seconds": 2.5
+        }
+      ],
+      "layers": [
+        {
+          "id": "3bc9e778aa2941018ec600fe4291dc1b",
+          "source_id": "9c2a6d0fded14410aaaf4731d5fc7609",
+          "source": "assets/imports/ae14bac4b18b4fbd84baa32d440192b7.mp4",
+          "in_seconds": 0,
+          "out_seconds": 1.0,
+          "start_seconds": 2.0,
+          "speed": 1,
+          "x": 0.65,
+          "y": 0.05,
+          "width": 0.3,
+          "height": 0.3,
+          "opacity": 1
+        }
+      ],
+      "titles": [
+        {
+          "id": "79e0b0459bd0494d90e004e727ebb5b2",
+          "text": "QA ripple copy",
+          "start_seconds": 2.0,
+          "end_seconds": 3.0,
+          "size": 80,
+          "position": "top"
+        }
+      ]
+    },
+    "reopened_new_app_from_disk": true,
+    "protected_files_unchanged": true,
+    "source_media_unchanged": true
+  },
+  "tests": {
+    "previous_focused_baseline": "15 passed",
+    "new_documented_regression_before_patch": "1 failed, HTTP400 instead of200",
+    "focused_first_green": "32 passed",
+    "broader_editing_production_and_utf8": "126 passed,1 skipped",
+    "final_new_ripple_regressions": "19 passed, including two additional boundary/order cases"
+  },
+  "live_studio_observation": {
+    "health_http": 200,
+    "capabilities_http": 200,
+    "capabilities_version": "3.0",
+    "server_restarted": false,
+    "patch_activation_proven": false
+  },
+  "inference": false,
+  "rendering": false,
+  "comfyui_modified": false
+}

@@ -30,6 +30,8 @@ the agent to re-ask the user rather than substituting a different engine.
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, require_media, media_environment
+
 import contextlib
 import json
 import hashlib
@@ -246,17 +248,19 @@ class VideoCompose(BaseTool):
             return False
         return True
 
-    def _ffmpeg_available(self) -> bool:
-        """Check if the ffmpeg binary is actually resolvable on PATH."""
-        import shutil as _shutil
+    def run_command(self, cmd, *, timeout=None, cwd=None, env=None):
+        child_env=media_environment(env)
+        return super().run_command(cmd,timeout=timeout,cwd=cwd,env=child_env)
 
-        return bool(_shutil.which("ffmpeg"))
+    def _ffmpeg_available(self) -> bool:
+        """Check the configured or detected local FFmpeg binary."""
+        return bool(find_media("ffmpeg"))
 
     def _hyperframes_available(self) -> bool:
         """Check if HyperFrames rendering is available.
 
         Delegates to the dedicated tool so the availability check stays in
-        one place (node 22 floor, ffmpeg + npx on PATH).
+        one place (local reviewed CLI, Node22+, FFmpeg/FFprobe and prepared browser).
         """
         try:
             from tools.video.hyperframes_compose import HyperFramesCompose
@@ -309,18 +313,18 @@ class VideoCompose(BaseTool):
                 "HyperFrames is available for HTML/CSS/GSAP composition. Use it "
                 "for kinetic typography, product promos, launch reels, "
                 "website-to-video, and registry-block-driven scenes. Consumed via "
-                "'npx hyperframes' (npm package: 'hyperframes'). "
+                "the reviewed local Node entry (npm package: 'hyperframes'). "
                 "Before locking render_runtime='hyperframes' at the proposal stage, "
                 "verify the runtime with `hyperframes_compose` operation='doctor' "
                 "or `make hyperframes-doctor`. An 'available' flag from the runtime "
-                "check means node + ffmpeg + the npm package all resolve; it does "
+                "check means local requirements are present without downloads; it does "
                 "not guarantee a render will succeed on the first specific "
                 "composition."
             )
         else:
             info["hyperframes_note"] = (
-                "HyperFrames is NOT available. Requires Node.js >= 22, FFmpeg, "
-                "npx on PATH, and the 'hyperframes' npm package to be resolvable. "
+                "HyperFrames is NOT available. Requires Node.js >= 22, FFmpeg/FFprobe, "
+                "a reviewed local package and an explicitly prepared browser. "
                 "Run `make hyperframes-doctor` to see the specific missing piece, "
                 "or call `hyperframes_compose` operation='doctor' directly."
             )
@@ -379,7 +383,7 @@ class VideoCompose(BaseTool):
         try:
             out = subprocess.check_output(
                 [
-                    "ffprobe", "-v", "error",
+                    require_media("ffprobe"), "-v", "error",
                     "-select_streams", "a",
                     "-show_entries", "stream=codec_type",
                     "-of", "default=nw=1:nk=1",
@@ -404,7 +408,7 @@ class VideoCompose(BaseTool):
         )
         try:
             self.run_command([
-                "ffmpeg", "-y",
+                require_media("ffmpeg"), "-y",
                 "-i", str(video_path),
                 "-i", str(audio),
                 "-map", "0:v:0",
@@ -546,7 +550,7 @@ class VideoCompose(BaseTool):
                     # gives exact cut boundaries. Same resolution in → same
                     # resolution out, so same-res inputs concat cleanly.
                     cmd = [
-                        "ffmpeg", "-y",
+                        require_media("ffmpeg"), "-y",
                         "-ss", str(in_s),
                         "-t", str(duration),
                         "-i", str(source),
@@ -605,7 +609,7 @@ class VideoCompose(BaseTool):
                         # We have to rebuild cmd to add the lavfi input
                         # before the output path and map streams explicitly.
                         cmd = [
-                            "ffmpeg", "-y",
+                            require_media("ffmpeg"), "-y",
                             "-ss", str(in_s),
                             "-t", str(duration),
                             "-i", str(source),
@@ -644,7 +648,7 @@ class VideoCompose(BaseTool):
 
             concat_out = temp_dir / "concat.mp4"
             cmd = [
-                "ffmpeg", "-y",
+                require_media("ffmpeg"), "-y",
                 "-f", "concat", "-safe", "0",
                 "-i", str(concat_path),
                 "-c", "copy",
@@ -662,7 +666,7 @@ class VideoCompose(BaseTool):
                 sub_escaped = str(Path(subtitle_path).resolve()).replace("\\", "/").replace(":", "\\:")
                 vfilters.append(f"subtitles='{sub_escaped}':force_style='{ass_style}'")
 
-            cmd = ["ffmpeg", "-y", "-i", str(final_input)]
+            cmd = [require_media("ffmpeg"), "-y", "-i", str(final_input)]
 
             if audio_path and Path(audio_path).exists():
                 cmd.extend(["-i", audio_path])
@@ -1774,7 +1778,7 @@ class VideoCompose(BaseTool):
                     "Per governance this is a BLOCKER — surface it to the user "
                     "per AGENT_GUIDE.md > 'Escalate Blockers Explicitly' and wait "
                     "for approval before switching runtime. Requirements: "
-                    "Node.js >= 22, FFmpeg, and npx on PATH. See "
+                    "Node.js >=22, FFmpeg/FFprobe, reviewed local CLI, browser and explicit doctor. See "
                     "tools/video/hyperframes_compose.py for the specific missing piece."
                 ),
             )
@@ -2319,7 +2323,7 @@ class VideoCompose(BaseTool):
         }
         try:
             cmd = [
-                "ffprobe", "-v", "quiet", "-print_format", "json",
+                require_media("ffprobe"), "-v", "quiet", "-print_format", "json",
                 "-show_format", "-show_streams", str(output_path),
             ]
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -2412,7 +2416,7 @@ class VideoCompose(BaseTool):
                     ts = round(duration * pct, 2)
                     frame_path = frame_dir / f"review_frame_{i}.png"
                     cmd = [
-                        "ffmpeg", "-y", "-ss", str(ts),
+                        require_media("ffmpeg"), "-y", "-ss", str(ts),
                         "-i", str(output_path),
                         "-frames:v", "1", "-q:v", "2",
                         str(frame_path),
@@ -2455,7 +2459,7 @@ class VideoCompose(BaseTool):
             try:
                 # Use ffmpeg volumedetect to check audio levels
                 cmd = [
-                    "ffmpeg", "-i", str(output_path),
+                    require_media("ffmpeg"), "-i", str(output_path),
                     "-af", "volumedetect", "-f", "null", "-",
                 ]
                 proc = subprocess.run(
@@ -2609,7 +2613,7 @@ class VideoCompose(BaseTool):
             if technical_probe.get("valid_container"):
                 try:
                     cmd = [
-                        "ffprobe", "-v", "quiet", "-print_format", "json",
+                        require_media("ffprobe"), "-v", "quiet", "-print_format", "json",
                         "-show_streams", "-select_streams", "s",
                         str(output_path),
                     ]
@@ -2728,7 +2732,7 @@ class VideoCompose(BaseTool):
         crf = inputs.get("crf", 23)
 
         cmd = [
-            "ffmpeg", "-y",
+            require_media("ffmpeg"), "-y",
             "-i", str(input_path),
             "-vf", f"subtitles='{sub_escaped}':force_style='{ass_style}'",
             "-c:v", codec, "-crf", str(crf),
@@ -2798,7 +2802,7 @@ class VideoCompose(BaseTool):
 
         filter_complex = ";".join(filter_parts)
 
-        cmd = ["ffmpeg", "-y"]
+        cmd = [require_media("ffmpeg"), "-y"]
         cmd.extend(input_args)
         cmd.extend(["-filter_complex", filter_complex])
         cmd.extend(["-map", f"[{prev_label}]", "-map", "0:a?"])
@@ -2830,7 +2834,7 @@ class VideoCompose(BaseTool):
             return ToolResult(success=False, error=f"Input not found: {input_path}")
 
         cmd = [
-            "ffmpeg", "-y",
+            require_media("ffmpeg"), "-y",
             "-i", str(input_path),
             "-c:v", codec, "-crf", str(crf), "-preset", preset,
             "-c:a", "aac", "-b:a", "192k",

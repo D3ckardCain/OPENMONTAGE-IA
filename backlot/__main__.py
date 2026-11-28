@@ -52,7 +52,7 @@ def _spawn_server(port: int) -> None:
     subprocess.Popen(cmd, **kwargs)
 
 
-def cmd_open(project_id: str | None) -> int:
+def cmd_open(project_id: str | None, *, studio: bool = False) -> int:
     port = _port()
     if not _server_alive(port):
         try:
@@ -69,7 +69,9 @@ def cmd_open(project_id: str | None) -> int:
             print("backlot: server did not come up in time — continuing without the board")
             return 1
     url = f"http://127.0.0.1:{port}/"
-    if project_id:
+    if studio:
+        url += "studio"
+    elif project_id:
         url = f"http://127.0.0.1:{port}/p/{project_id}"
     try:
         webbrowser.open(url)
@@ -81,9 +83,19 @@ def cmd_open(project_id: str | None) -> int:
 
 def cmd_serve(port: int) -> int:
     import uvicorn
+    from lib.local_cli_environment import configured_environment
 
-    uvicorn.run("backlot.server:app", host="127.0.0.1", port=port, log_level="warning")
-    return 0
+    os.environ.update(configured_environment())
+
+    from backlot.server import app, hub
+    from backlot.runtime import StudioServer
+
+    server = StudioServer(
+        uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning"),
+        stop_notifications=hub.close,
+    )
+    server.run()
+    return 0 if server.started else 3
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -93,12 +105,16 @@ def main(argv: list[str] | None = None) -> int:
     p_open = sub.add_parser("open", help="open the board in the browser (starts server if needed)")
     p_open.add_argument("project_id", nargs="?", default=None)
 
+    sub.add_parser("studio", help="open the local production studio")
+
     p_serve = sub.add_parser("serve", help="run the Backlot server in the foreground")
     p_serve.add_argument("--port", type=int, default=_port())
 
     args = parser.parse_args(argv)
     if args.command == "open":
         return cmd_open(args.project_id)
+    if args.command == "studio":
+        return cmd_open(None, studio=True)
     if args.command == "serve":
         return cmd_serve(args.port)
     parser.print_help()

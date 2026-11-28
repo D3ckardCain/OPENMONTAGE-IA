@@ -30,6 +30,8 @@ from __future__ import annotations
 
 import os
 import socket
+from pathlib import Path
+import re
 
 import pytest
 
@@ -40,6 +42,13 @@ _LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "::1", "0.0.0.0", ""}
 _real_connect = socket.socket.connect
 _real_connect_ex = socket.socket.connect_ex
 _real_create_connection = socket.create_connection
+
+
+def pytest_ignore_collect(collection_path, config):
+    """Manual QA scripts execute production work at import time; require opt-in."""
+    path = Path(collection_path)
+    manual = path.parent == Path(__file__).resolve().parent / 'qa' and re.fullmatch(r'test_0[1-8]_.*\.py', path.name)
+    return bool(manual) and os.environ.get('OPENMONTAGE_MANUAL_QA') != '1'
 
 
 class NetworkCallInTestError(RuntimeError):

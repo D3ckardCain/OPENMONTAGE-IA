@@ -1,0 +1,56 @@
+{
+  "timestamp": 1795798656,
+  "repo": "alibaba-pai/Wan2.2-VACE-Fun-A14B",
+  "revision": "4438caabbfdd7437bbb0283d86cb200d1b7223ba",
+  "unchanged_cached_wan_paths": 10,
+  "weights": [
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-VACE-Fun-A14B\\high_noise_model\\diffusion_pytorch_model.safetensors",
+      "identity": [
+        2728866502,
+        281474976712473,
+        34675325000,
+        1794478308145048000,
+        1794473408968933600
+      ],
+      "sha256": "0bf791adfb8330d451d2f5c03577b2a8fb780453f8ef05e23a8fa91f27a2134d",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "low_noise_model/diffusion_pytorch_model.safetensors"
+      ]
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\alibaba-pai--Wan2.2-VACE-Fun-A14B\\low_noise_model\\diffusion_pytorch_model.safetensors",
+      "identity": [
+        2728866502,
+        844424930134510,
+        34675325000,
+        1794503162637498400,
+        1794494726753453800
+      ],
+      "sha256": "0bf791adfb8330d451d2f5c03577b2a8fb780453f8ef05e23a8fa91f27a2134d",
+      "hash_reused": true,
+      "official_variant_matches": [
+        "low_noise_model/diffusion_pytorch_model.safetensors"
+      ]
+    }
+  ],
+  "correct_high_noise_candidates_in_verified_inventory": [
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\Wan-VACE-High-VERIFICAR\\diffusion_pytorch_model.safetensors",
+      "variant": "high_noise_model/diffusion_pytorch_model.safetensors",
+      "bytes": 34675325000,
+      "sha256": "66c61b736c5674deeeef17861e494d3652cc9b1463a9656bf18c2c72d2c5f007",
+      "hash_reused": false,
+      "verified_at_utc": "2026-11-27T16:57:36Z",
+      "official_revision": "4438caabbfdd7437bbb0283d86cb200d1b7223ba",
+      "official_url": "https://huggingface.co/alibaba-pai/Wan2.2-VACE-Fun-A14B/resolve/4438caabbfdd7437bbb0283d86cb200d1b7223ba/high_noise_model/diffusion_pytorch_model.safetensors",
+      "status": "SHA256 y tamaño coinciden; permanece en carpeta VERIFICAR, sin mover"
+    }
+  ],
+  "missing_correct_variant": null,
+  "weight_content_reads": 1,
+  "files_modified": 0,
+  "status": "Correct official High variant verified on C: and left in place; prior D: Low copies preserved; no file moved or overwritten.",
+  "network_constraint": "Python HTTPS socket WinError 10013 observed on preceding small official index request; no network permissions changed"
+}

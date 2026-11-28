@@ -1,0 +1,36 @@
+name: blender-skills-pilot
+version: "1.1"
+description: Bounded local Blender-Skills compatibility pilot; own geometry, no model inference or downloads.
+category: custom
+stability: beta
+default_checkpoint_policy: guided
+extensions:
+  custom_scripts: true
+  custom_tools: true
+stages:
+  - name: idea
+    skill: qa/blender-skills-pilot
+    produces: [brief, decision_log]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+  - name: scene_plan
+    skill: qa/blender-skills-pilot
+    produces: [scene_plan, decision_log]
+    tools_available: []
+    checkpoint_required: true
+    human_approval_default: true
+  - name: assets
+    skill: qa/blender-skills-pilot
+    required_artifacts_in: [scene_plan]
+    produces: [asset_manifest]
+    tools_available: [blender_skills_pilot]
+    checkpoint_required: true
+    human_approval_default: true
+  - name: compose
+    skill: qa/blender-skills-pilot
+    required_artifacts_in: [asset_manifest]
+    produces: [render_report]
+    tools_available: [blender_skills_pilot]
+    checkpoint_required: true
+    human_approval_default: false

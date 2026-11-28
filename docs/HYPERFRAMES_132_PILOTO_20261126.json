@@ -1,0 +1,270 @@
+{
+  "issue": 132,
+  "date_utc": "2026-11-26",
+  "project": "qa132-hyperframes-offline",
+  "cost_usd": 0,
+  "studio_restarted": false,
+  "versions": {
+    "hyperframes": "0.9.96",
+    "gsap": "3.14.2",
+    "node": "22.23.5",
+    "ffmpeg": "9.0.2",
+    "browser": "Existing system Chrome"
+  },
+  "preparation": {
+    "missing_only": [
+      "HyperFrames pinned package and dependencies",
+      "GSAP pinned local resource"
+    ],
+    "npm_packages_added": 78,
+    "browser_downloaded": false,
+    "install_scripts_run": false,
+    "tls_first_attempt": "UNABLE_TO_VERIFY_LEAF_SIGNATURE, no packages installed",
+    "tls_resolution": "Child Node --use-system-ca, TLS verification kept enabled; no global npm settings change"
+  },
+  "package_integrity": {
+    "hyperframes": {
+      "version": "0.9.96",
+      "integrity": "sha512-2gD3hyd2r8flmjjWbSgxz+DC/tY444DZLfoDC0CK+Dxmwo0rGZLE7bj1F7rw1XIiP9MOkk1foFYuvh87+msuIQ==",
+      "resolved": "https://registry.npmjs.org/hyperframes/-/hyperframes-0.9.96.tgz",
+      "license": "Apache-2.0"
+    },
+    "gsap": {
+      "version": "3.14.2",
+      "integrity": "sha512-P8/mMxVLU7o4+55+1TCnQrPmgjPKnwkzkXOK1asnR9Jg2lna4tEY5qBJjMmAaOBDDZWtlRjBXjLa0w53G/uBLA==",
+      "resolved": "https://registry.npmjs.org/gsap/-/gsap-3.14.2.tgz",
+      "license": "Standard 'no charge' license: https://gsap.com/standard-license."
+    }
+  },
+  "lock_sha256": "27c3ee191ecd20b02c019904136ed8ce4d03c422d924085abc3d09358d65e8a3",
+  "build": {
+    "html_sha256": "7d0b77f96b667a138af80106a3db8cf24a15346a85faf62d9c318c8c3ca84e56",
+    "audio_sha256": "bb3cf85dc4eebba207314b9aabe861a591a6a283257bc44b8b2795cde271b279",
+    "audio_copy_sha256": "bb3cf85dc4eebba207314b9aabe861a591a6a283257bc44b8b2795cde271b279",
+    "gsap_sha256": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280",
+    "audio_seconds": 3.610702947845805,
+    "audio_offset_seconds": 0.25,
+    "duration_seconds": 4,
+    "fps": 24,
+    "width": 640,
+    "height": 360,
+    "audio_origin": "projects\\edit-635e36b5107a\\assets\\audio\\piper-6336d4f8cfa94f96aa713233b3a5b9a2.wav",
+    "audio_attribution": "Sharvard CC BY3.0; HiFiTTS Cori Samuel reader92 CC BY4.0; existing Piper1.8.0 QA output, no new synthesis",
+    "gsap_license": "GSAP standard no-charge license; package metadata and header retained",
+    "cost_usd": 0,
+    "previous_html_sha256": "4f16b00be5c628f07b45f164582ae56af96d43dbbd16df146290862f2e93e177",
+    "revision_reason": "Permit embedded runtime fonts, retain remote font denial; panel is a non-timeline visual wrapper; explicit foreground stacking after real layout occlusion finding"
+  },
+  "media": {
+    "video": {
+      "duration": 4.0,
+      "codec": "h264",
+      "fps": "24/1",
+      "frames": 96,
+      "resolution": "640x360",
+      "audio_codec": "aac",
+      "bytes": 114526,
+      "sha256": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683"
+    },
+    "decode_exit": 0,
+    "frame_measurements": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "square_left": 60,
+        "marker_rgb": [
+          12,
+          16,
+          22
+        ]
+      },
+      {
+        "frame": 7,
+        "time": 0.2916666666666667,
+        "square_left": 60,
+        "marker_rgb": [
+          55,
+          186,
+          86
+        ]
+      },
+      {
+        "frame": 24,
+        "time": 1.0,
+        "square_left": 135,
+        "marker_rgb": [
+          55,
+          186,
+          86
+        ]
+      },
+      {
+        "frame": 60,
+        "time": 2.5,
+        "square_left": 360,
+        "marker_rgb": [
+          55,
+          186,
+          86
+        ]
+      },
+      {
+        "frame": 95,
+        "time": 3.9583333333333335,
+        "square_left": 510,
+        "marker_rgb": [
+          55,
+          186,
+          86
+        ]
+      }
+    ],
+    "sync": {
+      "method": "10ms RMS envelope normalized correlation of original and encoded mono8k PCM, searched150..350ms",
+      "expected_offset_seconds": 0.25,
+      "measured_offset_seconds": 0.25,
+      "correlation": 0.9990598989266259,
+      "tolerance_seconds": 0.041666666666666664
+    },
+    "limits": [
+      "Timing and decode verified; subjective listening and naturalness not assessed",
+      "Marker denotes file start, not first spoken phoneme",
+      "No lip sync claim"
+    ]
+  },
+  "playback": {
+    "playback": {
+      "duration": 4,
+      "ended": true,
+      "width": 640,
+      "height": 360,
+      "error": null,
+      "totalFrames": 96,
+      "droppedFrames": 0
+    },
+    "seeks": [
+      0.3,
+      2.5
+    ],
+    "errors": [],
+    "scope": "Real local MP4 playback and seek in headless Chrome; audio decode, not subjective listening"
+  },
+  "cancellation": {
+    "requested_after": {
+      "code": "capture",
+      "done": 1,
+      "total": 96,
+      "pct": 26
+    },
+    "transport_exit": 130,
+    "native_exit": 1,
+    "forced_tree_stop_exit": 0,
+    "owned_children_count": 13,
+    "children_present_immediately": 2,
+    "children_present_at_later_read_only_followup": 0,
+    "root_present_at_followup": false,
+    "partial_exists": false,
+    "promoted": false,
+    "completed_output_unchanged": true
+  },
+  "network_observed": [
+    {
+      "host": "127.0.0.1",
+      "allowed": true,
+      "count": 510
+    },
+    {
+      "host": "::1",
+      "allowed": true,
+      "count": 5
+    },
+    {
+      "host": "fonts.googleapis.com",
+      "allowed": false,
+      "count": 5
+    }
+  ],
+  "network_scope": "Observed Node connect/lookup/fetch via child-only preload; composition CSP, not OS-wide Chrome egress capture",
+  "new_tests": {
+    "pytest_passed": 4,
+    "node_guard_checks_passed": 6,
+    "suite_repeated": false,
+    "ci_claimed": false
+  },
+  "preflight_failures_fixed": [
+    "Embedded runtime data fonts blocked by CSP; permitted data: fonts, external fonts remain denied",
+    "Real layout check found opaque fill covering text after wrapper revision; fixed explicit foreground stacking",
+    "Initial manifest missing required scene_id; corrected before compose"
+  ],
+  "final_review": {
+    "version": "1.0",
+    "output_path": "renders/hyperframes-offline.mp4",
+    "status": "pass",
+    "checks": {
+      "technical_probe": {
+        "valid_container": true,
+        "duration_seconds": 4,
+        "resolution": "640x360",
+        "fps": 24,
+        "has_audio": true,
+        "codec": "h264",
+        "file_size_bytes": 114526,
+        "issues": []
+      },
+      "visual_spotcheck": {
+        "frames_sampled": 5,
+        "frame_paths": [
+          "artifacts/contact-sheet.png"
+        ],
+        "black_frames_detected": false,
+        "broken_overlays": false,
+        "missing_assets": false,
+        "unreadable_text": false,
+        "issues": []
+      },
+      "audio_spotcheck": {
+        "narration_present": true,
+        "music_present": false,
+        "issues": [
+          "Human listening and voice naturalness remain unassessed; existing audio was not synthesized again.",
+          "Measured waveform offset250ms; normalized RMS correlation0.99906. No subjective intelligibility claim."
+        ]
+      },
+      "promise_preservation": {
+        "delivery_promise_honored": true,
+        "renderer_family_used": "animation-first",
+        "render_runtime_used": "hyperframes",
+        "runtime_swap_detected": false,
+        "runtime_swap_check": "Explicitly selected HyperFrames; FFmpeg verifies output only, no runtime fallback.",
+        "silent_downgrade_detected": false,
+        "issues": []
+      },
+      "subtitle_check": {
+        "subtitles_expected": false,
+        "subtitles_present": false,
+        "issues": []
+      }
+    },
+    "issues_found": [
+      "Human listening and voice naturalness remain unassessed; existing audio was not synthesized again.",
+      "Node guard blocked5 Google Fonts attempts; not evidence of zero attempts or OS-wide Chrome egress isolation.",
+      "Generic scaffold still uses CDN GSAP/mutable registry; only this authored local-resource workspace rendered offline.",
+      "Active Studio imports and UI cancellation were not tested or restarted.",
+      "Windows forced owned-tree cancellation, not graceful upstream cancellation."
+    ],
+    "recommended_action": "present_to_user",
+    "metadata": {
+      "scope": "Bounded technical pilot, not full issue acceptance or human listening",
+      "human_visual_approval": false,
+      "human_listening_approval": false,
+      "cost_usd": 0
+    }
+  },
+  "limitations": [
+    "Human listening and voice naturalness remain unassessed; existing audio was not synthesized again.",
+    "Node guard blocked5 Google Fonts attempts; not evidence of zero attempts or OS-wide Chrome egress isolation.",
+    "Generic scaffold still uses CDN GSAP/mutable registry; only this authored local-resource workspace rendered offline.",
+    "Active Studio imports and UI cancellation were not tested or restarted.",
+    "Windows forced owned-tree cancellation, not graceful upstream cancellation."
+  ]
+}

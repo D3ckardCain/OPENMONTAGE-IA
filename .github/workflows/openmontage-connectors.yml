@@ -1,0 +1,86 @@
+name: OPENMONTAGE connector contracts
+on:
+  push:
+    branches: [feat/local-agent-research-foundation]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  studio-installation:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Studio in its own environment
+        run: python scripts/setup_local_studio.py
+      - name: Start isolated Studio without production or models
+        run: python tests/windows/smoke_studio_installation.py
+      - name: Read-only Windows setup entry point
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: PREPARAR_ESTUDIO.cmd --check
+  contracts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Windows source preparation without network
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./tests/windows/test_prepare_windows_studio.ps1
+          powershell.exe -NoProfile -File ./tests/windows/test_prepare_windows_studio.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Windows PowerShell 5.1 tests failed" }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - name: Isolated Studio installation lifecycle without downloads
+        run: python -m pytest tests/contracts/test_local_studio_setup.py tests/contracts/test_studio_source_status.py -q
+      - name: Update center file comparisons
+        run: python -m pytest tests/tools/test_update_center.py tests/tools/test_update_downloads.py tests/tools/test_application_updates.py -q
+      - run: python -m pytest tests/tools/test_official_uefa_live.py tests/tools/test_official_spl_status.py tests/tools/test_official_jleague.py tests/tools/test_official_mls.py tests/tools/test_uefa_names.py tests/tools/test_uefa_visual_flow.py tests/tools/test_official_fifa_live.py tests/tools/test_official_mlb_live.py tests/tools/test_official_wba_live.py tests/tools/test_producer_sports_flow.py tests/tools/test_sports_export_requirements.py tests/tools/test_wba_visual_flow.py tests/tools/test_mlb_visual_flow.py tests/tools/test_fifa_player_resolution.py tests/tools/test_sports_card_svg.py tests/tools/test_sports_card_video.py tests/tools/test_sports_sources.py tests/tools/test_football_research.py tests/tools/test_youtube_research.py tests/tools/test_youtube_client.py tests/contracts/test_cultural_audio.py tests/contracts/test_local_budget_policy.py tests/tools/test_youtube_channels.py tests/tools/test_channel_identity.py tests/tools/test_youtube_errors.py tests/tools/test_youtube_channel_batch.py tests/backlot/test_channel_search.py tests/backlot/test_production_studio.py tests/backlot/test_studio_multilingual_flow.py tests/tools/test_model_adapters.py tests/tools/test_model_validation.py tests/tools/test_wan_presets.py -q
+      - name: Workflow preparation and application center contracts
+        run: python -m pytest tests/tools/test_workflow_preparation.py tests/tools/test_integration_preparation.py tests/tools/test_blender_binding.py tests/tools/test_media_bindings.py tests/tools/test_setup_center.py tests/tools/test_render_verification.py tests/tools/test_final_delivery.py tests/tools/test_final_catalog.py tests/tools/test_delivery_recovery.py tests/tools/test_production_queue.py tests/tools/test_language_versions.py tests/tools/test_reference_language.py tests/tools/test_reference_reuse.py tests/tools/test_model_languages.py tests/tools/test_model_copies.py tests/tools/test_model_file_checks.py tests/tools/test_madlad.py tests/tools/test_translation_segments.py tests/tools/test_translation_progress.py tests/tools/test_project_translation.py tests/tools/test_resource_inventory.py tests/tools/test_download_plan.py -q
+      - name: Local reference analysis and WAN recovery contracts
+        run: python -m pytest tests/tools/test_reference_analysis.py tests/tools/test_producer_reference_action.py tests/tools/test_comfy_job_records.py tests/tools/test_i2v_image_transfer.py tests/tools/test_agent_source_image.py tests/tools/test_production_input_image.py tests/tools/test_comfy_history_report.py tests/tools/test_comfy_history_routes.py -q
+
+  browser-regressions:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt playwright
+      - name: Prepare media command-line tools
+        timeout-minutes: 6
+        run: bash .github/scripts/ensure-media-cli.sh
+      - run: python -m playwright install --with-deps chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/openmontage-test-browsers
+      - name: Browser tests with external networking disabled
+        run: |
+          PYTHON_BIN="$(python -c 'import sys; print(sys.executable)')"
+          sudo --preserve-env=PLAYWRIGHT_BROWSERS_PATH unshare --net -- bash -c 'ip link set lo up; exec "$@"' bash "$PYTHON_BIN" -m pytest tests/backlot/test_ui_bug_bash.py tests/backlot/test_channel_browser.py tests/backlot/test_studio_browser.py tests/backlot/test_studio_channel_filters.py tests/backlot/test_studio_contextual_help.py -q
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/openmontage-test-browsers
+      - name: Preserve Studio editor layout evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-editor-layout-${{ github.run_id }}
+          path: tests/qa/output/studio-editor/
+          if-no-files-found: warn

@@ -1,0 +1,19 @@
+{
+  "new_tests_passed": 5,
+  "prepared_resource_read_only": {
+    "version": "3.14.2",
+    "sha256": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280",
+    "manifest_sha256": "8d5997473e1ec93f7af94a6b8bc5547535a2976ed7c950278858e704c0b5688e",
+    "license": "Standard 'no charge' license: https://gsap.com/standard-license.",
+    "mode": "local_verified"
+  },
+  "real_scaffold_render_run": false,
+  "syntax": "passed",
+  "shared_profile_resource_verified_read_only": {
+    "version": "3.14.2",
+    "sha256": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280",
+    "manifest_sha256": "8d5997473e1ec93f7af94a6b8bc5547535a2976ed7c950278858e704c0b5688e",
+    "license": "Standard 'no charge' license: https://gsap.com/standard-license.",
+    "mode": "local_verified"
+  }
+}

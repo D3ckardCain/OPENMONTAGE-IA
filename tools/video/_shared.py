@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, require_media
+
 import os
 import shutil
 import subprocess
@@ -757,7 +759,7 @@ def generate_ltx_modal_video(inputs: dict[str, Any]) -> ToolResult:
 
 def probe_output(path: Path) -> dict[str, Any]:
     info: dict[str, Any] = {"file_size_bytes": path.stat().st_size}
-    if not shutil.which("ffprobe"):
+    if not find_media("ffprobe"):
         return info
 
     import json
@@ -765,7 +767,7 @@ def probe_output(path: Path) -> dict[str, Any]:
     try:
         proc = subprocess.run(
             [
-                "ffprobe",
+                require_media("ffprobe"),
                 "-v",
                 "quiet",
                 "-print_format",

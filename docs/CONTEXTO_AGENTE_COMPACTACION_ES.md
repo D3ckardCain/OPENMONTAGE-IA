@@ -1,0 +1,9 @@
+# Compactación segura del contexto de agente
+
+La conversación completa permanece legible en `agent_session.json` y en los archivos inmutables `artifacts/agent_context_<sha256>.json`. Las llamadas y respuestas de herramientas conservan sus mensajes emparejados; la compactación de texto solo se considera cuando el lote está completo, sin llamada en vuelo ni intento incierto. Se conserva una ventana de 12 mensajes recientes.
+
+El algoritmo es determinista y local. No genera un resumen semántico: reemplaza mensajes antiguos de usuario/asistente que superan 2.048 caracteres por un puntero de archivo con rol, índice, etiquetas explícitas y referencias (URL, #issue, SHA40/SHA64). Mensajes que mencionan autorizaciones, decisiones, tareas pendientes, planes o incertidumbre se retienen íntegros mediante una lista conservadora de términos. Los mensajes marcados como plan o pendientes se conservan completos; los hechos y resúmenes archivados solo se etiquetan cuando el texto original declara explícitamente `FACT:`/`HECHO:`, `PLAN:` o `SUMMARY:`/`RESUMEN:`; el resto queda como no clasificado.
+
+Para recuperar un original, usar `read_artifact` con el `artifact_name` del puntero, comprobar que el SHA-256 de los bytes JSON coincide con `archive_sha256`, y comparar `request_sha256`, `session_version`, `archive_version` e `índice` con el puntero. Si cambia el contrato de compactación o la solicitud, la reanudación se bloquea con un error claro. Los recibos de herramientas mantienen su archivo previo y el mismo `tool_call_id`.
+
+Los umbrales son caracteres/bytes de serialización, no tokens. No se han medido sesiones largas ni tokens de prompt/respuesta. Los intentos inciertos, el techo anterior de 450.000 caracteres, el límite agregado de archivo de 256 MiB y la aceptación de memoria en una conversación real siguen siendo límites explícitos.

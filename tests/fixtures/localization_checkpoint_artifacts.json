@@ -1,0 +1,47 @@
+{
+  "asset_manifest": {
+    "version": "1.0",
+    "assets": [
+      {
+        "id": "asset-1",
+        "type": "video",
+        "path": "assets/clip.mp4",
+        "source_tool": "ffmpeg",
+        "scene_id": "scene-1"
+      }
+    ]
+  },
+  "edit_decisions": {
+    "version": "1.0",
+    "cuts": [
+      {
+        "id": "cut-1",
+        "source": "asset-1",
+        "in_seconds": 0,
+        "out_seconds": 10
+      }
+    ],
+    "render_runtime": "ffmpeg"
+  },
+  "render_report": {
+    "version": "1.0",
+    "outputs": [
+      {
+        "path": "renders/output.mp4",
+        "format": "mp4",
+        "resolution": "1920x1080",
+        "duration_seconds": 60
+      }
+    ]
+  },
+  "publish_log": {
+    "version": "1.0",
+    "entries": [
+      {
+        "platform": "youtube",
+        "status": "draft",
+        "timestamp": "2026-11-14T05:26:56.610468+00:00"
+      }
+    ]
+  }
+}

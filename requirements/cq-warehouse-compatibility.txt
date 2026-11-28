@@ -1,0 +1,2 @@
+# Validated with cq_warehouse 0.8.0; do not apply to FreeCAD or Studio.
+cadquery==2.5.2

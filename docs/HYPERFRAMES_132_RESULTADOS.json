@@ -1,0 +1,68 @@
+{
+  "issue": 132,
+  "actual_local_report": {
+    "runtime_available": false,
+    "installed": false,
+    "local_requirements_met": false,
+    "render_validated": false,
+    "diagnostic_scope": "local_metadata_and_node_version_only",
+    "node_major": null,
+    "ffmpeg_available": true,
+    "ffprobe_available": true,
+    "npx_available": false,
+    "npm_package": "hyperframes",
+    "npm_package_version": null,
+    "npm_resolve_error": "CLI local ausente; preparar explícitamente hyperframes@0.9.96 en un entorno aislado y declarar HYPERFRAMES_PACKAGE_DIR",
+    "cli_probe_status": "not_run",
+    "cli_probe_error": null,
+    "reasons": [
+      "CLI local ausente; preparar explícitamente hyperframes@0.9.96 en un entorno aislado y declarar HYPERFRAMES_PACKAGE_DIR",
+      "Node.js >=22 no comprobado en PATH",
+      "Declara HYPERFRAMES_BROWSER_PATH con un navegador ya preparado; no se descarga uno"
+    ]
+  },
+  "subprocesses": [],
+  "diagnostic_cli_invoked": false,
+  "npm_npx_invoked": false,
+  "downloads_started": false,
+  "render_validated": false,
+  "configurations_preserved": true,
+  "blender_default": "blender-4.5",
+  "python_syntax": "passed",
+  "scope": "Read-only real local requirements query; focused tests use synthetic packages/media bytes/doctor JSON, not actual runtime",
+  "tests": {
+    "new_unique_passed": 23,
+    "adapted_existing_passed": 5,
+    "runs": [
+      {
+        "purpose": "initial focal new cases",
+        "passed": 18
+      },
+      {
+        "purpose": "runtime delta plus4adapted cases",
+        "passed": 19
+      },
+      {
+        "purpose": "media delta plus adapted scaffold",
+        "passed": 3
+      },
+      {
+        "purpose": "required-resource doctor delta",
+        "passed": 6
+      },
+      {
+        "purpose": "doctor failure/receipt delta",
+        "passed": 8
+      }
+    ],
+    "full_suite_run": false,
+    "ci_claimed": false,
+    "counts_are_unique_not_sum_of_runs": true
+  },
+  "limitations": [
+    "No installed local CLI/browser profile prepared in the reviewed roots",
+    "No real doctor/render/seek/cancel/listening validation",
+    "CDN GSAP and mutable registry remain separate P1 offline tasks",
+    "No availability claim for resident Studio imports"
+  ]
+}

@@ -1,0 +1,337 @@
+{
+  "recorded_utc": "2026-11-26T00:21:14.564953+00:00",
+  "issue": 117,
+  "archive": {
+    "url": "https://download.blender.org/release/Blender5.3/blender-5.3.0-windows-x64.zip",
+    "bytes": 425299259,
+    "sha256": "3ac567a63d59d9934f7b9213bfb27ba05760e1fb366f8f55c381573ec3eabfa8",
+    "steps": [
+      {
+        "step": "download_verified",
+        "bytes": 425299259,
+        "sha256": "3ac567a63d59d9934f7b9213bfb27ba05760e1fb366f8f55c381573ec3eabfa8"
+      },
+      {
+        "step": "extracted_new_directory",
+        "files": 7623,
+        "uncompressed_bytes": 992912801
+      },
+      {
+        "step": "provision_complete",
+        "success": true
+      }
+    ],
+    "executable_sha256": "6670c69fbb562c0fd1fae1e35f5413a90781cdf7d44af151ee4c9c3b82a38174"
+  },
+  "profile_ids": [
+    "blender-4.5",
+    "blender-5.3"
+  ],
+  "selected_profile": "blender-4.5",
+  "doctor": {
+    "blender_path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\blender-5.3.0-windows-x64\\blender.exe",
+    "profile_id": "blender-5.3",
+    "version": "5.3.0",
+    "python": "3.13.13",
+    "user_resources": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile",
+    "version_line": "OPENMONTAGE_BLENDER=5.3.0"
+  },
+  "adapter_skills_API_probe": {
+    "version": "5.3.0",
+    "python": "3.13.13",
+    "user_resources": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile",
+    "skills_revision": "1a1cc6c49312f9f370aae86f52b7b907f29c94f6",
+    "skills_API_checks": {
+      "node_group_interface": true,
+      "action_channelbag_helper": true,
+      "compositor_effects": true,
+      "gaussian_splat_enum": true,
+      "gltf_compressed_images": true,
+      "scene_engine_accepted": true
+    },
+    "engine": "BLENDER_EEVEE",
+    "samples": 8,
+    "action_curves_tested": 3,
+    "before": {
+      "objects": 3,
+      "meshes": 1,
+      "materials": 2,
+      "actions": 0
+    },
+    "after": {
+      "objects": 3,
+      "meshes": 1,
+      "materials": 2,
+      "actions": 0
+    },
+    "files_saved": 0,
+    "renders": 0,
+    "scope": "Local API compatibility subset; upstream scripts/test suite not executed"
+  },
+  "addons": {
+    "version": "5.3.0",
+    "python": "3.13.13",
+    "addons": {
+      "archimesh": {
+        "enabled": true,
+        "module_path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile\\extensions\\user_default\\archimesh\\__init__.py",
+        "declared_classes": 28,
+        "missing_classes": []
+      },
+      "molecularnodes": {
+        "enabled": true,
+        "module_path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile\\extensions\\user_default\\molecularnodes\\__init__.py",
+        "declared_classes": 0,
+        "missing_classes": []
+      }
+    },
+    "dependencies": {
+      "biotite": {
+        "version": "1.7.1",
+        "path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile\\extensions\\.local\\lib\\python3.13\\site-packages\\biotite\\__init__.py"
+      },
+      "MDAnalysis": {
+        "version": "2.10.0",
+        "path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile\\extensions\\.local\\lib\\python3.13\\site-packages\\MDAnalysis\\__init__.py"
+      },
+      "databpy": {
+        "version": "not declared",
+        "path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile\\extensions\\.local\\lib\\python3.13\\site-packages\\databpy\\__init__.py"
+      },
+      "numpy": {
+        "version": "2.3.4",
+        "path": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\blender-5.3.0-windows-x64\\5.3\\python\\Lib\\site-packages\\numpy\\__init__.py"
+      }
+    },
+    "scene_mn": true,
+    "object_mn": true,
+    "before": {
+      "objects": 3,
+      "meshes": 1,
+      "node_groups": 0
+    },
+    "after": {
+      "objects": 3,
+      "meshes": 1,
+      "node_groups": 0
+    },
+    "files_saved": 0,
+    "renders": 0,
+    "network_requested": false
+  },
+  "addon_install": [
+    {
+      "addon": "archimesh",
+      "zip_sha256": "44745a86dd472e296e06cd45c511e002a1105512a73009cb0018c87611d18d87",
+      "returncode": 0,
+      "stdout": "STATUS Installed \"archimesh\"\nBlender 5.3.0 (hash 02f0899d78e3 built 2026-11-10 01:33:43)\n",
+      "stderr": ""
+    },
+    {
+      "addon": "molecularnodes",
+      "zip_sha256": "23e8ddb1b7f0309b0b132f4d563586d67ed5336b01aca5d77fac054bc3b4cfee",
+      "returncode": 0,
+      "stdout": "STATUS Installed \"molecularnodes\"\nBlender 5.3.0 (hash 02f0899d78e3 built 2026-11-10 01:33:43)\n",
+      "stderr": ""
+    }
+  ],
+  "gui_startup": {
+    "background": false,
+    "windows": 1,
+    "areas": [
+      "DOPESHEET_EDITOR",
+      "OUTLINER",
+      "PROPERTIES",
+      "VIEW_3D"
+    ],
+    "version": "5.3.0",
+    "user_resources": "D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile",
+    "scope": "Real GUI startup and available areas; no visual judgement or editing interactions"
+  },
+  "gui_recovery_limit": "First GUI close wrote normal quit.blend in Windows TEMP; future5.3 subprocess TEMP/TMP now isolated to profile/temp; no original project saved/overwritten by a tool command",
+  "isolated_API_UI": {
+    "scope": "Isolated server, real profile selection API; no4750 mutation or application launch",
+    "posts": [
+      {
+        "profile_id": "blender-5.3"
+      },
+      {
+        "profile_id": "blender-4.5"
+      }
+    ],
+    "blocked": [],
+    "errors": [],
+    "compatibility": {
+      "ok": true,
+      "kind": "compatible",
+      "message": "Interfaz y API compatibles · 3479e3a9def0",
+      "caps": {
+        "version": "3.0",
+        "commands": [
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "api_protocol": 1,
+        "backend_build": "3479e3a9def0bc4d05d3731f7909fb9399be8fa6c5796f0a75f520de890e4437"
+      }
+    },
+    "blender-5.3": "Blender · Ejecutable localizado\n\nCrear escenas y animación 3D\n\nEjecutables admitidos: blender.exe, blender\n\nAutomatización disponible para el productor: blender_world. Requiere validar el runtime y los resultados.\n\nRuta del ejecutable instalado o portable\nGuardar ruta\n\nPreferencias y complementos aislados: D:\\OPENMONTAJE-IA\\HERRAMIENTAS\\Blender\\5.3.0\\profile No abre Blender ni valida renders.\n\nVersión de Blender\nSelecciona explícitamente una versión\nBlender 4.5 LTS · complementos actuales · 4.5.15\nBlender 5.3 · perfil aislado · 5.3.0\nUsar esta versión\nAbrir desde el proyecto",
+    "blender-4.5": "Blender · Ejecutable localizado",
+    "success": true
+  },
+  "active4750_guard": {
+    "scope": "Read-only active4750 guard; no restart/selection/synthesis",
+    "posts": 0,
+    "options": "Selecciona explícitamente una versiónBlender 4.5 LTS · complementos actuales · 4.5.15Blender 5.3 · perfil aislado · 5.3.0",
+    "message": "Blender · Ejecutable localizado\n\nCrear escenas y animación 3D\n\nEjecutables admitidos: blender.exe, blender\n\nAutomatización disponible para el productor: blender_world. Requiere validar el runtime y los resultados.\n\nRuta del ejecutable instalado o portable\nGuardar ruta\n\nSelector pendiente de activación manual del backend. La ruta actual se conserva.\n\nVersión de Blender\nSelecciona explícitamente una versión\nBlender 4.5 LTS · complementos actuales · 4.5.15\nBlender 5.3 · perfil aislado · 5.3.0\nUsar esta versión\nAbrir desde el proyecto",
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "7e9611ee0cbccc15d321f87f71027990e07c68f44d46f170cea48392910085c9",
+        "files": 21
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "3479e3a9def0bc4d05d3731f7909fb9399be8fa6c5796f0a75f520de890e4437",
+        "files": 21
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "85a6e5b085f2744d01adcefb2f2a11f8a54957d3ad085eff33e72be82ff96e5e",
+        "files": 25
+      },
+      "restart_required": true,
+      "pid": 123920,
+      "loaded_at_utc": "2026-11-25T23:38:20.668312+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "api_protocol": 1,
+        "backend_build": "7e9611ee0cbccc15d321f87f71027990e07c68f44d46f170cea48392910085c9"
+      }
+    },
+    "success": true
+  },
+  "preservation_and_final_identity": {
+    "preservation": {
+      ".backlot\\studio\\applications.json": true,
+      ".backlot\\studio\\settings.json": true,
+      "C:\\Users\\sando\\AppData\\Roaming\\Blender Foundation\\Blender\\4.5\\config\\userpref.blend": true,
+      "archimesh_previous_files": true,
+      "molecularnodes_4_5_manifest": true
+    },
+    "studio_identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "7e9611ee0cbccc15d321f87f71027990e07c68f44d46f170cea48392910085c9",
+        "files": 21
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "1c9076d2ecf0c055f0e29f6fdd1177b63943c9e84eb39c7b7ec08c7cc05a9a61",
+        "files": 21
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "59ab0264e8d91dc46cd55527cd392348cf5e0da9872f242419f126ecd7fced6a",
+        "files": 25
+      },
+      "restart_required": true,
+      "pid": 123920,
+      "loaded_at_utc": "2026-11-25T23:38:20.668312+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "api_protocol": 1,
+        "backend_build": "7e9611ee0cbccc15d321f87f71027990e07c68f44d46f170cea48392910085c9"
+      }
+    },
+    "studio_restarted": false,
+    "selected_profile": "blender-4.5",
+    "isolated_profile": "blender-5.3",
+    "cost_usd": 0
+  },
+  "new_pytest": {
+    "unique_cases_passed": 14,
+    "delta_cases_rechecked_after_code_change": 3,
+    "old_suites_repeated": 0,
+    "new_full_CI_claimed": false
+  },
+  "syntax_checks": {
+    "python_files": 7,
+    "javascript_files": 4
+  },
+  "remaining": [
+    "4750 route activation; no restart authorized now",
+    "Full Blender-Skills workflows/28skills not executed",
+    "Archimesh interactive panels/geometry not validated",
+    "Molecular import/trajectory/render not validated",
+    "112 eligible completed receipt recovery",
+    "113 hidden agent controls focus"
+  ],
+  "cost_usd": 0,
+  "new_models": 0,
+  "comfyui_changes": 0,
+  "studio_restarted": false,
+  "pr2": "draft"
+}

@@ -112,31 +112,40 @@ def test_documentary_renderer_family_maps_to_remotion():
 
 def test_video_compose_surfaces_all_three_runtimes():
     """Preflight must see remotion, hyperframes, and ffmpeg as separate engines."""
-    import shutil
+    from lib.media_executables import find_media
 
     info = VideoCompose().get_info()
     engines = info["render_engines"]
     assert set(engines.keys()) == {"remotion", "hyperframes", "ffmpeg"}
-    assert engines["ffmpeg"] is bool(shutil.which("ffmpeg"))
+    assert engines["ffmpeg"] is bool(find_media("ffmpeg"))
     assert "hyperframes_note" in info
     assert "runtime_governance" in info
 
 
-def test_video_compose_ffmpeg_engine_reflects_path_availability(monkeypatch):
+def test_video_compose_ffmpeg_engine_reflects_path_availability(monkeypatch, tmp_path):
     """Regression: `get_info()["render_engines"]["ffmpeg"]` must actually check
-    shutil.which("ffmpeg"), not hardcode True. A machine without ffmpeg on PATH
-    must not have the agent believe render_runtime='ffmpeg' is safe to lock."""
+    configured/detected executables, not hardcode True. A machine without a
+    usable binary must not report render_runtime='ffmpeg' available."""
     import shutil
+    from lib import production_studio as studio, reference_analysis
 
+    monkeypatch.setattr(studio, 'CONFIG_DIR', tmp_path / 'config')
+    monkeypatch.setattr(reference_analysis, 'portable_roots', lambda: [])
     monkeypatch.setattr(shutil, "which", lambda name: None)
     info = VideoCompose().get_info()
     assert info["render_engines"]["ffmpeg"] is False
 
-    monkeypatch.setattr(
-        shutil, "which", lambda name: "/usr/bin/ffmpeg" if name == "ffmpeg" else None
-    )
+    executable = tmp_path / 'ffmpeg'
+    executable.touch()
+    monkeypatch.setattr(shutil, 'which', lambda name: str(executable) if name == 'ffmpeg' else None)
     info = VideoCompose().get_info()
     assert info["render_engines"]["ffmpeg"] is True
+
+    monkeypatch.setattr(shutil, 'which', lambda name: None)
+    studio.save_json(studio.CONFIG_DIR / 'settings.json', {'ffmpeg_path': str(executable)})
+    assert VideoCompose().get_info()['render_engines']['ffmpeg'] is True
+    executable.unlink()
+    assert VideoCompose().get_info()['render_engines']['ffmpeg'] is False
 
 
 def test_video_compose_blocks_silent_hyperframes_swap(tmp_path, monkeypatch):

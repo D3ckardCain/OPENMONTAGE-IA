@@ -1,0 +1,372 @@
+"""Isolated inference worker. All model paths are local; Hub is offline.
+
+Run with a request JSON and response JSON. Heavy libraries are imported only in
+this process, never during tool discovery or web-server startup.
+"""
+from __future__ import annotations
+import dataclasses
+import json
+import os
+import sys
+from pathlib import Path
+
+def offline_environment():
+    for key in ('HF_HUB_OFFLINE','TRANSFORMERS_OFFLINE','HF_DATASETS_OFFLINE'):
+        os.environ[key]='1'
+    os.environ['HF_HUB_DISABLE_TELEMETRY']='1'
+
+
+def plain(value):
+    if dataclasses.is_dataclass(value):return plain(dataclasses.asdict(value))
+    if isinstance(value,dict):return {str(k):plain(v) for k,v in value.items()}
+    if isinstance(value,(list,tuple)):return [plain(v) for v in value]
+    if hasattr(value,'tolist'):return value.tolist()
+    if hasattr(value,'__dict__'):return plain(vars(value))
+    if isinstance(value,(str,int,float,bool)) or value is None:return value
+    return str(value)
+
+
+def required(data,key):
+    value=data.get(key)
+    if not isinstance(value,str) or not value.strip():raise ValueError('Falta '+key)
+    return value
+
+
+def local_file(data,key):
+    p=Path(required(data,key)).resolve()
+    if not p.is_file() or not p.stat().st_size:raise ValueError('Archivo local ausente: '+key)
+    return str(p)
+
+
+def qwen_language(value):
+    try:from lib.model_languages import binding
+    except ImportError:from model_languages import binding
+    return binding('qwen-tts',value)
+
+
+def torch_setup(data):
+    import torch
+    device=data.get('device','cpu')
+    if device=='cuda' and not torch.cuda.is_available():raise ValueError('CUDA solicitado no está disponible; no se cambia a CPU silenciosamente')
+    return torch,device,torch.float32 if device=='cpu' else torch.float16
+
+
+def progress(request,phase,**values):
+    value=request.get('progress_path')
+    if not value:return
+    path=Path(value).resolve();path.relative_to(Path(request['output_dir']).resolve())
+    temporary=path.with_suffix('.tmp')
+    temporary.write_text(json.dumps(dict(phase=phase,worker_pid=os.getpid(),**values)),encoding='utf-8')
+    os.replace(temporary,path)
+
+
+def run(request):
+    family=request['family'];m=Path(request['model_dir']);data=request['inputs'];out=Path(request['output_dir'])
+    if family=='chatterbox' and data.get('regional_profile'):
+        try:from lib.voice_preparation import guard_request
+        except ImportError:from voice_preparation import guard_request
+        guard_request(data)
+    if family=='cosyvoice' and (m/'cosyvoice3.yaml').is_file():
+        try:from lib.voice_preparation import cosyvoice3
+        except ImportError:from voice_preparation import cosyvoice3
+        prepared=cosyvoice3(m)
+        if not prepared['ready']:raise ValueError('CosyVoice3 no preparado: '+'; '.join(prepared['problems']))
+    progress(request,'starting')
+    if family=='qwen-tts-17b-base':
+        if data.get('reference_authorized') is not True:raise ValueError('Se requiere autorización explícita de la voz de referencia')
+        config=json.loads((m/'config.json').read_text(encoding='utf-8'))
+        if config.get('tts_model_type')!='base' or config.get('tts_model_size')!='1b7':raise ValueError('Se requiere checkpoint Base1.7B, no CustomVoice/0.6B')
+        family='qwen-tts'
+    if family=='voice-design':
+        config=json.loads((m/'config.json').read_text(encoding='utf-8'))
+        if config.get('tts_model_type')!='voice_design' or config.get('tts_model_size')!='1b7':raise ValueError('Se requiere checkpoint VoiceDesign1.7B, no CustomVoice')
+    if request['family'] in ('voice-design','qwen-tts-17b-base') and data.get('device','cpu')=='cpu':
+        import psutil
+        required_ram=2*sum((m/name).stat().st_size for name in ['model.safetensors','speech_tokenizer/model.safetensors'])+1024**3
+        if psutil.virtual_memory().available<required_ram:raise ValueError('RAM libre insuficiente para Qwen1.7B CPU FP32; no se cargaron pesos. Se requiere mas margen o validar un runtime CUDA separado.')
+    if request.get('source_dir'):
+        source=Path(request['source_dir']);sys.path.insert(0,str(source));sys.path.insert(0,str(source/'third_party'/'Matcha-TTS'))
+    if not m.is_dir():raise ValueError('Carpeta de pesos ausente')
+    try:from lib.model_languages import validate_request,binding
+    except ImportError:from model_languages import validate_request,binding
+    validate_request(family,data)
+    if family in ('wan-camera','wan-control','wan-s2v','framepack'):
+        try:from lib.original_model_engines import run as run_original
+        except ImportError:from original_model_engines import run as run_original
+        return run_original(request)
+    if family in ('dwpose','cogvideo','lama','magihuman','longcat','longcat-avatar'):
+        try:from lib.model_extra_workers import run as run_extra
+        except ImportError:from model_extra_workers import run as run_extra
+        return run_extra(request)
+    def report(value,filename='result.json'):
+        path=out/filename;path.write_text(json.dumps(plain(value),ensure_ascii=False,indent=2),encoding='utf-8')
+        return {'success':True,'outputs':[str(path)],'result':plain(value)}
+    def audio(value,sr):
+        import numpy as np
+        import soundfile as sf
+        if hasattr(value,'detach'):value=value.detach().cpu().numpy()
+        value=np.asarray(value).squeeze()
+        if value.ndim!=1 or not value.size or not np.isfinite(value).all():raise ValueError('La voz no produjo audio mono válido')
+        path=out/'voice.wav';sf.write(str(path),value,int(sr),subtype='PCM_16')
+        return {'success':True,'outputs':[str(path)],'sample_rate':int(sr),'duration_seconds':len(value)/int(sr)}
+    if family=='faster-whisper':
+        from faster_whisper import WhisperModel
+        device=data.get('device','cpu')
+        model=WhisperModel(str(m),device=device,compute_type='int8' if device=='cpu' else 'float16',local_files_only=True)
+        segments,info=model.transcribe(local_file(data,'input_path'),language=data.get('language'),word_timestamps=True)
+        return report({'language':info.language,'duration_seconds':info.duration,'segments':[{'start':s.start,'end':s.end,'text':s.text,'words':[{'start':w.start,'end':w.end,'word':w.word,'probability':w.probability} for w in s.words or []]} for s in segments]})
+    if family=='minilm':
+        from sentence_transformers import SentenceTransformer
+        model=SentenceTransformer(str(m),device=data.get('device','cpu'),local_files_only=True)
+        texts=data.get('texts') or [required(data,'text')]
+        return report({'texts':texts,'embeddings':model.encode(texts,normalize_embeddings=True).tolist()})
+    if family in ('ocr-latin','ocr-det'):
+        from paddleocr import TextRecognition,TextDetection
+        cls=TextRecognition if family=='ocr-latin' else TextDetection
+        name='latin_PP-OCRv5_mobile_rec' if family=='ocr-latin' else 'PP-OCRv5_mobile_det'
+        model=cls(model_name=name,model_dir=str(m),device='gpu:0' if data.get('device')=='cuda' else 'cpu')
+        return report({'predictions':[p.json for p in model.predict(local_file(data,'input_path'))]})
+    if family=='silero':
+        import numpy as np
+        import soundfile as sf
+        import onnxruntime as ort
+        wave,sr=sf.read(local_file(data,'input_path'),dtype='float32')
+        if sr!=16000 or wave.ndim!=1:raise ValueError('Silero requiere WAV mono a 16000 Hz; prepara el audio antes')
+        session=ort.InferenceSession(str(m/'onnx/model.onnx'),providers=['CPUExecutionProvider'])
+        state=np.zeros((2,1,128),dtype=np.float32);context=np.zeros((1,64),dtype=np.float32);segments=[]
+        for start in range(0,len(wave),512):
+            chunk=wave[start:start+512];chunk=np.pad(chunk,(0,512-len(chunk))).reshape(1,-1)
+            x=np.concatenate([context,chunk],axis=1)
+            probability,state=session.run(None,{'input':x,'state':state,'sr':np.array(16000,dtype=np.int64)})
+            context=x[:,-64:]
+            score=float(np.asarray(probability).reshape(-1)[0])
+            if score>=data.get('threshold',0.5):segments.append({'start':start/sr,'end':min(start+512,len(wave))/sr,'speech_probability':score})
+        return report({'speech_windows':segments,'window_seconds':512/16000,'sample_rate':sr})
+    torch,device,dtype=torch_setup(data)
+    if family=='kokoro':
+        from kokoro import KModel,KPipeline
+        model=KModel(config=str(m/'config.json'),model=str(m/'kokoro-v1_0.pth')).to(device).eval()
+        voice=Path(data.get('voice','af_heart'))
+        if not voice.is_absolute():voice=m/'voices'/(str(voice)+('.pt' if voice.suffix!='.pt' else ''))
+        if not voice.is_file():raise ValueError('Falta la voz local '+str(voice))
+        voice_tensor=torch.load(str(voice),map_location=device,weights_only=True)
+        lang=binding('kokoro',data.get('language','en'))
+        pipe=KPipeline(lang_code=lang,model=model,device=device)
+        chunks=[item[2] for item in pipe(required(data,'text'),voice=voice_tensor,speed=data.get('speed',1)) if item[2] is not None]
+        if not chunks:raise ValueError('Kokoro no produjo segmentos')
+        return audio(torch.cat(chunks),24000)
+    if family in ('qwen-tts','voice-design'):
+        from qwen_tts import Qwen3TTSModel
+        if device=='cuda' and request['family'] in ('voice-design','qwen-tts-17b-base'):
+            if not torch.cuda.is_bf16_supported():raise ValueError('Qwen CUDA BF16 no disponible; no se cambia a CPU')
+            free,total=torch.cuda.mem_get_info()
+            required_memory=sum((m/name).stat().st_size for name in ['model.safetensors','speech_tokenizer/model.safetensors'])+1024**3
+            if free<required_memory:raise ValueError('VRAM libre insuficiente antes de cargar; no se usa otro modelo')
+            dtype=torch.bfloat16;torch.cuda.reset_peak_memory_stats()
+        if 'seed' in data:torch.manual_seed(data['seed'])
+        progress(request,'loading',device=device,dtype=str(dtype))
+        model=Qwen3TTSModel.from_pretrained(str(m),device_map=device,dtype=dtype,local_files_only=True,attn_implementation='eager',low_cpu_mem_usage=True)
+        progress(request,'loaded',device=device,dtype=str(dtype),forward_count=0)
+        counter={'forwards':0};handle=None
+        if request.get('progress_path'):
+            def forward_observed(module,inputs,output):
+                counter['forwards']+=1
+                if device=='cuda' and counter['forwards']==1:torch.cuda.synchronize()
+                progress(request,'generating',forward_count=counter['forwards'],device=device,
+                         gpu_peak_allocated_bytes=torch.cuda.max_memory_allocated() if device=='cuda' else None)
+            handle=model.model.talker.register_forward_hook(forward_observed)
+        args={'text':required(data,'text'),'language':qwen_language(required(data,'language')),'max_new_tokens':data.get('max_new_tokens',2048)}
+        try:
+            if family=='voice-design':values,sr=model.generate_voice_design(**args,instruct=required(data,'instruction'))
+            else:values,sr=model.generate_voice_clone(**args,ref_audio=local_file(data,'reference_audio'),ref_text=required(data,'reference_text'))
+        finally:
+            if handle is not None:handle.remove()
+        result=audio(values[0],sr)
+        result.update(device=device,dtype=str(dtype),forward_count=counter['forwards'],
+                      gpu_peak_allocated_bytes=torch.cuda.max_memory_allocated() if device=='cuda' else None,
+                      gpu_peak_reserved_bytes=torch.cuda.max_memory_reserved() if device=='cuda' else None)
+        progress(request,'completed',forward_count=counter['forwards'],device=device)
+        return result
+    if family=='chatterbox':
+        if data.get('regional_profile'):
+            try:from lib.chatterbox_regional_runtime import load_profile,generate_bounded
+            except ImportError:from chatterbox_regional_runtime import load_profile,generate_bounded
+            if 'seed' in data:torch.manual_seed(data['seed'])
+            progress(request,'loading',device=device)
+            model,loaded=load_profile(data['regional_profile'],device)
+            try:from lib.hyperframes_staging import identity
+            except ImportError:from hyperframes_staging import identity
+            reference=Path(local_file(data,'reference_audio'));reference_identity=identity(reference)
+            progress(request,'generating',device=device)
+            value=generate_bounded(model,required(data,'text'),reference,
+                                   max_new_tokens=data.get('max_new_tokens',160))
+            if identity(reference)!=reference_identity:raise ValueError('La referencia cambió durante la síntesis; salida no acreditada')
+            result=audio(value,model.sr)
+            result['provenance']=dict(regional_profile=data['regional_profile'],load=loaded,
+                reference_audio=str(reference),reference_identity=reference_identity,reference_authorized=True,
+                source_revision='ab55923c27757c90cfcc407baa57dc25a7d25217',
+                max_new_tokens=data.get('max_new_tokens',160),watermark=True)
+            progress(request,'completed',device=device)
+            return result
+        from chatterbox.mtl_tts import ChatterboxMultilingualTTS
+        model=ChatterboxMultilingualTTS.from_local(m,device=device)
+        args={'language_id':required(data,'language')}
+        if data.get('reference_audio'):args['audio_prompt_path']=local_file(data,'reference_audio')
+        return audio(model.generate(required(data,'text'),**args),model.sr)
+    if family=='cosyvoice':
+        from cosyvoice.cli.cosyvoice import AutoModel
+        model=AutoModel(model_dir=str(m),load_trt=False,load_vllm=False,fp16=device=='cuda')
+        chunks=[part['tts_speech'] for part in model.inference_zero_shot(required(data,'text'),required(data,'reference_text'),local_file(data,'reference_audio'),stream=False,speed=data.get('speed',1))]
+        if not chunks:raise ValueError('CosyVoice no produjo audio')
+        return audio(torch.cat(chunks,dim=1),model.sample_rate)
+    if family=='aligner':
+        from qwen_asr import Qwen3ForcedAligner
+        model=Qwen3ForcedAligner.from_pretrained(str(m),dtype=dtype,device_map=device,local_files_only=True)
+        return report({'alignment':model.align(audio=local_file(data,'input_path'),text=required(data,'text'),language=qwen_language(required(data,'language')))})
+    if family=='depth':
+        import cv2
+        import numpy as np
+        from depth_anything_v2.dpt import DepthAnythingV2
+        model=DepthAnythingV2(encoder='vits',features=64,out_channels=[48,96,192,384])
+        model.load_state_dict(torch.load(str(m/'depth_anything_v2_vits.pth'),map_location='cpu',weights_only=True))
+        model.to(device).eval();image=cv2.imread(local_file(data,'input_path'))
+        if image is None:raise ValueError('Imagen no reconocida')
+        with torch.inference_mode():depth=model.infer_image(image)
+        raw=out/'depth.npy';np.save(str(raw),depth)
+        scaled=((depth-depth.min())/max(float(depth.max()-depth.min()),1e-8)*65535).astype('uint16')
+        image_path=out/'depth.png'
+        if not cv2.imwrite(str(image_path),scaled):raise ValueError('No se pudo escribir el mapa')
+        return {'success':True,'outputs':[str(raw),str(image_path)],'relative_depth':True}
+    if family=='madlad':
+        from transformers import T5ForConditionalGeneration,T5Tokenizer
+        tokenizer=T5Tokenizer.from_pretrained(str(m),local_files_only=True)
+        language=required(data,'language')
+        token='<2'+language+'>'
+        if tokenizer.convert_tokens_to_ids(token)==tokenizer.unk_token_id:raise ValueError('Idioma objetivo no presente en el tokenizer MADLAD: '+language)
+        try:from lib.translation_segments import segments
+        except ImportError:from translation_segments import segments
+        chunks=segments(required(data,'text'),tokenizer,token+' ')
+        try:from lib import translation_progress
+        except ImportError:import translation_progress
+        key=translation_progress.fingerprint(m,language,chunks,data.get('max_new_tokens',512))
+        progress_path=out/('madlad-progress-'+key[:16]+'.json')
+        translated=translation_progress.load(progress_path,key,chunks)
+        resumed=len(translated)
+        model=None
+        if resumed<len(chunks):model=T5ForConditionalGeneration.from_pretrained(str(m),local_files_only=True,use_safetensors=True).to(device).eval()
+        for chunk in chunks[resumed:]:
+            inputs=tokenizer(token+' '+chunk['text'],return_tensors='pt',truncation=False).to(device)
+            if inputs['input_ids'].shape[-1]>512:raise ValueError('El tokenizer produjo un fragmento demasiado largo; no se truncó')
+            with torch.inference_mode():ids=model.generate(**inputs,max_new_tokens=data.get('max_new_tokens',512))
+            eos=tokenizer.eos_token_id
+            last=ids[0][-1];last=last.item() if hasattr(last,'item') else last
+            if eos is not None and last!=eos:raise ValueError('Traducción posiblemente cortada en el fragmento '+str(chunk['index'])+'; aumenta max_new_tokens o divide el trabajo')
+            translated.append({**chunk,'translation':tokenizer.batch_decode(ids,skip_special_tokens=True)[0]})
+            translation_progress.save(progress_path,key,translated)
+        return report({'text':'\n'.join(chunk['translation'] for chunk in translated),'segments':translated,
+            'language':language,'source_fully_segmented':True,'resumed_segments':resumed,'progress_path':str(progress_path),'quality_review_required':True})
+    if family=='m2m100':
+        from transformers import M2M100ForConditionalGeneration,M2M100Tokenizer
+        tokenizer=M2M100Tokenizer.from_pretrained(str(m),local_files_only=True);tokenizer.src_lang=required(data,'source_language')
+        model=M2M100ForConditionalGeneration.from_pretrained(str(m),local_files_only=True).to(device).eval()
+        inputs=tokenizer(required(data,'text'),return_tensors='pt').to(device)
+        with torch.inference_mode():ids=model.generate(**inputs,forced_bos_token_id=tokenizer.get_lang_id(required(data,'language')),max_new_tokens=data.get('max_new_tokens',512))
+        return report({'text':tokenizer.batch_decode(ids,skip_special_tokens=True)[0],'language':data['language']})
+    if family=='qwen3':
+        from transformers import AutoTokenizer,AutoModelForCausalLM
+        tokenizer=AutoTokenizer.from_pretrained(str(m),local_files_only=True)
+        model=AutoModelForCausalLM.from_pretrained(str(m),local_files_only=True,torch_dtype=dtype).to(device).eval()
+        prompt=tokenizer.apply_chat_template([{'role':'user','content':required(data,'text')}],tokenize=False,add_generation_prompt=True)
+        inputs=tokenizer(prompt,return_tensors='pt').to(device)
+        with torch.inference_mode():ids=model.generate(**inputs,max_new_tokens=data.get('max_new_tokens',1024))
+        return report({'text':tokenizer.decode(ids[0,inputs['input_ids'].shape[1]:],skip_special_tokens=True)})
+    from PIL import Image
+    from transformers import AutoProcessor
+    if family=='parakeet':
+        import soundfile as sf
+        from transformers import AutoModelForTDT
+        waveform,sr=sf.read(local_file(data,'input_path'),dtype='float32')
+        if sr!=16000 or waveform.ndim!=1:raise ValueError('Parakeet requiere audio mono a 16000 Hz')
+        processor=AutoProcessor.from_pretrained(str(m),local_files_only=True)
+        model=AutoModelForTDT.from_pretrained(str(m),local_files_only=True,torch_dtype=dtype).to(device).eval()
+        inputs=processor(waveform,sampling_rate=sr,return_tensors='pt').to(device)
+        with torch.inference_mode():ids=model.generate(**inputs)
+        return report({'text':processor.batch_decode(ids,skip_special_tokens=True)[0]})
+    image=Image.open(local_file(data,'input_path')).convert('RGB')
+    if family in ('smolvlm','qwen-vl'):
+        from transformers import AutoModelForImageTextToText
+        processor=AutoProcessor.from_pretrained(str(m),local_files_only=True)
+        model=AutoModelForImageTextToText.from_pretrained(str(m),local_files_only=True,torch_dtype=dtype).to(device).eval()
+        messages=[{'role':'user','content':[{'type':'image'},{'type':'text','text':required(data,'text')}]}]
+        prompt=processor.apply_chat_template(messages,add_generation_prompt=True)
+        inputs=processor(text=prompt,images=[image],return_tensors='pt').to(device)
+        with torch.inference_mode():ids=model.generate(**inputs,max_new_tokens=data.get('max_new_tokens',512))
+        return report({'text':processor.batch_decode(ids[:,inputs['input_ids'].shape[1]:],skip_special_tokens=True)[0],'scope':'single_image'})
+    if family=='florence':
+        from transformers import AutoModelForCausalLM
+        processor=AutoProcessor.from_pretrained(str(m),trust_remote_code=True,local_files_only=True)
+        model=AutoModelForCausalLM.from_pretrained(str(m),trust_remote_code=True,local_files_only=True,torch_dtype=dtype).to(device).eval()
+        task=data.get('instruction','<DETAILED_CAPTION>');prompt=task+data.get('text','')
+        inputs=processor(text=prompt,images=image,return_tensors='pt').to(device)
+        with torch.inference_mode():ids=model.generate(**inputs,max_new_tokens=data.get('max_new_tokens',1024),do_sample=False)
+        text=processor.batch_decode(ids,skip_special_tokens=False)[0]
+        return report(processor.post_process_generation(text,task=task,image_size=image.size))
+    if family=='grounding-dino':
+        import inspect
+        from transformers import AutoModelForZeroShotObjectDetection
+        processor=AutoProcessor.from_pretrained(str(m),local_files_only=True)
+        model=AutoModelForZeroShotObjectDetection.from_pretrained(str(m),local_files_only=True).to(device).eval()
+        text=required(data,'text');inputs=processor(images=image,text=text,return_tensors='pt').to(device)
+        with torch.inference_mode():outputs=model(**inputs)
+        method=processor.post_process_grounded_object_detection
+        threshold='threshold' if 'threshold' in inspect.signature(method).parameters else 'box_threshold'
+        return report(method(outputs,inputs.input_ids,**{threshold:data.get('threshold',0.3)},text_threshold=0.25,target_sizes=[image.size[::-1]]))
+    if family=='siglip':
+        from transformers import AutoModel
+        processor=AutoProcessor.from_pretrained(str(m),local_files_only=True)
+        model=AutoModel.from_pretrained(str(m),local_files_only=True).to(device).eval()
+        labels=data.get('labels')
+        if not labels:raise ValueError('SigLIP requiere labels para comparar la imagen')
+        inputs=processor(text=labels,images=image,padding='max_length',return_tensors='pt').to(device)
+        with torch.inference_mode():scores=model(**inputs).logits_per_image.sigmoid()[0].cpu().tolist()
+        return report({'matches':[{'label':label,'score':score} for label,score in zip(labels,scores)]})
+    if family=='birefnet':
+        from torchvision import transforms
+        from transformers import AutoModelForImageSegmentation
+        model=AutoModelForImageSegmentation.from_pretrained(str(m),trust_remote_code=True,local_files_only=True).to(device).eval()
+        transform=transforms.Compose([transforms.Resize((1024,1024)),transforms.ToTensor(),transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])])
+        with torch.inference_mode():mask=model(transform(image).unsqueeze(0).to(device))[-1].sigmoid().cpu()[0]
+        mask=transforms.ToPILImage()(mask).resize(image.size);image.putalpha(mask)
+        path=out/'cutout.png';image.save(path)
+        return {'success':True,'outputs':[str(path)]}
+    raise ValueError('No hay implementación nativa para '+family)
+
+
+def block_network():
+    import socket
+    original=socket.socket.connect
+    original_ex=socket.socket.connect_ex
+    def offline(sock,address):
+        if isinstance(address,(tuple,list)):raise RuntimeError('Runtime sin red: instala previamente la dependencia local que falta')
+        return original(sock,address)
+    def no_datagrams(*args,**kwargs):raise RuntimeError('Runtime sin red: descarga automática deshabilitada')
+    def offline_ex(sock,address):
+        if isinstance(address,(tuple,list)):raise RuntimeError('Runtime sin red: descarga automática deshabilitada')
+        return original_ex(sock,address)
+    socket.socket.connect=offline
+    socket.socket.connect_ex=offline_ex
+    socket.socket.sendto=no_datagrams
+
+
+def main():
+    offline_environment()
+    block_network()
+    response=Path(sys.argv[2])
+    try:
+        request=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+        result=run(request);code=0
+    except Exception as exc:result={'success':False,'error':type(exc).__name__+': '+str(exc)[:1600]};code=1
+    response.write_text(json.dumps(plain(result),ensure_ascii=False),encoding='utf-8')
+    return code
+
+if __name__=='__main__':raise SystemExit(main())

@@ -1,0 +1,51 @@
+# Preparar versiones por idioma
+
+Abre un proyecto y despliega «Preparar versiones en otros idiomas». Indica entre uno y diez códigos separados por comas, por ejemplo `en, ko, de, pt-BR`. Pulsa «Crear proyectos por idioma».
+
+Cada versión recibe el encargo base y las instrucciones de localización. Conserva el pipeline y la URL de referencia, utiliza su propio espacio de trabajo y exige aprobación por etapas aunque el proyecto base sea automático. Si hay una selección deportiva vigente, guarda su propio expediente validado y registra en el proyecto base el ID y SHA-256 del expediente de origen. Si nace de una propuesta de canal, copia el expediente, la propuesta y las observaciones manuales que estaban guardadas al crear el proyecto base, con sus hashes; funciona sin el registro general de investigación. No copia medios, otros artefactos, aclaraciones posteriores ni resultados del proyecto base; no ejecuta traducción o modelos al crearla. Después abre cada versión, revisa el encargo y utiliza el productor habitual o la cola.
+
+Las instrucciones requieren adaptar narración, subtítulos, títulos, miniaturas, música y referencias culturales. El análisis debe confirmar el idioma de los diálogos y canciones y la autorización de sus recursos. No existe todavía una comprobación automática que certifique esa adaptación cultural.
+
+No acepta el mismo idioma objetivo del proyecto base ni códigos repetidos. Eso no confirma el idioma original del video de referencia, que puede ser diferente. Repetir la solicitud reutiliza las versiones registradas para ese mismo encargo. Si falta una versión, se informa para evitar crear otra sin revisar. Los fallos parciales muestran qué idiomas se prepararon; no eliminan proyectos.
+
+Las pruebas usan creadores simulados y no validan narración, traducción ni render con modelos reales.
+
+## Organizar la producción
+
+«Consultar versiones guardadas» recupera los proyectos registrados incluso después de cerrar la app. Marca los idiomas deseados y pulsa «Añadir versiones seleccionadas a la cola». Admite hasta diez por lote. Valida todos los proyectos y la capacidad antes de guardar. Las versiones que ya estén en la cola se conservan sin duplicarlas ni reactivar bloqueos. Los registros no disponibles no pueden seleccionarse. Luego revisa la cola e inicia su ejecución expresamente; siguen aplicándose las aprobaciones por etapa.
+
+## Recursos locales
+
+«Revisar recursos de voz y traducción» consulta los adaptadores registrados de voz, traducción y transcripción. Revisa archivos y configuración sin ejecutar Python auxiliar, hacer peticiones a servidores ni cargar modelos. Muestra requisitos ausentes y módulos pendientes. «Archivos configurados» no certifica dependencias instaladas ni soporte de un idioma: habrá que comprobar voz, pronunciación y calidad con los modelos reales.
+
+La prueba de integración crea proyectos reales en carpetas temporales, comprueba checkpoints guiados, idiomas independientes, ausencia de renders y reutilización al repetir. No ejecuta inferencia.
+
+## Estado de las versiones
+
+La consulta de versiones guardadas muestra el estado del productor, su último mensaje, la verificación técnica guardada y si existe una copia final registrada. Resume las terminadas, bloqueadas, pendientes de aprobación y no disponibles. Si el expediente seleccionado dentro de una versión cambia respecto al ID de selección guardado al crearla, muestra «selection_changed» y deja de ofrecer esa versión para añadirla a la cola desde el panel. Las versiones nuevas guardan también esa procedencia en su carpeta: la cola, el inicio directo del productor y la aprobación de una etapa bloquean una selección modificada antes de ejecutarla. Revisa ese proyecto y su nueva selección. El SHA-256 del expediente de origen queda como procedencia: cada versión genera un expediente propio con fecha distinta. Una versión con el productor en estado `rendered` no se ofrece para añadir otra vez a la cola. Una copia registrada no confirma que su disco siga conectado; consulta «Videos finales» para comprobar disponibilidad. Los datos se actualizan al pulsar «Consultar versiones guardadas».
+
+Las versiones de una propuesta de canal registran también los hashes y el ID de la investigación de origen. Si una copia cambia o falta, el listado muestra `research_changed` y bloquea su entrada a la cola; el productor verifica sus copias antes de iniciar. Una nueva observación de vidIQ añadida después no altera las capturas históricas ya vinculadas.
+
+## Compartir análisis de referencia
+
+Primero termina el análisis local en el proyecto base. Consulta sus versiones, marca las deseadas y pulsa «Compartir análisis base con las seleccionadas». Se guarda una instantánea JSON del informe: transcripción, observaciones, lagunas y procedencia. No copia el video ni fotogramas. Las rutas del informe siguen apuntando al proyecto original; consérvalo conectado si necesitas abrir esos recursos.
+
+Solo admite versiones registradas con la misma referencia. Exige que no haya una tarea local activa. Conserva los análisis distintos ya existentes. Un informe parcial continúa siendo parcial: compartirlo no completa sus lagunas, traduce su contenido ni verifica sus afirmaciones. El productor puede consultar el informe guardado mediante su herramienta de análisis de referencia; solicitar expresamente un nuevo análisis seguirá ejecutándolo.
+
+El productor reutiliza la instantánea compartida cuando llama a su acción de análisis sin parámetros. Antes comprueba la huella del contenido y que la referencia del proyecto siga coincidiendo. No descarga ni carga modelos en ese caso. Con opciones de análisis explícitas solicita una ejecución nueva. Se mantienen los controles de tarea activa y parada. El panel de referencias muestra la procedencia y un enlace al proyecto base.
+
+## Correspondencias de idioma y voz
+
+Los adaptadores Kokoro y Qwen validan las correspondencias de idioma implementadas antes de cargar modelos. Los códigos regionales se normalizan al idioma base; Kokoro conserva la selección diferenciada `en-GB`. Esto no garantiza un acento regional. Una voz Kokoro con prefijo de otro idioma se rechaza antes de iniciar el proceso de inferencia, incluida la voz predeterminada inglesa si se pide español.
+
+La revisión de recursos muestra la correspondencia implementada cuando exista y avisa cuando el adaptador no tenga una. Los motores sin una tabla explícita continúan pendientes de comprobar; no se afirma compatibilidad universal. Esta validación no detecta el idioma real del texto ni sustituye la escucha de la voz generada.
+
+## Voces locales y agentes
+
+La revisión de recursos enumera las voces Kokoro presentes, no vacías y con el prefijo correspondiente al idioma objetivo. No incluye enlaces simbólicos. Si no hay coincidencias lo indica. Esto comprueba nombres y archivos, no la pronunciación ni la autenticidad del peso.
+
+El productor dispone de `language_resources` para consultar el mismo informe sin iniciar modelos y escoger una voz explícita de la lista. La herramienta no configura ni genera audio por sí sola; la generación conserva las instrucciones y revisiones habituales. Los otros motores siguen mostrando sus requisitos sin inventar un listado de voces.
+
+## Idioma original
+
+«Consultar idioma de la referencia» muestra el idioma sugerido por la transcripción, cuando exista. Puede fallar en material mixto o con poco diálogo. «Guardar idioma original» permite registrar el código elegido para ese análisis y referencia. Las versiones nuevas excluyen ese idioma y sus variantes regionales; el lote se valida antes de crear proyectos. Si cambia el análisis o la URL, la confirmación deja de aplicarse y se indica que está desactualizada. Sin confirmación se pueden preparar versiones, pero no se afirma que el idioma de origen haya sido excluido.

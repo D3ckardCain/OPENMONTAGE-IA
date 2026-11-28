@@ -20,6 +20,19 @@ This stage is what separates an OpenMontage video from generic AI slop. Without 
 
 ### Step 0: Check for Reference Video Context
 
+If the production request contains `research_idea`, first read
+`project_channel_evidence` and `project_vidiq_observations` in pages. Preserve the
+snapshot dates, completeness flag and attribution in the research brief. Only the
+idea's selected references are editorial candidates; other channel publications
+are background context. A manual vidIQ observation is a dated provider estimate,
+not an official YouTube metric or evidence for factual claims made inside a video.
+Check factual claims against appropriate sources before using them in the script.
+If no independent source is available, record the limitation rather than inventing
+one. These project tools read saved local copies and make no new network request.
+If the pipeline requires more independent sources than the available tools can
+actually retrieve, stop with a concrete research blocker instead of treating
+multiple videos from one saved audit as independent factual sources.
+
 Before starting research, check if a VideoAnalysisBrief exists for this project. If it
 does, this is a reference-driven production — the user provided a video they want to
 riff on.

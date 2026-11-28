@@ -1,0 +1,3483 @@
+{
+  "observed_at_utc": "2026-11-24T14:35:06.391809+00:00",
+  "method": "filesystem names and stat only; no model imports/load/hash of weights",
+  "scans": [
+    {
+      "root": "D:/OPENMONTAJE-IA/DESCARGAS_MODELOS",
+      "status": "present_directory",
+      "size_bytes": null,
+      "files_seen": 655
+    },
+    {
+      "root": "E:/OPENMONTAJE-IA/DESCARGAS_MODELOS",
+      "status": "present_directory",
+      "size_bytes": null,
+      "files_seen": 238
+    },
+    {
+      "root": "D:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models",
+      "status": "present_directory",
+      "size_bytes": null,
+      "files_seen": 26
+    },
+    {
+      "root": "E:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models",
+      "status": "present_directory",
+      "size_bytes": null,
+      "files_seen": 86
+    },
+    {
+      "root": "D:/OPENMONTAJE-IA/DESCARGAS_SOFTWARE",
+      "status": "present_directory",
+      "size_bytes": null,
+      "files_seen": 27
+    },
+    {
+      "root": "%USERPROFILE%/Downloads",
+      "status": "present_directory",
+      "size_bytes": null,
+      "files_seen": 605
+    },
+    {
+      "root": "%USERPROFILE%/.cache/huggingface/hub",
+      "status": "present_directory",
+      "size_bytes": null,
+      "files_seen": 2
+    },
+    {
+      "root": "%USERPROFILE%/.cache/torch/hub",
+      "status": "absent_on_connected_volume",
+      "files_seen": 0
+    },
+    {
+      "root": "C:/OPENMONTAGE-IA/models",
+      "status": "absent_on_connected_volume",
+      "files_seen": 0
+    },
+    {
+      "root": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS",
+      "status": "absent_on_connected_volume",
+      "files_seen": 0
+    },
+    {
+      "root": "C:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models",
+      "status": "absent_on_connected_volume",
+      "files_seen": 0
+    }
+  ],
+  "scan_errors": [],
+  "inventory_candidates": [],
+  "files": [
+    {
+      "path": "D:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\qwen_3_4b.safetensors",
+      "status": "present_file",
+      "size_bytes": 8044982048,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\vae\\flux2-vae.safetensors",
+      "status": "present_file",
+      "size_bytes": 336213556,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\added_tokens.json",
+      "status": "present_file",
+      "size_bytes": 707,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\chat_template.jinja",
+      "status": "present_file",
+      "size_bytes": 4116,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\config.json",
+      "status": "present_file",
+      "size_bytes": 1359,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\merges.txt",
+      "status": "present_file",
+      "size_bytes": 1671853,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\model.safetensors",
+      "status": "present_file",
+      "size_bytes": 1191586416,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\special_tokens_map.json",
+      "status": "present_file",
+      "size_bytes": 613,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\tokenizer.json",
+      "status": "present_file",
+      "size_bytes": 11423705,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\tokenizer_config.json",
+      "status": "present_file",
+      "size_bytes": 5404,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\vocab.json",
+      "status": "present_file",
+      "size_bytes": 2776833,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\README.md",
+      "status": "present_file",
+      "size_bytes": 5496,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\added_tokens.json",
+      "status": "present_file",
+      "size_bytes": 2217787,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\chat_template.jinja",
+      "status": "present_file",
+      "size_bytes": 4168,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\config.json",
+      "status": "present_file",
+      "size_bytes": 1385,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\merges.txt",
+      "status": "present_file",
+      "size_bytes": 1671853,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\model.safetensors",
+      "status": "present_file",
+      "size_bytes": 3708521528,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\special_tokens_map.json",
+      "status": "present_file",
+      "size_bytes": 1824199,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\tokenizer.json",
+      "status": "present_file",
+      "size_bytes": 24321939,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\tokenizer_config.json",
+      "status": "present_file",
+      "size_bytes": 14072925,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\vocab.json",
+      "status": "present_file",
+      "size_bytes": 2776833,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\config.json",
+      "status": "present_file",
+      "size_bytes": 1968,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\configuration_acestep_v15.py",
+      "status": "present_file",
+      "size_bytes": 13130,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\model.safetensors",
+      "status": "present_file",
+      "size_bytes": 4787825604,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\modeling_acestep_v15_turbo.py",
+      "status": "present_file",
+      "size_bytes": 96036,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\silence_latent.pt",
+      "status": "present_file",
+      "size_bytes": 3841215,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\config.json",
+      "status": "present_file",
+      "size_bytes": 1968,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\vae\\config.json",
+      "status": "present_file",
+      "size_bytes": 425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\vae\\diffusion_pytorch_model.safetensors",
+      "status": "present_file",
+      "size_bytes": 337431388,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\added_tokens.json",
+      "status": "present_file",
+      "size_bytes": 707,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\chat_template.jinja",
+      "status": "present_file",
+      "size_bytes": 4116,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\config.json",
+      "status": "present_file",
+      "size_bytes": 1359,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\merges.txt",
+      "status": "present_file",
+      "size_bytes": 1671853,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\model.safetensors",
+      "status": "present_file",
+      "size_bytes": 1191586416,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\special_tokens_map.json",
+      "status": "present_file",
+      "size_bytes": 613,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\tokenizer.json",
+      "status": "present_file",
+      "size_bytes": 11423705,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\tokenizer_config.json",
+      "status": "present_file",
+      "size_bytes": 5404,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\vocab.json",
+      "status": "present_file",
+      "size_bytes": 2776833,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\README.md",
+      "status": "present_file",
+      "size_bytes": 5496,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\added_tokens.json",
+      "status": "present_file",
+      "size_bytes": 2217787,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\chat_template.jinja",
+      "status": "present_file",
+      "size_bytes": 4168,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\config.json",
+      "status": "present_file",
+      "size_bytes": 1385,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\merges.txt",
+      "status": "present_file",
+      "size_bytes": 1671853,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\model.safetensors",
+      "status": "present_file",
+      "size_bytes": 3708521528,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\special_tokens_map.json",
+      "status": "present_file",
+      "size_bytes": 1824199,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\tokenizer.json",
+      "status": "present_file",
+      "size_bytes": 24321939,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\tokenizer_config.json",
+      "status": "present_file",
+      "size_bytes": 14072925,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\vocab.json",
+      "status": "present_file",
+      "size_bytes": 2776833,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\config.json",
+      "status": "present_file",
+      "size_bytes": 1968,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\configuration_acestep_v15.py",
+      "status": "present_file",
+      "size_bytes": 13130,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\model.safetensors",
+      "status": "present_file",
+      "size_bytes": 4787825604,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\modeling_acestep_v15_turbo.py",
+      "status": "present_file",
+      "size_bytes": 96036,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\silence_latent.pt",
+      "status": "present_file",
+      "size_bytes": 3841215,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\config.json",
+      "status": "present_file",
+      "size_bytes": 1968,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\vae\\config.json",
+      "status": "present_file",
+      "size_bytes": 425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\vae\\diffusion_pytorch_model.safetensors",
+      "status": "present_file",
+      "size_bytes": 337431388,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\README.md",
+      "status": "present_file",
+      "size_bytes": 6348,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\config.json",
+      "status": "present_file",
+      "size_bytes": 2351,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\kokoro-v1_0.pth",
+      "status": "present_file",
+      "size_bytes": 327212226,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_alloy.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_aoede.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_bella.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_heart.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_jessica.pt",
+      "status": "present_file",
+      "size_bytes": 523435,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_kore.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_nicole.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_nova.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_river.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_sarah.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_sky.pt",
+      "status": "present_file",
+      "size_bytes": 523351,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_adam.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_echo.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_eric.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_fenrir.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_liam.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_michael.pt",
+      "status": "present_file",
+      "size_bytes": 523435,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_onyx.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_puck.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_santa.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_alice.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_emma.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_isabella.pt",
+      "status": "present_file",
+      "size_bytes": 523440,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_lily.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_daniel.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_fable.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_george.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_lewis.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\ef_dora.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\em_alex.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\em_santa.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\ff_siwis.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hf_alpha.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hf_beta.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hm_omega.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hm_psi.pt",
+      "status": "present_file",
+      "size_bytes": 523351,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\if_sara.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\im_nicola.pt",
+      "status": "present_file",
+      "size_bytes": 523341,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_alpha.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_gongitsune.pt",
+      "status": "present_file",
+      "size_bytes": 523351,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_nezumi.pt",
+      "status": "present_file",
+      "size_bytes": 523420,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_tebukuro.pt",
+      "status": "present_file",
+      "size_bytes": 523435,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jm_kumo.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\pf_dora.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\pm_alex.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\pm_santa.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaobei.pt",
+      "status": "present_file",
+      "size_bytes": 523435,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaoni.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaoxiao.pt",
+      "status": "present_file",
+      "size_bytes": 523440,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaoyi.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunjian.pt",
+      "status": "present_file",
+      "size_bytes": 523435,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunxi.pt",
+      "status": "present_file",
+      "size_bytes": 523425,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunxia.pt",
+      "status": "present_file",
+      "size_bytes": 523430,
+      "is_symlink": false
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunyang.pt",
+      "status": "present_file",
+      "size_bytes": 523435,
+      "is_symlink": false
+    },
+    {
+      "path": "E:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\diffusion_models\\flux-2-klein-4b-fp8.safetensors",
+      "status": "present_file",
+      "size_bytes": 4070624520,
+      "is_symlink": false
+    }
+  ],
+  "catalog_comparison": [
+    {
+      "family": "flux-klein",
+      "catalog_path": "C:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/flux-2-klein-4b-fp8.safetensors",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "black-forest-labs/FLUX.2-klein-4b-fp8",
+      "revision": "5b4408e59397a4a37ccb46afe426d8ed86379441",
+      "remote_path": "flux-2-klein-4b-fp8.safetensors",
+      "expected_bytes": 4070624520,
+      "catalog_sha256": "97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6",
+      "alternatives": [
+        {
+          "path": "E:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\diffusion_models\\flux-2-klein-4b-fp8.safetensors",
+          "status": "present_file",
+          "size_bytes": 4070624520,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 4070624520
+    },
+    {
+      "family": "flux-klein",
+      "catalog_path": "C:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models/text_encoders/qwen_3_4b.safetensors",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "Comfy-Org/flux2-klein-4B",
+      "revision": "5b3abca5c0dc1ecd4eaf3340868d09063fc1c965",
+      "remote_path": "split_files/text_encoders/qwen_3_4b.safetensors",
+      "expected_bytes": 8044982048,
+      "catalog_sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\qwen_3_4b.safetensors",
+          "status": "present_file",
+          "size_bytes": 8044982048,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 8044982048
+    },
+    {
+      "family": "flux-klein",
+      "catalog_path": "C:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models/vae/flux2-vae.safetensors",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "Comfy-Org/flux2-dev",
+      "revision": "9630c1b4b6e690497ae0c19bb6b1b35d4ebedcb7",
+      "remote_path": "split_files/vae/flux2-vae.safetensors",
+      "expected_bytes": 336213556,
+      "catalog_sha256": "d64f3a68e1cc4f9f4e29b6e0da38a0204fe9a49f2d4053f0ec1fa1ca02f9c4b5",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\vae\\flux2-vae.safetensors",
+          "status": "present_file",
+          "size_bytes": 336213556,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 336213556
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/README.md",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "README.md",
+      "expected_bytes": 6348,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\README.md",
+          "status": "present_file",
+          "size_bytes": 6348,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 6348
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "config.json",
+      "expected_bytes": 2351,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\config.json",
+          "status": "present_file",
+          "size_bytes": 2351,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 2351
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/kokoro-v1_0.pth",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "kokoro-v1_0.pth",
+      "expected_bytes": 327212226,
+      "catalog_sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\kokoro-v1_0.pth",
+          "status": "present_file",
+          "size_bytes": 327212226,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 327212226
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_alloy.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_alloy.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "6d877149dd8b348fbad12e5845b7e43d975390e9f3b68a811d1d86168bef5aa3",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_alloy.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_aoede.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_aoede.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "c03bd1a4c3716c2d8eaa3d50022f62d5c31cfbd6e15933a00b17fefe13841cc4",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_aoede.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_bella.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_bella.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "8cb64e02fcc8de0327a8e13817e49c76c945ecf0052ceac97d3081480e8e48d6",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_bella.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_heart.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_heart.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "0ab5709b8ffab19bfd849cd11d98f75b60af7733253ad0d67b12382a102cb4ff",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_heart.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_jessica.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_jessica.pt",
+      "expected_bytes": 523435,
+      "catalog_sha256": "cdfdccb8cc975aa34ee6b89642963b0064237675de0e41a30ae64cc958dd4e87",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_jessica.pt",
+          "status": "present_file",
+          "size_bytes": 523435,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523435
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_kore.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_kore.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "8bfbc512321c3db49dff984ac675fa5ac7eaed5a96cc31104d3a9080e179d69d",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_kore.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_nicole.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_nicole.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "c5561808bcf5250fe8c5f5de32caf2d94f27e57e95befdb098c5c85991d4c5da",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_nicole.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_nova.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_nova.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "e0233676ddc21908c37a1f102f6b88a59e4e5c1bd764983616eb9eda629dbcd2",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_nova.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_river.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_river.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "e149459bd9c084416b74756b9bd3418256a8b839088abb07d463730c369dab8f",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_river.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_sarah.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_sarah.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "49bd364ea3be9eb3e9685e8f9a15448c4883112a7c0ff7ab139fa4088b08cef9",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_sarah.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/af_sky.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/af_sky.pt",
+      "expected_bytes": 523351,
+      "catalog_sha256": "c799548aed06e0cb0d655a85a01b48e7f10484d71663f9a3045a5b9362e8512c",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\af_sky.pt",
+          "status": "present_file",
+          "size_bytes": 523351,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523351
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_adam.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_adam.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "ced7e284aba12472891be1da3ab34db84cc05cc02b5889535796dbf2d8b0cb34",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_adam.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_echo.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_echo.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "8bcfdc852bc985fb45c396c561e571ffb9183930071f962f1b50df5c97b161e8",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_echo.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_eric.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_eric.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "ada66f0eefff34ec921b1d7474d7ac8bec00cd863c170f1c534916e9b8212aae",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_eric.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_fenrir.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_fenrir.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "98e507eca1db08230ae3b6232d59c10aec9630022d19accac4f5d12fcec3c37a",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_fenrir.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_liam.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_liam.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "c82550757ddb31308b97f30040dda8c2d609a9e2de6135848d0a948368138518",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_liam.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_michael.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_michael.pt",
+      "expected_bytes": 523435,
+      "catalog_sha256": "9a443b79a4b22489a5b0ab7c651a0bcd1a30bef675c28333f06971abbd47bd37",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_michael.pt",
+          "status": "present_file",
+          "size_bytes": 523435,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523435
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_onyx.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_onyx.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "e8452be16cd0f6da7b4579eaf7b1e4506e92524882053d86d72b96b9a7fed584",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_onyx.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_puck.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_puck.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "dd1d8973f4ce4b7d8ae407c77a435f485dabc052081b80ea75c4f30b84f36223",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_puck.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/am_santa.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/am_santa.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "7f2f7582fa2b1f160e90aafe6d0b442a685e773608b6667e545d743b073e97a7",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\am_santa.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bf_alice.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bf_alice.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "d292651b6af6c0d81705c2580dcb4463fccc0ff7b8d618a471dbb4e45655b3f3",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_alice.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bf_emma.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bf_emma.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "d0a423deabf4a52b4f49318c51742c54e21bb89bbbe9a12141e7758ddb5da701",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_emma.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bf_isabella.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bf_isabella.pt",
+      "expected_bytes": 523440,
+      "catalog_sha256": "cdd4c37003805104d1d08fb1e05855c8fb2c68de24ca6e71f264a30aaa59eefd",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_isabella.pt",
+          "status": "present_file",
+          "size_bytes": 523440,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523440
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bf_lily.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bf_lily.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "6e09c2e481e2d53004d7e5ae7d3a325369e130a6f45c35a6002de75084be9285",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bf_lily.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bm_daniel.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bm_daniel.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "fc3fce4e9c12ed4dbc8fa9680cfe51ee190a96444ce7c3ad647549a30823fc5d",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_daniel.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bm_fable.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bm_fable.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "d44935f3135257a9064df99f007fc1342ff1aa767552b4a4fa4c3b2e6e59079c",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_fable.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bm_george.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bm_george.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "f1bc812213dc59774769e5c80004b13eeb79bd78130b11b2d7f934542dab811b",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_george.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/bm_lewis.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/bm_lewis.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "b5204750dcba01029d2ac9cec17aec3b20a6d64073c579d694a23cb40effbd0e",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\bm_lewis.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/ef_dora.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/ef_dora.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "d9d69b0f8a2b87a345f269d89639f89dfbd1a6c9da0c498ae36dd34afcf35530",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\ef_dora.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/em_alex.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/em_alex.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "5eac53f767c3f31a081918ba531969aea850bed18fe56419b804d642c6973431",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\em_alex.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/em_santa.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/em_santa.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "aa8620cb96cec705823efca0d956a63e158e09ad41aca934d354b7f0778f63cb",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\em_santa.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/ff_siwis.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/ff_siwis.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "8073bf2d2c4b9543a90f2f0fd2144de4ed157e2d4b79ddeb0d5123066171fbc9",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\ff_siwis.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/hf_alpha.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/hf_alpha.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "06906fe05746d13a79c5c01e21fd7233b05027221a933c9ada650f5aafc8f044",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hf_alpha.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/hf_beta.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/hf_beta.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "63c0a1a6272e98d43f4511bba40e30dd9c8ceaf5f39af869509b9f51a71c503e",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hf_beta.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/hm_omega.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/hm_omega.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "b55f02a8e8483fffe0afa566e7d22ed8013acf47ad4f6bbee2795a840155703e",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hm_omega.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/hm_psi.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/hm_psi.pt",
+      "expected_bytes": 523351,
+      "catalog_sha256": "2f0f055cea4f1083f4ef127ece48d71606347f6557dbb961c0ca5740a2da485b",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\hm_psi.pt",
+          "status": "present_file",
+          "size_bytes": 523351,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523351
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/if_sara.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/if_sara.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "6c0b253b955fe32f1a1a86006aebe83d050ea95afd0e7be15182f087deedbf55",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\if_sara.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/im_nicola.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/im_nicola.pt",
+      "expected_bytes": 523341,
+      "catalog_sha256": "234ed06648649f9bd874b37508ea17560b9c993ef85b4ddb3e3a71e062bd2c12",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\im_nicola.pt",
+          "status": "present_file",
+          "size_bytes": 523341,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523341
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/jf_alpha.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/jf_alpha.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "1bf4c9dc69e45ee46183b071f4db766349aac5592acbcfeaf051018048a5d787",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_alpha.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/jf_gongitsune.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/jf_gongitsune.pt",
+      "expected_bytes": 523351,
+      "catalog_sha256": "1b171917f18f351e65f2bf9657700cd6bfec4e65589c297525b9cf3c20105770",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_gongitsune.pt",
+          "status": "present_file",
+          "size_bytes": 523351,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523351
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/jf_nezumi.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/jf_nezumi.pt",
+      "expected_bytes": 523420,
+      "catalog_sha256": "d83f007a7f01783b77014561a7d493d327a0210e143440e91c9b697590d27661",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_nezumi.pt",
+          "status": "present_file",
+          "size_bytes": 523420,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523420
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/jf_tebukuro.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/jf_tebukuro.pt",
+      "expected_bytes": 523435,
+      "catalog_sha256": "0d6917904438aec85f73a6fa1f7ac2be6481aae47c697834936930a91796c576",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jf_tebukuro.pt",
+          "status": "present_file",
+          "size_bytes": 523435,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523435
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/jm_kumo.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/jm_kumo.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "98340afd68b1cee84fe0cd95528cfa6d4b39e416aa75a9df64049d52c8b55896",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\jm_kumo.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/pf_dora.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/pf_dora.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "07e4ff987c5d5a8c3995efd15cc4f0db7c4c15e881b198d8ab7f67ecf51f5eb7",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\pf_dora.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/pm_alex.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/pm_alex.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "cf0ba8c573c2480fc54123683a35cf1e2ae130428e441eb91f9149bdb188a526",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\pm_alex.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/pm_santa.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/pm_santa.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "d42103169c5c872abbafb9129133af7e942bb9d272c3cc3b95c203e7d7198c29",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\pm_santa.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zf_xiaobei.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zf_xiaobei.pt",
+      "expected_bytes": 523435,
+      "catalog_sha256": "9b76be63dab4f4f96962030acc0126a9aee9728608fbbe115e2b58a2bd504df6",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaobei.pt",
+          "status": "present_file",
+          "size_bytes": 523435,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523435
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zf_xiaoni.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zf_xiaoni.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "95b49f169bf1640f4f43c25e13daa39f7b98d15d00823e83ef5c14b3ced59e49",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaoni.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zf_xiaoxiao.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zf_xiaoxiao.pt",
+      "expected_bytes": 523440,
+      "catalog_sha256": "cfaf6f2ded1ee56f1ff94fcd2b0e6cdf32e5b794bdc05b44e7439d44aef5887c",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaoxiao.pt",
+          "status": "present_file",
+          "size_bytes": 523440,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523440
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zf_xiaoyi.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zf_xiaoyi.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "b5235dbaeef85a4c613bf78af9a88ff63c25bac5f26ba77e36186d8b7ebf05e2",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zf_xiaoyi.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zm_yunjian.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zm_yunjian.pt",
+      "expected_bytes": 523435,
+      "catalog_sha256": "76cbf8bad35901d011d9628a2fdceb7b4f1f127e7a3269cb393b3941eb7fc417",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunjian.pt",
+          "status": "present_file",
+          "size_bytes": 523435,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523435
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zm_yunxi.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zm_yunxi.pt",
+      "expected_bytes": 523425,
+      "catalog_sha256": "dbe6e1ce7c3dbaf2f5667432947b638b1c6831ccbe154c4610dbcc44f431e27b",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunxi.pt",
+          "status": "present_file",
+          "size_bytes": 523425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523425
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zm_yunxia.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zm_yunxia.pt",
+      "expected_bytes": 523430,
+      "catalog_sha256": "bb2b03b08e84d64e1214440ce3b624987fac177f2eeb5bab8571799a3d980acd",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunxia.pt",
+          "status": "present_file",
+          "size_bytes": 523430,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523430
+    },
+    {
+      "family": "kokoro",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/voices/zm_yunyang.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "remote_path": "voices/zm_yunyang.pt",
+      "expected_bytes": 523435,
+      "catalog_sha256": "5238ac22e0c7f8b6cdd2eddd6e444b8a700b73c4674d9a047d59a94ff96379a2",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\voices\\zm_yunyang.pt",
+          "status": "present_file",
+          "size_bytes": 523435,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 523435
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/added_tokens.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/added_tokens.json",
+      "expected_bytes": 707,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\added_tokens.json",
+          "status": "present_file",
+          "size_bytes": 707,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\added_tokens.json",
+          "status": "present_file",
+          "size_bytes": 707,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 707
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/chat_template.jinja",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/chat_template.jinja",
+      "expected_bytes": 4116,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\chat_template.jinja",
+          "status": "present_file",
+          "size_bytes": 4116,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\chat_template.jinja",
+          "status": "present_file",
+          "size_bytes": 4116,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 4116
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/config.json",
+      "expected_bytes": 1359,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1359,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1359,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 1359
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/merges.txt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/merges.txt",
+      "expected_bytes": 1671853,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\merges.txt",
+          "status": "present_file",
+          "size_bytes": 1671853,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\merges.txt",
+          "status": "present_file",
+          "size_bytes": 1671853,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 1671853
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/model.safetensors",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/model.safetensors",
+      "expected_bytes": 1191586416,
+      "catalog_sha256": "0437e45c94563b09e13cb7a64478fc406947a93cb34a7e05870fc8dcd48e23fd",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\model.safetensors",
+          "status": "present_file",
+          "size_bytes": 1191586416,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\model.safetensors",
+          "status": "present_file",
+          "size_bytes": 1191586416,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 1191586416
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/special_tokens_map.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/special_tokens_map.json",
+      "expected_bytes": 613,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\special_tokens_map.json",
+          "status": "present_file",
+          "size_bytes": 613,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\special_tokens_map.json",
+          "status": "present_file",
+          "size_bytes": 613,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 613
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/tokenizer.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/tokenizer.json",
+      "expected_bytes": 11423705,
+      "catalog_sha256": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\tokenizer.json",
+          "status": "present_file",
+          "size_bytes": 11423705,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\tokenizer.json",
+          "status": "present_file",
+          "size_bytes": 11423705,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 11423705
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/tokenizer_config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/tokenizer_config.json",
+      "expected_bytes": 5404,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\tokenizer_config.json",
+          "status": "present_file",
+          "size_bytes": 5404,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\tokenizer_config.json",
+          "status": "present_file",
+          "size_bytes": 5404,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 5404
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/Qwen3-Embedding-0.6B/vocab.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "Qwen3-Embedding-0.6B/vocab.json",
+      "expected_bytes": 2776833,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\vocab.json",
+          "status": "present_file",
+          "size_bytes": 2776833,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\vocab.json",
+          "status": "present_file",
+          "size_bytes": 2776833,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 2776833
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/README.md",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "README.md",
+      "expected_bytes": 5496,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\README.md",
+          "status": "present_file",
+          "size_bytes": 5496,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\README.md",
+          "status": "present_file",
+          "size_bytes": 5496,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\README.md",
+          "status": "present_file",
+          "size_bytes": 6348,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        }
+      ],
+      "official_size_bytes": 5496
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/added_tokens.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/added_tokens.json",
+      "expected_bytes": 2217787,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\added_tokens.json",
+          "status": "present_file",
+          "size_bytes": 2217787,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\added_tokens.json",
+          "status": "present_file",
+          "size_bytes": 2217787,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 2217787
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/chat_template.jinja",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/chat_template.jinja",
+      "expected_bytes": 4168,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\chat_template.jinja",
+          "status": "present_file",
+          "size_bytes": 4168,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\chat_template.jinja",
+          "status": "present_file",
+          "size_bytes": 4168,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 4168
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/config.json",
+      "expected_bytes": 1385,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1385,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1385,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 1385
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/merges.txt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/merges.txt",
+      "expected_bytes": 1671853,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\merges.txt",
+          "status": "present_file",
+          "size_bytes": 1671853,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\merges.txt",
+          "status": "present_file",
+          "size_bytes": 1671853,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 1671853
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/model.safetensors",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/model.safetensors",
+      "expected_bytes": 3708521528,
+      "catalog_sha256": "f161689da73e5ecefa28ff780d51c2d92a00f056d021d7933c779ed5c6cd7db8",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\model.safetensors",
+          "status": "present_file",
+          "size_bytes": 3708521528,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\model.safetensors",
+          "status": "present_file",
+          "size_bytes": 3708521528,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 3708521528
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/special_tokens_map.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/special_tokens_map.json",
+      "expected_bytes": 1824199,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\special_tokens_map.json",
+          "status": "present_file",
+          "size_bytes": 1824199,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\special_tokens_map.json",
+          "status": "present_file",
+          "size_bytes": 1824199,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 1824199
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/tokenizer.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/tokenizer.json",
+      "expected_bytes": 24321939,
+      "catalog_sha256": "35af56c3f5cb3ea2cc578aa28a8937770981d504f183ac5c8c38baf4bbd4af4d",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\tokenizer.json",
+          "status": "present_file",
+          "size_bytes": 24321939,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\tokenizer.json",
+          "status": "present_file",
+          "size_bytes": 24321939,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 24321939
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/tokenizer_config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/tokenizer_config.json",
+      "expected_bytes": 14072925,
+      "catalog_sha256": "6cd70cdd89425971794f5235562edcc608b0629a6c4686ae51a8b8c8b8ba5e95",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\tokenizer_config.json",
+          "status": "present_file",
+          "size_bytes": 14072925,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\tokenizer_config.json",
+          "status": "present_file",
+          "size_bytes": 14072925,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 14072925
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-5Hz-lm-1.7B/vocab.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-5Hz-lm-1.7B/vocab.json",
+      "expected_bytes": 2776833,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\vocab.json",
+          "status": "present_file",
+          "size_bytes": 2776833,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\vocab.json",
+          "status": "present_file",
+          "size_bytes": 2776833,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 2776833
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-v15-turbo/config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-v15-turbo/config.json",
+      "expected_bytes": 1968,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\config.json",
+          "status": "present_file",
+          "size_bytes": 1968,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\config.json",
+          "status": "present_file",
+          "size_bytes": 1968,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 1968
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-v15-turbo/configuration_acestep_v15.py",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-v15-turbo/configuration_acestep_v15.py",
+      "expected_bytes": 13130,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\configuration_acestep_v15.py",
+          "status": "present_file",
+          "size_bytes": 13130,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\configuration_acestep_v15.py",
+          "status": "present_file",
+          "size_bytes": 13130,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 13130
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-v15-turbo/model.safetensors",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-v15-turbo/model.safetensors",
+      "expected_bytes": 4787825604,
+      "catalog_sha256": "3f6e0797fad420a39bd33979eb6e840e30989e34a3794e843d23b60ec6e422d7",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\model.safetensors",
+          "status": "present_file",
+          "size_bytes": 4787825604,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\model.safetensors",
+          "status": "present_file",
+          "size_bytes": 4787825604,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 4787825604
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-v15-turbo/modeling_acestep_v15_turbo.py",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-v15-turbo/modeling_acestep_v15_turbo.py",
+      "expected_bytes": 96036,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\modeling_acestep_v15_turbo.py",
+          "status": "present_file",
+          "size_bytes": 96036,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\modeling_acestep_v15_turbo.py",
+          "status": "present_file",
+          "size_bytes": 96036,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 96036
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/acestep-v15-turbo/silence_latent.pt",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "acestep-v15-turbo/silence_latent.pt",
+      "expected_bytes": 3841215,
+      "catalog_sha256": "a778e9dd942f5e8b2c09c55370782d318834432b03dabbcdf70e6ed49ad6358b",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\silence_latent.pt",
+          "status": "present_file",
+          "size_bytes": 3841215,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\silence_latent.pt",
+          "status": "present_file",
+          "size_bytes": 3841215,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 3841215
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "config.json",
+      "expected_bytes": 1968,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\config.json",
+          "status": "present_file",
+          "size_bytes": 1968,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-5Hz-lm-1.7B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1385,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\acestep-v15-turbo\\config.json",
+          "status": "present_file",
+          "size_bytes": 1968,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\Qwen3-Embedding-0.6B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1359,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\vae\\config.json",
+          "status": "present_file",
+          "size_bytes": 425,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\config.json",
+          "status": "present_file",
+          "size_bytes": 1968,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-5Hz-lm-1.7B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1385,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\acestep-v15-turbo\\config.json",
+          "status": "present_file",
+          "size_bytes": 1968,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\Qwen3-Embedding-0.6B\\config.json",
+          "status": "present_file",
+          "size_bytes": 1359,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\vae\\config.json",
+          "status": "present_file",
+          "size_bytes": 425,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\config.json",
+          "status": "present_file",
+          "size_bytes": 2351,
+          "is_symlink": false,
+          "matches_catalog_size": false
+        }
+      ],
+      "official_size_bytes": 1968
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/vae/config.json",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "vae/config.json",
+      "expected_bytes": 425,
+      "catalog_sha256": null,
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\vae\\config.json",
+          "status": "present_file",
+          "size_bytes": 425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\vae\\config.json",
+          "status": "present_file",
+          "size_bytes": 425,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 425
+    },
+    {
+      "family": "acestep",
+      "catalog_path": "C:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5/vae/diffusion_pytorch_model.safetensors",
+      "catalog_observation": {
+        "status": "absent_on_connected_volume"
+      },
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "remote_path": "vae/diffusion_pytorch_model.safetensors",
+      "expected_bytes": 337431388,
+      "catalog_sha256": "da17edb604c40deaf09e9b24974e590d1ca83a374070e5d0884cfa4bed9a99b0",
+      "alternatives": [
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step--Ace-Step1.5\\vae\\diffusion_pytorch_model.safetensors",
+          "status": "present_file",
+          "size_bytes": 337431388,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        },
+        {
+          "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ACE-Step-1.5\\vae\\diffusion_pytorch_model.safetensors",
+          "status": "present_file",
+          "size_bytes": 337431388,
+          "is_symlink": false,
+          "matches_catalog_size": true
+        }
+      ],
+      "official_size_bytes": 337431388
+    }
+  ],
+  "volumes": [
+    {
+      "root": "C:/",
+      "status": "connected_and_directory_enumeration_succeeded",
+      "label": "Windows"
+    },
+    {
+      "root": "D:/",
+      "status": "connected_and_directory_enumeration_succeeded",
+      "label": "ADATA"
+    },
+    {
+      "root": "E:/",
+      "status": "connected_and_directory_enumeration_succeeded",
+      "label": "Seagate Basic"
+    }
+  ],
+  "saved_inventories_consulted": [
+    "docs/models/base.json",
+    "docs/models/additional.json",
+    "docs/ADAPTADORES_MODELOS_ES.md",
+    "docs/ALMACENAMIENTO_ES.md",
+    ".backlot/studio/settings.json"
+  ],
+  "same_size_not_hash_verified": true,
+  "empty_alternative_directories": [
+    {
+      "path": "E:/OPENMONTAJE-IA/DESCARGAS_MODELOS/ACE-Step--Ace-Step1.5",
+      "files_observed": 0,
+      "directories_observed": 4
+    },
+    {
+      "path": "E:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M",
+      "files_observed": 0,
+      "directories_observed": 1
+    }
+  ],
+  "official_metadata": [
+    {
+      "repo": "ACE-Step/Ace-Step1.5",
+      "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+      "metadata_url": "https://huggingface.co/api/models/ACE-Step/Ace-Step1.5/revision/19671f406d603126926c1b7e2adc169acbcade22?blobs=true",
+      "declared_license": "mit",
+      "license_link": null,
+      "files": [
+        {
+          "path": "Qwen3-Embedding-0.6B/added_tokens.json",
+          "size_bytes": 707,
+          "lfs_sha256": null
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/chat_template.jinja",
+          "size_bytes": 4116,
+          "lfs_sha256": null
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/config.json",
+          "size_bytes": 1359,
+          "lfs_sha256": null
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/merges.txt",
+          "size_bytes": 1671853,
+          "lfs_sha256": null
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/model.safetensors",
+          "size_bytes": 1191586416,
+          "lfs_sha256": "0437e45c94563b09e13cb7a64478fc406947a93cb34a7e05870fc8dcd48e23fd"
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/special_tokens_map.json",
+          "size_bytes": 613,
+          "lfs_sha256": null
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/tokenizer.json",
+          "size_bytes": 11423705,
+          "lfs_sha256": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a"
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/tokenizer_config.json",
+          "size_bytes": 5404,
+          "lfs_sha256": null
+        },
+        {
+          "path": "Qwen3-Embedding-0.6B/vocab.json",
+          "size_bytes": 2776833,
+          "lfs_sha256": null
+        },
+        {
+          "path": "README.md",
+          "size_bytes": 5496,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/added_tokens.json",
+          "size_bytes": 2217787,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/chat_template.jinja",
+          "size_bytes": 4168,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/config.json",
+          "size_bytes": 1385,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/merges.txt",
+          "size_bytes": 1671853,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/model.safetensors",
+          "size_bytes": 3708521528,
+          "lfs_sha256": "f161689da73e5ecefa28ff780d51c2d92a00f056d021d7933c779ed5c6cd7db8"
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/special_tokens_map.json",
+          "size_bytes": 1824199,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/tokenizer.json",
+          "size_bytes": 24321939,
+          "lfs_sha256": "35af56c3f5cb3ea2cc578aa28a8937770981d504f183ac5c8c38baf4bbd4af4d"
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/tokenizer_config.json",
+          "size_bytes": 14072925,
+          "lfs_sha256": "6cd70cdd89425971794f5235562edcc608b0629a6c4686ae51a8b8c8b8ba5e95"
+        },
+        {
+          "path": "acestep-5Hz-lm-1.7B/vocab.json",
+          "size_bytes": 2776833,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-v15-turbo/config.json",
+          "size_bytes": 1968,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-v15-turbo/configuration_acestep_v15.py",
+          "size_bytes": 13130,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-v15-turbo/model.safetensors",
+          "size_bytes": 4787825604,
+          "lfs_sha256": "3f6e0797fad420a39bd33979eb6e840e30989e34a3794e843d23b60ec6e422d7"
+        },
+        {
+          "path": "acestep-v15-turbo/modeling_acestep_v15_turbo.py",
+          "size_bytes": 96036,
+          "lfs_sha256": null
+        },
+        {
+          "path": "acestep-v15-turbo/silence_latent.pt",
+          "size_bytes": 3841215,
+          "lfs_sha256": "a778e9dd942f5e8b2c09c55370782d318834432b03dabbcdf70e6ed49ad6358b"
+        },
+        {
+          "path": "config.json",
+          "size_bytes": 1968,
+          "lfs_sha256": null
+        },
+        {
+          "path": "vae/config.json",
+          "size_bytes": 425,
+          "lfs_sha256": null
+        },
+        {
+          "path": "vae/diffusion_pytorch_model.safetensors",
+          "size_bytes": 337431388,
+          "lfs_sha256": "da17edb604c40deaf09e9b24974e590d1ca83a374070e5d0884cfa4bed9a99b0"
+        }
+      ]
+    },
+    {
+      "repo": "Comfy-Org/flux2-dev",
+      "revision": "9630c1b4b6e690497ae0c19bb6b1b35d4ebedcb7",
+      "metadata_url": "https://huggingface.co/api/models/Comfy-Org/flux2-dev/revision/9630c1b4b6e690497ae0c19bb6b1b35d4ebedcb7?blobs=true",
+      "declared_license": "other",
+      "license_link": "https://huggingface.co/black-forest-labs/FLUX.1-Krea-dev/blob/main/LICENSE.md",
+      "files": [
+        {
+          "path": "split_files/vae/flux2-vae.safetensors",
+          "size_bytes": 336213556,
+          "lfs_sha256": "d64f3a68e1cc4f9f4e29b6e0da38a0204fe9a49f2d4053f0ec1fa1ca02f9c4b5"
+        }
+      ]
+    },
+    {
+      "repo": "Comfy-Org/flux2-klein-4B",
+      "revision": "5b3abca5c0dc1ecd4eaf3340868d09063fc1c965",
+      "metadata_url": "https://huggingface.co/api/models/Comfy-Org/flux2-klein-4B/revision/5b3abca5c0dc1ecd4eaf3340868d09063fc1c965?blobs=true",
+      "declared_license": "apache-2.0",
+      "license_link": null,
+      "files": [
+        {
+          "path": "split_files/text_encoders/qwen_3_4b.safetensors",
+          "size_bytes": 8044982048,
+          "lfs_sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a"
+        }
+      ]
+    },
+    {
+      "repo": "black-forest-labs/FLUX.2-klein-4b-fp8",
+      "revision": "5b4408e59397a4a37ccb46afe426d8ed86379441",
+      "metadata_url": "https://huggingface.co/api/models/black-forest-labs/FLUX.2-klein-4b-fp8/revision/5b4408e59397a4a37ccb46afe426d8ed86379441?blobs=true",
+      "declared_license": "apache-2.0",
+      "license_link": null,
+      "files": [
+        {
+          "path": "LICENSE.md",
+          "size_bytes": 9584,
+          "lfs_sha256": null
+        },
+        {
+          "path": "flux-2-klein-4b-fp8.safetensors",
+          "size_bytes": 4070624520,
+          "lfs_sha256": "97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6"
+        }
+      ]
+    },
+    {
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "metadata_url": "https://huggingface.co/api/models/hexgrad/Kokoro-82M/revision/f3ff3571791e39611d31c381e3a41a3af07b4987?blobs=true",
+      "declared_license": "apache-2.0",
+      "license_link": null,
+      "files": [
+        {
+          "path": "README.md",
+          "size_bytes": 6348,
+          "lfs_sha256": null
+        },
+        {
+          "path": "VOICES.md",
+          "size_bytes": 7625,
+          "lfs_sha256": null
+        },
+        {
+          "path": "config.json",
+          "size_bytes": 2351,
+          "lfs_sha256": null
+        },
+        {
+          "path": "kokoro-v1_0.pth",
+          "size_bytes": 327212226,
+          "lfs_sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4"
+        },
+        {
+          "path": "voices/af_alloy.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "6d877149dd8b348fbad12e5845b7e43d975390e9f3b68a811d1d86168bef5aa3"
+        },
+        {
+          "path": "voices/af_aoede.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "c03bd1a4c3716c2d8eaa3d50022f62d5c31cfbd6e15933a00b17fefe13841cc4"
+        },
+        {
+          "path": "voices/af_bella.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "8cb64e02fcc8de0327a8e13817e49c76c945ecf0052ceac97d3081480e8e48d6"
+        },
+        {
+          "path": "voices/af_heart.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "0ab5709b8ffab19bfd849cd11d98f75b60af7733253ad0d67b12382a102cb4ff"
+        },
+        {
+          "path": "voices/af_jessica.pt",
+          "size_bytes": 523435,
+          "lfs_sha256": "cdfdccb8cc975aa34ee6b89642963b0064237675de0e41a30ae64cc958dd4e87"
+        },
+        {
+          "path": "voices/af_kore.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "8bfbc512321c3db49dff984ac675fa5ac7eaed5a96cc31104d3a9080e179d69d"
+        },
+        {
+          "path": "voices/af_nicole.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "c5561808bcf5250fe8c5f5de32caf2d94f27e57e95befdb098c5c85991d4c5da"
+        },
+        {
+          "path": "voices/af_nova.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "e0233676ddc21908c37a1f102f6b88a59e4e5c1bd764983616eb9eda629dbcd2"
+        },
+        {
+          "path": "voices/af_river.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "e149459bd9c084416b74756b9bd3418256a8b839088abb07d463730c369dab8f"
+        },
+        {
+          "path": "voices/af_sarah.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "49bd364ea3be9eb3e9685e8f9a15448c4883112a7c0ff7ab139fa4088b08cef9"
+        },
+        {
+          "path": "voices/af_sky.pt",
+          "size_bytes": 523351,
+          "lfs_sha256": "c799548aed06e0cb0d655a85a01b48e7f10484d71663f9a3045a5b9362e8512c"
+        },
+        {
+          "path": "voices/am_adam.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "ced7e284aba12472891be1da3ab34db84cc05cc02b5889535796dbf2d8b0cb34"
+        },
+        {
+          "path": "voices/am_echo.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "8bcfdc852bc985fb45c396c561e571ffb9183930071f962f1b50df5c97b161e8"
+        },
+        {
+          "path": "voices/am_eric.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "ada66f0eefff34ec921b1d7474d7ac8bec00cd863c170f1c534916e9b8212aae"
+        },
+        {
+          "path": "voices/am_fenrir.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "98e507eca1db08230ae3b6232d59c10aec9630022d19accac4f5d12fcec3c37a"
+        },
+        {
+          "path": "voices/am_liam.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "c82550757ddb31308b97f30040dda8c2d609a9e2de6135848d0a948368138518"
+        },
+        {
+          "path": "voices/am_michael.pt",
+          "size_bytes": 523435,
+          "lfs_sha256": "9a443b79a4b22489a5b0ab7c651a0bcd1a30bef675c28333f06971abbd47bd37"
+        },
+        {
+          "path": "voices/am_onyx.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "e8452be16cd0f6da7b4579eaf7b1e4506e92524882053d86d72b96b9a7fed584"
+        },
+        {
+          "path": "voices/am_puck.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "dd1d8973f4ce4b7d8ae407c77a435f485dabc052081b80ea75c4f30b84f36223"
+        },
+        {
+          "path": "voices/am_santa.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "7f2f7582fa2b1f160e90aafe6d0b442a685e773608b6667e545d743b073e97a7"
+        },
+        {
+          "path": "voices/bf_alice.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "d292651b6af6c0d81705c2580dcb4463fccc0ff7b8d618a471dbb4e45655b3f3"
+        },
+        {
+          "path": "voices/bf_emma.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "d0a423deabf4a52b4f49318c51742c54e21bb89bbbe9a12141e7758ddb5da701"
+        },
+        {
+          "path": "voices/bf_isabella.pt",
+          "size_bytes": 523440,
+          "lfs_sha256": "cdd4c37003805104d1d08fb1e05855c8fb2c68de24ca6e71f264a30aaa59eefd"
+        },
+        {
+          "path": "voices/bf_lily.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "6e09c2e481e2d53004d7e5ae7d3a325369e130a6f45c35a6002de75084be9285"
+        },
+        {
+          "path": "voices/bm_daniel.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "fc3fce4e9c12ed4dbc8fa9680cfe51ee190a96444ce7c3ad647549a30823fc5d"
+        },
+        {
+          "path": "voices/bm_fable.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "d44935f3135257a9064df99f007fc1342ff1aa767552b4a4fa4c3b2e6e59079c"
+        },
+        {
+          "path": "voices/bm_george.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "f1bc812213dc59774769e5c80004b13eeb79bd78130b11b2d7f934542dab811b"
+        },
+        {
+          "path": "voices/bm_lewis.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "b5204750dcba01029d2ac9cec17aec3b20a6d64073c579d694a23cb40effbd0e"
+        },
+        {
+          "path": "voices/ef_dora.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "d9d69b0f8a2b87a345f269d89639f89dfbd1a6c9da0c498ae36dd34afcf35530"
+        },
+        {
+          "path": "voices/em_alex.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "5eac53f767c3f31a081918ba531969aea850bed18fe56419b804d642c6973431"
+        },
+        {
+          "path": "voices/em_santa.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "aa8620cb96cec705823efca0d956a63e158e09ad41aca934d354b7f0778f63cb"
+        },
+        {
+          "path": "voices/ff_siwis.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "8073bf2d2c4b9543a90f2f0fd2144de4ed157e2d4b79ddeb0d5123066171fbc9"
+        },
+        {
+          "path": "voices/hf_alpha.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "06906fe05746d13a79c5c01e21fd7233b05027221a933c9ada650f5aafc8f044"
+        },
+        {
+          "path": "voices/hf_beta.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "63c0a1a6272e98d43f4511bba40e30dd9c8ceaf5f39af869509b9f51a71c503e"
+        },
+        {
+          "path": "voices/hm_omega.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "b55f02a8e8483fffe0afa566e7d22ed8013acf47ad4f6bbee2795a840155703e"
+        },
+        {
+          "path": "voices/hm_psi.pt",
+          "size_bytes": 523351,
+          "lfs_sha256": "2f0f055cea4f1083f4ef127ece48d71606347f6557dbb961c0ca5740a2da485b"
+        },
+        {
+          "path": "voices/if_sara.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "6c0b253b955fe32f1a1a86006aebe83d050ea95afd0e7be15182f087deedbf55"
+        },
+        {
+          "path": "voices/im_nicola.pt",
+          "size_bytes": 523341,
+          "lfs_sha256": "234ed06648649f9bd874b37508ea17560b9c993ef85b4ddb3e3a71e062bd2c12"
+        },
+        {
+          "path": "voices/jf_alpha.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "1bf4c9dc69e45ee46183b071f4db766349aac5592acbcfeaf051018048a5d787"
+        },
+        {
+          "path": "voices/jf_gongitsune.pt",
+          "size_bytes": 523351,
+          "lfs_sha256": "1b171917f18f351e65f2bf9657700cd6bfec4e65589c297525b9cf3c20105770"
+        },
+        {
+          "path": "voices/jf_nezumi.pt",
+          "size_bytes": 523420,
+          "lfs_sha256": "d83f007a7f01783b77014561a7d493d327a0210e143440e91c9b697590d27661"
+        },
+        {
+          "path": "voices/jf_tebukuro.pt",
+          "size_bytes": 523435,
+          "lfs_sha256": "0d6917904438aec85f73a6fa1f7ac2be6481aae47c697834936930a91796c576"
+        },
+        {
+          "path": "voices/jm_kumo.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "98340afd68b1cee84fe0cd95528cfa6d4b39e416aa75a9df64049d52c8b55896"
+        },
+        {
+          "path": "voices/pf_dora.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "07e4ff987c5d5a8c3995efd15cc4f0db7c4c15e881b198d8ab7f67ecf51f5eb7"
+        },
+        {
+          "path": "voices/pm_alex.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "cf0ba8c573c2480fc54123683a35cf1e2ae130428e441eb91f9149bdb188a526"
+        },
+        {
+          "path": "voices/pm_santa.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "d42103169c5c872abbafb9129133af7e942bb9d272c3cc3b95c203e7d7198c29"
+        },
+        {
+          "path": "voices/zf_xiaobei.pt",
+          "size_bytes": 523435,
+          "lfs_sha256": "9b76be63dab4f4f96962030acc0126a9aee9728608fbbe115e2b58a2bd504df6"
+        },
+        {
+          "path": "voices/zf_xiaoni.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "95b49f169bf1640f4f43c25e13daa39f7b98d15d00823e83ef5c14b3ced59e49"
+        },
+        {
+          "path": "voices/zf_xiaoxiao.pt",
+          "size_bytes": 523440,
+          "lfs_sha256": "cfaf6f2ded1ee56f1ff94fcd2b0e6cdf32e5b794bdc05b44e7439d44aef5887c"
+        },
+        {
+          "path": "voices/zf_xiaoyi.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "b5235dbaeef85a4c613bf78af9a88ff63c25bac5f26ba77e36186d8b7ebf05e2"
+        },
+        {
+          "path": "voices/zm_yunjian.pt",
+          "size_bytes": 523435,
+          "lfs_sha256": "76cbf8bad35901d011d9628a2fdceb7b4f1f127e7a3269cb393b3941eb7fc417"
+        },
+        {
+          "path": "voices/zm_yunxi.pt",
+          "size_bytes": 523425,
+          "lfs_sha256": "dbe6e1ce7c3dbaf2f5667432947b638b1c6831ccbe154c4610dbcc44f431e27b"
+        },
+        {
+          "path": "voices/zm_yunxia.pt",
+          "size_bytes": 523430,
+          "lfs_sha256": "bb2b03b08e84d64e1214440ce3b624987fac177f2eeb5bab8571799a3d980acd"
+        },
+        {
+          "path": "voices/zm_yunyang.pt",
+          "size_bytes": 523435,
+          "lfs_sha256": "5238ac22e0c7f8b6cdd2eddd6e444b8a700b73c4674d9a047d59a94ff96379a2"
+        }
+      ]
+    }
+  ],
+  "minimal_weight_downloads": [],
+  "documentation_candidates_not_downloaded": [
+    {
+      "repo": "black-forest-labs/FLUX.2-klein-4b-fp8",
+      "revision": "5b4408e59397a4a37ccb46afe426d8ed86379441",
+      "path": "LICENSE.md",
+      "license": "Apache-2.0",
+      "size_bytes": 9584,
+      "proposed_destination": "E:/OPENMONTAJE-IA/ComfyUI_windows_portable/ComfyUI/models/diffusion_models/flux-klein-4b-LICENSE.md",
+      "state": "missing_at_proposed_destination; documentation only",
+      "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-fp8/resolve/5b4408e59397a4a37ccb46afe426d8ed86379441/LICENSE.md"
+    },
+    {
+      "repo": "hexgrad/Kokoro-82M",
+      "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "path": "VOICES.md",
+      "license": "model repository declares Apache-2.0; voice-specific notices remain applicable",
+      "size_bytes": 7625,
+      "proposed_destination": "D:/OPENMONTAJE-IA/DESCARGAS_MODELOS/hexgrad--Kokoro-82M/VOICES.md",
+      "state": "missing_in_model_directory; documentation only",
+      "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/VOICES.md"
+    }
+  ]
+}

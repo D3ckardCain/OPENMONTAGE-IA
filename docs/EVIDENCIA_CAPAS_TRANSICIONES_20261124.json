@@ -1,0 +1,177 @@
+{
+  "scope": "New model loaded in separate Python process and isolated root; NOT active Studio API/UI",
+  "workspace": "projects/_qa-timeline-model-20261124-a",
+  "source_project": "edit-827337e03f38",
+  "server_restart": false,
+  "live_backend_activated": false,
+  "renders": [
+    {
+      "case": "dip-black-av-transition-no-overlap",
+      "duration": 4.0,
+      "sha256": "b6c489d2c284a4e089d9336d235f15958ed7a71ce84e3da30dc0241fa87b2bd7",
+      "render_sha256": "8aae429db5aa7b8531e1d7cb9e482680bf3a84d66206e53b04b629e2bbce4024",
+      "full_decode": true,
+      "streams": [
+        "video",
+        "audio"
+      ],
+      "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/4ee35fb65ef6444cb0f2deb7c3aff4eb/montage.mp4",
+      "video": [
+        {
+          "width": 640,
+          "height": 360,
+          "avg_frame_rate": "24/1"
+        }
+      ],
+      "boundary_rgb_mean": 0.0
+    },
+    {
+      "case": "real-video-layer-window-and-rectangle",
+      "duration": 4.0,
+      "sha256": "489d72df8382ac29ca5d085e8e3ef90e212480e8aef42406d2a069a55116bfeb",
+      "render_sha256": "aef4ea3b4f1f8c3071c2d1fe06ff17efc9063984d0770454771636c00a490245",
+      "full_decode": true,
+      "streams": [
+        "video",
+        "audio"
+      ],
+      "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/d4916ab071924240ab9de5f9ea7106c7/montage.mp4",
+      "video": [
+        {
+          "width": 640,
+          "height": 360,
+          "avg_frame_rate": "24/1"
+        }
+      ],
+      "layer_region_vs_source_mae": 1.9887152777777777,
+      "layer_region_vs_base_mae": 82.74450231481481,
+      "outside_region_vs_base_mae": 0.7748842592592593,
+      "after_layer_window_vs_base_mae": 0.5831886574074074,
+      "frame": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/d4916ab071924240ab9de5f9ea7106c7/layer-frame.png"
+    }
+  ],
+  "prior_runs": [
+    [
+      {
+        "case": "preserve-gap",
+        "duration": 6.0,
+        "sha256": "c0af3641f0c53a9f0a1ff247cfd2e90e9408a8afba49b9795e1ad2ce65572ab7",
+        "render_sha256": "86fd8585092a48ad6c603d4d76ed2ac8ccc791a58f5734da6cce3a0ddb404d7f",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/a08bc4b8d7da43d7b1011706345bed66/montage.mp4",
+        "gap_rgb_mean": 0.0,
+        "gap_audio_rms": 0.0
+      },
+      {
+        "case": "solo-independent-audio",
+        "duration": 6.0,
+        "sha256": "ec690d0aac3cc4e25f01e0fdf58645786f11839aec026f555248b0cbde9fbeb4",
+        "render_sha256": "cabaea567786af4be2bbe078cc343aa00695b3c70bec3909a8837c6a1442d880",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/f0198a2823244d82bfc33827458d8d7e/montage.mp4",
+        "source_window_rms": 0.17584956499002447,
+        "output_window_rms": 0.04563430163455405,
+        "gain_ratio": 0.259507617418006,
+        "after_solo_clip_rms": 0.0
+      }
+    ],
+    [
+      {
+        "case": "preserve-gap",
+        "duration": 6.0,
+        "sha256": "54fa9b9ad051926e846ba096256586d9b405b51d76b0f6569aac2a3682cc1ead",
+        "render_sha256": "832784410a3fedf5b85c65978d5113d09ea8091b5bc09a6413b5588165671929",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/0189119836184946b95fcec88bde2682/montage.mp4",
+        "gap_rgb_mean": 0.0,
+        "gap_audio_rms": 0.0
+      },
+      {
+        "case": "solo-independent-audio",
+        "duration": 6.0,
+        "sha256": "a0fa0a3731cd7e58b36b08506b5cb832409297baa88c22121cb5d968a357e51f",
+        "render_sha256": "55d653855336df19f0c9e70be2c43332ddae3a4e57c72da3587da4c41d66d5db",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/016053f2d02440e4adc499a509efd0ed/montage.mp4",
+        "source_window_rms": 0.17584956499002447,
+        "output_window_rms": 0.04375778083974196,
+        "gain_ratio": 0.248836446324017,
+        "after_solo_clip_rms": 0.0
+      }
+    ],
+    [
+      {
+        "case": "crop-flip-title-custom-output",
+        "duration": 2.0,
+        "sha256": "e7a79e5fec18232e7a4eb8c96b472a1713ad96346b07b03aea2cf4f52d26c8b9",
+        "render_sha256": "93684804861c97d4da2ff695a56c2fb3af2714077d4f3cecc2aba8bf14e0b9ad",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/fbd7b30df34f40b2a233c0a66dde2123/montage.mp4",
+        "video": [
+          {
+            "width": 640,
+            "height": 360,
+            "avg_frame_rate": "24/1"
+          }
+        ],
+        "frame": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/fbd7b30df34f40b2a233c0a66dde2123/title-frame.png"
+      },
+      {
+        "case": "explicit-normalization-reuses-audio-mixer",
+        "duration": 2.0,
+        "sha256": "5b0fb4558d3b4addc226f00cc2c6fdc4bcd35b21277266c6bc8e08aede155cdf",
+        "render_sha256": "1f59eee4e94408d792c57bff4449faed38b97c0efeb0a52f1eb5bf7c353da6ae",
+        "full_decode": true,
+        "streams": [
+          "video",
+          "audio"
+        ],
+        "path": "projects/_qa-timeline-model-20261124-a/projects/edit-60e87d54b03b/assets/editor-renders/fccb003615854cfe9d034978efa1e72d/montage.mp4",
+        "video": [
+          {
+            "width": 640,
+            "height": 360,
+            "avg_frame_rate": "24/1"
+          }
+        ],
+        "loudnorm_measurement": {
+          "input_i": "-18.07",
+          "input_tp": "-5.02",
+          "input_lra": "0.00",
+          "input_thresh": "-30.68",
+          "output_i": "-18.03",
+          "output_tp": "-4.95",
+          "output_lra": "0.00",
+          "output_thresh": "-30.64",
+          "normalization_type": "linear",
+          "target_offset": "0.03"
+        }
+      }
+    ]
+  ],
+  "project_id": "edit-60e87d54b03b",
+  "status": "passed",
+  "source_project_unchanged": true,
+  "browser_observation": false,
+  "listening": false
+}

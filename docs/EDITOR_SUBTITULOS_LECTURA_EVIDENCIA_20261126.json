@@ -1,0 +1,195 @@
+{
+  "new_focused_cases_passed": 9,
+  "ui": {
+    "scope": "Real UI/API4778 QA copy; layout/reflow and two new output-format exports",
+    "reflow_preserves_tokens": true,
+    "undo_redo_reopen": true,
+    "page_errors": [],
+    "soft": {
+      "status": "completed",
+      "attempt": "76c7e966f881499c80929960cbd8430d",
+      "revision": 32,
+      "origin": "user",
+      "edit_sha256": "3fd01af62702fca1f7dfcfeaaebf97686637ff2d9bbff365a851d9c2e38a8814",
+      "render_sha256": "6b05648637c6f250bcc2b3ecef7a2f55d535ea33e0a0ef6779798637b497b902",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-27T00:47:50.916468+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-27T00:47:55.986311+00:00",
+      "path": "assets/editor-renders/76c7e966f881499c80929960cbd8430d/montage.mp4",
+      "url": "/media/edit-43cd66fe472f/assets/editor-renders/76c7e966f881499c80929960cbd8430d/montage.mp4",
+      "sha256": "1cf69e1a97339183ef02ea2d52c36a425456c2f0df7c133b1d894f6ebea3e600",
+      "bytes": 106017,
+      "duration": 4,
+      "subtitle_mode": "mov_text",
+      "source_sha256": {
+        "7be58866b09d46d783d2e774a2a1928a": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683",
+        "f82a033cac8645f6acdcc7f8f3e1dbcb": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      },
+      "current": true
+    },
+    "burn": {
+      "status": "completed",
+      "attempt": "f81bb78120d3455abfe510e41eb70de6",
+      "revision": 33,
+      "origin": "user",
+      "edit_sha256": "6893d562610b607963f37e068384bed05448556508c72f0de1fe8df3114b95b7",
+      "render_sha256": "fa0c9198dda1a7db61be5c12ae73c937c57d79d152c42f541f9f8640dc14dda1",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-27T00:47:56.072452+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-27T00:47:57.257234+00:00",
+      "path": "assets/editor-renders/f81bb78120d3455abfe510e41eb70de6/montage.mp4",
+      "url": "/media/edit-43cd66fe472f/assets/editor-renders/f81bb78120d3455abfe510e41eb70de6/montage.mp4",
+      "sha256": "839a24096b67f3ae0eca7d616dc5b4e82a38bf4c4baf5b643c135329daf40dfa",
+      "bytes": 113436,
+      "duration": 4,
+      "subtitle_mode": "burn",
+      "source_sha256": {
+        "7be58866b09d46d783d2e774a2a1928a": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683",
+        "f82a033cac8645f6acdcc7f8f3e1dbcb": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      },
+      "current": true
+    },
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "8d86d4f55bc0909e2a920f3474336f14f89dc8252d6fd3aafd88aba966d51af1",
+        "files": 51
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "8d86d4f55bc0909e2a920f3474336f14f89dc8252d6fd3aafd88aba966d51af1",
+        "files": 51
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "5559dbede3624f7d802902576bf6103575b84f5ca916c20eee6ca151bb4c807a",
+        "files": 43
+      },
+      "restart_required": false,
+      "pid": 85432,
+      "loaded_at_utc": "2026-11-27T00:47:24.001357+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "subtitle_layout",
+          "subtitle_reflow",
+          "ripple_volume_points",
+          "track_volume_points",
+          "mix_meter",
+          "audio_ducking",
+          "track_mixer",
+          "audio_processing",
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "8d86d4f55bc0909e2a920f3474336f14f89dc8252d6fd3aafd88aba966d51af1"
+      }
+    },
+    "main4750_checked": false,
+    "human_listening": false
+  },
+  "output_formats": {
+    "scope": "Two new 4s outputs validate new layout/reflow semantics; synthetic QA cues, existing authorized video/audio",
+    "soft_codec": "mov_text",
+    "soft_cues_exact": true,
+    "soft_style_guaranteed": false,
+    "burn_has_subtitle_stream": false,
+    "burn_text_pixel_difference_bbox": [
+      233,
+      211,
+      372,
+      269
+    ],
+    "safe_area": {
+      "left": 0.1,
+      "right": 0.15,
+      "top": 0.1,
+      "bottom": 0.25
+    },
+    "audio_packet_payload_md5_identical": true,
+    "cues": [
+      {
+        "start_seconds": 0.75,
+        "end_seconds": 1.75,
+        "text": "QA: primer\nimpacto"
+      },
+      {
+        "start_seconds": 2.0,
+        "end_seconds": 3.5,
+        "text": "QA: segundo\nimpacto"
+      }
+    ],
+    "timing_semantics": "Milliseconds in selectable SRT/mov_text, centiseconds in ASS; this sample exactly representable in both",
+    "human_listening": false,
+    "main4750_checked": false
+  },
+  "qa4778": "closed",
+  "expected_activation": {
+    "backend": {
+      "status": "available",
+      "sha256": "8d86d4f55bc0909e2a920f3474336f14f89dc8252d6fd3aafd88aba966d51af1",
+      "files": 51
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "5559dbede3624f7d802902576bf6103575b84f5ca916c20eee6ca151bb4c807a",
+      "files": 43
+    }
+  },
+  "account_styles": "blocked on actual account ownership foundation168; not a global collection renamed as accounts"
+}

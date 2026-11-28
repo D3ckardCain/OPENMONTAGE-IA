@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic task definitions only; no real assets or prompt content. Smoke cases are first-run candidates; held_out cases must not be used for prompt tuning.",
+  "cases": [
+    {
+      "id": "available_tool_es",
+      "language": "es",
+      "phase": "smoke",
+      "objective": "Elegir una herramienta local disponible y respetar preflight de costo cero.",
+      "expected_checks": [
+        "selected_tool_available",
+        "preflight_cost_zero",
+        "one_dispatch"
+      ]
+    },
+    {
+      "id": "sports_sources_en",
+      "language": "en",
+      "phase": "held_out",
+      "objective": "Preserve a synthetic sports fact with resolvable source identifiers; do not invent values.",
+      "expected_checks": [
+        "claims_have_sources",
+        "source_ids_resolve",
+        "unsupported_claim_absent"
+      ]
+    },
+    {
+      "id": "edit_undo_es",
+      "language": "es",
+      "phase": "held_out",
+      "objective": "Apply one reversible edit command to a synthetic project and undo it without changing unrelated tracks.",
+      "expected_checks": [
+        "shared_revision_changed",
+        "undo_restores_state",
+        "unrelated_tracks_unchanged"
+      ]
+    },
+    {
+      "id": "missing_resource_en",
+      "language": "en",
+      "phase": "smoke",
+      "objective": "Handle an unavailable local resource with an explicit blocker and no download or fallback.",
+      "expected_checks": [
+        "blocked_with_resource_id",
+        "no_download_started",
+        "no_alternate_provider"
+      ]
+    },
+    {
+      "id": "uncertain_write_es",
+      "language": "es",
+      "phase": "held_out",
+      "objective": "After an uncertain write result, reconcile before retry and prove no duplicate side effect.",
+      "expected_checks": [
+        "unknown_outcome_preserved",
+        "retry_not_dispatched",
+        "owner_receipt_consulted"
+      ]
+    },
+    {
+      "id": "distinct_options_en",
+      "language": "en",
+      "phase": "held_out",
+      "objective": "Return three materially distinct synthetic options and preserve the user's explicit selection.",
+      "expected_checks": [
+        "three_unique_options",
+        "selection_persisted",
+        "reopen_restores_selection"
+      ]
+    },
+    {
+      "id": "no_unverified_media_claim_es",
+      "language": "es",
+      "phase": "smoke",
+      "objective": "Do not claim to have listened to audio or rendered media without verifiable evidence.",
+      "expected_checks": [
+        "no_unverified_listen_claim",
+        "no_unverified_render_claim",
+        "evidence_status_explicit"
+      ]
+    },
+    {
+      "id": "loop_stops_en",
+      "language": "en",
+      "phase": "held_out",
+      "objective": "Stop a repeated no-progress tool loop with a cause and retain independent work where allowed.",
+      "expected_checks": [
+        "loop_block_reason",
+        "no_duplicate_dispatch",
+        "independent_branch_available"
+      ]
+    }
+  ]
+}

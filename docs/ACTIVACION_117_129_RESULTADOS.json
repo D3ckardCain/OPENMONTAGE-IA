@@ -1,0 +1,120 @@
+{
+  "at": "2026-11-26T02:37:48.018Z",
+  "scope": "Real4750 UI and commands on separated Portuguese copy; no ASR/synthesis/render",
+  "identity": {
+    "schema_version": 1,
+    "api_protocol": 1,
+    "revision_kind": "source_sha256_at_import",
+    "resident": {
+      "status": "available",
+      "sha256": "5876fee6a176112ac9f4c20192d34ee16b692d6d1a999d53a5c5bb54f63e4bcf",
+      "files": 22
+    },
+    "disk": {
+      "status": "available",
+      "sha256": "5876fee6a176112ac9f4c20192d34ee16b692d6d1a999d53a5c5bb54f63e4bcf",
+      "files": 22
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "50f751ebab4ede241ed5d9228d2356132c2b61dcceef6719e2f3315cb849e169",
+      "files": 26
+    },
+    "restart_required": false,
+    "pid": 130700,
+    "loaded_at_utc": "2026-11-26T02:36:43.429883+00:00",
+    "editor": {
+      "version": "3.0",
+      "commands": [
+        "batch",
+        "duplicate",
+        "markers",
+        "flags",
+        "audio_trim_position",
+        "delete_keep_gap",
+        "ripple_delete",
+        "transform",
+        "titles",
+        "output_custom",
+        "audio_mix",
+        "transition",
+        "layers",
+        "clip_candidates",
+        "subtitle_language",
+        "subtitle_words",
+        "subtitle_from_words"
+      ],
+      "render_cancel": true,
+      "shared_revision": true,
+      "api_protocol": 1,
+      "backend_build": "5876fee6a176112ac9f4c20192d34ee16b692d6d1a999d53a5c5bb54f63e4bcf"
+    }
+  },
+  "lifecycle": {
+    "undo_revision": 2,
+    "redo_revision": 3,
+    "save_revision": 4,
+    "reopened_revision": 4,
+    "exact_edl_roundtrip": true
+  },
+  "selector": {
+    "enabled": true,
+    "option53_selectable": true,
+    "restored_local_selection": "blender-4.5",
+    "save_clicked": false,
+    "global_default_unchanged": true,
+    "posts": 0
+  },
+  "harness_limit": "Initial selector wait skipped applications-load; timed out only after subtitle lifecycle passed. Finished selector separately with zero POST, without repeating subtitle edits.",
+  "success": true,
+  "subtitle_check": {
+    "test_project": "edit-qa129-pt-activation",
+    "saved_words": 116,
+    "included_occurrences": 106,
+    "cues_before": 24,
+    "cues_after": 19,
+    "language": "pt",
+    "review_scope": "All19candidate texts/times compared to stored Portuguese words; negations retained, no new speech verification",
+    "cues_sha256": "a21c4d1032cfc2326cb9174d9894d4c911693e4e838ba8972b8e7b490d1f13f1",
+    "no_partial_word_exclusions": true
+  },
+  "http": {
+    "mutation_operations": [
+      "subtitle_from_words",
+      "undo",
+      "redo",
+      "save"
+    ],
+    "on_test_copy_only": true,
+    "other_mutations_blocked": [],
+    "page_errors": []
+  },
+  "preservation": {
+    "original_and_configurations_sha256_unchanged": true,
+    "default_blender": "blender-4.5",
+    "asr_synthesis_pilot_repeated": false,
+    "agent_restarts": 0,
+    "cost_usd": 0
+  },
+  "visual": {
+    "scope": "Headless Chrome live4750, real DOM interaction and screenshots inspected; no export/playback/listening of new subtitle output",
+    "screenshots": [
+      {
+        "local_path": ".runtime/qa/activation-129-live.png",
+        "bytes": 131424,
+        "sha256": "0fc3d31a99b1a0bcbdf901f08cab27927d5e3c5c372a9711533705df53f289e2"
+      },
+      {
+        "local_path": ".runtime/qa/activation-117-selector-visible.png",
+        "bytes": 89279,
+        "sha256": "47188da6f69969777561278d4bf156950ca5021bcac5c62b2ee7fba5be57c1e3"
+      }
+    ]
+  },
+  "limits": [
+    "No new AV export or listening; preview explicitly unrendered",
+    "Blender5.3 dropdown tested without saving new global preference or launching application",
+    "Prior isolated persistent-selection tests reused, not repeated",
+    "#107 Spanish / #112 eligible receipt / #113 hidden actions remain pending"
+  ]
+}

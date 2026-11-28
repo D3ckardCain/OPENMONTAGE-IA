@@ -1,0 +1,169 @@
+[
+  {
+    "id": "en_GB-vctk-medium",
+    "revision": "5ec43b186ef915a195d3ddbcfd9916e76c503c3f",
+    "remote_path": "en/en_GB/vctk/medium",
+    "files": [
+      {
+        "name": "MODEL_CARD",
+        "bytes": 581,
+        "sha256": "ab7216e9aba1f493781c47fabab1078eeae2ea2b1ec29e41653249b007b959c0",
+        "official_sha256": null,
+        "official_size": 581,
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5ec43b186ef915a195d3ddbcfd9916e76c503c3f/en/en_GB/vctk/medium/MODEL_CARD",
+        "matches": true
+      },
+      {
+        "name": "en_GB-vctk-medium.onnx.json",
+        "bytes": 8061,
+        "sha256": "8cc5a7678bf893c35cb6fde5d0812fb7e2b63e1eef54db250afd525277471f2d",
+        "official_sha256": null,
+        "official_size": 8061,
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5ec43b186ef915a195d3ddbcfd9916e76c503c3f/en/en_GB/vctk/medium/en_GB-vctk-medium.onnx.json",
+        "matches": true
+      },
+      {
+        "name": "en_GB-vctk-medium.onnx",
+        "bytes": 76972979,
+        "sha256": "fc3d92d266b1a6c03af2a38215e0eee430ca7fb360f641d7c3dcb17c7670c0f3",
+        "official_sha256": "fc3d92d266b1a6c03af2a38215e0eee430ca7fb360f641d7c3dcb17c7670c0f3",
+        "official_size": 76972979,
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5ec43b186ef915a195d3ddbcfd9916e76c503c3f/en/en_GB/vctk/medium/en_GB-vctk-medium.onnx",
+        "matches": true
+      }
+    ],
+    "config_version": "1.5.0",
+    "num_speakers": 109,
+    "attribution": "VCTK 0.92 CC BY 4.0; HiFiTTS CC BY 4.0, Cori Samuel reader 92",
+    "technical_validation": {
+      "runtime": "piper-tts 1.8.0 CPU offline",
+      "tested_speaker_ids": [
+        0,
+        54,
+        108
+      ],
+      "all_speakers_tested": false,
+      "human_listening": false
+    }
+  },
+  {
+    "id": "es_ES-carlfm-x_low",
+    "revision": "0ca208afc2a2ee102b1e961e72e0a7e4907be3d0",
+    "remote_path": "es/es_ES/carlfm/x_low",
+    "files": [
+      {
+        "name": "ALIASES",
+        "bytes": 16,
+        "sha256": "e21b53a8efe4b9efa7658faf70bfa43b46a52e83006895828b35c9fc849c761c",
+        "official_sha256": null,
+        "official_size": 16,
+        "git_blob_oid": "323fcdfaf12451aa3ceb778f30d0cf2340e2ecfa",
+        "matches": true
+      },
+      {
+        "name": "es_ES-carlfm-x_low.onnx",
+        "bytes": 28130791,
+        "sha256": "d69677323a907cd4963f42b29c20a98b5d6bfa7f3e64df339915e4650c00d125",
+        "official_sha256": "d69677323a907cd4963f42b29c20a98b5d6bfa7f3e64df339915e4650c00d125",
+        "official_size": 28130791,
+        "git_blob_oid": "0759ad093f8a5f9aae55380cbf1b87371467fd2e",
+        "matches": true
+      },
+      {
+        "name": "es_ES-carlfm-x_low.onnx.json",
+        "bytes": 4159,
+        "sha256": "d9bdfa9ff01eb2bc9e62e7d2593939d1e4c4d8eb7cf75f972731539d12399966",
+        "official_sha256": null,
+        "official_size": 4159,
+        "git_blob_oid": "42bf487ce5404ae12c88618de06a857122360130",
+        "matches": true
+      },
+      {
+        "name": "MODEL_CARD",
+        "bytes": 250,
+        "sha256": "a6e62a3d36c37c7702d877f784001208b952e2bf4d17c72a6b5da442fbefb4b3",
+        "official_sha256": null,
+        "official_size": 250,
+        "git_blob_oid": "d9a317cb56dcc7de17e1584365833531887b6649",
+        "matches": true
+      }
+    ],
+    "config_version": "0.2.0",
+    "num_speakers": 1,
+    "attribution": "Public domain; carlfm01"
+  },
+  {
+    "id": "es_ES-davefx-medium",
+    "revision": "0ca208afc2a2ee102b1e961e72e0a7e4907be3d0",
+    "remote_path": "es/es_ES/davefx/medium",
+    "files": [
+      {
+        "name": "es_ES-davefx-medium.onnx",
+        "bytes": 63221984,
+        "sha256": "d2c9224e122321aac3c33343957fff4d0f465226cb74c66b0f520ca3f8c0dd07",
+        "official_sha256": "d2c9224e122321aac3c33343957fff4d0f465226cb74c66b0f520ca3f8c0dd07",
+        "official_size": 63221984,
+        "git_blob_oid": "e2eb63b41326f306c043097b9d0c94fccc86ecd5",
+        "matches": true
+      },
+      {
+        "name": "es_ES-davefx-medium.onnx.json",
+        "bytes": 6175,
+        "sha256": "7d82d069eccca0f87963bd23c33166fe1ef6d24a6b231543931bfe692397f256",
+        "official_sha256": null,
+        "official_size": 6175,
+        "git_blob_oid": "ad50e483216781ad2393d17d941446320a8f97d4",
+        "matches": true
+      },
+      {
+        "name": "MODEL_CARD",
+        "bytes": 418,
+        "sha256": "2d55d0d84100cde9d9ed88866c2625c89d333a45507d88aa8bae40f6de94c134",
+        "official_sha256": null,
+        "official_size": 418,
+        "git_blob_oid": "bed1bd84630f673723d4b9bd4bd8b4b56729eef8",
+        "matches": true
+      }
+    ],
+    "config_version": "1.5.0",
+    "num_speakers": 1,
+    "attribution": "CC0; rdh CC0"
+  },
+  {
+    "id": "es_ES-sharvard-medium",
+    "revision": "0ca208afc2a2ee102b1e961e72e0a7e4907be3d0",
+    "remote_path": "es/es_ES/sharvard/medium",
+    "files": [
+      {
+        "name": "es_ES-sharvard-medium.onnx",
+        "bytes": 76753841,
+        "sha256": "234dc4cf0fdb53ccb76b9b2c4d7ef1330364762674c1b78c1b62d8608c528a54",
+        "official_sha256": "234dc4cf0fdb53ccb76b9b2c4d7ef1330364762674c1b78c1b62d8608c528a54",
+        "official_size": 76753841,
+        "git_blob_oid": "da254bafcccc7e85f8a4bc0c1ec887cdec525b71",
+        "matches": true
+      },
+      {
+        "name": "es_ES-sharvard-medium.onnx.json",
+        "bytes": 6160,
+        "sha256": "c3d92a576c2fb5ac5120c9feeb6dd09e6577a564e20c75b91981ee1ceb441a90",
+        "official_sha256": null,
+        "official_size": 6160,
+        "git_blob_oid": "2ed302207c55e22b9d5faf17ff2c65ca88a8c867",
+        "matches": true
+      },
+      {
+        "name": "MODEL_CARD",
+        "bytes": 882,
+        "sha256": "05d80690fb21967f301e69a86c61b3c2320002f941a0d7f9423c805ae653b59f",
+        "official_sha256": null,
+        "official_size": 882,
+        "git_blob_oid": "6a2c38e6f83d21432dc2862a71807d5fa7d528f5",
+        "matches": true
+      }
+    ],
+    "config_version": "1.5.0",
+    "num_speakers": 2,
+    "attribution": "Sharvard CC BY 3.0; HiFiTTS Cori Samuel reader 92 CC BY 4.0"
+  }
+]

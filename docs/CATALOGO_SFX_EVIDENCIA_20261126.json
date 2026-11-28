@@ -1,0 +1,294 @@
+{
+  "new_focused_unique_tests_passed": 11,
+  "catalog": {
+    "source_files": 109,
+    "unique_assets": 109,
+    "new_preparation_sha256": 109,
+    "media_bytes": 2381752,
+    "official_reference_type": "Git blobs at fixed3d83d987; SHA256 local",
+    "no_complete_archive_hash": true,
+    "local_zip_preexisting_completed_fdm_id": 2114
+  },
+  "initial_browser_helper": {
+    "result": "failed_at_native_drag_due_to_modal_covering_target",
+    "pre_drag_assertions_completed": [
+      "24/109 progressive cards",
+      "native preview A then B replaced one audio src with decoded audio",
+      "pause and stop",
+      "previews did not mutate revision",
+      "search category/ES and author",
+      "waveform decoded",
+      "project favorite",
+      "single POST on double click",
+      "insert undo redo save reopen",
+      "gain and fades",
+      "real backend insert then deliberately aborted response",
+      "receipt recovery without a second insert POST"
+    ],
+    "numeric_audio_byte_counters_not_retained": true,
+    "not_claimed_full_helper_success": true
+  },
+  "native_drag": {
+    "scope": "Targeted real Chrome drag only after earlier pre-drag phases; no replays of previews/insert recovery",
+    "native_drag": true,
+    "start_seconds": 1.0893246187363834,
+    "audio_tracks": 3,
+    "pre_drag_state_revision": 10,
+    "post_drag_revision": 11,
+    "page_errors": []
+  },
+  "render_and_playback": {
+    "identity": {
+      "schema_version": 1,
+      "api_protocol": 1,
+      "revision_kind": "source_sha256_at_import",
+      "resident": {
+        "status": "available",
+        "sha256": "9d2836a19c8e438725bea390bf96e456ef9d6f8844abe9e1f0bb9806eddf327e",
+        "files": 45
+      },
+      "disk": {
+        "status": "available",
+        "sha256": "9d2836a19c8e438725bea390bf96e456ef9d6f8844abe9e1f0bb9806eddf327e",
+        "files": 45
+      },
+      "ui": {
+        "status": "available",
+        "sha256": "5aca8559b4964b0d1a60d10cdf4a0ae2fcf5ad1a2235798cbca51a11cc81e810",
+        "files": 37
+      },
+      "restart_required": false,
+      "pid": 105864,
+      "loaded_at_utc": "2026-11-26T21:20:36.091391+00:00",
+      "editor": {
+        "version": "3.0",
+        "commands": [
+          "sfx_catalog",
+          "sfx_favorites",
+          "crossfade",
+          "audio_balance",
+          "layer_transform_keyframes",
+          "layer_position_keyframes",
+          "batch",
+          "duplicate",
+          "markers",
+          "flags",
+          "audio_trim_position",
+          "delete_keep_gap",
+          "ripple_delete",
+          "transform",
+          "titles",
+          "output_custom",
+          "audio_mix",
+          "transition",
+          "layers",
+          "clip_candidates",
+          "subtitle_language",
+          "subtitle_words",
+          "subtitle_from_words",
+          "silence_apply",
+          "qwen_tts_plan",
+          "reference_plan",
+          "component_add",
+          "component_remove"
+        ],
+        "render_cancel": true,
+        "shared_revision": true,
+        "silence_proposal": {
+          "contract": "studio-silence-proposal-v1",
+          "read_only": true,
+          "apply_available": true,
+          "apply_command": "silence_apply"
+        },
+        "qwen_preview": {
+          "contract": "qwen-preview-v1",
+          "real_native_worker": true,
+          "cancel_owned_worker": true,
+          "automatic_retry": false
+        },
+        "chatterbox_saved_samples": {
+          "contract": "chatterbox-saved-audio-v1",
+          "playback": true,
+          "generation": false
+        },
+        "api_protocol": 1,
+        "backend_build": "9d2836a19c8e438725bea390bf96e456ef9d6f8844abe9e1f0bb9806eddf327e"
+      }
+    },
+    "new_spanish_keyword_query_count": 2,
+    "one_new_render": {
+      "status": "completed",
+      "attempt": "a68576177d9d44cf971862c80e63c266",
+      "revision": 11,
+      "origin": "user",
+      "edit_sha256": "6bdb4a4344ce1330a41bd99147ede570111075b87fb037a77fa0a9dbc0a7f1f1",
+      "render_sha256": "bc7d59e5f3efbae86827ae4cbd7fe46a4fe066e42b44c6c09a2d312ec2f4540c",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-26T21:22:12.463235+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-26T21:22:16.321255+00:00",
+      "path": "assets/editor-renders/a68576177d9d44cf971862c80e63c266/montage.mp4",
+      "url": "/media/edit-43cd66fe472f/assets/editor-renders/a68576177d9d44cf971862c80e63c266/montage.mp4",
+      "sha256": "d98e91889a5c7b638e84e904103bd7da837be5c809cf0370d4605a5a220b072e",
+      "bytes": 104920,
+      "duration": 4,
+      "subtitle_mode": "none",
+      "source_sha256": {
+        "7be58866b09d46d783d2e774a2a1928a": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683",
+        "f82a033cac8645f6acdcc7f8f3e1dbcb": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      },
+      "current": true
+    },
+    "playback": {
+      "duration": 4,
+      "time": 2.270081,
+      "frames": 22,
+      "audio_bytes": 57181,
+      "error": null
+    },
+    "human_listening": false
+  },
+  "media": {
+    "render": {
+      "status": "completed",
+      "attempt": "a68576177d9d44cf971862c80e63c266",
+      "revision": 11,
+      "origin": "user",
+      "edit_sha256": "6bdb4a4344ce1330a41bd99147ede570111075b87fb037a77fa0a9dbc0a7f1f1",
+      "render_sha256": "bc7d59e5f3efbae86827ae4cbd7fe46a4fe066e42b44c6c09a2d312ec2f4540c",
+      "render_contract": "timeline-v3",
+      "preview": false,
+      "started_at": "2026-11-26T21:22:12.463235+00:00",
+      "width": 640,
+      "height": 360,
+      "completed_at": "2026-11-26T21:22:16.321255+00:00",
+      "path": "assets/editor-renders/a68576177d9d44cf971862c80e63c266/montage.mp4",
+      "url": "/media/edit-43cd66fe472f/assets/editor-renders/a68576177d9d44cf971862c80e63c266/montage.mp4",
+      "sha256": "d98e91889a5c7b638e84e904103bd7da837be5c809cf0370d4605a5a220b072e",
+      "bytes": 104920,
+      "duration": 4.0,
+      "subtitle_mode": "none",
+      "source_sha256": {
+        "7be58866b09d46d783d2e774a2a1928a": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683",
+        "f82a033cac8645f6acdcc7f8f3e1dbcb": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      }
+    },
+    "video_frames": 32,
+    "video_duration": 4.0,
+    "audio_duration": 4.0,
+    "decoded_audio_samples": 192000,
+    "planned_vs_decoded_pcm_correlation": 0.9999690742973749,
+    "sfx_residual_energy_inside_vs_outside_cues": 2947.6220703125,
+    "cue_audio_delay_precision_seconds": 0.001,
+    "audio_tracks": [
+      {
+        "id": "550cf3fe003943faae3493efbfb33026",
+        "source": "assets/sfx/0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379.ogg",
+        "source_id": "f82a033cac8645f6acdcc7f8f3e1dbcb",
+        "in_seconds": 0.0,
+        "out_seconds": 0.5271875,
+        "start_seconds": 1.0,
+        "speed": 1.0,
+        "muted": false,
+        "gain": 0.4,
+        "fade_in": 0.01,
+        "fade_out": 0.05,
+        "sfx_catalog_id": "sfx-0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      },
+      {
+        "id": "aa178c937e6b4f6f9b091b891ef1e413",
+        "source": "assets/sfx/0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379.ogg",
+        "source_id": "f82a033cac8645f6acdcc7f8f3e1dbcb",
+        "in_seconds": 0.0,
+        "out_seconds": 0.5271875,
+        "start_seconds": 2.0,
+        "speed": 1,
+        "muted": false,
+        "gain": 1.0,
+        "fade_in": 0,
+        "fade_out": 0,
+        "sfx_catalog_id": "sfx-0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      },
+      {
+        "id": "5c98ffa0aff547a58d0e5d1453a0f91f",
+        "source": "assets/sfx/0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379.ogg",
+        "source_id": "f82a033cac8645f6acdcc7f8f3e1dbcb",
+        "in_seconds": 0.0,
+        "out_seconds": 0.5271875,
+        "start_seconds": 1.0893246187363834,
+        "speed": 1,
+        "muted": false,
+        "gain": 1.0,
+        "fade_in": 0,
+        "fade_out": 0,
+        "sfx_catalog_id": "sfx-0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+      }
+    ],
+    "frozen_ogg_files": 1,
+    "license_files": 1,
+    "source_sha256": {
+      "7be58866b09d46d783d2e774a2a1928a": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683",
+      "f82a033cac8645f6acdcc7f8f3e1dbcb": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379"
+    },
+    "original_unchanged_by_metadata": true,
+    "additional_video_render": false,
+    "human_listening": false
+  },
+  "metadata_probes": [
+    {
+      "id": "sfx-0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379",
+      "duration": 0.5271875,
+      "duration_error": 4.999999999588667e-07,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "id": "sfx-7fd91a16809038f6d6ec4d4812376b771296717b5beab94108b72ad35c4d928c",
+      "duration": 20.0,
+      "duration_error": 0.0,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "id": "sfx-f43ca0744dfe39a0697a0c891cccbcb38504a07ffe225ea4301f3586b9eef786",
+      "duration": 17.30720833333333,
+      "duration_error": 3.3333333249174757e-07,
+      "sample_rate": 48000,
+      "channels": 1
+    }
+  ],
+  "frozen_assets": {
+    "clips": 3,
+    "project_ogg_files": 1,
+    "license_files": 1,
+    "receipts": 3
+  },
+  "main4750_restarted": false,
+  "human_listening": false,
+  "account_favorites": "pending168; current favorites are project scoped",
+  "eight_model_staging_folders_accessed": false,
+  "rejected_request_recovery": {
+    "scope": "New definitive400/404 recovery and keyboard case, real QA API",
+    "rejected_request_no_mutation": true,
+    "confirmed_missing_receipt_before_new_request": true,
+    "form_preserved": true,
+    "no_automatic_retry": true,
+    "posts": 1,
+    "escape_closes": true,
+    "focus_restored": true
+  },
+  "final_build": {
+    "backend": {
+      "status": "available",
+      "sha256": "9d2836a19c8e438725bea390bf96e456ef9d6f8844abe9e1f0bb9806eddf327e",
+      "files": 45
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "5aca8559b4964b0d1a60d10cdf4a0ae2fcf5ad1a2235798cbca51a11cc81e810",
+      "files": 37
+    }
+  }
+}

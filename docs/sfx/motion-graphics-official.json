@@ -1,0 +1,553 @@
+{
+  "repository": "Barty-Bart/motion-graphics",
+  "revision": "3d83d987d658601d8a1269eb691622bdcd427335",
+  "license_path": "skills/sound-effects/LICENSES.md",
+  "license_git_blob": "a0088cdeddcb1b90bb65fb199cd308e752fdefd3",
+  "files": [
+    {
+      "path": "skills/sound-effects/sfx/ambience/fs-329533-room-tone-in-an-apartment-livi.ogg",
+      "bytes": 144788,
+      "git_blob": "aa2f3a906e2f9de543ef72bfe7430b6573a2d126"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ambience/fs-329569-roomtone-bedroom-yew.ogg",
+      "bytes": 170176,
+      "git_blob": "8a95cf27cac491025acc804eca7ec9b97866c10c"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ambience/fs-426767-apartment-room-tone-wav.ogg",
+      "bytes": 171086,
+      "git_blob": "c10315fe079aa437954b02ecb9b8db85dfa80eff"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/fs788933.ogg",
+      "bytes": 5247,
+      "git_blob": "38797c03a6f5195cd7a7a8df66dc35ddc92f48fb"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/kenney-interface-click-001.ogg",
+      "bytes": 4581,
+      "git_blob": "5047018dd1be84a6d1eece8cee2aa6eba38b3f9e"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/kenney-interface-select-001.ogg",
+      "bytes": 4229,
+      "git_blob": "fadc849a28e2e2b6258365776af8ac8b2701086f"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/kenney-interface-select-002.ogg",
+      "bytes": 4250,
+      "git_blob": "8874d1228ee1718b8e35d8f0691c90d15bcda9bb"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/kenney-interface-select-003.ogg",
+      "bytes": 5997,
+      "git_blob": "e745cbc71448bb16fe44f99a7bb74957bc44980d"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/kenney-interface-tick-001.ogg",
+      "bytes": 3877,
+      "git_blob": "5d20f77bbc436f96d361417d0852ba8287269059"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/kenney-interface-toggle-001.ogg",
+      "bytes": 4832,
+      "git_blob": "cdfaa6a98897c5ea3d97a768106a86e64a0fe182"
+    },
+    {
+      "path": "skills/sound-effects/sfx/click/kenney-interface-toggle-002.ogg",
+      "bytes": 4727,
+      "git_blob": "6d9ebb60a55465e58115642144da084396d4202d"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/fs-349504-triangle-open-04.ogg",
+      "bytes": 30968,
+      "git_blob": "4fd791a6c791a88d1dc39e9ed2727b3452317b1f"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/fs-571513-soft-notifications-bell-ding-d.ogg",
+      "bytes": 14581,
+      "git_blob": "8145c742bda84eb3ad7bfb2f4e4733bee182d243"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/fs-634690-lil-pip.ogg",
+      "bytes": 5168,
+      "git_blob": "dc1a9c5ed14348ad47b7116043ad00d0884d8c33"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/kenney-interface-bong-001.ogg",
+      "bytes": 4450,
+      "git_blob": "6339ed594eb555011a0676071dc58f8a40b29e5f"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/kenney-interface-confirmation-001.ogg",
+      "bytes": 4797,
+      "git_blob": "7ffa450b4cc9942f6f2bffb503fffc429c7176d0"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/kenney-interface-confirmation-002.ogg",
+      "bytes": 7494,
+      "git_blob": "71a2b6b8c9f1d7dd20aa7f44c435f38ba8131b46"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/kenney-interface-confirmation-003.ogg",
+      "bytes": 5863,
+      "git_blob": "aa43349395dfcf86d84090a5e6fd551313b30a26"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/kenney-interface-glass-001.ogg",
+      "bytes": 5425,
+      "git_blob": "221f1643d900f60920c47199a5e87ce89f03ad4b"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ding/kenney-interface-glass-002.ogg",
+      "bytes": 4554,
+      "git_blob": "db261745481042e88883f5ce9333af6d2935118c"
+    },
+    {
+      "path": "skills/sound-effects/sfx/glitch/fs-144546-touchs-wav.ogg",
+      "bytes": 85886,
+      "git_blob": "3110696ab899b877f0b74819459a42423341bc5a"
+    },
+    {
+      "path": "skills/sound-effects/sfx/glitch/fs-339521-vhs-rewind-forward-and-eject.ogg",
+      "bytes": 35806,
+      "git_blob": "0db8f8b9031a4c9b32e481b9cde9c9b37a4d0b02"
+    },
+    {
+      "path": "skills/sound-effects/sfx/glitch/fs-402451-fast-forward.ogg",
+      "bytes": 50205,
+      "git_blob": "88eead4cdd1b46d033706f4b586bf2961fdfe91f"
+    },
+    {
+      "path": "skills/sound-effects/sfx/glitch/kenney-interface-glitch-002.ogg",
+      "bytes": 4140,
+      "git_blob": "0f73eeb8c9b5813db03ba4240bad9a0fdb2939c5"
+    },
+    {
+      "path": "skills/sound-effects/sfx/glitch/kenney-sci-computernoise-000.ogg",
+      "bytes": 41609,
+      "git_blob": "024ffd8694777726b302730b92023a4194e7cd7c"
+    },
+    {
+      "path": "skills/sound-effects/sfx/glitch/kenney-sci-computernoise-001.ogg",
+      "bytes": 43275,
+      "git_blob": "5c83f63ab5e6a02b6833b72f56d94ae96e425df3"
+    },
+    {
+      "path": "skills/sound-effects/sfx/glitch/kenney-sci-computernoise-002.ogg",
+      "bytes": 46090,
+      "git_blob": "996f5d4c9ae592564a49bc5adcfce10a4a1ff0bb"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/fs-177242-cinematic-impact.ogg",
+      "bytes": 55152,
+      "git_blob": "dbca66d32828aefaedab07b102d59bf995c31313"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/fs-222517-dramatic-hit.ogg",
+      "bytes": 32394,
+      "git_blob": "0a3a98d9bb6ba5a635dc2d844c19e7b891c7086e"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/fs-347561-micheal-bay-hit.ogg",
+      "bytes": 53096,
+      "git_blob": "43a2f6b088a6fe64158cede34f10efcebaa3f303"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/fs524817.ogg",
+      "bytes": 12178,
+      "git_blob": "90b421ca878afa2d561ff75dec187cfd69b76e3a"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/fs745291.ogg",
+      "bytes": 8255,
+      "git_blob": "687e164f7c424a63f2e54cd20e43146f5a5d269d"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/kenney-impact-impactpunch-heavy-000.ogg",
+      "bytes": 8062,
+      "git_blob": "c3b91bfea178d75f781065625cd1c0d81107f06c"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/kenney-impact-impactpunch-heavy-001.ogg",
+      "bytes": 7377,
+      "git_blob": "3b476067c0b42374ef141d1ce31e055afd2132ae"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/kenney-impact-impactsoft-heavy-000.ogg",
+      "bytes": 6506,
+      "git_blob": "352730fbfb688da86a5b68c5bf2e2384271207bc"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/kenney-impact-impactsoft-heavy-001.ogg",
+      "bytes": 6770,
+      "git_blob": "ef3cf6e9c71491f80d8cf4b2c32366bcf59f463c"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/kenney-sci-lowfrequency-explosion-000.ogg",
+      "bytes": 14011,
+      "git_blob": "87a9cc2c00cef0df9285671a51e97ba24bcde470"
+    },
+    {
+      "path": "skills/sound-effects/sfx/impact/kenney-sci-lowfrequency-explosion-001.ogg",
+      "bytes": 9178,
+      "git_blob": "d1e93d4455138e05994d5332371b0312826d02bb"
+    },
+    {
+      "path": "skills/sound-effects/sfx/kit/click.ogg",
+      "bytes": 6288,
+      "git_blob": "41f64d23132b899c665315c01a173e634027d59e"
+    },
+    {
+      "path": "skills/sound-effects/sfx/kit/impact.ogg",
+      "bytes": 5606,
+      "git_blob": "1a70e0a635f2fcb53a75098d1f462144e1881b9b"
+    },
+    {
+      "path": "skills/sound-effects/sfx/kit/pop.ogg",
+      "bytes": 4812,
+      "git_blob": "0dc11f2743afc636e5bfc115f7ec797e532395bd"
+    },
+    {
+      "path": "skills/sound-effects/sfx/kit/riser.ogg",
+      "bytes": 17180,
+      "git_blob": "2c89646dbe82bd2b8c4e1e5d4fa1c85544c65a05"
+    },
+    {
+      "path": "skills/sound-effects/sfx/kit/tick.ogg",
+      "bytes": 4016,
+      "git_blob": "ed9d2a5f962b609e40cd199ea82e1aef8f2db924"
+    },
+    {
+      "path": "skills/sound-effects/sfx/kit/whoosh.ogg",
+      "bytes": 10571,
+      "git_blob": "bb987f3e626b13600cb5c2395c52f135b5b7b249"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs-258269-mouth-pop.ogg",
+      "bytes": 7982,
+      "git_blob": "269f5784c0187e5221a8752cc2040fbb02e7a2cf"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs-447910-plop.ogg",
+      "bytes": 6039,
+      "git_blob": "fda1ba261e7303e150915bd7ebb008448351e7ca"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs-467951-ui-button-click.ogg",
+      "bytes": 4776,
+      "git_blob": "4b11803b762c629cc1021bd98a0eb24bd546bf57"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs-514833-user-interface-menu-sounds-wav.ogg",
+      "bytes": 18109,
+      "git_blob": "4022b94c4388653f5528674019ee2f824302b410"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs-824189-pop-in-sfx.ogg",
+      "bytes": 7620,
+      "git_blob": "9388203281aeafd2b747e36a9fbaba315efcb3b6"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs202230.ogg",
+      "bytes": 5494,
+      "git_blob": "98132d218e38ecc2b51cc862426af3a7d5ea67c6"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs323738.ogg",
+      "bytes": 4821,
+      "git_blob": "b865b65bbb9e989eedcf9efbf47503621232214a"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/fs527522.ogg",
+      "bytes": 4787,
+      "git_blob": "c47cb438dceddfaebe764d42ee197e2354d15ac1"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/kenney-interface-drop-001.ogg",
+      "bytes": 4797,
+      "git_blob": "dba78bd63aa489f575f0d07921baff7e31ee9de7"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/kenney-interface-drop-002.ogg",
+      "bytes": 5067,
+      "git_blob": "648a16ed90dffe9bdf0becd52c29e34c0fc866b1"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/kenney-interface-drop-003.ogg",
+      "bytes": 4986,
+      "git_blob": "31f7148166e660c7caf8e52d296be026cfbb80dc"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/kenney-interface-maximize-001.ogg",
+      "bytes": 6400,
+      "git_blob": "06c03867a3ee8ee2a8d4330abb3f388f4037cb62"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/kenney-interface-maximize-002.ogg",
+      "bytes": 5148,
+      "git_blob": "4ff80dbb8d19853b8580152105e6e84a62e0a035"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/kenney-interface-pluck-001.ogg",
+      "bytes": 4806,
+      "git_blob": "1eef69ae7e38001373c4859952db0d03da8bebae"
+    },
+    {
+      "path": "skills/sound-effects/sfx/pop/kenney-interface-pluck-002.ogg",
+      "bytes": 5004,
+      "git_blob": "12bb6998898f5900bfe6fb20bc1953fd60635894"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/fs-174363-rewind.ogg",
+      "bytes": 90604,
+      "git_blob": "ef9129634941055eb37dd4bb587ac0a7fe810bff"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/fs-396160-scary-hits-risers-002.ogg",
+      "bytes": 90973,
+      "git_blob": "01b8c3bc52df940301921aa2162f0ed11ec723c5"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/fs-396161-scary-hits-risers-001.ogg",
+      "bytes": 90382,
+      "git_blob": "97cef0adf776fcbcb027314a5555f61d1f514dac"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/fs-464250-echo-chromatic-riser-wav.ogg",
+      "bytes": 91713,
+      "git_blob": "fcfe063c44eff4f159c7d9b7189b4370226338b7"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/fs-685256-riser-sound-effect-short-wav.ogg",
+      "bytes": 32712,
+      "git_blob": "53d4d4a3fe25798b0e8d38013a94c57533c139aa"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/fs867126.ogg",
+      "bytes": 39935,
+      "git_blob": "14abddd070637ff2997c678b065b29190651bb65"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/kenney-digital-phaserup1.ogg",
+      "bytes": 9670,
+      "git_blob": "64fda873236f93daaa947f68892729f75f4da185"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/kenney-digital-phaserup2.ogg",
+      "bytes": 8647,
+      "git_blob": "f605e2788a1fae2ae3ed68982d81cbfeed966500"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/kenney-digital-phaserup3.ogg",
+      "bytes": 9551,
+      "git_blob": "d6a08c335a048a2ca4abc8938dafcff12c729565"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/kenney-digital-powerup1.ogg",
+      "bytes": 10712,
+      "git_blob": "d2c40feab5058ac6492339c32fed7909cf2aa0d3"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/kenney-digital-powerup2.ogg",
+      "bytes": 4937,
+      "git_blob": "5e0f344300166c5595e848f8961c793800f5704a"
+    },
+    {
+      "path": "skills/sound-effects/sfx/riser/kenney-digital-powerup3.ogg",
+      "bytes": 9803,
+      "git_blob": "cc8cab626013dec6feffdfd1941a488e31e2d610"
+    },
+    {
+      "path": "skills/sound-effects/sfx/tick/fs384187.ogg",
+      "bytes": 5867,
+      "git_blob": "25be9305cccf51bdca5983083baf50e052ce4a08"
+    },
+    {
+      "path": "skills/sound-effects/sfx/tick/fs528561.ogg",
+      "bytes": 4451,
+      "git_blob": "8fa1715c2100e87ebec95ac017badf18f0e198a1"
+    },
+    {
+      "path": "skills/sound-effects/sfx/tick/fs721514.ogg",
+      "bytes": 4072,
+      "git_blob": "5ebc046f8a7b6a917ecee6edb78d7553ed210ef1"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/fs-683096-woosh.ogg",
+      "bytes": 21666,
+      "git_blob": "92d972fbd019793e8f34d708c899e3178478256d"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/fs-702773-swipe-wav.ogg",
+      "bytes": 18250,
+      "git_blob": "a0630a23c3d7c92634296ce7db1c7425d44ef994"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/fs-786514-swoosh-v2.ogg",
+      "bytes": 4518,
+      "git_blob": "9f2968328b60cd437a17dd5f36ff3959024fbb68"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/fs-816262-broomstick-whoosh-3-quiet-okm1.ogg",
+      "bytes": 6884,
+      "git_blob": "92c70996f99f1203cd06196f9d4c81cddaf93ae9"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/fs-850347-swipe-various.ogg",
+      "bytes": 44108,
+      "git_blob": "1027f103fc9cee834420449a971ebe272230b1bb"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/fs-856168-cyberpunk-glitch-hologram-tran.ogg",
+      "bytes": 37924,
+      "git_blob": "81601d130b75b8b2767e80f3727f411cd46a60cc"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/kenney-interface-maximize-005.ogg",
+      "bytes": 9334,
+      "git_blob": "18e6b25859cc91792fa01a9b0de215d1978ad26a"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/kenney-interface-maximize-006.ogg",
+      "bytes": 5465,
+      "git_blob": "4ef9cd85d5480aaef228f1e606ca18bd6d0f8b34"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/kenney-interface-minimize-001.ogg",
+      "bytes": 6425,
+      "git_blob": "bdfd89973d19a1bbe2e362f6c27c66bce2c7209f"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/kenney-interface-minimize-002.ogg",
+      "bytes": 5411,
+      "git_blob": "5afb575248934f0ae88b481e4213126b5bf881cb"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/kenney-interface-scroll-001.ogg",
+      "bytes": 14046,
+      "git_blob": "893d49dfb219908dd44df6457ed889c79f3282b3"
+    },
+    {
+      "path": "skills/sound-effects/sfx/transition/kenney-interface-scroll-002.ogg",
+      "bytes": 11642,
+      "git_blob": "a1e18b5405f544ec89402fe24e95b79c59605ca5"
+    },
+    {
+      "path": "skills/sound-effects/sfx/typing/fs-323432-typing.ogg",
+      "bytes": 61078,
+      "git_blob": "3a13e8855621d168b3f25f73fbce0a1af17f986e"
+    },
+    {
+      "path": "skills/sound-effects/sfx/typing/fs-416777-digital-typing-wav.ogg",
+      "bytes": 18236,
+      "git_blob": "ab86f2e73fe922a3b211c81429ecae20135f3649"
+    },
+    {
+      "path": "skills/sound-effects/sfx/typing/fs-447909-keyboard-typing.ogg",
+      "bytes": 49484,
+      "git_blob": "9c3e272b4a5fbde47c8510b33975c4e2b36d6adc"
+    },
+    {
+      "path": "skills/sound-effects/sfx/typing/fs-511418-data-reveal-sound.ogg",
+      "bytes": 44671,
+      "git_blob": "219233020674701bccae6b562510a3f8356d2c89"
+    },
+    {
+      "path": "skills/sound-effects/sfx/typing/fs-79388-keyboard-typing-wav.ogg",
+      "bytes": 68989,
+      "git_blob": "5f52d61a5ec017b59b053320e0abce196a9b3c16"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-digital-pepsound1.ogg",
+      "bytes": 6187,
+      "git_blob": "2a38dc86e165a7bcfb07229eefaa4b2b4b8d3503"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-digital-pepsound2.ogg",
+      "bytes": 6238,
+      "git_blob": "2bd85ceb2edc354552bf68ff7a9bb9b4861f3210"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-digital-pepsound3.ogg",
+      "bytes": 6083,
+      "git_blob": "89823dd23db31dcc20ff3ce88acba4bc418c482d"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-digital-threetone1.ogg",
+      "bytes": 8310,
+      "git_blob": "15c8a33bedd0d4566856eff72aa42510e28b9a89"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-digital-threetone2.ogg",
+      "bytes": 9425,
+      "git_blob": "096ca6d0d10e1ce2d60f1bb755e24adab8ee3fe3"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-digital-twotone1.ogg",
+      "bytes": 7003,
+      "git_blob": "7f6e2e48114ed5e534b860df657ba68e5fb72d88"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-digital-twotone2.ogg",
+      "bytes": 7187,
+      "git_blob": "f06c1d9a31f7f276cd7a679f211f688d8749c72e"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-ui-rollover1.ogg",
+      "bytes": 7351,
+      "git_blob": "c870307f1338e8df329e084c0977aad77edd9b1f"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-ui-rollover2.ogg",
+      "bytes": 5374,
+      "git_blob": "6b78aab980ec3a8e1a232b11db3c7281025b6a89"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-ui-rollover3.ogg",
+      "bytes": 5745,
+      "git_blob": "e1113a6addc4c61886e5b53f8d1f22894054ed66"
+    },
+    {
+      "path": "skills/sound-effects/sfx/ui-blip/kenney-ui-rollover4.ogg",
+      "bytes": 5882,
+      "git_blob": "61fcb427f9802fcaaa116c109c467a4008d18e48"
+    },
+    {
+      "path": "skills/sound-effects/sfx/whoosh/fs-127197-fast-simple-chop-5-aif.ogg",
+      "bytes": 10562,
+      "git_blob": "ca0049917ea3cae75aa5f1c66e4cc4d82925543f"
+    },
+    {
+      "path": "skills/sound-effects/sfx/whoosh/fs-169867-swoosh.ogg",
+      "bytes": 18716,
+      "git_blob": "523a8670a0d49fb69fa73d91117faa36c9766eed"
+    },
+    {
+      "path": "skills/sound-effects/sfx/whoosh/fs-264777-swoosh.ogg",
+      "bytes": 35151,
+      "git_blob": "32c25026511c9cb704ed32ba0d3fe7739c4a37f2"
+    },
+    {
+      "path": "skills/sound-effects/sfx/whoosh/fs-683101-quick-woosh.ogg",
+      "bytes": 8744,
+      "git_blob": "35a4d91574deaeaf7b67a24517f0e492c7b25e6b"
+    },
+    {
+      "path": "skills/sound-effects/sfx/whoosh/fs393811.ogg",
+      "bytes": 5347,
+      "git_blob": "63b018a900de47668221c53d6efcb40958bb8aed"
+    },
+    {
+      "path": "skills/sound-effects/sfx/whoosh/fs810485.ogg",
+      "bytes": 15014,
+      "git_blob": "7b2f01cc90200511ac3b345715adaf87edf29ee9"
+    },
+    {
+      "path": "skills/sound-effects/sfx/whoosh/fs830856.ogg",
+      "bytes": 9884,
+      "git_blob": "1fc764b7d3dfe0cb28894bbac8c908f2e85db6e5"
+    }
+  ]
+}

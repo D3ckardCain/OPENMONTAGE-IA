@@ -1,0 +1,71 @@
+{
+  "issue": 130,
+  "scope": "Isolated HTTP/TestClient and disk-persisted copy of existing Portuguese QA; not resident4750 or audiovisual playback",
+  "copy_root": ".runtime\\qa\\silence130-isolated\\projects\\edit-qa130-pt-silence",
+  "original_project": "edit-qa129-pt-activation",
+  "original_edl_sha256": "574e36f33eee70b55fed79fcd18f36f08ebb2f015be5944b45c52cc2a986753e",
+  "original_unchanged": true,
+  "media": "Existing source hard-linked in isolated copy, same inode; no data duplication/rehash/processing",
+  "media_metadata_unchanged": true,
+  "fixture": "Explicit synthetic interval0..25s, not measured silence and not an ASR-gap acoustic claim",
+  "selected_source_interval": [
+    10.28,
+    10.64
+  ],
+  "removed_frames": [
+    257,
+    266
+  ],
+  "fps": 25,
+  "before_seconds": 22.72,
+  "after_seconds": 22.36,
+  "stored_words": 116,
+  "complete_occurrences_preserved": 106,
+  "cue_texts_preserved": 19,
+  "layers_after": 2,
+  "titles_after": 2,
+  "audio_pieces_after": 2,
+  "markers_after": [
+    {
+      "id": "before",
+      "seconds": 10,
+      "label": "antes"
+    },
+    {
+      "id": "end",
+      "seconds": 10.28,
+      "label": "fin exclusivo"
+    },
+    {
+      "id": "after",
+      "seconds": 10.639999999999999,
+      "label": "después"
+    }
+  ],
+  "undo_exact": true,
+  "redo_exact": true,
+  "reopened_exact": true,
+  "final_revision": 4,
+  "copy_edl_sha256": "1d4d42d9188cc6fb083b8346e603283cbcf839e70dd67d129f94b6968f9b8454",
+  "renders": 0,
+  "model_calls": 0,
+  "studio_restarted": false,
+  "date_utc": "2026-11-26",
+  "tests": {
+    "new_unique_passed": 21,
+    "first_run_passed": 15,
+    "failed_history_case_corrected": true,
+    "new_audio_api_delta_passed": 3,
+    "new_audio_coverage_delta_passed": 1,
+    "previous_approved_suites_repeated": false,
+    "full_suite_run": false,
+    "ci_claimed": false,
+    "new_invalid_nested_proposal_delta_passed": 1
+  },
+  "marker_fix": "Ripple removal bounds from integer cumulative frames instead of float sums",
+  "pending": [
+    "Resident4750 activation",
+    "Panel waveform/review and listening",
+    "Measured acoustic receipt validation, multi-guide, audiovisual export validation"
+  ]
+}

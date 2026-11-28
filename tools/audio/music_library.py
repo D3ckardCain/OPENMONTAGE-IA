@@ -14,6 +14,8 @@ music sources.
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, require_media
+
 import os
 import shutil
 import subprocess
@@ -152,12 +154,12 @@ class MusicLibrary(BaseTool):
     @staticmethod
     def _probe_duration(path: Path) -> Optional[float]:
         """Best-effort track duration via ffprobe; None if unavailable."""
-        if shutil.which("ffprobe") is None:
+        if find_media("ffprobe") is None:
             return None
         try:
             out = subprocess.run(
                 [
-                    "ffprobe",
+                    require_media("ffprobe"),
                     "-v",
                     "error",
                     "-show_entries",

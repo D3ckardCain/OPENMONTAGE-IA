@@ -1,0 +1,27 @@
+{
+  "instance": 4790,
+  "operation": "layer_align",
+  "x": 0.375,
+  "y": 0.375,
+  "svg": {
+    "x": "120",
+    "y": "67.5"
+  },
+  "undo_redo_save_reopen": true,
+  "smooth_map_unchanged": true,
+  "baseline_restored": true,
+  "cached_render_still_current": true,
+  "new_render": false,
+  "new_synthesis": false,
+  "errors": [],
+  "scope": "Real controls and persisted geometry; new aligned AV not rendered",
+  "main4750": false,
+  "new_focused_tests": 11,
+  "filter_graph_proportions": [
+    "16:9",
+    "9:16",
+    "1:1",
+    "4:5"
+  ],
+  "new_AV_alignment_render": false
+}

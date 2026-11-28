@@ -11,7 +11,7 @@ default_checkpoint_policy: guided
 orchestration:
   mode: executive-producer
   skill: pipelines/localization-dub/executive-producer
-  budget_default_usd: 3.00
+  budget_default_usd: 0.00
   max_revisions_per_stage: 3
   max_send_backs: 3
   max_wall_time_minutes: 15
@@ -113,6 +113,7 @@ stages:
       - brief
     produces:
       - asset_manifest
+      - cultural_audio_audit
     required_tools:
       - tts_selector
       - subtitle_gen
@@ -137,6 +138,7 @@ stages:
   - name: edit
     skill: pipelines/localization-dub/edit-director
     required_artifacts_in:
+      - cultural_audio_audit
       - scene_plan
       - asset_manifest
     optional_artifacts_in:
@@ -157,6 +159,7 @@ stages:
   - name: compose
     skill: pipelines/localization-dub/compose-director
     required_artifacts_in:
+      - cultural_audio_audit
       - edit_decisions
       - asset_manifest
     optional_artifacts_in:
@@ -188,6 +191,7 @@ stages:
   - name: publish
     skill: pipelines/localization-dub/publish-director
     required_artifacts_in:
+      - cultural_audio_audit
       - render_report
       - final_review
     optional_artifacts_in:

@@ -1,0 +1,198 @@
+{
+  "issue": 130,
+  "date_utc": "2026-11-26",
+  "phase": "read_only_numeric_proposal",
+  "cost_usd": 0,
+  "studio_restarted": false,
+  "resident_activation_verified": false,
+  "tests": {
+    "new_unique_cases_passed": 23,
+    "initial_run_passed": 20,
+    "initial_run_failed": 1,
+    "delta_failed_case_plus_two_new_passed": 3,
+    "failure_resolution": "Expected24fps count corrected: inward-rounded fast fragment below100ms correctly excluded",
+    "previous_approved_suites_repeated": false,
+    "full_suite_run": false,
+    "ci_claimed": false
+  },
+  "api_scope": "In-process isolated FastAPI/TestClient, not resident4750",
+  "sample_input": {
+    "revision": 0,
+    "set_id": "set",
+    "input_edl_sha256": "711812026b7f3f364c75b1cfb24184aad7e6cce1ae9717c50ad9bd055a049800",
+    "word_data_sha256": "4b04459e39d9d0012a91e90e9a24cc3ab8b312f3c93e78064c172bb900673e66",
+    "analysis": {
+      "source_id": "s",
+      "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "clock": "source_seconds",
+      "method": "synthetic_fixture",
+      "threshold_db": -35,
+      "min_silence_seconds": 0.3,
+      "processed_ranges": [
+        [
+          0,
+          6
+        ]
+      ],
+      "intervals": [
+        [
+          0.5,
+          2.5
+        ]
+      ]
+    }
+  },
+  "sample_output": {
+    "contract": "studio-silence-proposal-v1",
+    "ready_for_review": true,
+    "apply_available": false,
+    "blockers": [],
+    "candidates": [
+      {
+        "id": "c:15:20",
+        "clip_id": "c",
+        "source_id": "s",
+        "source": {
+          "start_seconds": 0.6,
+          "end_seconds": 0.8,
+          "start_rational": [
+            3,
+            5
+          ],
+          "end_rational": [
+            4,
+            5
+          ]
+        },
+        "timeline": {
+          "start_seconds": 0.6,
+          "end_seconds": 0.8,
+          "start_rational": [
+            3,
+            5
+          ],
+          "end_rational": [
+            4,
+            5
+          ]
+        },
+        "frames": [
+          15,
+          20
+        ],
+        "reason": "declared_acoustic_interval_minus_padding_and_stored_words",
+        "reviewed": false,
+        "selected": false
+      },
+      {
+        "id": "c:30:60",
+        "clip_id": "c",
+        "source_id": "s",
+        "source": {
+          "start_seconds": 1.2,
+          "end_seconds": 2.4,
+          "start_rational": [
+            6,
+            5
+          ],
+          "end_rational": [
+            12,
+            5
+          ]
+        },
+        "timeline": {
+          "start_seconds": 1.2,
+          "end_seconds": 2.4,
+          "start_rational": [
+            6,
+            5
+          ],
+          "end_rational": [
+            12,
+            5
+          ]
+        },
+        "frames": [
+          30,
+          60
+        ],
+        "reason": "declared_acoustic_interval_minus_padding_and_stored_words",
+        "reviewed": false,
+        "selected": false
+      }
+    ],
+    "input_edl_sha256": "711812026b7f3f364c75b1cfb24184aad7e6cce1ae9717c50ad9bd055a049800",
+    "word_data_sha256": "4b04459e39d9d0012a91e90e9a24cc3ab8b312f3c93e78064c172bb900673e66",
+    "transcript_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "analysis_sha256": "20914fe0f32c1f7290159f5f5bb7ad70c00114faffcb0eb431cae709686d4b38",
+    "set_id": "set",
+    "source_id": "s",
+    "timebase": {
+      "clock": "frame_quantized_edl",
+      "unit": "seconds",
+      "output_fps": [
+        25,
+        1
+      ],
+      "intervals": "half_open"
+    },
+    "analysis_provenance": {
+      "method": "synthetic_fixture",
+      "clock": "source_seconds",
+      "threshold_db": -35.0,
+      "min_silence_seconds": 0.3,
+      "evidence": "synthetic_not_measured",
+      "processed_ranges": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 6.0,
+          "start_rational": [
+            0,
+            1
+          ],
+          "end_rational": [
+            6,
+            1
+          ]
+        }
+      ],
+      "normalized_intervals": [
+        {
+          "start_seconds": 0.5,
+          "end_seconds": 2.5,
+          "start_rational": [
+            1,
+            2
+          ],
+          "end_rational": [
+            5,
+            2
+          ]
+        }
+      ]
+    },
+    "parameters": {
+      "padding_seconds": 0.1,
+      "word_padding_seconds": 0.08,
+      "min_cut_seconds": 0.1
+    },
+    "source_file_rehashed": false,
+    "media_read": false,
+    "project_modified": false,
+    "warnings": [
+      "Propuesta numérica: no detecta audio, no VAD, no inferencia.",
+      "Palabras ausentes no prueban silencio; se requieren intervalos acústicos explícitos.",
+      "Una sola guía; no comprueba otras voces/pistas ni contexto semántico.",
+      "Aplicación ripple, escucha de límites y revisión sobre waveform aún no disponibles."
+    ]
+  },
+  "preservation": "Temporary fixture manual_edit.json bytes and revision unchanged across API/agent and errors",
+  "limitations": [
+    "No new acoustic measurement/receipt validation or media read",
+    "No UI waveform/listening or audiovisual validation",
+    "Single guide only; multi-guide rejected",
+    "No application/undo/redo claimed because contract never mutates project",
+    "Activation batched with132; no restart"
+  ]
+}

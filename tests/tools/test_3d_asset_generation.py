@@ -65,9 +65,11 @@ def test_fal_cost_matrix_and_input_validation(monkeypatch, tmp_path):
 
 
 def test_blender_doctor_reports_detected_runtime(monkeypatch, tmp_path):
+    from lib import blender_profiles
+    monkeypatch.setattr(blender_profiles,"resolve",lambda profile_id=None:None)
     executable = tmp_path / "blender"
     executable.write_bytes(b"")
-    monkeypatch.setattr(blender_world, "find_blender", lambda: executable)
+    monkeypatch.setattr(blender_world, "find_blender", lambda profile_id=None: executable)
     monkeypatch.setattr(blender_world.subprocess, "run", lambda *args, **kwargs: subprocess.CompletedProcess(
         args=args[0], returncode=0, stdout="OPENMONTAGE_BLENDER=4.5.10 LTS\n", stderr="",
     ))
@@ -77,7 +79,9 @@ def test_blender_doctor_reports_detected_runtime(monkeypatch, tmp_path):
 
 
 def test_blender_doctor_explains_missing_optional_runtime(monkeypatch):
-    monkeypatch.setattr(blender_world, "find_blender", lambda: None)
+    from lib import blender_profiles
+    monkeypatch.setattr(blender_profiles,"resolve",lambda profile_id=None:None)
+    monkeypatch.setattr(blender_world, "find_blender", lambda profile_id=None: None)
     result = BlenderWorld().execute({"operation": "doctor"})
     assert not result.success
     assert "Blender not found" in (result.error or "")

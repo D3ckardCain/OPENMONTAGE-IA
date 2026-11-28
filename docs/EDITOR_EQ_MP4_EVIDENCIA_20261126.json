@@ -1,0 +1,179 @@
+{
+  "scope": "Actual encoded active MP4 versus exact compatible existing bypass; one new export only",
+  "build": {
+    "schema_version": 1,
+    "api_protocol": 1,
+    "revision_kind": "source_sha256_at_import",
+    "resident": {
+      "status": "available",
+      "sha256": "6f0cc4346172ea0176bffd1e1eb3774cfcfb909eb40d8b221d311651dd57bdd8",
+      "files": 46
+    },
+    "disk": {
+      "status": "available",
+      "sha256": "6f0cc4346172ea0176bffd1e1eb3774cfcfb909eb40d8b221d311651dd57bdd8",
+      "files": 46
+    },
+    "ui": {
+      "status": "available",
+      "sha256": "cdb625190e2965d2aec91af9f685ba606b2967d33024160b0ad29ed6d09b189b",
+      "files": 38
+    },
+    "restart_required": false,
+    "pid": 43484,
+    "loaded_at_utc": "2026-11-26T22:04:01.907086+00:00",
+    "editor": {
+      "version": "3.0",
+      "commands": [
+        "audio_processing",
+        "sfx_catalog",
+        "sfx_favorites",
+        "crossfade",
+        "audio_balance",
+        "layer_transform_keyframes",
+        "layer_position_keyframes",
+        "batch",
+        "duplicate",
+        "markers",
+        "flags",
+        "audio_trim_position",
+        "delete_keep_gap",
+        "ripple_delete",
+        "transform",
+        "titles",
+        "output_custom",
+        "audio_mix",
+        "transition",
+        "layers",
+        "clip_candidates",
+        "subtitle_language",
+        "subtitle_words",
+        "subtitle_from_words",
+        "silence_apply",
+        "qwen_tts_plan",
+        "reference_plan",
+        "component_add",
+        "component_remove"
+      ],
+      "render_cancel": true,
+      "shared_revision": true,
+      "silence_proposal": {
+        "contract": "studio-silence-proposal-v1",
+        "read_only": true,
+        "apply_available": true,
+        "apply_command": "silence_apply"
+      },
+      "qwen_preview": {
+        "contract": "qwen-preview-v1",
+        "real_native_worker": true,
+        "cancel_owned_worker": true,
+        "automatic_retry": false
+      },
+      "chatterbox_saved_samples": {
+        "contract": "chatterbox-saved-audio-v1",
+        "playback": true,
+        "generation": false
+      },
+      "api_protocol": 1,
+      "backend_build": "6f0cc4346172ea0176bffd1e1eb3774cfcfb909eb40d8b221d311651dd57bdd8"
+    }
+  },
+  "same_edl_except_bypass_on_one_clip": true,
+  "same_clip_id": "550cf3fe003943faae3493efbfb33026",
+  "source_sha256": "0e29a484700c0eab6223cf7ff3e22fbd430f9efc521516bf7a9be0b592df0379",
+  "same_export_configuration": {
+    "ratio": "custom",
+    "width": 640,
+    "height": 360,
+    "fps": 8,
+    "fit": "pad",
+    "platform": "local",
+    "preset_name": ""
+  },
+  "stream_configuration": {
+    "video": {
+      "codec_name": "h264",
+      "width": 640,
+      "height": 360,
+      "pix_fmt": "yuv420p",
+      "r_frame_rate": "8/1",
+      "nb_read_frames": "32",
+      "duration": "4.000000"
+    },
+    "audio": {
+      "codec_name": "aac",
+      "sample_rate": "48000",
+      "channels": 2,
+      "channel_layout": "stereo",
+      "duration": "4.000000"
+    }
+  },
+  "video_frames_identical": true,
+  "audio_samples_per_channel": 192000,
+  "modified_clip_interval_seconds": [
+    1.0,
+    1.5271875000000001
+  ],
+  "processing": {
+    "bypass": false,
+    "eq": {
+      "bass_db": 6.0,
+      "mid_db": 0.0,
+      "treble_db": -6.0
+    },
+    "compressor": {
+      "enabled": true,
+      "threshold_db": -18.0,
+      "ratio": 4.0,
+      "attack_ms": 5.0,
+      "release_ms": 100.0
+    }
+  },
+  "bypass_levels": {
+    "rms_dbfs": -13.699374360700078,
+    "sample_peak_dbfs": -0.4412368972771438,
+    "samples_above_1": 0
+  },
+  "active_levels": {
+    "rms_dbfs": -13.722373480354902,
+    "sample_peak_dbfs": -0.4412368972771438,
+    "samples_above_1": 0
+  },
+  "modified_interval_levels": {
+    "bypass": {
+      "rms_dbfs": -11.888093549475025,
+      "sample_peak_dbfs": -0.4519751841054923,
+      "samples_above_1": 0
+    },
+    "active": {
+      "rms_dbfs": -11.998301060706089,
+      "sample_peak_dbfs": -0.455575933684761,
+      "samples_above_1": 0
+    }
+  },
+  "change_energy_inside_vs_outside": 252.5202178955078,
+  "bypass_render": {
+    "attempt": "a68576177d9d44cf971862c80e63c266",
+    "sha256": "d98e91889a5c7b638e84e904103bd7da837be5c809cf0370d4605a5a220b072e",
+    "reused": true
+  },
+  "active_render": {
+    "attempt": "817d9d6d37484fee94ee5af39f5b9266",
+    "sha256": "2d135aab9d8d1f53c7d7bdc4537185fc77c92abf4ec269149fca29cb2012dc57",
+    "reused": false
+  },
+  "human_review_folder": "C:\\OPENMONTAGE-IA\\projects\\qa174-eq-ab-review",
+  "main4750_checked": false,
+  "model_staging_checked": false,
+  "human_listening": false,
+  "offline_review_page": {
+    "scope": "Offline A/B page file loading and same-instant switch; no repeated full playback or human listening",
+    "active": {
+      "duration": 4,
+      "time": 1.125,
+      "error": null
+    },
+    "page_errors": [],
+    "human_listening": false
+  }
+}

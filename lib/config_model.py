@@ -26,15 +26,15 @@ class CheckpointPolicy(str, Enum):
 
 
 class LLMConfig(BaseModel):
-    provider: str = "anthropic"
+    provider: str = "ollama"
     model: Optional[str] = None
     temperature: float = 0.7
     max_tokens: int = 4096
 
 
 class BudgetConfig(BaseModel):
-    mode: BudgetMode = BudgetMode.WARN
-    total_usd: float = 10.0
+    mode: BudgetMode = BudgetMode.CAP
+    total_usd: float = 0.0
     reserve_pct: float = 0.10
     single_action_approval_usd: float = 0.50
     require_approval_for_new_paid_tool: bool = True

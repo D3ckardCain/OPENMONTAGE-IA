@@ -1,0 +1,136 @@
+{
+  "scope": "Live HTTP and actual Node UI time arithmetic; NOT browser interaction or listening",
+  "source_project": "edit-827337e03f38",
+  "events": [
+    {
+      "operation": "add",
+      "revision": 3,
+      "edit_sha256": "7a340b30fa57a5481262b90f4ce88e8f41f6c6b2286a375705acd707ae6365a9",
+      "origin": "user"
+    },
+    {
+      "operation": "trim",
+      "revision": 4,
+      "edit_sha256": "b04362b743fbfd5c621fe0ba1ada6f8f6d82dd5d9159b8c62c39b901c995bb5f",
+      "origin": "user"
+    },
+    {
+      "operation": "split",
+      "revision": 5,
+      "edit_sha256": "ae71769d4d8dfd80c4dbc97c90e91fc2dd37014f5fdf4479672238f99776da19",
+      "origin": "agent"
+    },
+    {
+      "operation": "undo",
+      "revision": 6,
+      "edit_sha256": "b04362b743fbfd5c621fe0ba1ada6f8f6d82dd5d9159b8c62c39b901c995bb5f",
+      "origin": "user"
+    },
+    {
+      "operation": "trim",
+      "revision": 7,
+      "edit_sha256": "d581782c330877e971bb0b2024f6f21663fdbb9b7da349e8b47d0a8300adc2b0",
+      "origin": "user"
+    },
+    {
+      "operation": "undo",
+      "revision": 8,
+      "edit_sha256": "b04362b743fbfd5c621fe0ba1ada6f8f6d82dd5d9159b8c62c39b901c995bb5f",
+      "origin": "agent"
+    },
+    {
+      "operation": "add",
+      "revision": 9,
+      "edit_sha256": "95b98acd7061ebb3465ce15bc7478ff49076055539fa7444839033919496512b",
+      "origin": "user"
+    },
+    {
+      "operation": "trim",
+      "revision": 10,
+      "edit_sha256": "45498d8d7263fafbea89033da3328975713f4938df036abf84ed8d1d3e4a4923",
+      "origin": "user"
+    },
+    {
+      "operation": "undo",
+      "revision": 11,
+      "edit_sha256": "95b98acd7061ebb3465ce15bc7478ff49076055539fa7444839033919496512b",
+      "origin": "user"
+    },
+    {
+      "operation": "clip",
+      "revision": 12,
+      "edit_sha256": "2e5d17f35b776759c19767c855ff838bb1dcbe78a3be7bcb8c4aac22e772bf5c",
+      "origin": "user"
+    },
+    {
+      "operation": "split",
+      "revision": 13,
+      "edit_sha256": "cbd777d56687f32a62c3f3edc1bbdf58f917cb8e15a37f63c9fa968b8a222f6a",
+      "origin": "user"
+    },
+    {
+      "operation": "subtitles",
+      "revision": 14,
+      "edit_sha256": "3e9b0085171a6f1254ddc8a46170ef16a7c718d389cfdd009274beac84dbf44a",
+      "origin": "user"
+    },
+    {
+      "operation": "save",
+      "revision": 15,
+      "edit_sha256": "3e9b0085171a6f1254ddc8a46170ef16a7c718d389cfdd009274beac84dbf44a",
+      "origin": "user"
+    }
+  ],
+  "restart": false,
+  "project_id": "edit-173e7bc16d1e",
+  "persistence_and_undo": "passed; user/agent share one revisioned EDL",
+  "source_project_unchanged": true,
+  "status": "passed",
+  "render": {
+    "revision": 15,
+    "edit_sha256": "3e9b0085171a6f1254ddc8a46170ef16a7c718d389cfdd009274beac84dbf44a",
+    "sha256": "43497756e06c7bde7455f35f39be955d36e5238fef50c3a0e70c07302bd802d3",
+    "duration": 60.0,
+    "path": "assets/editor-renders/0f6062d090b5492e9fcf19b6c1c6dcc9/montage.mp4"
+  },
+  "full_decode_passed": true,
+  "streams": [
+    {
+      "codec_type": "video",
+      "codec_name": "h264",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "codec_type": "audio",
+      "codec_name": "aac"
+    },
+    {
+      "codec_type": "subtitle",
+      "codec_name": "mov_text"
+    }
+  ],
+  "audio_window_rms": 0.04952277175909735,
+  "browser_playback": "not observed",
+  "listening": "not performed",
+  "sample_frame_check": {
+    "output_time": 20.5,
+    "source_time": 30.5,
+    "rgb_mae_0_255": 0.999224537037037,
+    "files": [
+      "assets/timeline-evidence/output-20_5.png",
+      "assets/timeline-evidence/source-30_5.png"
+    ],
+    "scope": "Rendered-file samples, not browser/window observation or exhaustive visual quality"
+  },
+  "audio_window_check": {
+    "output_time": 2.5,
+    "source_audio_time": 0.5,
+    "seconds": 0.5,
+    "base_video_rms": 0.014391156319943492,
+    "external_source_rms": 0.17584956499002447,
+    "output_to_source_ratio": 0.2816200981896467,
+    "configured_gain": 0.25,
+    "scope": "Numerical RMS window only; NOT listening or whole-output sync approval"
+  }
+}

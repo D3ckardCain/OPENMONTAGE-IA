@@ -415,3 +415,21 @@ When the user provides multiple reference URLs:
 
 Never silently skip analysis steps. If something fails, tell the user what happened
 and what the impact is on the analysis quality.
+
+## OPENMONTAGE-IA: original contribution review before proposal
+
+Before proposing a production from any third-party reference, follow
+`docs/PLAN_ORIGINALIDAD_ES.md`. Produce the per-video evidence and decision matrix:
+verified facts and independent sources; observed narrative techniques; our concrete
+viewer benefit; a new angle/outline/script; original or authorized visual assets;
+and a cultural/audio plan per language. Populate
+`replication_guidance.creative_differentiation_seeds` with substantive contributions,
+not only colors, positions, subtitles or translation. Record approved choices in
+`decision_log`. Existing schemas and production checkpoints remain in force.
+
+A reviewer must return insufficiently differentiated or unsupported proposals for
+revision. Do not certify legality or monetization, promise undetectability, or
+claim to have analyzed material that was not actually accessible. Analysis of a
+successful reference is evidence about its content, not proof that copying it
+reproduces its performance. This is an agent instruction, not a Python creative
+reviewer or automatic monetization detector.

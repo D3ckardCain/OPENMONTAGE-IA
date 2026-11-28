@@ -1,0 +1,56 @@
+# Activación pendiente #174 — bloqueo de política, 26 noviembre 2026
+
+La política de ejecución rechazó el comando que detenía exclusivamente Studio PID153088 en4750 y lo arrancaba desde `C:\OPENMONTAGE-IA\.venv`. Mensaje disponible: `blocked by policy`, sin razón adicional. La acción no se ejecutó; no se intentó otra vía. El servidor QA4766 ya está cerrado. El inventario y la recuperación de hashes ya terminaron; no se deben relanzar. Conserva las descargas y otros trabajos activos.
+
+Antes del rechazo: worker inactivo, tarea local inactiva, cola pausada sin elementos. Se guardaron224 JSON de proyectos/configuración en una copia privada. El paquete se amplió después y debe activarse **una sola vez completo**, no por cada commit: sourceSHA256 esperado `3917d3e25e8be62076c312b999b9ac38d9b501b278b6c54955f85befd2e02f96`,59archivos; capabilities `layer_position_keyframes`, `layer_transform_keyframes`, `audio_balance`, `crossfade`, `sfx_catalog`/`sfx_favorites` y `audio_processing`, `track_mixer`, `audio_ducking`, `mix_meter`, `track_volume_points`, `ripple_volume_points`. La identidad UI se informa por separado. Las comprobaciones de trabajos deben ser actuales antes de ejecutar el bloque manual.
+
+## Paso manual exacto
+
+En PowerShell normal, ejecuta este bloque. Hace comprobaciones actuales, rechaza un propietario inesperado y detiene únicamente el servidor confirmado de4750. El último comando deja Studio en esa consola. No detengas otras consolas ni el proceso de hashes.
+
+```powershell
+Set-Location C:\OPENMONTAGE-IA
+$studioIdentity = Invoke-RestMethod http://127.0.0.1:4750/api/studio/identity -TimeoutSec 10
+$studioWork = Invoke-RestMethod http://127.0.0.1:4750/api/studio/queue/inspect -TimeoutSec 10
+$studioQueue = Invoke-RestMethod http://127.0.0.1:4750/api/studio/queue -TimeoutSec 10
+if (-not $studioIdentity.restart_required) { throw 'La instancia ya está actualizada; no reiniciar.' }
+if ($studioWork.worker_active -or $studioWork.local_task_active -or @($studioQueue.items | Where-Object { $_.status -in @('running','starting') }).Count) { throw 'Hay trabajo activo; conservar Studio.' }
+$studioListener = Get-NetTCPConnection -LocalPort 4750 -State Listen
+if ($studioListener.OwningProcess -ne $studioIdentity.pid) { throw 'La identidad no coincide con el propietario del puerto.' }
+$studioOwner = Get-CimInstance Win32_Process -Filter "ProcessId=$($studioListener.OwningProcess)"
+if ($studioOwner.CommandLine -notlike '*-m backlot serve --port 4750*') { throw 'Propietario inesperado; no detener.' }
+Stop-Process -Id $studioListener.OwningProcess
+& .\.venv\Scripts\python.exe -B -m backlot serve --port 4750
+```
+
+Después, en otra consola, comprobación de solo lectura:
+
+Recarga también la pestaña de Studio una vez (Ctrl+F5) para cargar los módulos del panel actualizado. El inventario/hashes ya están terminados y no necesitan otro reinicio ni repetición.
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:4750/api/health -TimeoutSec 10
+Invoke-RestMethod http://127.0.0.1:4750/api/studio/identity -TimeoutSec 10
+Invoke-RestMethod http://127.0.0.1:4750/api/studio/editor/capabilities -TimeoutSec 10
+```
+
+Debe aparecer saludOK, `restart_required:false`, el sourceSHA256 esperado y las capabilities agrupadas. Eso acredita activación de backend, no escucha humana ni nueva exportación. No repetir las pruebas, renders o ciclos QA ya aprobados; solo comprobar presencia y funcionamiento pendiente en el panel principal con una copia.
+
+La confirmacion del reinicio manual sigue pendiente: no ejecutar este bloque automaticamente ni consultar4750 antes de esa confirmacion. Entregas nuevas y evidencia: [mezclador exportado](EDITOR_MEZCLADOR_EXPORT_ES.md), [ducking](EDITOR_DUCKING_ES.md). Identidad UI actual esperada: `20b418c050533bc2420f1f1351cf97d6b8bab891b052385cef447c69be88de94`,50archivos. Las ocho descargas requieren otra confirmacion independiente; conservar Wan VACE Low valido.
+
+La medicion persistente tambien forma parte de esta activacion agrupada: [uso y evidencia](EDITOR_MEDICION_MEZCLA_FINAL_ES.md). Se preserva el medidor mono previo del reproductor. No repetir el ensayo MP4 de ducking ya aprobado.
+
+Automatizacion de volumen tambien agrupada, sin reinicio adicional: [manual y validacion codificada](EDITOR_AUTOMATIZACION_VOLUMEN_ES.md). No repetir ducking/medicion ni la salida de subida/bajada ya aprobada.
+
+Incluye ahora [ripple opcional de puntos](EDITOR_VOLUMEN_RIPPLE_ES.md), desactivado por defecto. Se mantiene una sola activacion tras confirmacion manual, sin repetir renders.
+
+Incluye lectura y zona segura de subtitulos, capabilities subtitle_layout/subtitle_reflow. Sigue pendiente confirmacion del reinicio, no se consulta4750 ahora.
+
+Se suma subtitle_karaoke, sin reinicio adicional: revisar datos guardados y formato ASS/quemado; seleccionable no promete resaltado.
+
+Se agrupan color SDR, comparación/histograma del mismo fotograma y curvas PCHIP: capabilities clip_color/color_compare/clip_color_curves. Manual EDITOR_COLOR_SDR_ES.md. Tras confirmación, comprobar controles y estado en copia, sin repetir exportaciones nuevas ya acreditadas. El diálogo de comparación y gráficos se desplazan dentro del inspector. Naturalidad/escucha y la muestra española107 siguen pendientes.
+
+Velocidad escalonada también agrupada: clip_speed_ramp/speed_ramp_plan. Revisar y aplicar solo en copia tras confirmación; no repetir MP4 ni los10 casos focalizados. Rampas suaves y edición del grupo de tramos completo siguen pendientes; manual EDITOR_VELOCIDAD_ESCALONADA_ES.md.
+
+Rampa continua agrupada: clip_smooth_speed/smooth_speed_plan, un mapa compartido; modo preparado cambia el tono y exige confirmación explícita en el control. Tras reinicio confirmado comprobar presencia/operación en copia sin repetir el MP4de92frames ya acreditado. Manual EDITOR_VELOCIDAD_CONTINUA_ES.md; mantener escucha humana y #168 pendientes.
+
+Alineación de capa estática agrupada también, capability layer_align. Tras confirmar reinicio, comprobar selección/ejes/márgenes/undo en copia, sin repetir la exportación de rampas ni las11pruebas. Guía geométrica no equivale a revisiónAV; manual EDITOR_ALINEACION_CAPAS_ES.md.

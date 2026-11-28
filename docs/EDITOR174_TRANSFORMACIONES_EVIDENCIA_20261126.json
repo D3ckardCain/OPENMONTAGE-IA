@@ -1,0 +1,311 @@
+{
+  "contract": "layer-transform-curves-v1",
+  "new_unique_tests_passed": 14,
+  "previous_tests_repeated": false,
+  "ci_repeated": false,
+  "real_ui": {
+    "base": "http://127.0.0.1:4766",
+    "project": "edit-65bae2512c9e",
+    "real_api": true,
+    "real_panel": true,
+    "curves": {
+      "clock": "source_seconds",
+      "curves": {
+        "scale": [
+          {
+            "seconds": 0,
+            "value": 0.5,
+            "interpolation": "linear"
+          },
+          {
+            "seconds": 4,
+            "value": 1.5,
+            "interpolation": "linear"
+          }
+        ],
+        "rotation": [
+          {
+            "seconds": 0,
+            "value": 0,
+            "interpolation": "smooth"
+          },
+          {
+            "seconds": 4,
+            "value": 90,
+            "interpolation": "linear"
+          }
+        ],
+        "opacity": [
+          {
+            "seconds": 0,
+            "value": 0,
+            "interpolation": "bezier",
+            "control_points": [
+              0.42,
+              0.15,
+              0.58,
+              0.85
+            ]
+          },
+          {
+            "seconds": 4,
+            "value": 1,
+            "interpolation": "linear"
+          }
+        ]
+      }
+    },
+    "bezier_handle_dragged": true,
+    "undo_redo": true,
+    "save_reopen": true,
+    "unsaved_draft_preserved_without_server_write": true,
+    "renders": {
+      "preview": {
+        "status": "completed",
+        "attempt": "edc03e2a9c9349fb83cbd55855b2d759",
+        "revision": 17,
+        "origin": "user",
+        "edit_sha256": "175fadd8229edc7b6c8a948504016adde2eea3845394c786725600f0542abefb",
+        "render_sha256": "10ab7cac91f658314ca458fc1f2d7c33255e81bcaec5d62ae0f1ff1059e89c7e",
+        "render_contract": "timeline-v3",
+        "preview": true,
+        "started_at": "2026-11-26T16:11:04.137779+00:00",
+        "width": 960,
+        "height": 540,
+        "completed_at": "2026-11-26T16:11:43.857355+00:00",
+        "path": "assets/editor-renders/edc03e2a9c9349fb83cbd55855b2d759/montage.mp4",
+        "url": "/media/edit-65bae2512c9e/assets/editor-renders/edc03e2a9c9349fb83cbd55855b2d759/montage.mp4",
+        "sha256": "cb3a9f82140b2fc97b89a3f08ebe5225f5e428c08e38b41027cb063165c34532",
+        "bytes": 174469,
+        "duration": 4,
+        "subtitle_mode": "mov_text",
+        "source_sha256": {
+          "6d5be9d998b44e9bbe247bdca994fb60": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683"
+        },
+        "current": true
+      },
+      "export": {
+        "status": "completed",
+        "attempt": "7dd9eb98cb1e40caae658f18af3427b3",
+        "revision": 17,
+        "origin": "user",
+        "edit_sha256": "175fadd8229edc7b6c8a948504016adde2eea3845394c786725600f0542abefb",
+        "render_sha256": "10ab7cac91f658314ca458fc1f2d7c33255e81bcaec5d62ae0f1ff1059e89c7e",
+        "render_contract": "timeline-v3",
+        "preview": false,
+        "started_at": "2026-11-26T16:11:44.363963+00:00",
+        "width": 1280,
+        "height": 720,
+        "completed_at": "2026-11-26T16:11:44.774476+00:00",
+        "path": "assets/editor-renders/7dd9eb98cb1e40caae658f18af3427b3/montage.mp4",
+        "url": "/media/edit-65bae2512c9e/assets/editor-renders/7dd9eb98cb1e40caae658f18af3427b3/montage.mp4",
+        "sha256": "4518a7985f3bda0b9dee3cae69a76e266c3ed29a9f5b37790344a9b35c877159",
+        "bytes": 205991,
+        "duration": 4,
+        "subtitle_mode": "mov_text",
+        "source_sha256": {
+          "6d5be9d998b44e9bbe247bdca994fb60": "7002df57de36fc99ee37b6d9a0de9f9b1b69d8e0bb1ee31ba2befe6f692f8683"
+        },
+        "current": true
+      }
+    },
+    "errors": [],
+    "main4750_untouched": true,
+    "new_synthesis": false,
+    "human_listening": false
+  },
+  "equivalence": {
+    "success": true,
+    "preview_size": [
+      960,
+      540
+    ],
+    "export_size": [
+      1280,
+      720
+    ],
+    "frames": 32,
+    "duration_seconds": 4,
+    "ssim_mean": 0.997245875,
+    "ssim_min": 0.984785,
+    "predeclared_ssim_thresholds": {
+      "mean": 0.98,
+      "minimum": 0.97
+    },
+    "audio_decoded_identical": true,
+    "audio": {
+      "preview": {
+        "bytes": 1536000,
+        "sha256": "469f580e9bda14f64e2251ec4c117be8e9b1cb0a9e2a930fd5d069e7307dfd48"
+      },
+      "export": {
+        "bytes": 1536000,
+        "sha256": "469f580e9bda14f64e2251ec4c117be8e9b1cb0a9e2a930fd5d069e7307dfd48"
+      }
+    },
+    "subtitle_text_and_times_identical": true,
+    "subtitles": "1\n00:00:00,250 --> 00:00:01,500\nTeste sintÃƒÂ©tico de curvas.\n\n2\n00:00:01,750 --> 00:00:03,750\nEscala, giro e transparÃƒÂªncia.\n\n",
+    "rotation_opacity_commands_identical": true,
+    "geometry": "Same source clock and curves; even-dimension raster rounding can accumulate at larger scales. Different resolutions are not bit-identical. SSIM proves the tested sample only.",
+    "new_renders": 2,
+    "approved_old_renders_repeated": false,
+    "human_listening": false
+  },
+  "playback": {
+    "scope": "Real exported/preview media, native Chrome video element; Studio curve controls tested separately",
+    "proof": [
+      {
+        "name": "preview",
+        "duration": 4,
+        "time": 0.258297,
+        "width": 960,
+        "height": 540,
+        "decoded_frames": 6,
+        "error": null
+      },
+      {
+        "name": "export",
+        "duration": 4,
+        "time": 0.257197,
+        "width": 1280,
+        "height": 720,
+        "decoded_frames": 6,
+        "error": null
+      }
+    ],
+    "new_render": false,
+    "human_listening": false
+  },
+  "synthetic_filter": {
+    "success": true,
+    "frames": 24,
+    "source": "Own synthetic colors",
+    "samples": [
+      {
+        "t": 0.0,
+        "expected": {
+          "x": 0.5,
+          "y": 0.25,
+          "scale": 0.5,
+          "rotation": 0,
+          "opacity": 0.0
+        },
+        "red_pixels": 0
+      },
+      {
+        "t": 0.5,
+        "expected": {
+          "x": 0.5,
+          "y": 0.25,
+          "scale": 0.75,
+          "rotation": 22.5,
+          "opacity": 0.408510569698647
+        },
+        "red_pixels": 0
+      },
+      {
+        "t": 1.0,
+        "expected": {
+          "x": 0.5,
+          "y": 0.25,
+          "scale": 1.0,
+          "rotation": 45.0,
+          "opacity": 0.8024033590617052
+        },
+        "red_pixels": 3532,
+        "x": 156,
+        "y": 24,
+        "width": 86,
+        "height": 86
+      },
+      {
+        "t": 2.0,
+        "expected": {
+          "x": 0.5,
+          "y": 0.25,
+          "scale": 1.5,
+          "rotation": 90,
+          "opacity": 1
+        },
+        "red_pixels": 7788,
+        "x": 166,
+        "y": 8,
+        "width": 66,
+        "height": 118
+      },
+      {
+        "t": 2.875,
+        "expected": {
+          "x": 0.5,
+          "y": 0.25,
+          "scale": 1.5,
+          "rotation": 90,
+          "opacity": 1
+        },
+        "red_pixels": 7788,
+        "x": 166,
+        "y": 8,
+        "width": 66,
+        "height": 118
+      }
+    ],
+    "alpha_zero_checked": true,
+    "scale_rotation_final_geometry_checked": true,
+    "graph": "[1:v]format=rgba,format=rgba,sendcmd=f=keyframes-layer0.txt,scale@kfscale0=w=40:h=22:eval=frame,setsar=1,pad=138:138:(ow-iw)/2:(oh-ih)/2:color=0x00000000:eval=frame,rotate@kfrotate0=angle=0.0:ow=138:oh=138:fillcolor=none,colorchannelmixer@kfalpha0=aa=0.0[ly];[0:v][ly]overlay@kfoverlay0=x=131.0:y=-2.0:eof_action=pass:repeatlast=0,format=rgb24[out]",
+    "black_border_pixels_at_samples": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "center_color_alpha_samples": [
+      {
+        "t": 0.0,
+        "center_rgb": [
+          0,
+          0,
+          254
+        ]
+      },
+      {
+        "t": 0.5,
+        "center_rgb": [
+          102,
+          0,
+          149
+        ]
+      },
+      {
+        "t": 1.0,
+        "center_rgb": [
+          203,
+          0,
+          47
+        ]
+      },
+      {
+        "t": 2.0,
+        "center_rgb": [
+          252,
+          0,
+          0
+        ]
+      },
+      {
+        "t": 2.875,
+        "center_rgb": [
+          252,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "main_activation": "Grouped pending; previous restart policy rejection not bypassed; main4750 unchanged",
+  "backend_expected": {
+    "sha256": "bdb481c5d7a4728257f3808076236a155c920685c9709055a926d21dd1e1eaaa",
+    "files": 41
+  },
+  "human_listening": false
+}

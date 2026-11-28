@@ -531,6 +531,20 @@ class BaseTool(ABC):
             "capabilities": self.capabilities,
             "input_schema": self.input_schema,
             "output_schema": self.output_schema,
+            "preconditions": {
+                "dependencies": list(self.dependencies),
+                "required_agent_skills": list(self.agent_skills),
+                "requires_project_output_path": any(
+                    key in self.input_schema.get("properties", {}) for key in ("output_path", "output_dir")
+                ),
+                "publish_tier": self.tier == ToolTier.PUBLISH,
+            },
+            "retry_policy": {
+                "max_retries": self.retry_policy.max_retries,
+                "backoff_seconds": self.retry_policy.backoff_seconds,
+                "retryable_errors": list(self.retry_policy.retryable_errors),
+            },
+            "idempotency_key_fields": list(self.idempotency_key_fields),
             "artifact_schema": self.artifact_schema,
             "supports": self.supports,
             "best_for": self.best_for,
@@ -636,6 +650,7 @@ class BaseTool(ABC):
         *,
         timeout: Optional[int] = None,
         cwd: Optional[Path] = None,
+        env: Optional[dict[str, str]] = None,
     ) -> subprocess.CompletedProcess:
         """Run a subprocess command with standard error handling.
 
@@ -660,6 +675,7 @@ class BaseTool(ABC):
                 errors="replace",
                 timeout=timeout,
                 cwd=cwd,
+                env=env,
                 check=True,
             )
         except subprocess.CalledProcessError as exc:

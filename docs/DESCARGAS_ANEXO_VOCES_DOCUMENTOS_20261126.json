@@ -1,0 +1,497 @@
+{
+  "scope": "Additional already-approved regional Chatterbox/Turbo resources and saved provenance documents outside the595-row base. No model bytes reread.",
+  "timestamp": 1795721713.8275845,
+  "files": [
+    {
+      "path": "F:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\diffusion_models\\flux-klein-4b-LICENSE.md\\LICENSE.md",
+      "identity": [
+        4101616990,
+        4503599627372981,
+        9584,
+        1795531470182910600,
+        1795531470164906300
+      ],
+      "bytes": 9584,
+      "sha256": "ca02bc51900ab07789d1b70283329e7137f5af98f5161c23a1c81fc38a4af1fe",
+      "git_blob_sha1": "0afa7632c1a195ea6627a3c53e6ebf18d1be3aa5",
+      "structure": null,
+      "references": [],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "E:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\diffusion_models\\flux-klein-4b-LICENSE.md\\LICENSE.md"
+      ],
+      "cache_source": ".runtime\\three_models_sha256_cache.json"
+    },
+    {
+      "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\VOICES.md\\VOICES.md",
+      "identity": [
+        2728866502,
+        562949953672027,
+        7625,
+        1795531585274801800,
+        1795531585273802300
+      ],
+      "bytes": 7625,
+      "sha256": "ec7e4941ad7e194af61e3455928528a9ff5360c7c505e412efab27d6a69ea106",
+      "git_blob_sha1": "ed78a806ffa121525449a848624600eae34037c7",
+      "structure": null,
+      "references": [],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\hexgrad--Kokoro-82M\\VOICES.md\\VOICES.md"
+      ],
+      "cache_source": ".runtime\\three_models_sha256_cache.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\t3_es_mx_latam.safetensors",
+      "identity": [
+        314632661,
+        14355223812744696,
+        2143990280,
+        1795697428990765400,
+        1795696031918960600
+      ],
+      "bytes": 2143990280,
+      "sha256": "c66c4517f11c2b35a56e28615c0689deb864cbc411e329552223bbd0a6a063f8",
+      "git_blob_sha1": null,
+      "structure": null,
+      "references": [
+        {
+          "repo": "ResembleAI/Chatterbox-Multilingual-es-mx-latam",
+          "revision": "27e595bf2fe7be0533ca299d9afafcde08b7cca7",
+          "path": "t3_es_mx_latam.safetensors",
+          "official_sha256": "c66c4517f11c2b35a56e28615c0689deb864cbc411e329552223bbd0a6a063f8",
+          "official_git_blob": "76b233f8a390bc90c3c9d41f75ee71ee98772fcc",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\t3_es_mx_latam.safetensors"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\s3gen_v3.safetensors",
+      "identity": [
+        314632661,
+        3659174698015280,
+        1056381804,
+        1795698053091838500,
+        1795697429744580600
+      ],
+      "bytes": 1056381804,
+      "sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
+      "git_blob_sha1": "84180e9099c00f2d0dad86999fe4af317b00e7ca",
+      "structure": null,
+      "references": [
+        {
+          "repo": "ResembleAI/Chatterbox-Multilingual-es-mx-latam",
+          "revision": "27e595bf2fe7be0533ca299d9afafcde08b7cca7",
+          "path": "s3gen_v3.safetensors",
+          "official_sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
+          "official_git_blob": "da4e499e980f32d2cf87615a8b71711dcca1cc68",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\s3gen_v3.safetensors"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\grapheme_mtl_merged_expanded_v1.json",
+      "identity": [
+        314632661,
+        63613344737349732,
+        69989,
+        1795698053099539000,
+        1795698053098289800
+      ],
+      "bytes": 69989,
+      "sha256": "69632f47220a788a52ce2661d096453c5655e9bf25289d89a8d832c46ee07dbf",
+      "git_blob_sha1": "d27fb3f2fd38ca39b7bbfbf83a13b3c617e551df",
+      "structure": null,
+      "references": [
+        {
+          "repo": "ResembleAI/Chatterbox-Multilingual-es-mx-latam",
+          "revision": "27e595bf2fe7be0533ca299d9afafcde08b7cca7",
+          "path": "grapheme_mtl_merged_expanded_v1.json",
+          "official_sha256": null,
+          "official_git_blob": "d27fb3f2fd38ca39b7bbfbf83a13b3c617e551df",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\grapheme_mtl_merged_expanded_v1.json"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-es\\t3_es_es.safetensors",
+      "identity": [
+        314632661,
+        3659174698287926,
+        2143990264,
+        1795699434422451400,
+        1795698053564786400
+      ],
+      "bytes": 2143990264,
+      "sha256": "d85844b13ea8cb45e95b8d84a55bcfeccb2d743035cf304ee3d778fc6be39546",
+      "git_blob_sha1": "ee306828e01050cc99df98542280e2003ead22e5",
+      "structure": {
+        "kind": "safetensors_bounded_header_shapes_types_offsets",
+        "header_bytes": 33264,
+        "tensors": 292,
+        "valid": true,
+        "weights_loaded": false
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/Chatterbox-Multilingual-es-es",
+          "revision": "7262b364e3222ba9446c9289e7485eadc47ed902",
+          "path": "t3_es_es.safetensors",
+          "official_sha256": "d85844b13ea8cb45e95b8d84a55bcfeccb2d743035cf304ee3d778fc6be39546",
+          "official_git_blob": "59a620f8bca5920768888a20bd27cd1504a6439c",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-es\\t3_es_es.safetensors"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\added_tokens.json",
+      "identity": [
+        314632661,
+        6192449488411053,
+        418,
+        1795696482186367900,
+        1795696482185369000
+      ],
+      "bytes": 418,
+      "sha256": "72e4ab6acb0d9309ac3df4b526ae5fd80a2da5bc5ab7bb02d85096a374f69193",
+      "git_blob_sha1": "fd85325cdfafc690469b6f0e8aeb5cf4649c1450",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "added_tokens.json",
+          "official_sha256": null,
+          "official_git_blob": "fd85325cdfafc690469b6f0e8aeb5cf4649c1450",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\added_tokens.json"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\conds.pt",
+      "identity": [
+        314632661,
+        4785074604857800,
+        169454,
+        1795696459647937800,
+        1795696459644936800
+      ],
+      "bytes": 169454,
+      "sha256": "b1852099306fd6a7814eb9d0bd10186caba7249596cc23868f78a0eefbfa5033",
+      "git_blob_sha1": "a964eae3a92cdcde11e6f7c52befc6dd60f16949",
+      "structure": {
+        "kind": "pytorch_zip_directory_only",
+        "entries": 11,
+        "valid": true,
+        "pickle_executed": false,
+        "tensors_loaded": false
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "conds.pt",
+          "official_sha256": "b1852099306fd6a7814eb9d0bd10186caba7249596cc23868f78a0eefbfa5033",
+          "official_git_blob": "a7f5dfc71c3a2cb450ef4fbda5a0a52c8d6102fe",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\conds.pt"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\special_tokens_map.json",
+      "identity": [
+        314632661,
+        29554872555115417,
+        470,
+        1795696473891627600,
+        1795696473889627200
+      ],
+      "bytes": 470,
+      "sha256": "92ba8063bf40aa163eadebbfe0de07c2aebe44cf0d4a9e8726580b0781fd2640",
+      "git_blob_sha1": "b2d2dbc845800c78fe98656af927d831ab4ff7b7",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "special_tokens_map.json",
+          "official_sha256": null,
+          "official_git_blob": "b2d2dbc845800c78fe98656af927d831ab4ff7b7",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\special_tokens_map.json"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\ve.safetensors",
+      "identity": [
+        314632661,
+        11540474045913496,
+        5695784,
+        1795696458025713800,
+        1795696452589417300
+      ],
+      "bytes": 5695784,
+      "sha256": "f0921cab452fa278bc25cd23ffd59d36f816d7dc5181dd1bef9751a7fb61f63c",
+      "git_blob_sha1": "a7668eb5f177299bd39acac77a31ace5395bfb38",
+      "structure": {
+        "kind": "safetensors_bounded_header_shapes_types_offsets",
+        "header_bytes": 1304,
+        "tensors": 16,
+        "valid": true,
+        "weights_loaded": false
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "ve.safetensors",
+          "official_sha256": "f0921cab452fa278bc25cd23ffd59d36f816d7dc5181dd1bef9751a7fb61f63c",
+          "official_git_blob": "0713f1587e627f23d93121e154a7de490d549dfb",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\ve.safetensors"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\merges.txt",
+      "identity": [
+        314632661,
+        1407374884682377,
+        456318,
+        1795703342669165400,
+        1795703342470713800
+      ],
+      "bytes": 456318,
+      "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+      "git_blob_sha1": "226b0752cac7789c48f0cb3ec53eda48b7be36cc",
+      "structure": {
+        "kind": "official_hash_only",
+        "semantic_validation": false
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "merges.txt",
+          "official_sha256": null,
+          "official_git_blob": "226b0752cac7789c48f0cb3ec53eda48b7be36cc",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\merges.txt"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\s3gen_meanflow.safetensors",
+      "identity": [
+        314632661,
+        9851624185951242,
+        1064875036,
+        1795703342202828500,
+        1795703048905622600
+      ],
+      "bytes": 1064875036,
+      "sha256": "d65cb687a2ed581ee6cc297e919ffefa63386944f42364ae13b78a594945514f",
+      "git_blob_sha1": "d3dfe12ae77a893188c8f84db78996d8963d16d2",
+      "structure": {
+        "kind": "safetensors_bounded_header_shapes_types_offsets",
+        "header_bytes": 317160,
+        "tensors": 2491,
+        "valid": true,
+        "weights_loaded": false
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "s3gen_meanflow.safetensors",
+          "official_sha256": "d65cb687a2ed581ee6cc297e919ffefa63386944f42364ae13b78a594945514f",
+          "official_git_blob": "f6cfa2a96f3ac1f6c65f371c42b856c16409fe12",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\s3gen_meanflow.safetensors"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\t3_turbo_v1.safetensors",
+      "identity": [
+        314632661,
+        281474977917159,
+        1915480052,
+        1795703048231765300,
+        1795702558255841000
+      ],
+      "bytes": 1915480052,
+      "sha256": "fcf1f8c1d651bb7e3acd69ee5be269b4ac10c02980b7708213d598bc9f7cdf87",
+      "git_blob_sha1": "30619153076976901790d73cf284e0961ed16e03",
+      "structure": {
+        "kind": "safetensors_bounded_header_shapes_types_offsets",
+        "header_bytes": 29024,
+        "tensors": 299,
+        "valid": true,
+        "weights_loaded": false
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "t3_turbo_v1.safetensors",
+          "official_sha256": "fcf1f8c1d651bb7e3acd69ee5be269b4ac10c02980b7708213d598bc9f7cdf87",
+          "official_git_blob": "d25802c72273ca6e1f776a85b7cd7b042e1c3247",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\t3_turbo_v1.safetensors"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\tokenizer_config.json",
+      "identity": [
+        314632661,
+        9851624185913601,
+        3878,
+        1795703342209483600,
+        1795703342208479000
+      ],
+      "bytes": 3878,
+      "sha256": "bca16a2ac1ddbd78b8d6228f0031884cc74b6ea54b967d6f6d2ebae9ccde23e6",
+      "git_blob_sha1": "58bc759ea7dab3dd5442f0500e493f170eeba67f",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "tokenizer_config.json",
+          "official_sha256": null,
+          "official_git_blob": "58bc759ea7dab3dd5442f0500e493f170eeba67f",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\tokenizer_config.json"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    },
+    {
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\vocab.json",
+      "identity": [
+        314632661,
+        7881299349104459,
+        999186,
+        1795703343047778800,
+        1795703342944812600
+      ],
+      "bytes": 999186,
+      "sha256": "f6bd25a65e4e63ca31360e9fb11c7e4f9a391a78385d640acd814092dd6eee4f",
+      "git_blob_sha1": "a15dd0028acd1dd2c1c2394c80e1de8f3f12a0e4",
+      "structure": {
+        "kind": "json",
+        "valid": true
+      },
+      "references": [
+        {
+          "repo": "ResembleAI/chatterbox-turbo",
+          "revision": "749d1c1a46eb10492095d68fbcf55691ccf137cd",
+          "path": "vocab.json",
+          "official_sha256": null,
+          "official_git_blob": "a15dd0028acd1dd2c1c2394c80e1de8f3f12a0e4",
+          "matches": true
+        }
+      ],
+      "status": "previous_approved_cache_reused_identity_valid",
+      "new_model_read": false,
+      "previous_paths": [
+        "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox-turbo\\vocab.json"
+      ],
+      "cache_source": ".runtime\\voice-resources\\verified-files.json"
+    }
+  ],
+  "historical_aliases": [
+    {
+      "paths": [
+        "D:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\qwen_3_4b.safetensors"
+      ],
+      "status": "Historical cache identity not in current snapshot; not an outstanding download"
+    }
+  ],
+  "total_additional_paths": 15,
+  "new_hashes": 0,
+  "turbo_functional": "Still blocked: no authorized synthetic reference>5s found",
+  "audio8": "Separate manifest, weights not found/not tested",
+  "cosyvoice": "Deferred",
+  "prior_report": "docs/DESCARGAS_VOCES_96_157_INVENTARIO_20261126.json"
+}

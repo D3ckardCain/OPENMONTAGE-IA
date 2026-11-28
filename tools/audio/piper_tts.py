@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import shutil
-import subprocess
 import time
-from pathlib import Path
 from typing import Any
 
 from tools.base_tool import (
@@ -24,7 +21,7 @@ from tools.base_tool import (
 
 class PiperTTS(BaseTool):
     name = "piper_tts"
-    version = "0.1.0"
+    version = "0.3.0"
     tier = ToolTier.VOICE
     capability = "tts"
     provider = "piper"
@@ -33,15 +30,9 @@ class PiperTTS(BaseTool):
     determinism = Determinism.DETERMINISTIC
     runtime = ToolRuntime.LOCAL
 
-    dependencies = ["cmd:piper"]
-    install_instructions = (
-        "Install Piper TTS:\n"
-        "  pip install piper-tts\n"
-        "Or download from https://github.com/rhasspy/piper/releases\n"
-        "Then download a voice model:\n"
-        "  piper --download-dir ~/.piper/models --model en_US-lessac-medium"
-    )
-    agent_skills = ["text-to-speech"]
+    dependencies = []
+    install_instructions = "Configure an isolated Piper >=1.5 runtime and verified local bundles; see docs/piper-studio.md. No automatic downloads."
+    agent_skills = []
 
     capabilities = [
         "text_to_speech",
@@ -64,24 +55,23 @@ class PiperTTS(BaseTool):
 
     input_schema = {
         "type": "object",
-        "required": ["text"],
+        "anyOf": [
+            {"required": ["text"]},
+            {"properties": {"operation": {"const": "status"}},
+             "required": ["operation", "project_id", "request_id"]},
+        ],
         "properties": {
+            "operation": {"type": "string", "enum": ["synthesize", "preview", "status"], "default": "synthesize"},
+            "project_id": {"type": "string"},
+            "request_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
             "text": {"type": "string"},
             "model": {
                 "type": "string",
-                "default": "en_US-lessac-medium",
+                "default": "es_ES-davefx-medium",
             },
             "speaker_id": {
                 "type": "integer",
                 "default": 0,
-            },
-            "length_scale": {
-                "type": "number",
-                "default": 1.0,
-            },
-            "sentence_silence": {
-                "type": "number",
-                "default": 0.3,
             },
             "output_path": {"type": "string"},
         },
@@ -91,20 +81,19 @@ class PiperTTS(BaseTool):
         cpu_cores=2, ram_mb=512, vram_mb=0, disk_mb=200, network_required=False
     )
     retry_policy = RetryPolicy(max_retries=1, retryable_errors=[])
-    idempotency_key_fields = ["text", "model", "speaker_id", "length_scale"]
+    idempotency_key_fields = ["operation", "project_id", "request_id", "text", "model", "speaker_id", "output_path"]
     side_effects = ["writes audio file to output_path"]
     user_visible_verification = ["Listen to generated audio for intelligibility"]
 
     def get_status(self) -> ToolStatus:
-        if shutil.which("piper"):
-            return ToolStatus.AVAILABLE
-        return ToolStatus.UNAVAILABLE
+        from lib.studio_piper import catalog
+        return ToolStatus.AVAILABLE if any(v['available'] and not v['blocked'] for v in catalog()) else ToolStatus.UNAVAILABLE
 
     def estimate_cost(self, inputs: dict[str, Any]) -> float:
         return 0.0
 
     def execute(self, inputs: dict[str, Any]) -> ToolResult:
-        if self.get_status() != ToolStatus.AVAILABLE:
+        if inputs.get('operation') != 'status' and self.get_status() != ToolStatus.AVAILABLE:
             return ToolResult(success=False, error="Piper TTS not available. " + self.install_instructions)
 
         start = time.time()
@@ -117,39 +106,20 @@ class PiperTTS(BaseTool):
         return result
 
     def _generate(self, inputs: dict[str, Any]) -> ToolResult:
-        output_path = Path(inputs.get("output_path", "tts_output.wav"))
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        proc = subprocess.run(
-            [
-                "piper",
-                "--model", inputs.get("model", "en_US-lessac-medium"),
-                "--speaker", str(inputs.get("speaker_id", 0)),
-                "--length-scale", str(inputs.get("length_scale", 1.0)),
-                "--sentence-silence", str(inputs.get("sentence_silence", 0.3)),
-                "--output_file", str(output_path),
-            ],
-            input=inputs["text"],
-            capture_output=True,
-            text=True,
-            timeout=300,
-        )
-
-        if proc.returncode != 0:
-            return ToolResult(success=False, error=f"Piper failed (exit {proc.returncode}): {proc.stderr}")
-        if not output_path.exists():
-            return ToolResult(success=False, error=f"Piper output file missing: {output_path}")
-
-        return ToolResult(
-            success=True,
-            data={
-                "provider": self.provider,
-                "model": inputs.get("model", "en_US-lessac-medium"),
-                "speaker_id": inputs.get("speaker_id", 0),
-                "text_length": len(inputs["text"]),
-                "output": str(output_path),
-                "format": "wav",
-            },
-            artifacts=[str(output_path)],
-            model=inputs.get("model", "en_US-lessac-medium"),
-        )
+        if inputs.get('operation') in ('preview', 'status'):
+            from lib import studio_piper_jobs as jobs
+            pid = inputs['project_id']
+            if inputs['operation'] == 'status':
+                result = jobs.status(pid, inputs['request_id'])
+                return ToolResult(success=True, data=result)
+            data = dict(voice=inputs.get('model', 'es_ES-davefx-medium'),
+                        text=inputs['text'], speaker_id=inputs.get('speaker_id', 0))
+            if 'request_id' in inputs:
+                data['request_id'] = inputs['request_id']
+            result = jobs.preview(pid, data)
+            return ToolResult(success=True, data=result, artifacts=[result['output']], model=data['voice'])
+        from lib.studio_piper import synthesize
+        result = synthesize(inputs['text'], inputs.get('model', 'es_ES-davefx-medium'),
+                            inputs.get('speaker_id', 0), inputs.get('output_path', 'tts_output.wav'))
+        return ToolResult(success=True, data=result, artifacts=[result['output']],
+                          model=inputs.get('model', 'es_ES-davefx-medium'))

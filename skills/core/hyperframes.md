@@ -26,6 +26,33 @@ This file teaches the bridge between the two.
 
 ---
 
+## Local availability contract (#132)
+
+Offline preparation/pilot: `docs/HYPERFRAMES_OFFLINE_PILOTO_ES.md`. The existing
+adapter0.3.1 accepts `local_gsap_package_dir` or explicit child environment
+`HYPERFRAMES_GSAP_PACKAGE_DIR`. It validates reviewed GSAP3.14.2/JS SHA256,
+stages JS and package/license metadata through the shared content cache, and
+fails without CDN fallback when that local resource is invalid. The offline
+registry transport selects the already prepared sibling GSAP package; no npm.
+Unconfigured legacy scaffolds still use CDN; registry blocks and third-party
+subcompositions are separate network/licensing decisions, not covered by this
+local JS option. Do not repeat the completed4s pilot or previous ASR/TTS tests.
+
+Catalog/status reads never invoke npm, npx or the CLI. Prepare the published
+`hyperframes` package explicitly in an isolated directory, reviewed version
+0.9.96, then declare `HYPERFRAMES_PACKAGE_DIR` and an existing
+`HYPERFRAMES_BROWSER_PATH`. The adapter invokes Node with that exact package
+entry for doctor and rendering; it does not fetch latest or warm npm caches.
+Node>=22, FFmpeg and FFprobe must be available. Files present are reported as
+installed/local requirements only. AVAILABLE additionally requires an explicit
+doctor result still bound to those identities (60s in-process cache); reading
+availability does not refresh it. Doctor JSON must contain passing Node.js,
+FFmpeg, FFprobe, Chrome, Memory, Disk, Frames cache and Settings lock checks
+(also /dev/shm on Linux); exit0/global ok alone are insufficient.
+Whisper/TTS/MusicGen/Docker/update checks are reported separately as optional.
+No diagnostic certifies a render, offline media, or visual/audio quality.
+See `docs/HYPERFRAMES_DIAGNOSTICO_LOCAL_ES.md` for limits and preparation.
+
 ## When OpenMontage should pick HyperFrames (vs Remotion vs FFmpeg)
 
 OpenMontage separates two concepts:
@@ -222,8 +249,8 @@ Floor requirements (all must hold for `runtime_available: true`):
 
 - Node.js major version ≥ 22
 - `ffmpeg` binary on PATH
-- `npx` on PATH (bundled with Node.js)
-- `npx hyperframes doctor` exits 0, OR a lightweight equivalent check passes
+- The reviewed local package entry, configured explicitly; no npx invocation
+- Explicit local doctor JSON passes required checks; exit0 alone does not establish health
 
 `bun` is NOT required — HyperFrames is consumable via `npx hyperframes` (published npm package name is `hyperframes`; the monorepo-internal `@hyperframes/cli` name is NOT on the public npm registry and returns 404).
 

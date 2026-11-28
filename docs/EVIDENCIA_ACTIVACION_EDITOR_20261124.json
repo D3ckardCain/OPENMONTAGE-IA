@@ -1,0 +1,39 @@
+{
+  "scope": "Read-only HTTP and file hash evidence; NOT browser observation or listening",
+  "pid": 73536,
+  "health_http": 200,
+  "editor_capabilities_http": 404,
+  "active_original_render": "completed/current",
+  "assets": [
+    {
+      "file": "editor.js",
+      "status": 200,
+      "sha256": "000dde7a6139bbf63aa60299a45897ff7fb0bb4d5fc69da0fb5b304fb831fcb1",
+      "matches_workspace": true
+    },
+    {
+      "file": "editor-layout.js",
+      "status": 200,
+      "sha256": "ba145a43108fdbf130072a24078e599382098fe11b22fe0fa16c2bcef26bca05",
+      "matches_workspace": true
+    },
+    {
+      "file": "editor-effects-ui.js",
+      "status": 200,
+      "sha256": "07beb95486ac3a7e13e93d45601756a492a7ca6b3005633b7666935abcf9451d",
+      "matches_workspace": true
+    },
+    {
+      "file": "editor-composition-ui.js",
+      "status": 200,
+      "sha256": "8ae664b4095c4230e6bbaabddfa6ebe82f6c5e8dd4b95350211893c25d24123a",
+      "matches_workspace": true
+    }
+  ],
+  "protected": {
+    ".backlot\\studio\\settings.json": "497ddcd071b06f9ad4109e3123cdb36ebc6bb5a1f33ab53e556fe931b09ad952",
+    ".backlot\\studio\\applications.json": "33073a45e5d34775aae08cef0557bce23b59ddeaf0699be26b70909dce4ccf7b",
+    "projects\\edit-827337e03f38\\artifacts\\manual_edit.json": "b055eb5478eb1e41c87276023e085ab2ac8af5b8cadd0bbc1933050033bd1250"
+  },
+  "server_restarted": false
+}

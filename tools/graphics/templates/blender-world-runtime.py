@@ -32,6 +32,7 @@ def args_after_separator() -> argparse.Namespace:
     parser.add_argument("--start-frame", type=int)
     parser.add_argument("--end-frame", type=int)
     parser.add_argument("--frame", type=int)
+    parser.add_argument('--expected-version')
     return parser.parse_args(sys.argv[sys.argv.index("--") + 1 :])
 
 
@@ -317,7 +318,7 @@ def setup_camera_and_lights(spec: dict, args: argparse.Namespace):
         camera.keyframe_insert("location", frame=frame)
         target.keyframe_insert("location", frame=frame)
     for animated in (camera, target):
-        for curve in animated.animation_data.action.fcurves if animated.animation_data and animated.animation_data.action else []:
+        for curve in action_curves(animated):
             for point in curve.keyframe_points:
                 point.interpolation = "BEZIER"
 
@@ -374,10 +375,33 @@ def setup_title(spec: dict, args: argparse.Namespace):
     text.keyframe_insert("hide_viewport", frame=start_frame)
 
 
+def action_curves(animated):
+    animation=animated.animation_data
+    if not animation or not animation.action:return []
+    action=animation.action
+    if bpy.app.version[:2]==(4,5):return action.fcurves
+    if bpy.app.version[:2]==(5,3):
+        from bpy_extras import anim_utils
+        bag=anim_utils.action_get_channelbag_for_slot(action,animation.action_slot)
+        return bag.fcurves if bag else []
+    raise RuntimeError('Unsupported Blender action API; select a validated profile')
+
+
+def configure_engine(scene,samples):
+    version=bpy.app.version[:2]
+    if version==(4,5):
+        scene.render.engine='BLENDER_EEVEE_NEXT'
+        scene.eevee.taa_render_samples=samples
+    elif version==(5,3):
+        scene.render.engine='BLENDER_EEVEE'
+        scene.eevee.taa_render_samples=samples
+    else:raise RuntimeError('Unsupported Blender engine API; select a validated profile')
+    return scene.render.engine
+
+
 def setup_render(args: argparse.Namespace):
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
-    scene.eevee.taa_render_samples = args.samples
+    configure_engine(scene,args.samples)
     scene.render.resolution_x = args.width
     scene.render.resolution_y = args.height
     scene.render.resolution_percentage = 100
@@ -411,13 +435,17 @@ def build(spec: dict, args: argparse.Namespace):
     setup_render(args)
     bpy.ops.wm.save_as_mainfile(filepath=args.blend)
     Path(args.blend).with_suffix(".report.json").write_text(json.dumps({
-        "version": "1.0", "engine": "BLENDER_EEVEE_NEXT", "seed": spec.get("seed"), **report,
+        "version": "1.1", "engine": bpy.context.scene.render.engine, "blender_version":bpy.app.version_string, "seed": spec.get("seed"), **report,
     }, indent=2), encoding="utf-8")
     return report
 
 
 def main():
     args = args_after_separator()
+    if bpy.app.version[:2] not in ((4,5),(5,3)):
+        raise RuntimeError('Unsupported Blender version; no geometry or output created')
+    if args.expected_version and '.'.join(map(str,bpy.app.version))!=args.expected_version:
+        raise RuntimeError('Blender version differs from the explicitly selected profile')
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
     report = build(spec, args)
     if args.operation == "render_still":
@@ -431,4 +459,5 @@ def main():
 
 
 WORLD_SPEC = {}
-main()
+if __name__=='__main__':
+    main()

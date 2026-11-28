@@ -1,0 +1,395 @@
+"""Manual editing HTTP surface. All mutations use the agent's shared contract."""
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse, PlainTextResponse, Response
+from lib import production_studio as studio, studio_editor as editor, studio_editor_render as render
+from backlot.studio_identity import capabilities as editor_capabilities
+
+
+def create_editor_router(body):
+    router = APIRouter(prefix='/api/studio/editor')
+
+    def invoke(fn, *args):
+        try:
+            return fn(*args)
+        except editor.Conflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @router.get('/capabilities')
+    def capabilities():
+        return editor_capabilities()
+
+    @router.get('/{pid}/text-to-video/availability')
+    def text_to_video_availability(pid: str):
+        from lib.studio_text_to_video import availability
+        return invoke(availability, pid)
+
+    @router.post('/{pid}/text-to-video', status_code=202)
+    async def text_to_video(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_text_to_video import GenerationUnavailable, start
+        data = await body(request, 12000)
+        try:
+            return await run_in_threadpool(start, pid, data)
+        except GenerationUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        except editor.Conflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @router.get('/{pid}/text-to-video/results')
+    def text_to_video_results(pid: str):
+        from lib.studio_text_to_video import completed_results
+        return invoke(completed_results, pid)
+
+    @router.post('/{pid}/text-to-video/requests/{request_id}/add')
+    async def text_to_video_add(pid: str, request_id: str, request: Request):
+        from lib.studio_text_to_video import add_to_timeline
+        data = await body(request, 2000)
+        if not isinstance(data, dict) or set(data) != {'revision'}:
+            raise HTTPException(400, 'La solicitud solo admite la revisión editable actual')
+        return invoke(add_to_timeline, pid, request_id, data['revision'])
+
+    @router.get('/{pid}/text-to-video/requests/{request_id}')
+    def text_to_video_status(pid: str, request_id: str):
+        from lib.studio_text_to_video import status
+        return invoke(status, pid, request_id)
+
+    @router.get('/{pid}/text-to-video/requests/{request_id}/video')
+    def text_to_video_video(pid: str, request_id: str):
+        from lib.studio_text_to_video import video_path
+        path = invoke(video_path, pid, request_id)
+        return FileResponse(path, media_type='video/mp4', filename=path.name,
+                            headers={'Cache-Control': 'private, no-store',
+                                     'X-Content-Type-Options': 'nosniff'})
+
+    @router.post('/{pid}/smooth-speed-plan')
+    async def smooth_speed_plan(pid:str,request:Request):
+        from lib.studio_smooth_speed import project_plan
+        return invoke(project_plan,pid,await body(request,12000))
+
+    @router.post('/{pid}/speed-plan')
+    async def speed_plan(pid:str,request:Request):
+        from lib.studio_speed_ramp import project_plan
+        return invoke(project_plan,pid,await body(request,12000))
+
+    @router.get('/{pid}/color-compare')
+    def color_compare(pid:str, clip_id:str, clip_seconds:float=0):
+        from lib.studio_color import compare
+        return invoke(compare,pid,clip_id,clip_seconds)
+
+    @router.post('/{pid}/mix-meter')
+    async def mix_meter(pid: str, request: Request):
+        from lib.studio_mix_meter import start
+        return invoke(start,pid,await body(request,4000))
+
+    @router.post('/{pid}/agent-mix-meter')
+    async def agent_mix_meter(pid: str, request: Request):
+        from lib.studio_mix_meter import start
+        return invoke(start,pid,await body(request,4000),'agent')
+
+    @router.get('/{pid}/mix-meter/requests/{request_id}')
+    def mix_meter_status(pid: str, request_id: str):
+        from lib.studio_mix_meter import status
+        return invoke(status,pid,request_id)
+
+    @router.post('/{pid}/mix-meter/requests/{request_id}/cancel')
+    async def cancel_mix_meter(pid: str, request_id: str, request: Request):
+        if await body(request):raise HTTPException(400,'Cancelar no admite otras entradas')
+        from lib.studio_mix_meter import cancel
+        return invoke(cancel,pid,request_id)
+
+    @router.get('/sfx')
+    def sfx_catalog(q: str='', category: str='', offset: int=0, limit: int=24, favorites: bool=False, project_id: str=''):
+        from lib.studio_sfx_catalog import catalog
+        if favorites and not project_id:raise HTTPException(400,'Favoritos requiere proyecto')
+        ids=invoke(editor.state,project_id)['edit_decisions'].get('sfx_favorites',[]) if favorites else None
+        return invoke(catalog,q,category,offset,limit,ids)
+
+    @router.get('/sfx/{asset_id}/audio')
+    def sfx_audio(asset_id: str):
+        from lib.studio_sfx_catalog import materialize
+        path,_=invoke(materialize,asset_id)
+        return FileResponse(path,media_type='audio/ogg')
+
+    @router.post('/{pid}/sfx/insert')
+    async def sfx_insert(pid: str, request: Request):
+        from lib.studio_sfx import insert
+        return invoke(insert,pid,await body(request,12000))
+
+    @router.post('/{pid}/agent-sfx/insert')
+    async def agent_sfx_insert(pid: str, request: Request):
+        from lib.studio_sfx import insert
+        return invoke(insert,pid,await body(request,12000),'agent')
+
+    @router.get('/{pid}/sfx/requests/{request_id}')
+    def sfx_receipt(pid: str, request_id: str):
+        from lib.studio_sfx import receipt
+        return invoke(receipt,pid,request_id)
+
+    @router.get('/piper/voices')
+    def piper_voices():
+        from lib.studio_piper import catalog
+        return invoke(catalog)
+
+    @router.get('/qwen/profiles')
+    def qwen_profiles():
+        from lib.qwen_tts_local import catalog
+        return invoke(catalog)
+
+    @router.get('/chatterbox/profiles')
+    def chatterbox_profiles():
+        from lib.voice_preparation import catalog
+        return invoke(catalog)
+
+    @router.get('/chatterbox/profiles/{profile_id}/sample')
+    def chatterbox_sample(profile_id: str):
+        from lib.voice_preparation import cached_sample
+        path,_=invoke(cached_sample,profile_id)
+        return FileResponse(path,media_type='audio/wav',filename=profile_id+'.wav')
+
+    @router.get('/cosyvoice/preparation')
+    def cosyvoice_preparation():
+        from lib.voice_preparation import cosyvoice3
+        return invoke(cosyvoice3)
+
+    @router.post('/{pid}/qwen/preview')
+    async def qwen_preview(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_qwen_jobs import start
+        data = await body(request, 12000)
+        return await run_in_threadpool(invoke, start, pid, data)
+
+    @router.post('/{pid}/agent-qwen/preview')
+    async def agent_qwen_preview(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_qwen_jobs import start
+        data = await body(request, 12000)
+        return await run_in_threadpool(invoke, start, pid, data, 'agent')
+
+    @router.get('/{pid}/qwen/requests/{request_id}')
+    def qwen_status(pid: str, request_id: str):
+        from lib.studio_qwen_jobs import status
+        return invoke(status, pid, request_id)
+
+    @router.get('/{pid}/qwen/requests')
+    def qwen_requests(pid: str):
+        from lib.studio_qwen_jobs import requests
+        return invoke(requests, pid)
+
+    @router.post('/{pid}/qwen/requests/{request_id}/cancel')
+    async def qwen_cancel(pid: str, request_id: str, request: Request):
+        if await body(request):
+            raise HTTPException(400, 'Cancelar no admite otras entradas')
+        from lib.studio_qwen_jobs import cancel
+        return invoke(cancel, pid, request_id)
+
+    @router.post('/{pid}/agent-qwen/requests/{request_id}/cancel')
+    async def agent_qwen_cancel(pid: str, request_id: str, request: Request):
+        if await body(request):
+            raise HTTPException(400, 'Cancelar no admite otras entradas')
+        from lib.studio_qwen_jobs import cancel
+        return invoke(cancel, pid, request_id, 'agent')
+
+    @router.post('/{pid}/piper/preview')
+    async def piper_preview(pid: str, request: Request):
+        from starlette.concurrency import run_in_threadpool
+        from lib.studio_piper import preview
+        data = await body(request, 8000)
+        return await run_in_threadpool(invoke, preview, pid, data)
+
+    @router.get('/{pid}/piper/audio/{filename}')
+    def piper_audio(pid: str, filename: str):
+        if not filename.startswith('piper-') or Path(filename).name != filename or not filename.endswith('.wav'):
+            raise HTTPException(400, 'Invalid preview')
+        return FileResponse(invoke(studio.project_path, pid) / 'assets' / 'audio' / filename, media_type='audio/wav')
+
+    @router.get('/{pid}/piper/requests/{request_id}')
+    def piper_request(pid: str, request_id: str):
+        from lib.studio_piper_jobs import status
+        return invoke(status, pid, request_id)
+
+    @router.get('/projects')
+    def projects():
+        return [{'project_id': p.parent.name, 'title': studio.read_json(p).get('title', p.parent.name),
+                 'project_path': str(p.parent.resolve())}
+                for p in studio.PROJECTS_DIR.glob('*/production_request.json')
+                if studio.read_json(p).get('manual_edit')]
+
+    @router.get('/{pid}/video-evidence')
+    def video_evidence(pid: str):
+        from lib.video_evidence_gallery import list_saved_evidence
+        result = invoke(list_saved_evidence, invoke(studio.project_path, pid))
+        for item in result['items']:
+            item['contact_sheet_url'] = f'/api/studio/editor/{pid}/video-evidence/{item["id"]}/contact-sheet'
+        return result
+
+    @router.get('/{pid}/video-evidence/{evidence_id}/contact-sheet')
+    def video_evidence_contact_sheet(pid: str, evidence_id: str):
+        from lib.video_evidence_gallery import contact_sheet_bytes
+        image = invoke(contact_sheet_bytes, invoke(studio.project_path, pid), evidence_id)
+        return Response(content=image, media_type='image/jpeg', headers={
+            'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff'})
+
+    @router.post('/projects')
+    async def create(request: Request):
+        data = await body(request)
+        return invoke(editor.create, data.get('title'))
+
+    @router.get('/{pid}')
+    def state(pid: str):
+        return invoke(editor.state, pid)
+
+    @router.post('/{pid}/command')
+    async def command(pid: str, request: Request):
+        return invoke(editor.command, pid, await body(request, 600_000))
+
+    @router.post('/{pid}/register')
+    async def register(pid: str, request: Request):
+        data = await body(request)
+        return invoke(editor.register, pid, data.get('relative_path'), data.get('revision'))
+
+    @router.post('/{pid}/agent-command')
+    async def agent_command(pid: str, request: Request):
+        data = await body(request, 600_000)
+        return invoke(editor.command, pid, data, 'agent')
+
+    @router.post('/{pid}/agent-register')
+    async def agent_register(pid: str, request: Request):
+        data = await body(request)
+        return invoke(editor.register, pid, data.get('relative_path'), data.get('revision'), 'agent')
+
+    @router.post('/{pid}/upload')
+    async def upload(pid: str, request: Request, filename: str, revision: int):
+        origin = request.headers.get('origin')
+        if origin and origin.rstrip('/') != str(request.base_url).rstrip('/'):
+            raise HTTPException(403, 'Origen no autorizado')
+        suffix = Path(filename).suffix.lower()
+        if suffix not in editor.EXTENSIONS or len(filename) > 240:
+            raise HTTPException(400, 'Extensión no admitida o nombre demasiado largo')
+        project = invoke(studio.project_path, pid)
+        invoke(editor._revision, invoke(editor.state, pid), revision)
+        relative = 'originales/' + uuid.uuid4().hex + suffix
+        target = project / relative
+        try:
+            target.parent.resolve().relative_to(project.resolve())
+        except ValueError as exc:
+            raise HTTPException(400, 'La carpeta de importación sale del proyecto') from exc
+        target.parent.mkdir(parents=True, exist_ok=True)
+        size = 0
+        try:
+            with target.open('xb') as stream:
+                async for chunk in request.stream():
+                    size += len(chunk)
+                    if size > 2_000_000_000:
+                        raise HTTPException(413, 'Límite de importación: 2 GB por archivo')
+                    stream.write(chunk)
+            if not size:
+                raise HTTPException(400, 'Archivo vacío')
+            return invoke(editor.register, pid, relative, revision, 'user', filename)
+        except Exception:
+            target.unlink(missing_ok=True)
+            raise
+
+    @router.get('/{pid}/source/{key}')
+    def source(pid: str, key: str):
+        return FileResponse(invoke(editor.source, pid, key))
+
+    @router.get('/{pid}/subtitles', response_class=PlainTextResponse)
+    def subtitles(pid: str):
+        value = invoke(editor.state, pid)
+        return PlainTextResponse(editor.srt(value['edit_decisions']), media_type='application/x-subrip',
+                                 headers={'Content-Disposition': 'attachment; filename="subtitles.srt"'})
+
+    @router.get('/{pid}/subtitle-words')
+    def subtitle_words(pid: str, set_id: str):
+        from lib.studio_word_clock import project_report
+        return invoke(project_report,pid,set_id)
+
+    @router.get('/{pid}/subtitle-draft')
+    def subtitle_draft(pid: str, set_id: str):
+        from lib.studio_word_subtitles import project_draft
+        return invoke(project_draft, pid, set_id)
+
+    @router.post('/{pid}/silence-proposal')
+    async def silence_proposal(pid: str, request: Request):
+        from lib.studio_silence_proposal import project_draft
+        return invoke(project_draft, pid, await body(request, 150_000))
+
+    @router.post('/{pid}/subtitles/import')
+    async def import_subtitles(pid: str, request: Request, filename: str, revision: int):
+        origin = request.headers.get('origin')
+        if origin and origin.rstrip('/') != str(request.base_url).rstrip('/'):
+            raise HTTPException(403, 'Origen no autorizado')
+        chunks = []
+        size = 0
+        async for chunk in request.stream():
+            size += len(chunk)
+            if size > 500_000:
+                raise HTTPException(413, 'SRT superior a 500 KB')
+            chunks.append(chunk)
+        return invoke(editor.import_subtitles, pid, b''.join(chunks), filename, revision)
+
+    @router.get('/{pid}/render')
+    def render_status(pid: str):
+        return invoke(render.status, pid)
+
+    @router.get('/{pid}/subtitles.ass', response_class=PlainTextResponse)
+    def ass_subtitles(pid: str):
+        value = invoke(editor.state, pid)['edit_decisions']
+        output = value['output']
+        width, height = (output['width'], output['height']) if output['ratio'] == 'custom' else editor.PRESETS[output['ratio']]
+        from lib.scene_burned_subtitles import _ass
+        from lib.studio_subtitle_karaoke import ass as subtitle_ass
+        return PlainTextResponse(invoke(subtitle_ass,value,width,height),
+                                 headers={'Content-Disposition': 'attachment; filename="subtitles.ass"'})
+
+    @router.get('/{pid}/subtitles/quality')
+    def subtitle_quality(pid: str):
+        from lib.studio_subtitle_layout import project_report
+        return invoke(project_report,pid)
+
+    @router.get('/{pid}/subtitles/quality/cues/{cue_index}/glyphs')
+    def subtitle_glyph_bounds(pid: str, cue_index: int):
+        from lib.studio_subtitle_glyph_bounds import project_measure
+        return invoke(project_measure,pid,cue_index)
+
+    @router.get('/{pid}/subtitles/karaoke')
+    def subtitle_karaoke(pid: str,set_id: str):
+        from lib.studio_subtitle_karaoke import project_report
+        return invoke(project_report,pid,set_id)
+
+    @router.post('/{pid}/render/cancel')
+    async def cancel_render(pid: str, request: Request):
+        data = await body(request)
+        return invoke(render.cancel, pid, data.get('attempt'))
+
+    @router.post('/{pid}/agent-render/cancel')
+    async def cancel_agent_render(pid: str, request: Request):
+        data = await body(request)
+        return invoke(render.cancel, pid, data.get('attempt'), 'agent')
+
+    @router.post('/{pid}/render')
+    async def start_render(pid: str, request: Request):
+        data = await body(request)
+        if type(data.get('preview', False)) is not bool:
+            raise HTTPException(400, 'preview requiere un booleano')
+        return invoke(render.start, pid, data.get('revision'), data.get('preview', False))
+
+    @router.post('/{pid}/agent-render')
+    async def start_agent_render(pid: str, request: Request):
+        data = await body(request)
+        if type(data.get('preview', False)) is not bool:
+            raise HTTPException(400, 'preview requiere un booleano')
+        return invoke(render.start, pid, data.get('revision'), data.get('preview', False), 'agent')
+
+    return router

@@ -1,0 +1,176 @@
+{
+  "scope": "Read-only inspection of running Windows Studio, NOT CI; no memory writes or code injection",
+  "pid": 73536,
+  "main_thread": 72784,
+  "port": 4750,
+  "probes": [
+    {
+      "path": "/api/health",
+      "timeout_seconds": 3,
+      "result": "TimeoutError"
+    },
+    {
+      "path": "/ui/editor.css",
+      "timeout_seconds": 3,
+      "result": "TimeoutError"
+    },
+    {
+      "path": "/api/studio/editor/projects",
+      "timeout_seconds": 3,
+      "result": "TimeoutError"
+    }
+  ],
+  "stack": [
+    {
+      "module": "logging/__init__.py",
+      "function": "emit",
+      "first_line": 1098,
+      "instruction_offset": 106
+    },
+    {
+      "module": "logging/__init__.py",
+      "function": "handle",
+      "first_line": 965,
+      "instruction_offset": 128
+    },
+    {
+      "module": "logging/__init__.py",
+      "function": "callHandlers",
+      "first_line": 1690,
+      "instruction_offset": 272
+    },
+    {
+      "module": "logging/__init__.py",
+      "function": "handle",
+      "first_line": 1636,
+      "instruction_offset": 96
+    },
+    {
+      "module": "logging/__init__.py",
+      "function": "_log",
+      "first_line": 1610,
+      "instruction_offset": 416
+    },
+    {
+      "module": "logging/__init__.py",
+      "function": "error",
+      "first_line": 1508,
+      "instruction_offset": 92
+    },
+    {
+      "module": "asyncio/base_events.py",
+      "function": "default_exception_handler",
+      "first_line": 1737,
+      "instruction_offset": 738
+    },
+    {
+      "module": "asyncio/base_events.py",
+      "function": "call_exception_handler",
+      "first_line": 1787,
+      "instruction_offset": 56
+    },
+    {
+      "module": "asyncio/events.py",
+      "function": "_run",
+      "first_line": 82,
+      "instruction_offset": 284
+    },
+    {
+      "module": "asyncio/base_events.py",
+      "function": "_run_once",
+      "first_line": 1859,
+      "instruction_offset": 1476
+    },
+    {
+      "module": "asyncio/base_events.py",
+      "function": "run_forever",
+      "first_line": 594,
+      "instruction_offset": 364
+    },
+    {
+      "module": "asyncio/windows_events.py",
+      "function": "run_forever",
+      "first_line": 317,
+      "instruction_offset": 136
+    },
+    {
+      "module": "asyncio/base_events.py",
+      "function": "run_until_complete",
+      "first_line": 618,
+      "instruction_offset": 276
+    },
+    {
+      "module": "asyncio/runners.py",
+      "function": "run",
+      "first_line": 86,
+      "instruction_offset": 676
+    },
+    {
+      "module": "site-packages/uvicorn/_compat.py",
+      "function": "asyncio_run",
+      "first_line": 21,
+      "instruction_offset": 86
+    },
+    {
+      "module": "site-packages/uvicorn/server.py",
+      "function": "run",
+      "first_line": 85,
+      "instruction_offset": 118
+    },
+    {
+      "module": "site-packages/uvicorn/main.py",
+      "function": "run",
+      "first_line": 503,
+      "instruction_offset": 990
+    },
+    {
+      "module": "backlot/__main__.py",
+      "function": "cmd_serve",
+      "first_line": 84,
+      "instruction_offset": 146
+    },
+    {
+      "module": "backlot/__main__.py",
+      "function": "main",
+      "first_line": 94,
+      "instruction_offset": 586
+    },
+    {
+      "module": "backlot/__main__.py",
+      "function": "<module>",
+      "first_line": 1,
+      "instruction_offset": 174
+    },
+    {
+      "module": "<frozen runpy>",
+      "function": "_run_code",
+      "first_line": 65,
+      "instruction_offset": 202
+    },
+    {
+      "module": "<frozen runpy>",
+      "function": "_run_module_as_main",
+      "first_line": 173,
+      "instruction_offset": 366
+    }
+  ],
+  "verified_block": "logging.StreamHandler.emit, CALL106 = stream.write(msg + self.terminator), line1113 of installed Python3.11.9",
+  "logged_exception": "_ProactorBasePipeTransport._call_connection_lost(None), socket.shutdown(SHUT_RDWR), ConnectionResetError WinError10054",
+  "not_demonstrated": [
+    "cause of stream.write destination stall",
+    "console selection/QuickEdit",
+    "HTTP recovery",
+    "appearance and interaction in current Windows browser"
+  ],
+  "physical_check_requested": "Inspect PowerShell for selection and press Esc if selected; keep process running",
+  "configuration_changes": false,
+  "restart": false,
+  "followup_recovery": {
+    "at_utc": "2026-11-24T19:06:13.427167+00:00",
+    "pid_unchanged": 73536,
+    "http_recovered": true,
+    "restart": false,
+    "evidence": "EVIDENCIA_RECUPERACION_EDITOR_20261124.json",
+    "scope": "Prior not_demonstrated list records the blocked snapshot; HTTP recovery is now observed, browser acceptance and selection causality remain unverified"
+  }
+}

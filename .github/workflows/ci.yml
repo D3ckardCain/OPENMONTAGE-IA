@@ -34,7 +34,8 @@ jobs:
             requirements-dev.txt
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        timeout-minutes: 6
+        run: bash .github/scripts/ensure-media-cli.sh
 
       - name: Install dependencies
         run: make install-dev
@@ -42,5 +43,7 @@ jobs:
       - name: Run lint smoke checks
         run: make lint
 
-      - name: Run test suite
-        run: make test
+      - name: Run test suite without external networking
+        run: |
+          PYTHON_BIN="$(pwd)/.venv/bin/python"
+          sudo unshare --net -- bash -c 'ip link set lo up; exec "$@"' bash "$PYTHON_BIN" -m pytest tests/ -v

@@ -1,0 +1,47 @@
+{
+  "project": "qa186-gsap-offline",
+  "build": {
+    "html_sha256": "42e317103e9809b61286a663653b78850ca7a8de6a45bfd690899650ea881ae5",
+    "gsap_sha256": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280",
+    "gsap_hash_reused": true,
+    "gsap_version": "3.14.2",
+    "runtime_profile_revision": 1,
+    "duration_seconds": 3,
+    "fps": 24,
+    "width": 640,
+    "height": 360,
+    "audio": false,
+    "cost_usd": 0,
+    "scope": "New own GSAP186 title only; no previous132 render repeated"
+  },
+  "seek": {
+    "state": {
+      "paused": true,
+      "duration": 2.9,
+      "version": "3.14.2"
+    },
+    "seek_order": [
+      1,
+      0.25,
+      2.75,
+      1
+    ],
+    "first": "0443c66867a8eb92267097cd41c12fc69c4f28db37e82c4ec13fd7ae7188aa1a",
+    "returned": "0443c66867a8eb92267097cd41c12fc69c4f28db37e82c4ec13fd7ae7188aa1a",
+    "reloaded": "0443c66867a8eb92267097cd41c12fc69c4f28db37e82c4ec13fd7ae7188aa1a",
+    "exact_png_match": true,
+    "blocked": [],
+    "requests": [
+      "http://127.0.0.1:4780/",
+      "http://127.0.0.1:4780/assets/gsap.min.js",
+      "http://127.0.0.1:4780/",
+      "http://127.0.0.1:4780/assets/gsap.min.js"
+    ],
+    "errors": []
+  },
+  "new_focused_tests": 2,
+  "cli_check": "passed",
+  "export": "timeout180s,0/72;not_validated",
+  "network": "scene loopback only; CLI external fonts request blocked",
+  "main4750": "not queried; await restart confirmation"
+}

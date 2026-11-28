@@ -1,0 +1,531 @@
+{
+  "base_commit": "f1dddfa9f2a195d8fac3340cccb8899981a2e565",
+  "hyperframes": {
+    "adapter_version": "0.3.2",
+    "profile_revision": 1,
+    "available": true,
+    "availability_basis": "selected_profile_cli_execution",
+    "cli_version": "0.9.96",
+    "doctor_repeated": false,
+    "render_repeated": false,
+    "parent_environment_changed": false,
+    "ui": {
+      "scope": "Actual isolated Studio4766 API/UI; existing production private profile, no inherited HF console variables required",
+      "selected_revision": 1,
+      "tool_status": "available",
+      "availability_basis": "selected_profile_cli_execution",
+      "only_cli_execution_version_previously_probed": true,
+      "save_idempotent": true,
+      "invalid_path400_preserves_form": true,
+      "recover_read_preserves_saved_selection": true,
+      "no_probe_doctor_or_render_from_browser": true,
+      "posts": 2,
+      "errors": []
+    },
+    "bridge_without_profile_argument": true,
+    "legacy_default_start_preserved": true,
+    "tests_new": 11,
+    "tests_existing_focused_delta": 1,
+    "main4750_restarted": false,
+    "main4750_activation": "pending grouped reload; isolated4766 verified"
+  },
+  "chatterbox": {
+    "official_revisions": {
+      "es-MX": "27e595bf2fe7be0533ca299d9afafcde08b7cca7",
+      "es-ES": "7262b364e3222ba9446c9289e7485eadc47ed902"
+    },
+    "finished_new_t3": {
+      "sha256": "c66c4517f11c2b35a56e28615c0689deb864cbc411e329552223bbd0a6a063f8",
+      "hash_reused": false,
+      "elapsed_seconds": 2.22,
+      "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\t3_es_mx_latam.safetensors",
+      "bytes": 2143990280,
+      "match": true,
+      "header_bytes": 33280,
+      "tensors": 292,
+      "tensor_offsets_valid": true,
+      "weights_loaded": false
+    },
+    "reused_companions": [
+      {
+        "file": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox\\grapheme_mtl_merged_expanded_v1.json",
+        "bytes": 69989,
+        "official_match": true,
+        "cache_reused": false,
+        "sha256": "69632f47220a788a52ce2661d096453c5655e9bf25289d89a8d832c46ee07dbf",
+        "git_blob_sha1": "d27fb3f2fd38ca39b7bbfbf83a13b3c617e551df"
+      },
+      {
+        "file": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox\\ve.pt",
+        "bytes": 5698626,
+        "official_match": true,
+        "cache_reused": false,
+        "sha256": "4b16d836bc598509860f6fa068165a8bb5e9ac84f05582dfcf278a5a372879f1",
+        "git_blob_sha1": "73b1b558d6fe2230d355ab9ada49674ba4fae35c"
+      }
+    ],
+    "profiles": {
+      "contract": "chatterbox-regional-preparation-v1",
+      "profiles": [
+        {
+          "id": "chatterbox-es-mx-latam",
+          "locale": "es-MX/es-419",
+          "language_id": "es",
+          "revision": "27e595bf2fe7be0533ca299d9afafcde08b7cca7",
+          "license": "MIT model card",
+          "ready": false,
+          "preview_available": false,
+          "inference_verified": false,
+          "main": {
+            "status": "verified_cached",
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\t3_es_mx_latam.safetensors",
+            "bytes": 2143990280,
+            "read": false
+          },
+          "decoder": {
+            "status": "verified_cached",
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\s3gen_v3.safetensors",
+            "bytes": 1056381804,
+            "read": false
+          },
+          "tokenizer": {
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\grapheme_mtl_merged_expanded_v1.json",
+            "present": true,
+            "verified_cached": true,
+            "official_git_blob": "d27fb3f2fd38ca39b7bbfbf83a13b3c617e551df"
+          },
+          "voice_encoder": {
+            "status": "verified_cached",
+            "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox\\ve.pt",
+            "bytes": 5698626,
+            "read": false
+          },
+          "shared_decoder_sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
+          "problems": [
+            "Loader regional V3 no acreditado: el from_local upstream revisado carga s3gen.pt, no s3gen_v3.safetensors",
+            "Código alternativo del Space requiere revisión de licencia/atribuciones y compatibilidad Windows antes de instalar/cargar",
+            "Perth/referencia autorizada y entorno de inferencia aún no acreditados"
+          ],
+          "isolated_python_prepared": true,
+          "inference_dependencies_installed": false,
+          "automatic_download": false,
+          "weights_read": false
+        },
+        {
+          "id": "chatterbox-es-es",
+          "locale": "es-ES",
+          "language_id": "es",
+          "revision": "7262b364e3222ba9446c9289e7485eadc47ed902",
+          "license": "MIT model card",
+          "ready": false,
+          "preview_available": false,
+          "inference_verified": false,
+          "main": {
+            "status": "download_incomplete",
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-es\\t3_es_es.safetensors",
+            "read": false
+          },
+          "decoder": {
+            "status": "verified_cached",
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\s3gen_v3.safetensors",
+            "bytes": 1056381804,
+            "read": false
+          },
+          "tokenizer": {
+            "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--Chatterbox-Multilingual-es-mx-latam\\grapheme_mtl_merged_expanded_v1.json",
+            "present": true,
+            "verified_cached": true,
+            "official_git_blob": "d27fb3f2fd38ca39b7bbfbf83a13b3c617e551df"
+          },
+          "voice_encoder": {
+            "status": "verified_cached",
+            "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\ResembleAI--chatterbox\\ve.pt",
+            "bytes": 5698626,
+            "read": false
+          },
+          "shared_decoder_sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
+          "problems": [
+            "T3 regional: download_incomplete",
+            "Loader regional V3 no acreditado: el from_local upstream revisado carga s3gen.pt, no s3gen_v3.safetensors",
+            "Código alternativo del Space requiere revisión de licencia/atribuciones y compatibilidad Windows antes de instalar/cargar",
+            "Perth/referencia autorizada y entorno de inferencia aún no acreditados"
+          ],
+          "isolated_python_prepared": true,
+          "inference_dependencies_installed": false,
+          "automatic_download": false,
+          "weights_read": false
+        }
+      ],
+      "note": "Preparación y diagnóstico; ninguna voz regional operativa acreditada. No usar el loader V2 ni Turbo inglés como fallback."
+    },
+    "isolated_python": "3.11.9",
+    "inference_dependencies_installed": false,
+    "weights_loaded": false,
+    "blockers": [
+      "esES unfinished",
+      "regional loader strict ABI validation and source integration still pending",
+      "Windows inference dependencies not qualified"
+    ],
+    "finished_new_companions": [
+      {
+        "name": "s3gen_v3.safetensors",
+        "bytes": 1056381804,
+        "sha256": "4a46190f3dccc2230fbb3488a930bccc925862ee68f2662433dfcfe93ce6c2cb",
+        "verified": true,
+        "hash_reused": false,
+        "weights_loaded": false,
+        "tensors": 2488,
+        "header_bytes": 317048,
+        "offsets_valid": true
+      },
+      {
+        "name": "grapheme_mtl_merged_expanded_v1.json",
+        "bytes": 69989,
+        "sha256": "69632f47220a788a52ce2661d096453c5655e9bf25289d89a8d832c46ee07dbf",
+        "verified": true,
+        "hash_reused": false,
+        "weights_loaded": false
+      }
+    ],
+    "final_download_state": [
+      {
+        "file": "t3_es_mx_latam.safetensors",
+        "finished": true,
+        "canonical_file": true,
+        "partial_exists": false
+      },
+      {
+        "file": "s3gen_v3.safetensors",
+        "finished": true,
+        "canonical_file": true,
+        "partial_exists": false
+      },
+      {
+        "file": "grapheme_mtl_merged_expanded_v1.json",
+        "finished": true,
+        "canonical_file": true,
+        "partial_exists": false
+      },
+      {
+        "file": "t3_es_es.safetensors",
+        "finished": false,
+        "canonical_file": false,
+        "partial_exists": true
+      }
+    ],
+    "t3_header_comparison": {
+      "base_and_regional_tensor_count": 292,
+      "text_embedding": [
+        2454,
+        1024
+      ],
+      "speech_embedding": [
+        8194,
+        1024
+      ],
+      "weights_loaded": false,
+      "base_hash_repeated": false,
+      "full_pipeline_compatibility_inferred": false
+    }
+  },
+  "cosyvoice": {
+    "revision": "29e01c4e8d000f4bcd70751be16fa94bf3d85a18",
+    "campplus_sha256": "a6ac6a63997761ae2997373e2ee1c47040854b4b759ea41ec48e4e42df0f4d73",
+    "campplus_verified_once": true,
+    "auxiliaries_prepared": [
+      {
+        "file": "CosyVoice-BlankEN/config.json",
+        "bytes": 659,
+        "official_git_blob": "463b055262b6c66c4629a74a4b300bfe2ed31d3c",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "CosyVoice-BlankEN/generation_config.json",
+        "bytes": 242,
+        "official_git_blob": "dfc11073787daf1b0f9c0f1499487ab5f4c93738",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "CosyVoice-BlankEN/merges.txt",
+        "bytes": 1402109,
+        "official_git_blob": "90d3d82d027eadcc6a5e77c38eb82d43fc51b53b",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "CosyVoice-BlankEN/tokenizer_config.json",
+        "bytes": 1287,
+        "official_git_blob": "ff55d7b9eb1384e5d4d7e75dc0f564c1a8833d6e",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "CosyVoice-BlankEN/vocab.json",
+        "bytes": 2776833,
+        "official_git_blob": "4783fe10ac3adce15ac8f358ef5462739852c569",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "README.md",
+        "bytes": 11982,
+        "official_git_blob": "d816a921470cff1b6926d31c89e4ec7dea185f32",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "config.json",
+        "bytes": 2,
+        "official_git_blob": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "configuration.json",
+        "bytes": 47,
+        "official_git_blob": "5e812fae901c12933ac69ebf3eb79d0eb49bbab4",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      },
+      {
+        "file": "cosyvoice3.yaml",
+        "bytes": 6934,
+        "official_git_blob": "2eda7e5007d99f6b17fbe7bd751cf54e3cde29ea",
+        "status": "auxiliary_prepared_no_weights_loaded"
+      }
+    ],
+    "existing_D_files": {
+      "root": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512",
+      "files": [
+        {
+          "name": ".gitattributes",
+          "bytes": 1574
+        },
+        {
+          "name": "campplus.onnx",
+          "bytes": 28303423
+        },
+        {
+          "name": "config.json",
+          "bytes": 2
+        },
+        {
+          "name": "configuration.json",
+          "bytes": 47
+        },
+        {
+          "name": "cosyvoice3.yaml",
+          "bytes": 6934
+        },
+        {
+          "name": "flow.decoder.estimator.fp32.onnx",
+          "bytes": 1326216933
+        },
+        {
+          "name": "flow.pt",
+          "bytes": 1329116148
+        },
+        {
+          "name": "hift.pt",
+          "bytes": 83202622
+        },
+        {
+          "name": "llm.pt",
+          "bytes": 2024669519
+        },
+        {
+          "name": "llm.rl.pt",
+          "bytes": 2024682701
+        },
+        {
+          "name": "README.md",
+          "bytes": 11982
+        },
+        {
+          "name": "speech_tokenizer_v3.batch.onnx",
+          "bytes": 969451579
+        },
+        {
+          "name": "speech_tokenizer_v3.onnx",
+          "bytes": 969451503
+        },
+        {
+          "name": "asset\\dingding.png",
+          "bytes": 122824
+        },
+        {
+          "name": "CosyVoice-BlankEN\\config.json",
+          "bytes": 659
+        },
+        {
+          "name": "CosyVoice-BlankEN\\generation_config.json",
+          "bytes": 242
+        },
+        {
+          "name": "CosyVoice-BlankEN\\merges.txt",
+          "bytes": 1402109
+        },
+        {
+          "name": "CosyVoice-BlankEN\\model.safetensors",
+          "bytes": 988097824
+        },
+        {
+          "name": "CosyVoice-BlankEN\\tokenizer_config.json",
+          "bytes": 1287
+        },
+        {
+          "name": "CosyVoice-BlankEN\\vocab.json",
+          "bytes": 2776833
+        }
+      ]
+    },
+    "preparation": {
+      "contract": "cosyvoice3-standard-preparation-v1",
+      "revision": "29e01c4e8d000f4bcd70751be16fa94bf3d85a18",
+      "code_revision": "074ca6dc9e80a2f424f1f74b48bdd7d3fea531cc",
+      "ready": false,
+      "weights": {
+        "llm.pt": {
+          "status": "missing_or_queued",
+          "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\llm.pt",
+          "read": false
+        },
+        "flow.pt": {
+          "status": "missing_or_queued",
+          "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\flow.pt",
+          "read": false
+        },
+        "hift.pt": {
+          "status": "missing_or_queued",
+          "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\hift.pt",
+          "read": false
+        },
+        "speech_tokenizer_v3.onnx": {
+          "status": "missing_or_queued",
+          "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\speech_tokenizer_v3.onnx",
+          "read": false
+        },
+        "campplus.onnx": {
+          "status": "verified_cached",
+          "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\campplus.onnx",
+          "bytes": 28303423,
+          "read": false
+        },
+        "CosyVoice-BlankEN/model.safetensors": {
+          "status": "missing_or_queued",
+          "path": "C:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\CosyVoice-BlankEN\\model.safetensors",
+          "read": false
+        }
+      },
+      "missing_auxiliaries": [],
+      "excluded_alternatives": [
+        "llm.rl.pt",
+        "flow.decoder.estimator.fp32.onnx",
+        "speech_tokenizer_v3.batch.onnx"
+      ],
+      "model_license_label": "Apache-2.0",
+      "commercial_scope": "unresolved_academic_examples_disclaimer_discussion19",
+      "evaluation_load_performed": false,
+      "yaml_executed": false,
+      "weights_read": false,
+      "problems": [
+        "llm.pt: missing_or_queued",
+        "flow.pt: missing_or_queued",
+        "hift.pt: missing_or_queued",
+        "speech_tokenizer_v3.onnx: missing_or_queued",
+        "CosyVoice-BlankEN/model.safetensors: missing_or_queued",
+        "Runtime Windows independiente no acreditado; no cargar YAML/pt ni reutilizar dependencias Qwen incompatibles"
+      ],
+      "existing_candidates": [
+        {
+          "path": "D:/OPENMONTAJE-IA/DESCARGAS_MODELOS/FunAudioLLM--Fun-CosyVoice3-0.5B-2512",
+          "weights": {
+            "llm.pt": {
+              "status": "unverified_or_changed",
+              "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\llm.pt",
+              "bytes": 2024669519,
+              "read": false
+            },
+            "flow.pt": {
+              "status": "unverified_or_changed",
+              "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\flow.pt",
+              "bytes": 1329116148,
+              "read": false
+            },
+            "hift.pt": {
+              "status": "unverified_or_changed",
+              "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\hift.pt",
+              "bytes": 83202622,
+              "read": false
+            },
+            "speech_tokenizer_v3.onnx": {
+              "status": "unverified_or_changed",
+              "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\speech_tokenizer_v3.onnx",
+              "bytes": 969451503,
+              "read": false
+            },
+            "campplus.onnx": {
+              "status": "unverified_or_changed",
+              "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\campplus.onnx",
+              "bytes": 28303423,
+              "read": false
+            },
+            "CosyVoice-BlankEN/model.safetensors": {
+              "status": "unverified_or_changed",
+              "path": "D:\\OPENMONTAJE-IA\\DESCARGAS_MODELOS\\FunAudioLLM--Fun-CosyVoice3-0.5B-2512\\CosyVoice-BlankEN\\model.safetensors",
+              "bytes": 988097824,
+              "read": false
+            }
+          },
+          "all_expected_sizes_present": true,
+          "inference_verified": false
+        }
+      ],
+      "new_weight_downloads_recommended": false
+    },
+    "commercial_scope": "unresolved; not asserted NC",
+    "weights_loaded": false,
+    "new_weight_downloads": false
+  },
+  "voice_preparation_tests_new": 8,
+  "ci_rerun": false,
+  "synthesis_calls": 0,
+  "model_loads": 0,
+  "http10054": "unchanged documented; recover state before retry writes",
+  "cost_usd": 0,
+  "isolated_runtime_followup": {
+    "date": "2026-11-26",
+    "source_revision": "ab55923c27757c90cfcc407baa57dc25a7d25217",
+    "gpu_wheels_reused_from_cache_via_hardlink": [
+      "torch2.6.0+cu124",
+      "torchaudio2.6.0+cu124"
+    ],
+    "inference_install_completed": false,
+    "pip": "24.0",
+    "setuptools": "65.5.0",
+    "first_failure": "build dependency subprocess TLS issuer certificate",
+    "single_followup": "PIP_USE_FEATURE=truststore, TLS verified; retries=0",
+    "final_failure": "ReadTimeoutError files.pythonhosted.org downloading transformers5.2.0",
+    "import_check": {
+      "imports": [
+        {
+          "module": "torch",
+          "import_ok": false,
+          "error": "ModuleNotFoundError: No module named 'torch'",
+          "seconds": 0.0
+        }
+      ],
+      "models_loaded": false,
+      "synthesis": false,
+      "offline": true
+    },
+    "new_focused_tests_passed": 2,
+    "approved_tests_repeated": false,
+    "main_venv_modified": false,
+    "comfyui_modified": false,
+    "qwen_environment_modified": false
+  },
+  "later_completed_downloads_and_functional_samples": {
+    "report": "docs/DESCARGAS_VOCES_96_157_INVENTARIO_20261126.json",
+    "new_unique_focused_tests": 10,
+    "spanish_real_samples": 2,
+    "cosy_load_blocked": "CPU memory headroom and separate Windows dependencies",
+    "previous_dependency_failure_resolved_for_chatterbox": true,
+    "main_4750_activation": "pending",
+    "human_listening": "pending"
+  }
+}

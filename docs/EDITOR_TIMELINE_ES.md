@@ -1,0 +1,134 @@
+# Timeline manual: primera entrega del encargo 7141865417
+
+## Distribución y encuadre
+
+La biblioteca parte de 320 px, con miniaturas contenidas y nombres en una línea
+con tooltip. El editor migra únicamente sus dimensiones antiguas inválidas:
+bibliotecas demasiado estrechas/anchas y alturas que comprimían las pistas.
+No borra otras preferencias. **Distribución → Restablecer distribución** restaura
+los tamaños y muestra los paneles laterales sin modificar ningún proyecto.
+El alto mínimo útil de pistas aumenta según la ventana. Los parámetros extensos
+de clip/subtítulos están en el inspector contextual; las acciones directas
+permanecen bajo las pistas, que no se encogen al desplegar formularios.
+
+**Ajustar al montaje** (`F`) calcula la escala usando el final del vídeo, audio
+y subtítulos, sin el antiguo techo de160px/s. La primera apertura se ajusta al
+contenido. `+`/`−` acercan/alejan y el deslizador sigue disponible. La regla cambia
+sus intervalos con el zoom y crea solo las marcas visibles. Cursor, modo de zoom
+y escala se recuerdan por proyecto en el navegador, separados del EDL.
+Una cola de audio que exceda el vídeo se muestra y se advierte explícitamente:
+el compositor actual termina la salida con el vídeo; Ajustar no cambia esa regla.
+
+## Cursor y operaciones existentes
+
+Arrastra la regla para mover el cursor. Con la regla enfocada, flechas avanzan
+un fotograma; Mayús+flechas, un segundo; Inicio/Fin van a los extremos.
+Si existe un montaje guardado vigente, el cursor busca en ese vídeo. Sin él,
+el cursor sigue siendo editable, pero no se simula una vista compuesta.
+
+Seleccionar un clip mantiene el monitor del montaje. **Ver fuente del clip**
+es una acción explícita del inspector; **Ver montaje guardado** vuelve al render
+existente sin generar otro. **Dividir en cursor** (`S`) convierte el tiempo del
+montaje a tiempo de fuente, incluyendo posición y velocidad. Exige una división
+interior con al menos un fotograma a cada lado; usa el comando compartido `split`,
+con revisión, procedencia, guardado atómico y deshacer/rehacer existentes.
+El recorte por números, división por tiempo de fuente, mover/reordenar, quitar,
+ganancia, fades, velocidad, SRT y estilos conservan sus operaciones previas.
+
+## Segunda entrega: bordes e imán
+
+Los bordes azules de los clips de vídeo recortan entrada/salida con cierre de
+hueco en la secuencia. Arrastrar muestra el intervalo propuesto; soltar guarda
+un único `trim`; Esc cancela sin escribir. Con el borde enfocado, flechas recortan
+un fotograma y Mayús+flechas un segundo. Se limita a la fuente y a un fotograma
+mínimo, incluyendo velocidad. Deshacer restaura el intervalo y la secuencia.
+El borde de salida de audio cambia su duración conservando la posición; no se
+ofrece un borde de entrada que fingiese recorte+desplazamiento atómicos.
+
+Arrastrar un bloque de audio cambia su inicio temporal mediante `clip`, conserva
+su punto de agarre y no cambia el orden de las demás pistas. **Imán** ajusta esos
+arrastres y los bordes a cortes, extremos de audio, cues y cursor dentro de8px;
+puede desactivarse y se guarda con la vista del proyecto. El borrado de vídeo
+se rotula **Quitar y cerrar hueco**, porque el motor es secuencial. Quitar audio
+conserva las posiciones de las otras pistas. No se simula todavía borrado con hueco.
+
+## Validación y siguientes entregas
+
+Pruebas Node sin dependencias sobre el código de tiempo real: montaje3.5s,
+colas independientes, dos horas, vacío, velocidades y bordes de división.
+Pruebas de navegador con JSON interceptado: preferencias previas, restablecimiento,
+escalas corta/larga, selección sin cambiar de monitor, cursor por teclado,
+división revisionada y deshacer. Son evidencia de navegador en CI, no de la
+pestaña Windows ni de reproducción real. Se conservan los medios existentes.
+
+Validación local independiente en Studio activo: proyecto QA `edit-173e7bc16d1e`,
+60s de material existente, fuentes enlazadas sin cambiar sus bytes. Operaciones
+calculadas por el módulo real de tiempo JS y enviadas por HTTP/user o herramienta
+nativa del agente; deshacer cruzado y guardar/reabrir conservan el mismo EDL.
+Render real de60s960×540 con H.264/AAC/mov_text y decodificación completa aprobada.
+Una muestra en20.5s corresponde a fuente30.5s (MAE RGB≈1/255); no es una revisión
+visual exhaustiva ni una observación del navegador. RMS de una ventana de audio
+se registra por separado de escucha y sincronía completa, que siguen pendientes.
+Informe: `EVIDENCIA_TIMELINE_LIVE_20261124.json`. El proyecto corto original y
+las configuraciones conservaron sus hashes; no se reinició el servidor.
+
+El validador es opt-in: `python -B -m scripts.validate_studio_timeline_live`
+con `--source-project` y `--node` crea un proyecto QA nuevo. `--inspect-project`
+revisa un render QA existente sin repetir comandos ni renderizar. Se corrigió
+el argumento del validador `-t .5` a `-t 0.5` y se reanudó la inspección del mismo
+archivo; el fallo de esa comprobación no se atribuye al editor.
+
+Pendientes del encargo: selección múltiple/operaciones atómicas, entrada de audio
+con posición vinculada, duplicación, marcadores, borrado sin cierre de hueco,
+transformaciones/títulos/transiciones, capas reales, waveforms de fuentes largas,
+solo/bloqueo, mezcla en vivo/sonoridad integrada, presets editables y cancelación de exportación.
+No se añaden botones para esas capacidades antes de implementarlas. La escucha,
+sincronía y observación de la ventana local se registran separadamente de API,
+FFprobe y CI. No requiere inferencias, nuevas dependencias ni reiniciar Studio.
+
+## Tercera entrega: subtítulo seleccionado
+
+Pulsar un bloque abre su formulario de texto/inicio/fin en el inspector y sitúa
+el cursor. **Aplicar subtítulo seleccionado** usa `cue_update`, valida tiempos,
+solapes y duración con el motor existente y actualiza SRT/CPS. Arrastrar el bloque
+mueve sus tiempos conservando texto y duración; respeta el imán y limita el
+intervalo a la salida de vídeo. No se ejecuta ASR ni traducción por estas acciones.
+Todo se guarda en el mismo EDL y admite deshacer/rehacer manual o por agente.
+El estilo quemado requiere preparar de nuevo la vista previa después de editar;
+la anterior deja de representar el montaje y no se simula actualizándola con CSS.
+
+Validación real de datos: edición directa desde agente, SRT exportado con los
+nuevos tiempos/texto, deshacer manual, movimiento calculado por JS y deshacer
+desde agente. El hash previo y el render vigente se recuperan sin volver a
+renderizar. Informe `EVIDENCIA_CUES_LIVE_20261124.json`. No acredita observación
+de la pestaña local ni escucha. Las pruebas de navegador siguen separadas.
+
+## Cuarta entrega: señal de audio visible
+
+Las pistas de audio muestran min/max de muestras realmente decodificadas, usando
+el intervalo de fuente del clip. No se dibuja una onda a partir del nombre ni una
+decoración. Se procesa el primer canal, sin aplicar efectos ni representar la
+mezcla exportada. Hasta cuatro fuentes en caché, decodificación secuencial y
+límite de100MB/5min por fuente para contener memoria. Las primeras cuatro pistas
+se preparan al abrir; las demás al seleccionarlas. Si falta decodificador o se
+supera el límite, el estado lo indica. La lectura fallida puede reintentarse
+explícitamente; no hay bucle de reintentos. La reproducción no depende de esa onda.
+
+**Activar medidor** conecta un analizador WebAudio al reproductor existente y
+mide RMS/pico de muestra de preescucha mono. Solo muestra valores durante señal
+reproducida; al pausar identifica la última lectura y al desactivar oculta el
+medidor sin cortar el audio. No representa LUFS, true-peak ni medición de cada
+pista por separado. Requiere acción del usuario para activar el contexto de audio.
+No solicita micrófono, accede a servicios ni modifica el archivo o el EDL.
+
+Pruebas: extremos positivos/negativos, intervalo de recorte, RMS/pico/silencio;
+navegador con AudioContext explícitamente simulado para verificar caché/dibujo/
+activación/pausa/desactivación (NO prueba de audio real). Separadamente, el módulo
+JS procesa PCM real del render QA existente: informe `EVIDENCIA_AUDIO_TIMELINE_20261124.json`.
+No se atribuye a esos datos una captura WebAudio local, escucha ni prueba visual
+de la pestaña Windows. Esas comprobaciones permanecen pendientes.
+
+El imán incorpora el fotograma próximo solo dentro de la tolerancia de8px;
+desactivado conserva precisión temporal libre. Esto evita que un arrastre
+destinado a0.5s termine a0.4975s por redondeo de píxeles, sin ocultar la diferencia
+mediante una tolerancia de prueba más amplia.

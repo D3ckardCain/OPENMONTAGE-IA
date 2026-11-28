@@ -1,0 +1,554 @@
+{
+  "activation": {
+    "pid": 130700,
+    "required": true,
+    "active_jobs": false,
+    "snapshots_saved": true,
+    "restart": "Rejected blocked by policy; no alternate kill attempted",
+    "resident_verified": false
+  },
+  "silence_ui": {
+    "scope": "Actual updated panel and real HTTP at isolated4761, not resident4750; existing Portuguese QA copy, synthetic interval not acoustic measurement",
+    "proposal_candidates": 7,
+    "apply_enabled_after_review": true,
+    "source_words_preserved": 116,
+    "selected_frames": [
+      [
+        257,
+        266
+      ]
+    ],
+    "undo_exact": true,
+    "redo_exact": true,
+    "reopen_exact": true,
+    "revision": 4,
+    "posts": [
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/silence-proposal",
+        "operation": "proposal"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "silence_apply"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "undo"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "redo"
+      },
+      {
+        "path": "/api/studio/editor/edit-qa130-ui/command",
+        "operation": "save"
+      }
+    ],
+    "errors": []
+  },
+  "agent113": {
+    "issue": 113,
+    "scope": "Explicit offline visible-agent-action scenario using actual markup/CSS; no production JS, requests aborted, not an active job",
+    "viewport": [
+      1280,
+      900
+    ],
+    "actions": [
+      {
+        "action": "start",
+        "text": "Iniciar / reanudar agentes",
+        "color": "rgb(230, 237, 243)",
+        "background": "rgb(33, 38, 45)",
+        "outline": "rgb(88, 166, 255)",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "focused": true,
+        "visible": true,
+        "contrast": 12.880440753133499,
+        "keyboard": "Enter/Space local counters only"
+      },
+      {
+        "action": "stop",
+        "text": "Detener entre acciones",
+        "color": "rgb(230, 237, 243)",
+        "background": "rgb(33, 38, 45)",
+        "outline": "rgb(88, 166, 255)",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "focused": true,
+        "visible": true,
+        "contrast": 12.880440753133499,
+        "keyboard": "Enter/Space local counters only"
+      },
+      {
+        "action": "approve",
+        "text": "Aprobar etapa y continuar",
+        "color": "rgb(230, 237, 243)",
+        "background": "rgb(33, 38, 45)",
+        "outline": "rgb(88, 166, 255)",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px",
+        "focused": true,
+        "visible": true,
+        "contrast": 12.880440753133499,
+        "keyboard": "Enter/Space local counters only"
+      }
+    ]
+  },
+  "piper112": {
+    "eligible_records": 0,
+    "new_synthesis": false,
+    "result": "pending_no_eligible_receipt"
+  },
+  "watch122": {
+    "cache_reused": true,
+    "hash_reused": true,
+    "no_subprocess_on_reuse": true,
+    "real_pts": [
+      9.875,
+      10.5,
+      11.167
+    ],
+    "transcript_words": 6,
+    "asr_executed": false,
+    "source_unchanged": true
+  },
+  "moviepy": {
+    "installed": "1.0.3 in isolated MuseTalk",
+    "evaluated": "2.2.0 API incompatible",
+    "decision": "No demonstrated improvement over existing FFmpeg; no install/update"
+  },
+  "chimera": {
+    "rust_cargo_bun_on_path": false,
+    "windows_release_in_evaluation": false,
+    "decision": "Defer large toolchain/build; CLI WAV candidate, no Spanish text support claimed"
+  },
+  "glb143": {
+    "existing_owned_glb_found_in_reviewed_roots": false,
+    "scope": "projects, assets, local_library; not global absence",
+    "decision": "No asset generated merely for test; import/inspection blocked on an existing authorized artifact"
+  },
+  "final_batch": {
+    "ui": {
+      "scope": "Updated isolated4764; not activation4750, no human listening",
+      "identity": {
+        "schema_version": 1,
+        "api_protocol": 1,
+        "revision_kind": "source_sha256_at_import",
+        "resident": {
+          "status": "available",
+          "sha256": "576872d95e31a36a2dd77d04984cdea3c797d13cc217086074d1b5d8dec72f63",
+          "files": 30
+        },
+        "disk": {
+          "status": "available",
+          "sha256": "576872d95e31a36a2dd77d04984cdea3c797d13cc217086074d1b5d8dec72f63",
+          "files": 30
+        },
+        "ui": {
+          "status": "available",
+          "sha256": "07406af8866469e17f68bbe16d589c7686133c640de52eeb3891c5159241519c",
+          "files": 29
+        },
+        "restart_required": false,
+        "pid": 144796,
+        "loaded_at_utc": "2026-11-26T06:01:36.582726+00:00",
+        "editor": {
+          "version": "3.0",
+          "commands": [
+            "batch",
+            "duplicate",
+            "markers",
+            "flags",
+            "audio_trim_position",
+            "delete_keep_gap",
+            "ripple_delete",
+            "transform",
+            "titles",
+            "output_custom",
+            "audio_mix",
+            "transition",
+            "layers",
+            "clip_candidates",
+            "subtitle_language",
+            "subtitle_words",
+            "subtitle_from_words",
+            "silence_apply",
+            "qwen_tts_plan",
+            "reference_plan",
+            "component_add",
+            "component_remove"
+          ],
+          "render_cancel": true,
+          "shared_revision": true,
+          "silence_proposal": {
+            "contract": "studio-silence-proposal-v1",
+            "read_only": true,
+            "apply_available": true,
+            "apply_command": "silence_apply"
+          },
+          "api_protocol": 1,
+          "backend_build": "576872d95e31a36a2dd77d04984cdea3c797d13cc217086074d1b5d8dec72f63"
+        }
+      },
+      "resident_matches_disk": true,
+      "qwen_resources_verified": true,
+      "qwen_cpu_memory_blocks": true,
+      "layer_transform_real_control": true,
+      "undo_redo_save_reopen": true,
+      "componentPlayback": {
+        "time": 0.357869,
+        "duration": 4,
+        "source": "http://127.0.0.1:4764/media/edit-7215bd0ea0cf/assets/editor-renders/c4b81e281cb84994b3f8d15a996fdbf9/montage.mp4",
+        "readyState": 4,
+        "muted": true
+      },
+      "portuguesePlayback": {
+        "time": 0.362575,
+        "duration": 22.36,
+        "source": "http://127.0.0.1:4764/media/edit-qa130-ui/assets/editor-renders/4f4a67657f154e70aeb04af46fd60607/montage.mp4",
+        "readyState": 4,
+        "muted": true
+      },
+      "cut_playback_crossed": true,
+      "errors": []
+    },
+    "media": {
+      "pt": {
+        "duration": 22.36,
+        "streams": [
+          {
+            "codec_type": "video",
+            "codec_name": "h264",
+            "width": 540,
+            "height": 960,
+            "nb_frames": "559"
+          },
+          {
+            "codec_type": "audio",
+            "codec_name": "aac",
+            "width": null,
+            "height": null,
+            "nb_frames": "1050"
+          }
+        ],
+        "decode_errors": false,
+        "human_listening": false
+      },
+      "components": {
+        "duration": 4.0,
+        "streams": [
+          {
+            "codec_type": "video",
+            "codec_name": "h264",
+            "width": 640,
+            "height": 360,
+            "nb_frames": "96"
+          },
+          {
+            "codec_type": "audio",
+            "codec_name": "aac",
+            "width": null,
+            "height": null,
+            "nb_frames": "189"
+          }
+        ],
+        "decode_errors": false,
+        "human_listening": false
+      }
+    },
+    "waveform_scope": {
+      "silence130": {
+        "streams": [
+          {
+            "codec_type": "video",
+            "codec_name": "h264",
+            "width": 540,
+            "height": 960,
+            "duration": "22.360000",
+            "nb_frames": "559",
+            "sample_rate": null
+          },
+          {
+            "codec_type": "audio",
+            "codec_name": "aac",
+            "width": null,
+            "height": null,
+            "duration": "22.360000",
+            "nb_frames": "1050",
+            "sample_rate": "48000"
+          }
+        ],
+        "full_decode_errors": false,
+        "human_listening": false,
+        "stored_words": 116,
+        "subtitles": 19,
+        "removed_frames": [
+          [
+            257,
+            266
+          ]
+        ],
+        "original_untouched": true,
+        "audio_alignment_windows": [
+          {
+            "output_seconds": 9.5,
+            "source_expected": 9.5,
+            "source_best_offset_ms": 5.749999999999991,
+            "pearson": 0.8611469979637608
+          },
+          {
+            "output_seconds": 10.4,
+            "source_expected": 10.76,
+            "source_best_offset_ms": 6.249999999999992,
+            "pearson": 0.9758533831792439
+          }
+        ],
+        "no_word_cut_scope": "Recorded ASR intervals protected numerically; phonetic accuracy and listening not certified. Synthetic acoustic interval, not silence detection proof.",
+        "alignment_method": "Post-input seek, mono8k, 250ms waveform correlation with +/-100ms offset search; not listening/phonetic evidence"
+      },
+      "components": {
+        "streams": [
+          {
+            "codec_type": "video",
+            "codec_name": "h264",
+            "width": 640,
+            "height": 360,
+            "duration": "4.000000",
+            "nb_frames": "96",
+            "sample_rate": null
+          },
+          {
+            "codec_type": "audio",
+            "codec_name": "aac",
+            "width": null,
+            "height": null,
+            "duration": "4.000000",
+            "nb_frames": "189",
+            "sample_rate": "48000"
+          }
+        ],
+        "full_decode_errors": false,
+        "human_listening": false
+      }
+    },
+    "reference": {
+      "scope": "Actual HTTP4762 isolated Portuguese copy; existing receipt and hashes, no new decoding",
+      "origin": {
+        "contract": "studio-reference-plan-v1",
+        "scene_fingerprints": {
+          "one": "27ef632af81f430ba9487b5399b96c1ac9ea6a0852edde4d357b5f435401e9df",
+          "two": "7be5007a382f504777df62e436244306495397522f0f462ca273d0e70a1e1e96"
+        },
+        "changed_ids": [
+          "one"
+        ],
+        "unchanged_ids": [
+          "two"
+        ],
+        "removed_ids": [],
+        "generation_performed": false,
+        "evidence_validation": "declared_hash_bindings_not_redecoded",
+        "comments_clock": "project_timeline_markers_not_implicitly_reference_pts",
+        "review_status": "pending_human_review_not_inferred_from_similarity"
+      },
+      "undo_redo_save_reopen": true
+    },
+    "qwen_ui_error": {
+      "scope": "Explicit500 intercepted in own QA browser, no model loaded/no project mutation",
+      "error_remains_visible": true,
+      "save_disabled_without_profiles": true
+    },
+    "unique_new_pytest": 56,
+    "prior_approved_suites_repeated": false,
+    "ci": "Pending publication; do not infer pass",
+    "listening": "Human pending; browser playback muted",
+    "qa_corrections": [
+      "Synthetic title fixture lacked size/position: fixed via title_update before encoder success",
+      "QA clone had text encoding damage; cue text restored from UTF8 original through API, original untouched",
+      "Same PT QA sample retried after fixture fixes; final artifact only is credited, no approved render repeated",
+      "Component demonstration timing changed to avoid competing overlays; scoped typography/cache revision tested"
+    ],
+    "original_edl_snapshots_equal": {
+      "edit-173e7bc16d1e": true,
+      "edit-635e36b5107a": true,
+      "edit-794de088270c": true,
+      "edit-827337e03f38": true,
+      "edit-qa107-6281c8a744": true,
+      "edit-qa107-pt-5f4e1409": true,
+      "edit-qa129-pt-activation": true,
+      "edit-ripple-live-5f4e64105603": true
+    },
+    "component_av_windows": {
+      "scope": "New own4s scene, no synthesis or approved pilot repeated; software measurements not human listening",
+      "layer_boxes_at_2_75_and_3_75": [
+        [
+          78,
+          90,
+          281,
+          205
+        ],
+        [
+          86,
+          96,
+          289,
+          211
+        ]
+      ],
+      "absolute_motion_visible": true,
+      "audio_alignment_windows": [
+        {
+          "output_seconds": 0.4,
+          "source_offset_ms": 5.125000000000004,
+          "pearson": 0.9875485873378157
+        },
+        {
+          "output_seconds": 3.0,
+          "source_offset_ms": 3.0000000000000027,
+          "pearson": 0.9893027759856782
+        }
+      ]
+    }
+  },
+  "ci_initial": {
+    "head": "19347ce01591b206ae3f8a031523c08796cb62d2",
+    "main_run": 45766705792,
+    "failed": 14,
+    "passed": 3798,
+    "skipped": 44,
+    "xfailed": 3,
+    "subtests_passed": 40,
+    "browser_failed": 1,
+    "browser_passed": 42,
+    "fix_local_existing_focused_passed": 15,
+    "new_gate_cases_passed": 2,
+    "timeouts_or_tests_disabled": false
+  },
+  "planning_backfill": [
+    {
+      "project": "qa117-blender-skills-53",
+      "prior_checkpoints_unchanged": true,
+      "selection_unchanged": true,
+      "media_regenerated": false
+    },
+    {
+      "project": "qa132-hyperframes-offline",
+      "prior_checkpoints_unchanged": true,
+      "selection_unchanged": true,
+      "media_regenerated": false
+    }
+  ],
+  "ci_fix_verified": {
+    "head": "16842e67b05153ed08657033a393bc5d78c4e8d0",
+    "main_run": 45767931949,
+    "conclusion": "success",
+    "passed": 3814,
+    "skipped": 44,
+    "xfailed": 3,
+    "subtests_passed": 40,
+    "contracts_pr": 45767931925,
+    "contracts_push": 45767925629
+  },
+  "qwen_cuda_continuation": {
+    "scope": "Real isolated Studio4764, not main4750 activation or human listening",
+    "runtime": "same isolated environment, torch/torchaudio2.6.0+cu124; qwen-tts0.1.1; BF16 eager",
+    "model_hashes_reread": false,
+    "main_venv_or_comfyui_changed": false,
+    "samples": [
+      {
+        "profile": "voice-design",
+        "request_id": "681c005bf9184ba49594d6d398466dfd",
+        "relative_path": "assets/audio/qwen/681c005bf9184ba49594d6d398466dfd/voice.wav",
+        "wave_sha256": "e5452241e5543ab2832d5f04c8fcbf22235365b5b738174a4dea0cf13c40d724",
+        "duration_seconds": 1.92,
+        "sample_rate": 24000,
+        "listening_verified": false,
+        "execution": {
+          "device": "cuda",
+          "dtype": "torch.bfloat16",
+          "forward_count": 25,
+          "gpu_peak_allocated_bytes": 4243039232,
+          "gpu_peak_reserved_bytes": 4336910336
+        }
+      },
+      {
+        "profile": "qwen-tts-17b-base",
+        "request_id": "8677f86b65724f399f2b2569c9d0cf8d",
+        "relative_path": "assets/audio/qwen/8677f86b65724f399f2b2569c9d0cf8d/voice.wav",
+        "wave_sha256": "2cf0fd9049da487ee6b85971178eca09dbd034d4da8791faa20b5865d2ce3ee5",
+        "duration_seconds": 2.8,
+        "sample_rate": 24000,
+        "listening_verified": false,
+        "execution": {
+          "device": "cuda",
+          "dtype": "torch.bfloat16",
+          "forward_count": 36,
+          "gpu_peak_allocated_bytes": 4387419136,
+          "gpu_peak_reserved_bytes": 4435476480
+        },
+        "url": "/media/edit-1f9afbe37f35/assets/audio/qwen/8677f86b65724f399f2b2569c9d0cf8d/voice.wav"
+      }
+    ],
+    "base_reference": "new own synthetic VoiceDesign sample; explicit authorization, no external person",
+    "ui": {
+      "actual_chrome": true,
+      "muted_playback": true,
+      "registered_without_duplication": true,
+      "plans_and_sources_reopened": true,
+      "listening_verified": false
+    },
+    "cancel": {
+      "request_id": "7b0ea5b4ee174870b054ede0a8c34843",
+      "real_forward_count": 3,
+      "worker_pid": 141272,
+      "worker_exited": true,
+      "inference_stop_confirmed": true,
+      "gpu_memory_used_after_mib": 0,
+      "recovered_without_rerun": true,
+      "result_published": false
+    },
+    "new_offline_tests": 18
+  },
+  "ci_qwen_verified": {
+    "head": "4242eca215b72effdc8a9e5777602e27a08a4a46",
+    "main_run": 45773151291,
+    "conclusion": "success",
+    "passed": 3832,
+    "skipped": 44,
+    "xfailed": 3,
+    "subtests_passed": 40,
+    "seconds": 107.66,
+    "contracts_push_run": 45773142874,
+    "browser_push_passed": 43,
+    "contracts_pr_run": 45773151258,
+    "contracts_pr_conclusion": "success",
+    "contracts_pr_observed_at": "2026-11-26T07:17:00Z",
+    "contracts_pr_browser_passed": 43,
+    "contracts_pr_browser_seconds": 76.94,
+    "all_three_workflows_success": true,
+    "reruns_or_timeout_changes": false
+  },
+  "isolated_server_final": {
+    "port": 4764,
+    "pid": 143860,
+    "stopped_when_idle": true,
+    "backend_source_sha256": "bca8fb3156d1cb4a5c102adadacaee6109a1988265edf69acf6ecbad1505207a",
+    "restart_required_before_stop": false,
+    "main4750_pid": 130700,
+    "main4750_health_ok": true,
+    "main4750_restarted": false
+  },
+  "activation_followup_after_user_restart": {
+    "report": "ACTIVACION_544C57F_RESULTADOS.json",
+    "server_pid": 138604,
+    "restart_required": false,
+    "agent_restarted_server": false,
+    "approved_synthesis_render_ci_resource_hashes_repeated": false,
+    "limits": [
+      "Python HTTP10054 remains observed; committed write not resent",
+      "Generic HyperFrames status unavailable without inherited private profile",
+      "No eligible Piper112 request receipt",
+      "Human listening and own GLB remain pending"
+    ]
+  }
+}

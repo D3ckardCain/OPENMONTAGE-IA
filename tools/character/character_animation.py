@@ -8,6 +8,8 @@ preview/review outputs.
 
 from __future__ import annotations
 
+from lib.media_executables import find_media, require_media
+
 import json
 import shutil
 import subprocess
@@ -68,7 +70,7 @@ def _normalize_style(style: Any) -> dict[str, Any]:
 
 
 def _render_preview_mp4(preview_path: Path, video_path: Path, duration_seconds: float, fps: int) -> None:
-    if shutil.which("ffmpeg") is None:
+    if find_media("ffmpeg") is None:
         raise RuntimeError("ffmpeg is required to render preview MP4")
     try:
         from playwright.sync_api import sync_playwright
@@ -89,7 +91,7 @@ def _render_preview_mp4(preview_path: Path, video_path: Path, duration_seconds: 
         browser.close()
 
     cmd = [
-        "ffmpeg",
+        require_media("ffmpeg"),
         "-y",
         "-framerate",
         str(fps),

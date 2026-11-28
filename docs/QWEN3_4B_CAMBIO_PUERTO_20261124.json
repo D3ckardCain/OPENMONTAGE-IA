@@ -1,0 +1,112 @@
+{
+  "observed_at_utc": "2026-11-24T22:10:33.637603+00:00",
+  "precheck": {
+    "path": "E:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\candidates\\qwen_3_4b-5b3abca5-6c671498.safetensors\\qwen_3_4b.safetensors",
+    "fingerprint": {
+      "size_bytes": 8044982048,
+      "mtime_ns": 1795543843023824300,
+      "ctime_ns": 1795534958952692900,
+      "device": 4101616990,
+      "inode": 2814749767109048
+    },
+    "structural_validation_reusable": true,
+    "destination_d_partition": "not currently found"
+  },
+  "after_fingerprint": {
+    "size_bytes": 8044982048,
+    "mtime_ns": 1795543843023824300,
+    "ctime_ns": 1795534958952692900,
+    "device": 4101616990,
+    "inode": 2814749767109048
+  },
+  "metadata_unchanged": true,
+  "hash_attempts_this_run": 1,
+  "sha256": {
+    "method": "Get-FileHash -LiteralPath -Algorithm SHA256",
+    "path": "E:\\OPENMONTAJE-IA\\ComfyUI_windows_portable\\ComfyUI\\models\\text_encoders\\candidates\\qwen_3_4b-5b3abca5-6c671498.safetensors\\qwen_3_4b.safetensors",
+    "process_id": 70976,
+    "started_utc": "2026-11-24T22:00:17.4372532Z",
+    "baseline_record_id": 151419,
+    "source_disk_number": 1,
+    "destination_d_status": "not currently identified; no substitution allowed",
+    "expected_sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
+    "status": "completed",
+    "sha256": "6cbad3f9d28e15e86d3ddb1842cd51653ad236c92e9a2204bd4415241af22f53",
+    "matches_expected": false,
+    "completed_utc": "2026-11-24T22:09:50.3059167Z",
+    "new_storage_events": []
+  },
+  "storage_event_audit": {
+    "start_utc": "2026-11-24T22:00:17.4372532Z",
+    "end_utc": "2026-11-24T22:09:50.3059167Z",
+    "query_status": "queried_no_matching_events",
+    "events": []
+  },
+  "source_drive": {
+    "letter": "E",
+    "disk_number": 1,
+    "friendly_name": "Seagate Basic",
+    "bus_type": "USB",
+    "size": 1000204885504,
+    "volume_label": "Seagate Basic",
+    "health": "Healthy",
+    "operational": "Online",
+    "destination_d_status": "Get-Partition reports D not present; substitution blocked until reidentified"
+  },
+  "source_usb_chain": [
+    {
+      "depth": 0,
+      "class": "DiskDrive",
+      "name": "Seagate Basic SCSI Disk Device",
+      "status": "OK",
+      "service": "disk",
+      "instance_without_serial": "SCSI\\DISK&VEN_SEAGATE&PROD_BASIC\\[omitted]"
+    },
+    {
+      "depth": 1,
+      "class": "SCSIAdapter",
+      "name": "Dispositivo de almacenamiento SCSI conectado por USB (UAS)",
+      "status": "OK",
+      "service": "UASPStor",
+      "instance_without_serial": "USB\\VID_0BC2&PID_AA15\\[omitted]"
+    },
+    {
+      "depth": 2,
+      "class": "USB",
+      "name": "Concentrador raíz USB (USB 3.0)",
+      "status": "OK",
+      "service": "USBHUB3",
+      "instance_without_serial": "USB\\ROOT_HUB30\\[omitted]"
+    },
+    {
+      "depth": 3,
+      "class": "USB",
+      "name": "Controlador de host eXtensible Intel(R) USB 3.10 - 1.20 (Microsoft)",
+      "status": "OK",
+      "service": "USBXHCI",
+      "instance_without_serial": "PCI\\VEN_8086&DEV_51ED&SUBSYS_13B91462&REV_01\\[omitted]"
+    },
+    {
+      "depth": 4,
+      "class": "System",
+      "name": "Complejo raíz PCI Express",
+      "status": "OK",
+      "service": "pci",
+      "instance_without_serial": "ACPI\\PNP0A08\\[omitted]"
+    }
+  ],
+  "destination_drive_final": {
+    "status": "not_identified",
+    "error": "No se encontraron objetos MSFT_Partition cuya propiedad 'DriveLetter' sea igual a 'D'. Compruebe el valor de la propiedad e inténtelo de nuevo.",
+    "error_id": "CmdletizationQuery_NotFound_DriveLetter,Get-Partition"
+  },
+  "comparison_previous_observed_sha256": "6cbad3f9d28e15e86d3ddb1842cd51653ad236c92e9a2204bd4415241af22f53",
+  "same_observed_hash_as_previous_port": true,
+  "model_replaced": false,
+  "models_deleted": [],
+  "models_moved": [],
+  "models_downloaded": [],
+  "inference": false,
+  "configuration_changed": false,
+  "conclusion": "Repeated mismatch after port change. No new matching storage events recorded during complete read; this does not certify full hardware health or establish why content differs. No replacement or deletion permitted."
+}
