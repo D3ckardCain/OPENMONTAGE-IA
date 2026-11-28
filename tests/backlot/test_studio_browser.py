@@ -1556,6 +1556,8 @@ def test_agent_project_context_and_uncertain_clarification_retry_are_idempotent(
         page.route('**/api/**',api)
         page.goto(staged_backlot_server+f'/studio?project={pid}#video')
         page.locator('#project-select').select_option(pid)
+        expect(page.locator('#project-select')).to_have_value(pid)
+        expect(page.locator('#edit-revision')).to_contain_text(str(editor_state['revision']))
         page.locator('#agent-toggle').click()
         expect(page.locator('#agent-request')).to_contain_text('QA context fixture')
         expect(page.locator('#agent-request')).to_contain_text(request['brief'])
