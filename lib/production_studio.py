@@ -191,10 +191,11 @@ def create_production(data):
 
 def production_state(pid):
     p=project_path(pid);request=read_json(p/'production_request.json')
-    manifest=load_pipeline_readonly(request['pipeline'])
+    has_pipeline='pipeline' in request
+    manifest=load_pipeline_readonly(request['pipeline']) if has_pipeline else {'stages':[]}
     job=read_json(p/'job.json',{})
     stages=[]
-    for s in manifest['stages']:
+    for s in manifest.get('stages',[]):
         cp=read_json(p/('checkpoint_'+s['name']+'.json'),{})
         stages.append({'name':s['name'],'status':cp.get('status','pending'),'error':cp.get('error')})
     artifacts=[]
@@ -221,7 +222,7 @@ def production_state(pid):
     except (ValueError,TypeError,KeyError,OSError):
         performance_state={'status':'invalid','message':'Copia de rendimiento ausente o alterada.'}
     from lib.project_workspace import describe as describe_workspace
-    return {'request':request,'job':job,'stages':stages,'artifacts':artifacts,'outputs':outputs,
+    return {'request':request,'job':job,'stages':stages,'production_pipeline_available':has_pipeline,'artifacts':artifacts,'outputs':outputs,
             'workspace':describe_workspace(p),
         'channel_research':channel_research_summary(p,request),
         'channel_performance':performance_state,
