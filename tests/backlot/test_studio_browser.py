@@ -1520,6 +1520,7 @@ def test_agent_project_context_and_uncertain_clarification_retry_are_idempotent(
     """Synthetic browser transport; one lost response must not duplicate a note."""
     import json
     from pathlib import Path
+    from urllib.parse import urlparse
     fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
     pid=fixture['project_id'];editor_state=fixture['state'];clarifications=[];posts=[]
     request={'title':'QA context fixture','brief':'No cortar la negación <script>alert(1)</script>.','language':'es','pipeline':'fixture'}
@@ -1532,7 +1533,7 @@ def test_agent_project_context_and_uncertain_clarification_retry_are_idempotent(
         page=browser.new_page()
         page.on('pageerror',lambda error:pytest.fail(f'JavaScript error: {error}'))
         def api(route):
-            path=route.request.url.split('?',1)[0];method=route.request.method
+            path=urlparse(route.request.url).path;method=route.request.method
             if path.endswith('/api/health'):route.fulfill(json={'ok':True,'app':'backlot'});return
             if path.endswith('/api/studio/identity'):route.fulfill(json=identity);return
             if path.endswith('/api/studio/bootstrap'):route.fulfill(json={'projects':[{'project_id':pid,'title':request['title']}],'settings':{}});return
