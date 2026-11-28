@@ -27,7 +27,7 @@ def test_image_is_validated_persisted_and_reused(project,fmt):
     assert first['width']==64 and first['height']==32
     assert first['comfyui_uploaded'] is False and first['generation_started'] is False
     assert stage_image('one',encoded(fmt))==first
-    assert len(list((project/'source_images').glob('*')))==1
+    assert len(list((project/'originales'/'imagenes').glob('*')))==1
 
 
 @pytest.mark.parametrize('data',[{'image_base64':'%%%'},{'image_base64':''},
