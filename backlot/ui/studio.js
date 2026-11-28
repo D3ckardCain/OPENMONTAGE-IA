@@ -56,7 +56,7 @@ function memoryKindLabel(kind){return kind==='explicit_preference'?'Preferencia 
 function renderAgentMemory(data){
   const root=$('#agent-memory-list'),status=$('#agent-memory-status');if(!root||!status)return;root.replaceChildren();
   if(data.__error||!Array.isArray(data.entries)){status.textContent='No se pudo leer la memoria del proyecto; puedes actualizar para reintentar.';return}
-  const active=!!data.agent_active,compatible=state.identity?.restart_required===false,canWrite=!!state.pid&&compatible&&!active;
+  const active=!!data.agent_active,compatible=state.identity?.restart_required===false,canWrite=!!state.pid&&compatible&&!active;const addButton=$('#agent-memory-add'),saveButton=$('#agent-memory-save');if(addButton)addButton.disabled=!canWrite;if(saveButton)saveButton.disabled=!canWrite;
   status.textContent=data.truncated?'Se muestran las entradas recientes; hay más historial.':data.entries.length?'Memoria local con origen y revisión del proyecto.':'Todavía no hay preferencias ni decisiones guardadas.';
   for(const entry of data.entries){
     const row=document.createElement('li');row.className='agent-memory-item';row.dataset.memoryId=String(entry.memory_id||'');
