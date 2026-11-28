@@ -76,6 +76,7 @@ function renderAgentMemory(data){
   else if(active)status.textContent='El agente está usando este proyecto; memoria en modo de solo lectura.';
 }
 function openAgentMemoryForm(entry=null){
+  if(!state.pid||state.identity?.restart_required!==false){$('#agent-memory-status').textContent='Backend pendiente de activación; memoria en solo lectura.';return}
   const form=$('#agent-memory-form');if(!form)return;form.hidden=false;$('#agent-memory-kind').value=entry?.kind||'explicit_preference';
   $('#agent-memory-text').value=entry?.text||'';$('#agent-memory-source').value='';form.dataset.supersedesId=entry?.memory_id||'';
   $('#agent-memory-save').textContent=entry?'Guardar corrección':'Guardar versión';
@@ -85,29 +86,30 @@ function openAgentMemoryForm(entry=null){
 function closeAgentMemoryForm(){const form=$('#agent-memory-form');if(!form)return;form.hidden=true;form.reset();delete form.dataset.supersedesId}
 async function loadAgentMemory(pid=state.pid,activityRequest=agentActivityRequest){
   const status=$('#agent-memory-status');if(!pid){agentMemorySnapshotPid=null;if(status)status.textContent='Elige un proyecto para consultar su memoria.';return}
+  if(agentMemorySnapshotPid!==pid){$('#agent-memory-list')?.replaceChildren();closeAgentMemoryForm()}
   status.textContent='Leyendo memoria local del proyecto…';const data=await tryApi('/api/studio/projects/'+encodeURIComponent(pid)+'/memory');
   if(activityRequest!==agentActivityRequest||pid!==state.pid)return;
   if(data.__error){status.textContent='No se pudo consultar la memoria local; no se envió ningún cambio.';return}
   agentMemorySnapshotPid=pid;renderAgentMemory(data)
 }
 async function changeAgentMemory(payload){
-  const pid=state.pid,status=$('#agent-memory-status');if(!pid)return;
-  if(state.identity?.restart_required!==false){status.textContent='Backend pendiente de activación; no se envió el cambio.';return}
-  status.textContent=payload.operation==='forget'?'Retirando del índice local…':'Guardando nueva versión en el proyecto…';
-  try{await req('/api/studio/projects/'+encodeURIComponent(pid)+'/memory',{method:'POST',body:payload});status.textContent=payload.operation==='forget'?'Entrada retirada del índice; recibo conservado.':'Nueva versión guardada con procedencia.'}
+  const pid=state.pid,status=$('#agent-memory-status');if(!pid)return false;
+  if(state.identity?.restart_required!==false){status.textContent='Backend pendiente de activación; no se envió el cambio.';return false}
+  status.textContent=payload.operation==='forget'?'Retirando del índice local…':'Guardando nueva versión en el proyecto…';let confirmed=false;
+  try{await req('/api/studio/projects/'+encodeURIComponent(pid)+'/memory',{method:'POST',body:payload});confirmed=true;status.textContent=payload.operation==='forget'?'Entrada retirada del índice; recibo conservado.':'Nueva versión guardada con procedencia.'}
   catch(error){status.textContent='Respuesta incierta; se consultará la memoria antes de considerar otro intento.'}
-  await loadAgentMemory(pid,agentActivityRequest)
+  await loadAgentMemory(pid,agentActivityRequest);return confirmed
 }
 async function submitAgentMemory(event){
   event.preventDefault();const form=$('#agent-memory-form'),text=$('#agent-memory-text').value.trim(),source=$('#agent-memory-source').value.trim();
   if(!state.pid||!text||!source)return;const payload={operation:'remember',kind:$('#agent-memory-kind').value,text,source_ref:source};
   if(form.dataset.supersedesId)payload.supersedes_id=form.dataset.supersedesId;
-  await changeAgentMemory(payload);closeAgentMemoryForm()
+  if(await changeAgentMemory(payload))closeAgentMemoryForm()
 }
 let agentActivitySnapshotPid=null;
 async function loadAgentActivity(){
   const root=$('#events');if(!root)return;const pid=state.pid;
-  if(!pid){agentActivitySnapshotPid=null;renderAgentActivity({});return}
+  if(!pid){agentActivitySnapshotPid=null;agentMemorySnapshotPid=null;$('#agent-memory-list')?.replaceChildren();$('#agent-memory-status').textContent='Elige un proyecto para consultar su memoria.';closeAgentMemoryForm();renderAgentActivity({});return}
   const requestId=++agentActivityRequest,hasCurrentSnapshot=agentActivitySnapshotPid===pid;
   if(!hasCurrentSnapshot){$('#agent-status').textContent='Cargando estado local…';root.textContent='Cargando actividad local…';$('#agent-stages').replaceChildren();$('#agent-stages').hidden=true;$('#agent-artifacts').replaceChildren();$('#agent-artifacts').hidden=true;$('#agent-controls').hidden=true}
   const data=await tryApi(`/api/studio/projects/${encodeURIComponent(pid)}`);
