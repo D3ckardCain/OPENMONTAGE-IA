@@ -15,8 +15,15 @@ class AgentActivityPanelTests(unittest.TestCase):
 
         script = client.get('/ui/studio.js')
         self.assertEqual(script.status_code, 200)
-        self.assertIn('function renderAgentActivity(events)', script.text)
-        self.assertIn('all.slice(-12).reverse()', script.text)
+        self.assertIn('function renderAgentActivity(projectState={})', script.text)
+        self.assertIn('events.slice(-12).reverse()', script.text)
+        self.assertIn('projectState?.stages', script.text)
+        self.assertIn('projectState?.artifacts', script.text)
+        self.assertIn('safeProjectMediaUrl', script.text)
+        self.assertIn('state.identity?.restart_required===false', script.text)
+        self.assertIn('Solicitar detención', html)
+        self.assertIn('el cierre del proceso aún no está confirmado', script.text)
+        self.assertIn("runAgentAction('approve')", script.text)
         self.assertIn("kind==='model_usage'", script.text)
         self.assertIn("usage[key]", script.text)
         self.assertIn("ev.outcome==='unknown'", script.text)
@@ -26,6 +33,8 @@ class AgentActivityPanelTests(unittest.TestCase):
         self.assertEqual(css.status_code, 200)
         self.assertIn('.agent-activity-card[data-kind=error]', css.text)
         self.assertIn('.agent-activity-metrics', css.text)
+        self.assertIn('.agent-stage-list', css.text)
+        self.assertIn('.agent-artifact-list', css.text)
 
 
 if __name__ == '__main__':
