@@ -20,7 +20,7 @@ def test_identity_and_capabilities_share_resident_build():
     assert identity.capabilities()['commands']  # callers cannot mutate snapshot
     html = client.get('/studio')
     assert f'content="{data["ui"]["sha256"]}"' in html.text
-    assert 'id="studio-compatibility"' in html.text
+    assert 'id="backend-warning"' in html.text
     assert html.headers['cache-control'] == 'no-store'
 
 
