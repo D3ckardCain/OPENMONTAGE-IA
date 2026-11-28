@@ -1897,7 +1897,7 @@ def test_video_inspector_exposes_shared_capability_gated_crossfade(staged_backlo
             route.fulfill(json=deepcopy(state))
         page.route(f"**/api/studio/editor/{pid}/command",apply)
         page.goto(f"{staged_backlot_server}/studio?project={pid}#video")
-        clips=page.locator(".timeline-clip")
+        clips=page.locator(".timeline-clip:not(.audio)")
         expect(clips).to_have_count(2)
         clips.nth(1).click()
         panel=page.locator("#transition-panel")
