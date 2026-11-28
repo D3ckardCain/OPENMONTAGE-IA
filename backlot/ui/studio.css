@@ -84,3 +84,12 @@
 .agent-memory-form{display:grid;gap:6px;border:1px solid var(--line);border-radius:7px;padding:9px;margin-top:8px}
 .agent-memory-form textarea,.agent-memory-form input,.agent-memory-form select{width:100%;min-width:0}
 .agent-memory-form-actions{justify-content:flex-end}
+
+/* Inspector: shared, capability-gated manual video transition. */
+.transition-editor{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);color:var(--text)}
+.transition-editor summary{cursor:pointer;font-size:12px;font-weight:650;padding:3px 0 8px}
+.transition-editor form{display:grid;gap:7px}
+.transition-editor .field-row{margin:0}
+.transition-editor .field-row select{width:100%;min-width:0;font-size:11px}
+.transition-hint{display:block;color:var(--muted);font-size:10px;line-height:1.45;margin:0 0 3px}
+.transition-editor form>button{justify-self:start;min-height:30px;font-size:10px}

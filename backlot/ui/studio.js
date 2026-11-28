@@ -215,7 +215,49 @@ function renderAudioProcessing(box,clip,source){
   });
   panel.append(form);box.append(panel);
 }
-function renderInspector(edl){const box=$('#inspector');box.replaceChildren();const clip=[...(state.selectedTrack==='audio'?edl.audio_tracks||[]:edl.cuts||[])].find(x=>x.id===state.selectedClip);if(!clip){box.innerHTML='<div class="empty-state">Selecciona un clip<br><small>Los controles disponibles aparecerán aquí.</small></div>';return}const source=edl.sources?.[clip.source_id];const title=document.createElement('h3');title.className='clip-title';title.textContent=source?.original_name||clip.source||'Clip';box.append(title);for(const [key,label] of [['in_seconds','Entrada (s)'],['out_seconds','Salida (s)'],['speed','Velocidad'],['gain','Ganancia']]){if(key==='speed'&&state.selectedTrack==='audio')continue;if(key==='gain'&&state.selectedTrack!=='audio')continue;const row=document.createElement('div');row.className='field-row';const l=document.createElement('label');l.textContent=label;const inp=document.createElement('input');inp.type='number';inp.step=key.includes('seconds')?'.01':'.05';inp.value=clip[key]??(key==='gain'?1:1);inp.dataset.field=key;row.append(l,inp);box.append(row)}const actions=document.createElement('div');actions.className='field-actions';for(const [label,fn] of [['Aplicar cambios',applyInspector],['Dividir aquí',()=>command({operation:'split',id:clip.id,track:state.selectedTrack,at:Number($('#playhead').value)})],['Mover antes',()=>moveClip(-1)],['Mover después',()=>moveClip(1)],['Mute',()=>command({operation:'clip',id:clip.id,track:state.selectedTrack,muted:!clip.muted})],['Solo',()=>command({operation:'clip',id:clip.id,track:state.selectedTrack,solo:!clip.solo})]]){const b=document.createElement('button');b.className='quiet-button';b.type='button';b.textContent=label;b.onclick=fn;actions.append(b)}box.append(actions);renderAudioProcessing(box,clip,source)}
+function renderInspector(edl){const box=$('#inspector');box.replaceChildren();const clip=[...(state.selectedTrack==='audio'?edl.audio_tracks||[]:edl.cuts||[])].find(x=>x.id===state.selectedClip);if(!clip){box.innerHTML='<div class="empty-state">Selecciona un clip<br><small>Los controles disponibles aparecerán aquí.</small></div>';return}const source=edl.sources?.[clip.source_id];const title=document.createElement('h3');title.className='clip-title';title.textContent=source?.original_name||clip.source||'Clip';box.append(title);for(const [key,label] of [['in_seconds','Entrada (s)'],['out_seconds','Salida (s)'],['speed','Velocidad'],['gain','Ganancia']]){if(key==='speed'&&state.selectedTrack==='audio')continue;if(key==='gain'&&state.selectedTrack!=='audio')continue;const row=document.createElement('div');row.className='field-row';const l=document.createElement('label');l.textContent=label;const inp=document.createElement('input');inp.type='number';inp.step=key.includes('seconds')?'.01':'.05';inp.value=clip[key]??(key==='gain'?1:1);inp.dataset.field=key;row.append(l,inp);box.append(row)}const actions=document.createElement('div');actions.className='field-actions';for(const [label,fn] of [['Aplicar cambios',applyInspector],['Dividir aquí',()=>command({operation:'split',id:clip.id,track:state.selectedTrack,at:Number($('#playhead').value)})],['Mover antes',()=>moveClip(-1)],['Mover después',()=>moveClip(1)],['Mute',()=>command({operation:'clip',id:clip.id,track:state.selectedTrack,muted:!clip.muted})],['Solo',()=>command({operation:'clip',id:clip.id,track:state.selectedTrack,solo:!clip.solo})]]){const b=document.createElement('button');b.className='quiet-button';b.type='button';b.textContent=label;b.onclick=fn;actions.append(b)}box.append(actions);renderAudioProcessing(box,clip,source);renderTransitionControl(box,edl,clip)}
+function renderTransitionControl(box,edl,clip){
+  if(state.selectedTrack!=='video'||!hasCapability('transition'))return;
+  const index=(edl.cuts||[]).findIndex(item=>item.id===clip.id);
+  if(index<1)return;
+  const previous=edl.cuts[index-1];
+  const panel=document.createElement('details');panel.className='transition-editor';panel.id='transition-panel';panel.open=true;
+  const summary=document.createElement('summary');summary.textContent='Transición del corte';panel.append(summary);
+  const hint=document.createElement('p');hint.className='transition-hint';
+  hint.textContent='El fundido cruzado usa asas de fuente a ambos lados y mantiene fijo el reloj del montaje.';
+  panel.append(hint);
+  const form=document.createElement('form');form.id='transition-form';
+  const typeRow=document.createElement('div');typeRow.className='field-row';
+  const typeLabel=document.createElement('label');typeLabel.htmlFor='transition-type';typeLabel.textContent='Tipo';
+  const type=document.createElement('select');type.id='transition-type';type.name='type';
+  for(const [value,label] of [['none','Sin transición'],['dip_black','Paso por negro'],['crossfade','Fundido cruzado']]){
+    const option=document.createElement('option');option.value=value;option.textContent=label;type.append(option)
+  }
+  type.value=['none','dip_black','crossfade'].includes(clip.transition?.type)?clip.transition.type:'none';
+  typeRow.append(typeLabel,type);form.append(typeRow);
+  const durationRow=document.createElement('div');durationRow.className='field-row';
+  const durationLabel=document.createElement('label');durationLabel.htmlFor='transition-duration';durationLabel.textContent='Duración (s)';
+  const duration=document.createElement('input');duration.id='transition-duration';duration.name='duration_seconds';
+  duration.type='number';duration.step=String(1/(Number(edl.output?.fps)||24));duration.min=duration.step;duration.max='2';
+  duration.value=String(clip.transition?.duration_seconds??0.25);
+  durationRow.append(durationLabel,duration);form.append(durationRow);
+  const status=document.createElement('small');status.id='transition-status';status.className='transition-hint';
+  const blocked=!!(clip.locked||previous.locked);
+  status.textContent=blocked?'Desbloquea este clip y el anterior para editarlos.':'Duración en segundos; el fundido se ajusta a fotogramas completos.';
+  form.append(status);
+  const submit=document.createElement('button');submit.type='submit';submit.className='quiet-button';submit.textContent='Aplicar transición';
+  submit.disabled=blocked||state.busy;form.append(submit);
+  type.addEventListener('change',()=>{duration.disabled=type.value==='none'||blocked||state.busy});
+  duration.disabled=type.value==='none'||blocked||state.busy;
+  form.addEventListener('submit',event=>{
+    event.preventDefault();
+    if(!hasCapability('transition')||blocked||!state.edit)return;
+    const payload={operation:'transition',id:clip.id,type:type.value};
+    if(type.value!=='none')payload.duration_seconds=Number(duration.value);
+    command(payload)
+  });
+  panel.append(form);box.append(panel)
+}
 function applyInspector(){const clip=(state.selectedTrack==='audio'?state.edit.edit_decisions.audio_tracks:state.edit.edit_decisions.cuts).find(x=>x.id===state.selectedClip);if(!clip)return;const body={operation:'trim',id:clip.id,track:state.selectedTrack,in_seconds:Number($('[data-field="in_seconds"]').value),out_seconds:Number($('[data-field="out_seconds"]').value)};command(body)}
 function moveClip(delta){const arr=state.selectedTrack==='audio'?state.edit.edit_decisions.audio_tracks:state.edit.edit_decisions.cuts;const i=arr.findIndex(x=>x.id===state.selectedClip),next=Math.min(arr.length-1,Math.max(0,i+delta));if(i<0||next===i)return;command({operation:'move',id:state.selectedClip,track:state.selectedTrack,index:next})}
 async function command(payload){if(!state.pid||!state.edit||state.busy)return;state.busy=true;try{const result=await req(`/api/studio/editor/${encodeURIComponent(state.pid)}/command`,{method:'POST',body:{...payload,revision:state.edit.revision}});state.edit=result;renderEditor();toast('Cambio aplicado · puedes deshacerlo')}catch(e){toast(`No se aplicó el cambio: ${e.message}`);await openEditor(state.pid)}finally{state.busy=false;if(state.edit)renderOutputMix(state.edit.edit_decisions?.audio_mix||{})}}

@@ -1854,3 +1854,63 @@ def test_t2v_availability_identity_and_saved_receipt_recovery(staged_backlot_ser
         assert calls["availability"] == 2 and calls["results"] == 1 and calls["video"] == 1
         assert calls["submit"] == [] and not errors
         browser.close()
+
+
+
+def test_video_inspector_exposes_shared_capability_gated_crossfade(staged_backlot_server):
+    """Synthetic UI fixture exercises the shared transition command; it does not render media."""
+    import json
+    from copy import deepcopy
+    from pathlib import Path
+    import math
+
+    fixture=json.loads(Path("tests/fixtures/editor_existing_project_layout.json").read_text(encoding="utf-8"))
+    pid=fixture["project_id"]
+    state=deepcopy(fixture["state"])
+    identity={"restart_required":False}
+    calls=[]
+    with sync_playwright() as pw:
+        browser=pw.chromium.launch(executable_path=os.environ.get("OPENMONTAGE_TEST_CHROMIUM"))
+        page=browser.new_page()
+        page.route("**/api/health",lambda route:route.fulfill(json={"ok":True,"app":"backlot"}))
+        page.route("**/api/studio/identity",lambda route:route.fulfill(json=identity))
+        page.route("**/api/studio/bootstrap",lambda route:route.fulfill(json={"projects":[{"project_id":pid,"title":"QA transición"}]}))
+        page.route("**/api/studio/storage",lambda route:route.fulfill(json={"available":True,"active_projects_dir":"fixture","configured_projects_dir":"fixture"}))
+        page.route("**/api/studio/editor/capabilities",lambda route:route.fulfill(json={"commands":["transition"]}))
+        page.route("**/api/studio/editor/projects",lambda route:route.fulfill(json=[{"project_id":pid,"title":"QA transición"}]))
+        page.route("**/api/studio/comfy-history/projects/**",lambda route:route.fulfill(json={"items":[]}))
+        page.route(f"**/api/studio/editor/{pid}",lambda route:route.fulfill(json=state))
+        page.route(f"**/api/studio/editor/{pid}/render",lambda route:route.fulfill(json={"status":"idle"}))
+        page.route(f"**/api/studio/editor/{pid}/source/**",lambda route:route.fulfill(status=204))
+        def apply(route):
+            payload=route.request.post_data_json
+            calls.append(payload)
+            assert payload["operation"]=="transition"
+            assert payload["id"]==state["edit_decisions"]["cuts"][1]["id"]
+            assert payload["type"]=="crossfade"
+            fps=state["edit_decisions"]["output"]["fps"]
+            frames=2*math.floor(payload["duration_seconds"]*fps/2+0.5)
+            state["edit_decisions"]["cuts"][1]["transition"]={
+                "type":"crossfade","duration_seconds":frames/fps,
+                "alignment":"center_source_handles","audio_curve":"linear"}
+            state["revision"]+=1
+            route.fulfill(json=deepcopy(state))
+        page.route(f"**/api/studio/editor/{pid}/command",apply)
+        page.goto(f"{staged_backlot_server}/studio?project={pid}#video")
+        clips=page.locator(".timeline-clip")
+        expect(clips).to_have_count(2)
+        clips.nth(1).click()
+        panel=page.locator("#transition-panel")
+        expect(panel).to_be_visible()
+        form=page.locator("#transition-form")
+        form.locator('[name="type"]').select_option("crossfade")
+        form.locator('[name="duration_seconds"]').fill("0.25")
+        form.locator('[type="submit"]').click()
+        expect(page.locator("#manual-editor")).not_to_have_attribute("aria-busy","true")
+        value=state["edit_decisions"]["cuts"][1]["transition"]
+        assert value["duration_seconds"]==0.25 and value["alignment"]=="center_source_handles"
+        assert len(calls)==1 and calls[0]["duration_seconds"]==0.25
+        identity["restart_required"]=True
+        page.reload()
+        expect(page.locator("#transition-panel")).to_have_count(0)
+        browser.close()
