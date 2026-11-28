@@ -61,7 +61,8 @@ def text_video(monkeypatch, tmp_path):
     expected = wan_config(jobs.PROFILE)
     monkeypatch.setattr("lib.model_adapters.configuration", lambda family: {**expected, "preset": jobs.PROFILE})
     pid = editor.create("T2V de prueba")['project_id']
-    return TestClient(create_app()), pid, fake
+    # Studio only trusts loopback Host values; TestClient defaults to testserver.
+    return TestClient(create_app(), base_url="http://127.0.0.1"), pid, fake
 
 
 def post(client, pid, request_id="a" * 32, prompt="Nubes moviéndose lentamente"):
