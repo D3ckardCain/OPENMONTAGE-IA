@@ -1,249 +1,240 @@
-from __future__ import annotations
-
-import time
-from types import SimpleNamespace
-
-import pytest
-from fastapi.testclient import TestClient
-
-from backlot.server import create_app
-from lib import production_studio as studio, studio_editor as editor
-from lib import studio_text_to_video as jobs
-from lib.wan_presets import config as wan_config
-
-
-class FakeClient:
-    available = True
-    missing = []
-
-    def is_available(self):
-        return self.available
-
-    def unavailable_reason(self):
-        return "ComfyUI simulado fuera de línea"
-
-    def check_models(self, names):
-        self.checked = tuple(names)
-        return [], list(self.missing)
-
-
-class FakeComfyUIVideo:
-    mode = "complete"
-    calls = 0
-    last_inputs = None
-
-    def __init__(self):
-        self._client = FakeClient()
-
-    def execute(self, inputs):
-        type(self).calls += 1
-        type(self).last_inputs = inputs
-        if self.mode == "complete":
-            output = __import__("pathlib").Path(inputs["output_path"])
-            output.write_bytes(b"simulated mp4 bytes")
-            return SimpleNamespace(success=True, data={"output": str(output), "model": "fake-wan"}, error=None)
-        if self.mode == "uncertain":
-            return SimpleNamespace(success=False, data={"prompt_id": "comfy-prompt-123"}, error="poll timeout")
-        return SimpleNamespace(success=False, data={}, error="node validation error")
-
-
-@pytest.fixture
-def text_video(monkeypatch, tmp_path):
-    monkeypatch.setattr(studio, "PROJECTS_DIR", tmp_path / "projects")
-    monkeypatch.setattr(jobs, "ACTIVE", {})
-    FakeComfyUIVideo.calls = 0
-    FakeComfyUIVideo.last_inputs = None
-    FakeComfyUIVideo.mode = "complete"
-    fake = FakeClient()
-    monkeypatch.setattr(FakeComfyUIVideo, "__init__", lambda self: setattr(self, "_client", fake))
-    monkeypatch.setattr("tools.video.comfyui_video.ComfyUIVideo", FakeComfyUIVideo)
-    expected = wan_config(jobs.PROFILE)
-    monkeypatch.setattr("lib.model_adapters.configuration", lambda family: {**expected, "preset": jobs.PROFILE})
-    pid = editor.create("T2V de prueba")['project_id']
-    return TestClient(create_app()), pid, fake
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const state={identity:null,bootstrap:null,storage:null,capabilities:null,projects:[],edit:null,pid:null,selectedSource:null,selectedClip:null,selectedTrack:'video',busy:false,lastSports:null};
+state.pid=new URLSearchParams(location.search).get('project');
+const names={video:'Vídeo',audio:'Audio',subtitles:'Subtítulos',library:'Biblioteca',projects:'Proyectos',channels:'Investigación',sports:'Comparativas',thumbnails:'Miniaturas',avatars:'Avatares',clips:'Clips y tráileres',settings:'Preferencias'};
+const capabilityLabels={subtitle_karaoke:'Karaoke por palabras',subtitle_layout:'Diseño de subtítulos',subtitle_reflow:'Reflujo de texto',ripple_volume_points:'Automatización de volumen con ripple',track_volume_points:'Automatización de volumen por pista',mix_meter:'Medición de mezcla',audio_ducking:'Ducking de audio',track_mixer:'Mezclador por pista',audio_processing:'Procesamiento de audio',sfx_catalog:'Catálogo de efectos de sonido',crossfade:'Fundidos cruzados',audio_balance:'Balance de audio',layer_transform_keyframes:'Keyframes de transformación',layer_position_keyframes:'Keyframes de posición',batch:'Edición por lotes',duplicate:'Duplicar clip',markers:'Marcadores',flags:'Mute, solo y bloqueo',audio_trim_position:'Corte y posición de audio',delete_keep_gap:'Borrar conservando hueco',ripple_delete:'Borrado ripple',transform:'Transformación',titles:'Títulos',output_custom:'Formato personalizado',audio_mix:'Mezcla de audio',transition:'Transiciones',layers:'Capas',clip_candidates:'Candidatos de clips',subtitle_language:'Idioma de subtítulos',subtitle_words:'Inspección de palabras',subtitle_from_words:'Subtítulos desde palabras',silence_apply:'Aplicar propuesta de silencios',qwen_tts_plan:'Plan de voz Qwen',reference_plan:'Plan desde referencia',component_add:'Añadir componente visual',component_remove:'Quitar componente visual',clip_color:'Color por clip',color_compare:'Comparación de color',clip_color_hsl_hue:'Tono HSL por clip',clip_color_curves:'Curvas de color',clip_speed_ramp:'Rampa de velocidad',speed_ramp_plan:'Plan de velocidad',clip_smooth_speed:'Velocidad suave',smooth_speed_plan:'Plan de velocidad suave',layer_align:'Alinear capa'};
+let toastTimer;
+function toast(message){const el=$('#toast');el.textContent=message;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3500)}
+async function req(path,{method='GET',body,headers={},raw=false}={}){const response=await fetch(path,{method,headers:body instanceof FormData?headers:{'Content-Type':'application/json',...headers},body:body===undefined?undefined:body instanceof FormData?body:JSON.stringify(body),cache:'no-store'});if(!response.ok){let message=`HTTP ${response.status}`;try{const x=await response.json();message=x.detail||x.error||message}catch{}throw Error(message)}if(raw)return response;if(response.status===204)return null;return response.json()}
+async function tryApi(path,opts){try{return await req(path,opts)}catch(e){return{__error:e.message}}}
+function setModule(name){if(!names[name])name='video';$$('.nav-item').forEach(b=>{const active=b.dataset.module===name;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});$$('.module-page').forEach(p=>p.classList.toggle('active',p.dataset.page===name));$('#page-name').textContent=names[name];history.replaceState(null,'',location.pathname+location.search+'#'+name);if(name==='projects')renderProjects();if(name==='channels')loadChannelStatus();if(name==='sports')loadSportsSchema()}
+$$('.nav-item').forEach(b=>b.addEventListener('click',()=>setModule(b.dataset.module)));
+$('#refresh-status').onclick=()=>initialize(true);$('#agent-toggle').onclick=()=>{const open=$('#agent-drawer').hidden;$('#agent-drawer').hidden=!open;$('#agent-toggle').setAttribute('aria-expanded',String(open))};$('#agent-close').onclick=()=>{$('#agent-drawer').hidden=true;$('#agent-toggle').setAttribute('aria-expanded','false')};
+function readOnlyReason(){return state.identity?.restart_required?`Backend pendiente de activación (${state.identity.disk?.sha256?.slice(0,10)||'revisión nueva'}). Las escrituras solo se habilitan si la API activa confirma el contrato.`:''}
+async function initialize(refresh=false){$('#connection-label').textContent='Conectando…';const [health,identity,bootstrap,storage,caps]=await Promise.all([tryApi('/api/health'),tryApi('/api/studio/identity'),tryApi('/api/studio/bootstrap'),tryApi('/api/studio/storage'),tryApi('/api/studio/editor/capabilities')]);state.identity=identity?.__error?null:identity;state.bootstrap=bootstrap?.__error?null:bootstrap;state.storage=storage?.__error?null:storage;state.capabilities=caps?.__error?null:caps;const online=!health?.__error&&health?.ok===true;$('#connection-label').textContent=online?'Studio local':'Servidor no disponible';$('#backend-warning').hidden=!(identity?.restart_required);if(identity?.restart_required){$('#identity-short').textContent=`API ${identity.resident?.sha256?.slice(0,8)||'—'} · disco ${identity.disk?.sha256?.slice(0,8)||'—'}`;$('#backend-warning').querySelector('small').textContent='La UI nueva se sirve desde disco. Identidad avisa que el proceso backend no coincide; no se reiniciará automáticamente. Cada operación depende de que su ruta activa responda.'}if(bootstrap&&!bootstrap.__error){state.projects=bootstrap.projects||[];renderProjects()}if(storage&&!storage.__error){$('#root-path').textContent=storage.active_projects_dir||'Carpeta predeterminada del repositorio';$('#root-note').textContent=storage.environment_override?'La ruta activa viene de una variable del proceso.':'Los archivos originales se copian al espacio del proyecto y se conservan en origen. Modelos compartidos permanecen fuera.';$('#storage-detail').replaceChildren(makeKV('Ruta activa',storage.active_projects_dir||'No disponible'),makeKV('Ruta configurada',storage.configured_projects_dir||'Predeterminada'),makeKV('Sobrescritura del proceso',storage.environment_override?'Sí':'No'),makeKV('Disponible',storage.available?'Sí':'No'))}if(caps&&!caps.__error){const ops=Array.isArray(caps.commands)?caps.commands:Array.isArray(caps.operations)?caps.operations:Object.keys(caps.commands||{});$('#capability-list').replaceChildren(...ops.slice(0,36).map(x=>{const d=document.createElement('div');d.className='capability-row';d.innerHTML=`<span>${esc(capabilityLabels[typeof x==='string'?x:x.name]||'Otra capacidad local')}</span><small>Disponible en API</small>`;return d}));$('#thumbnail-capability').textContent=`API de edición ${ops.length?'activa':'sin lista'}; la composición/generación de miniaturas no se declara disponible aquí.`;$('#clips-capability').textContent=ops.some(x=>String(x).includes('clip_candidate'))?'La API anuncia candidatos de clips; inspección y aceptación requieren abrir un proyecto.':'No se encontró un comando de candidatos de clips en la API activa.'}else{$('#capability-list').innerHTML='<div class="empty-state">La API de edición no está disponible en este proceso.</div>';$('#thumbnail-capability').textContent='No se confirmó el contrato de edición del backend activo.'}loadProjectsForEditor();if(state.pid)await openEditor(state.pid);if(refresh)toast('Estado actualizado')}
+function makeKV(label,value){const d=document.createElement('div');d.className='capability-row';const a=document.createElement('span'),b=document.createElement('small');a.textContent=label;b.textContent=value;d.append(a,b);return d}
+function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function loadProjectsForEditor(){const data=await tryApi('/api/studio/editor/projects');if(!data.__error){state.projects=data;const select=$('#project-select'),current=state.pid;select.replaceChildren(new Option('Selecciona un proyecto',''),...data.map(p=>new Option(p.title,p.project_id)));if(current&&data.some(p=>p.project_id===current))select.value=current;renderProjects()}else{$('#editor-lock').hidden=false;$('#editor-lock').textContent='El proceso activo no expone la API de edición manual. Las operaciones de edición quedan sin activar; no se sustituye por un flujo simulado.'}}
+function renderProjects(){const list=$('#projects-grid');list.replaceChildren();const descending=$('#project-sort')?.value==='title-desc';const projects=[...state.projects].sort((a,b)=>String(a.title||a.project_id).localeCompare(String(b.title||b.project_id),'es',{numeric:true,sensitivity:'base'})*(descending?-1:1));for(const p of projects){const card=document.createElement('article');card.className='project-card';const title=document.createElement('h2');title.textContent=p.title||p.project_id;const path=document.createElement('p');const projectPath=typeof p.project_path==='string'?p.project_path.trim():'';path.className=`project-path${projectPath?'':' missing'}`;path.textContent=projectPath||'Ubicación no informada';if(projectPath)path.title=projectPath;const button=document.createElement('button');button.className='quiet-button';button.textContent='Abrir en editor';button.onclick=()=>{state.pid=p.project_id;$('#project-select').value=p.project_id;setModule('video');openEditor(p.project_id)};card.append(title,path,button);list.append(card)}}
+$('#project-sort').onchange=renderProjects;
+function showCreate(){const d=$('#create-dialog');$('#new-title').value='';d.showModal();$('#new-title').focus()}
+$('#top-new-project').onclick=showCreate;$('#new-project-inline').onclick=showCreate;$('#projects-create').onclick=showCreate;
+$('#create-form').addEventListener('submit',async e=>{if(e.submitter?.value==='cancel')return;e.preventDefault();const title=$('#new-title').value.trim();if(!title)return;try{const created=await req('/api/studio/editor/projects',{method:'POST',body:{title}});$('#create-dialog').close();state.pid=created.project_id;state.edit=created;state.projects.unshift({project_id:created.project_id,title,project_path:created.project_path});renderProjects();setModule('video');await openEditor(state.pid);toast(`Proyecto creado · ${created.project_path}`)}catch(err){toast(`No se pudo crear: ${err.message}`)}});
+$('#project-select').onchange=async e=>{state.pid=e.target.value||null;state.selectedClip=null;state.selectedSource=null;if(state.pid){await openEditor(state.pid)}else{syncProjectUrl(null);state.edit=null;renderEditor()}};
+$('#social-toggle').onclick=()=>{const open=$('#social-panel').hidden;$('#social-panel').hidden=!open;$('#social-toggle').setAttribute('aria-expanded',String(open))};$('#social-platform').onchange=e=>{const defaults={tiktok:'9:16',instagram:'9:16',facebook:'4:5',youtube:'16:9'};$('#social-format').value=defaults[e.target.value]||'16:9'};$('#social-apply').onclick=()=>{if(!state.edit){toast('Abre un proyecto editable');return}command({operation:'output',ratio:$('#social-format').value,fps:state.edit.edit_decisions.output?.fps||24})};
+function syncProjectUrl(projectId){const url=new URL(location.href);if(projectId)url.searchParams.set('project',projectId);else url.searchParams.delete('project');history.replaceState(null,'',url.pathname+url.search+url.hash)}
+async function openEditor(pid){state.pid=pid;syncProjectUrl(pid);try{const result=await req(`/api/studio/editor/${encodeURIComponent(pid)}`);state.edit=result;$('#editor-lock').hidden=true;$('#project-path').textContent=result.workspace?.project_path||state.projects.find(p=>p.project_id===pid)?.project_path||'Ruta no declarada';$('#project-path').title=$('#project-path').textContent;$('#edit-revision').textContent=`Revisión ${result.revision??'—'}`;$('#aspect-select').value=result.edit_decisions?.output?.ratio||'16:9';const style=result.edit_decisions?.subtitle_style||{};$('#subtitle-size').value=String(style.size||32);$('#subtitle-position').value=style.position||'bottom';$('#subtitle-mode').value=style.mode||'soft';$('#subtitle-language').value=style.language||'und';$('#subtitle-style-apply').disabled=false;$('#edit-save').disabled=false;$('#edit-export').disabled=false;$('#preview-refresh').disabled=false;renderEditor()}catch(err){state.edit=null;$('#subtitle-style-apply').disabled=true;$('#editor-lock').hidden=false;$('#editor-lock').textContent=`Este servidor no puede abrir el proyecto editable: ${err.message}. No se ha cambiado ni creado ningún dato.`;renderEditor()}}
+function edited(){if(!state.edit)return;const edl=state.edit.edit_decisions||{};const sources=edl.sources||{};const media=$('#media-list');media.replaceChildren();let count=0;for(const [id,src] of Object.entries(sources)){count++;const row=document.createElement('button');row.className='media-row'+(state.selectedSource===id?' selected':'');row.type='button';const icon=document.createElement('span');icon.className='media-kind';icon.innerHTML=src.kind==='audio'?'<svg><use href="#i-audio"/></svg>':'<svg><use href="#i-video"/></svg>';const label=document.createElement('span');label.className='media-label';const strong=document.createElement('strong');strong.textContent=src.original_name||src.path;const small=document.createElement('small');small.textContent=`${src.kind||'medio'} · ${src.duration?Number(src.duration).toFixed(1)+' s':'duración no disponible'}`;label.append(strong,small);row.append(icon,label);row.onclick=()=>{state.selectedSource=id;state.selectedGeneratedRequestId=null;renderEditor()};row.ondblclick=()=>addSource(id);media.append(row)}$('#media-count').textContent=`${count} elemento${count===1?'':'s'}`;if(!count)media.innerHTML='<div class="empty-state">Importa medios propios<br><small>Se copian al proyecto; el original se conserva.</small></div>';const cuts=edl.cuts||[],audio=edl.audio_tracks||[];renderTracks(cuts,audio,edl);renderInspector(edl);renderCues(edl);$('#edit-revision').textContent=`Revisión ${state.edit.revision??'—'}`;$('#edit-undo').disabled=!(state.edit.undo||[]).length;$('#edit-redo').disabled=!(state.edit.redo||[]).length;$('#timeline-add').disabled=!state.selectedSource;$('#clip-split').disabled=!state.selectedClip;$('#clip-remove').disabled=!state.selectedClip;$('#subtitle-add').disabled=false;$('#subtitle-download').href=`/api/studio/editor/${encodeURIComponent(state.pid)}/subtitles`;$('#subtitle-download').classList.remove('disabled-link');$('#subtitle-download').setAttribute('aria-disabled','false');$('#viewer-empty').hidden=!!$('#preview-video').getAttribute('src');$('#audio-status').textContent=`${audio.length} pista${audio.length===1?'':'s'} en el proyecto`;$('#audio-tracks').replaceChildren(...audio.map((clip,i)=>audioCard(clip,i)));$('#library-list').replaceChildren(...Object.entries(sources).map(([id,s])=>libraryCard(id,s)));$('#timeline-duration').textContent=`Duración: ${timelineDuration(cuts,edl.output?.fps||24).toFixed(2)} s`;$('#edit-dirty').textContent='Guardado';$('#edit-export').disabled=!cuts.length;$('#preview-refresh').disabled=!cuts.length}
+function renderEditor(){if(!state.edit){$('#media-list').innerHTML='<div class="empty-state">Abre un proyecto editable<br><small>Los originales se copian dentro del proyecto.</small></div>';$('#media-count').textContent='0 elementos';$('#timeline-tracks').innerHTML='<div class="empty-track">La línea de tiempo está vacía</div>';$('#inspector').innerHTML='<div class="empty-state">Selecciona un clip</div>';$('#subtitle-list').innerHTML='<div class="empty-state">Selecciona un proyecto con vídeo para editar bloques.</div>';$('#audio-tracks').innerHTML='<div class="empty-state">Abre un proyecto editable para ver y ajustar sus pistas de audio.</div>';$('#edit-save').disabled=$('#edit-export').disabled=$('#preview-refresh').disabled=$('#timeline-add').disabled=true;$('#subtitle-download').classList.add('disabled-link');return}edited()}
+function renderTracks(cuts,audio,edl){const root=$('#timeline-tracks');root.replaceChildren();if(!cuts.length&&!audio.length){root.innerHTML='<div class="empty-track">La línea de tiempo está vacía</div>';return}const videos=document.createElement('div');videos.className='track-row';const vname=document.createElement('div');vname.className='track-name';vname.textContent='Vídeo';const vlane=document.createElement('div');vlane.className='track-lane';cuts.forEach((clip,index)=>vlane.append(clipButton(clip,index,'video',edl)));videos.append(vname,vlane);root.append(videos);const ar=document.createElement('div');ar.className='track-row';const an=document.createElement('div');an.className='track-name';an.textContent='Audio';const al=document.createElement('div');al.className='track-lane';audio.forEach((clip,index)=>al.append(clipButton(clip,index,'audio',edl)));ar.append(an,al);root.append(ar);const cues=edl.cues||[];const sr=document.createElement('div');sr.className='track-row';const sn=document.createElement('div');sn.className='track-name';sn.textContent='Subtítulos';const sl=document.createElement('div');sl.className='track-lane';for(const cue of cues.slice(0,60)){const block=document.createElement('div');block.className='timeline-clip';block.style.background='#3a2c4f';block.style.borderColor='#7957a8';block.title=`${cue.start_seconds}–${cue.end_seconds} s`;block.innerHTML=`<span>${esc(cue.text)}</span>`;sl.append(block)}sr.append(sn,sl);root.append(sr);$('#ruler-time').textContent=`${timelineDuration(cuts,edl.output?.fps||24).toFixed(1)} s`}
+function clipButton(clip,index,track,edl){const b=document.createElement('button');b.type='button';b.className='timeline-clip '+(track==='audio'?'audio ':'')+(state.selectedClip===clip.id?'selected':'');b.title=`${clip.source} · ${clip.in_seconds}–${clip.out_seconds} s`;const name=edl.sources?.[clip.source_id]?.original_name||clip.source||'Clip';const span=document.createElement('span');span.textContent=`${index+1}. ${name}`;const duration=document.createElement('small');duration.textContent=`${Math.max(0,clip.out_seconds-clip.in_seconds).toFixed(1)}s`;b.append(span,duration);b.onclick=()=>{state.selectedClip=clip.id;state.selectedTrack=track;renderEditor()};return b}
+function timelineDuration(cuts,fps){return cuts.reduce((sum,c)=>sum+Math.round((c.out_seconds-c.in_seconds)/(c.speed||1)*fps)/fps,0)}
+function renderInspector(edl){const box=$('#inspector');box.replaceChildren();const clip=[...(state.selectedTrack==='audio'?edl.audio_tracks||[]:edl.cuts||[])].find(x=>x.id===state.selectedClip);if(!clip){box.innerHTML='<div class="empty-state">Selecciona un clip<br><small>Los controles disponibles aparecerán aquí.</small></div>';return}const source=edl.sources?.[clip.source_id];const title=document.createElement('h3');title.className='clip-title';title.textContent=source?.original_name||clip.source||'Clip';box.append(title);for(const [key,label] of [['in_seconds','Entrada (s)'],['out_seconds','Salida (s)'],['speed','Velocidad'],['gain','Ganancia']]){if(key==='speed'&&state.selectedTrack==='audio')continue;if(key==='gain'&&state.selectedTrack!=='audio')continue;const row=document.createElement('div');row.className='field-row';const l=document.createElement('label');l.textContent=label;const inp=document.createElement('input');inp.type='number';inp.step=key.includes('seconds')?'.01':'.05';inp.value=clip[key]??(key==='gain'?1:1);inp.dataset.field=key;row.append(l,inp);box.append(row)}const actions=document.createElement('div');actions.className='field-actions';for(const [label,fn] of [['Aplicar cambios',applyInspector],['Dividir aquí',()=>command({operation:'split',id:clip.id,track:state.selectedTrack,at:Number($('#playhead').value)})],['Mover antes',()=>moveClip(-1)],['Mover después',()=>moveClip(1)],['Mute',()=>command({operation:'clip',id:clip.id,track:state.selectedTrack,muted:!clip.muted})],['Solo',()=>command({operation:'clip',id:clip.id,track:state.selectedTrack,solo:!clip.solo})]]){const b=document.createElement('button');b.className='quiet-button';b.type='button';b.textContent=label;b.onclick=fn;actions.append(b)}box.append(actions)}
+function applyInspector(){const clip=(state.selectedTrack==='audio'?state.edit.edit_decisions.audio_tracks:state.edit.edit_decisions.cuts).find(x=>x.id===state.selectedClip);if(!clip)return;const body={operation:'trim',id:clip.id,track:state.selectedTrack,in_seconds:Number($('[data-field="in_seconds"]').value),out_seconds:Number($('[data-field="out_seconds"]').value)};command(body)}
+function moveClip(delta){const arr=state.selectedTrack==='audio'?state.edit.edit_decisions.audio_tracks:state.edit.edit_decisions.cuts;const i=arr.findIndex(x=>x.id===state.selectedClip),next=Math.min(arr.length-1,Math.max(0,i+delta));if(i<0||next===i)return;command({operation:'move',id:state.selectedClip,track:state.selectedTrack,index:next})}
+async function command(payload){if(!state.pid||!state.edit||state.busy)return;state.busy=true;try{const result=await req(`/api/studio/editor/${encodeURIComponent(state.pid)}/command`,{method:'POST',body:{...payload,revision:state.edit.revision}});state.edit=result;renderEditor();toast('Cambio aplicado · puedes deshacerlo')}catch(e){toast(`No se aplicó el cambio: ${e.message}`);await openEditor(state.pid)}finally{state.busy=false}}
+async function addSource(id){await command({operation:'add',source_id:id})}
+$('#timeline-add').onclick=()=>state.selectedSource&&addSource(state.selectedSource);$('#clip-split').onclick=()=>command({operation:'split',id:state.selectedClip,track:state.selectedTrack,at:Number($('#playhead').value)});$('#clip-remove').onclick=()=>command({operation:'remove',id:state.selectedClip,track:state.selectedTrack});$('#edit-undo').onclick=()=>command({operation:'undo'});$('#edit-redo').onclick=()=>command({operation:'redo'});$('#edit-save').onclick=()=>command({operation:'save'});$('#aspect-select').onchange=e=>{if(state.edit)command({operation:'output',ratio:e.target.value,fps:state.edit.edit_decisions.output?.fps||24})};$('#playhead').oninput=e=>{$('#timecode').textContent=secondsTime(Number(e.target.value))};function secondsTime(s){const fps=state.edit?.edit_decisions?.output?.fps||24,frame=Math.floor((s%1)*fps),total=Math.max(0,Math.floor(s));return`${String(Math.floor(total/3600)).padStart(2,'0')}:${String(Math.floor(total/60)%60).padStart(2,'0')}:${String(total%60).padStart(2,'0')}:${String(frame).padStart(2,'0')}`}
+$('#media-file').addEventListener('change',e=>uploadFiles(e.target.files));$('#library-file').addEventListener('change',e=>uploadFiles(e.target.files));async function uploadFiles(files){if(!state.pid||!state.edit){toast('Abre primero un proyecto editable');return}for(const file of files){try{const response=await fetch(`/api/studio/editor/${encodeURIComponent(state.pid)}/upload?filename=${encodeURIComponent(file.name)}&revision=${state.edit.revision}`,{method:'POST',body:file});if(!response.ok){let err=`HTTP ${response.status}`;try{err=(await response.json()).detail||err}catch{}throw Error(err)}state.edit=await response.json()}catch(err){toast(`No se importó ${file.name}: ${err.message}`);break}}eReset();renderEditor();toast('Importación copiada al proyecto; origen conservado')}function eReset(){for(const id of ['media-file','library-file'])$('#'+id).value=''}
+$('#preview-refresh').onclick=async()=>{if(!state.pid)return;$('#preview-status').textContent='Preparando vista previa…';try{const result=await req(`/api/studio/editor/${encodeURIComponent(state.pid)}/render`,{method:'POST',body:{revision:state.edit.revision,preview:true}});$('#preview-status').textContent=result.status||'Render de vista previa iniciado';pollRender(true)}catch(e){$('#preview-status').textContent=e.message}};$('#edit-export').onclick=async()=>{if(!state.pid)return;if(!confirm('Exportar el montaje del proyecto a su destino local?'))return;$('#preview-status').textContent='Exportando…';try{await req(`/api/studio/editor/${encodeURIComponent(state.pid)}/render`,{method:'POST',body:{revision:state.edit.revision,preview:false}});pollRender(false)}catch(e){$('#preview-status').textContent=`No se exportó: ${e.message}`}};async function pollRender(preview){let n=0;const timer=setInterval(async()=>{n++;const r=await tryApi(`/api/studio/editor/${encodeURIComponent(state.pid)}/render`);if(r.__error){clearInterval(timer);$('#preview-status').textContent=r.__error;return}if(['completed','failed','cancelled','error'].includes(r.status)){clearInterval(timer);$('#preview-status').textContent=`${preview?'Vista previa':'Exportación'}: ${r.status}`;if(r.url){const v=$('#preview-video');v.src=r.url;v.load();$('#viewer-empty').hidden=true}if(r.error)toast(r.error);return}if(n>90){clearInterval(timer);$('#preview-status').textContent='Tarea sigue activa; consulta estado antes de repetir.'}},1500)}
+function audioCard(clip,index){const wrap=document.createElement('div');wrap.className='audio-track';const info=document.createElement('div'),name=document.createElement('strong'),small=document.createElement('small');name.textContent=state.edit.edit_decisions.sources?.[clip.source_id]?.original_name||clip.source||`Pista ${index+1}`;small.textContent=`${clip.muted?'Silenciada':clip.solo?'Solo':'Activa'} · ganancia ${clip.gain??1}`;info.append(name,small);const range=document.createElement('input');range.type='range';range.min='0';range.max='2';range.step='.01';range.value=clip.gain??1;range.setAttribute('aria-label',`Ganancia de ${name.textContent}`);range.onchange=()=>command({operation:'clip',id:clip.id,track:'audio',gain:Number(range.value)});const buttons=document.createElement('div');for(const flag of ['muted','solo']){const b=document.createElement('button');b.className='quiet-button';b.textContent=flag==='muted'?'Mute':'Solo';b.setAttribute('aria-pressed',String(!!clip[flag]));b.onclick=()=>command({operation:'clip',id:clip.id,track:'audio',[flag]:!clip[flag]});buttons.append(b)}wrap.append(info,range,buttons);return wrap}
+function libraryCard(id,s){const d=document.createElement('article');d.className='library-card';const title=document.createElement('strong');title.textContent=s.original_name||s.path;const meta=document.createElement('small');meta.textContent=`${s.kind||'medio'} · ${s.bytes??'tamaño desconocido'} bytes · SHA-256 ${s.sha256||'no disponible'}`;d.append(title,meta);return d}
+function renderCues(edl){const root=$('#subtitle-list');root.replaceChildren();const cues=edl.cues||[];if(!cues.length){root.innerHTML='<div class="empty-state">No hay bloques de subtítulos. Importa un SRT para empezar.</div>';return}cues.forEach((cue,index)=>{const row=document.createElement('div');row.className='cue-row';const start=document.createElement('input');start.type='number';start.step='.01';start.value=cue.start_seconds;start.setAttribute('aria-label',`Inicio del bloque ${index+1}`);const end=document.createElement('input');end.type='number';end.step='.01';end.value=cue.end_seconds;end.setAttribute('aria-label',`Fin del bloque ${index+1}`);const text=document.createElement('textarea');text.value=cue.text;text.rows=1;text.setAttribute('aria-label',`Texto del bloque ${index+1}`);const save=document.createElement('button');save.className='quiet-button';save.textContent='Aplicar';save.onclick=()=>command({operation:'cue_update',index,start_seconds:Number(start.value),end_seconds:Number(end.value),text:text.value});row.append(start,end,text,save);root.append(row)})}
+$('#subtitle-file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file||!state.pid||!state.edit){toast('Abre un proyecto editable antes de importar subtítulos');return}try{const response=await fetch(`/api/studio/editor/${encodeURIComponent(state.pid)}/subtitles/import?filename=${encodeURIComponent(file.name)}&revision=${state.edit.revision}`,{method:'POST',body:file});if(!response.ok){const x=await response.json().catch(()=>({}));throw Error(x.detail||`HTTP ${response.status}`)}state.edit=await response.json();renderEditor();toast('SRT importado; original conservado en el proyecto')}catch(err){toast(`No se importó el SRT: ${err.message}`)}finally{e.target.value=''}});$('#subtitle-add').disabled=true;$('#subtitle-add').title='La API activa no ofrece insertar un bloque vacío; importa un SRT y edita sus bloques.';
+$('#subtitle-style-apply').onclick=()=>command({operation:'subtitle_style',size:Number($('#subtitle-size').value),position:$('#subtitle-position').value,mode:$('#subtitle-mode').value,language:$('#subtitle-language').value});
+const studioChannelFilterNumeric=['min_views','max_views','max_channel_age_days','min_subscribers','max_subscribers','min_minutes','max_minutes','min_publication_views','min_matching_publications','sample_size'];let studioAppliedChannelFilters={sample_size:10,published_within:'month',discovery_mode:'recent_publications',sort_by:'matching_publication_views'};let studioChannelFilterSnapshot=[];function readStudioChannelFilters(){const form=$('#channel-filter-form'),filters={};for(const [name,raw]of new FormData(form)){if(raw==='')continue;let value=raw;if(studioChannelFilterNumeric.includes(name)){value=Number(raw);if(!Number.isSafeInteger(value)||value<0)throw Error('Usa n\u00fameros enteros no negativos.')}filters[name]=name==='country'?value.toUpperCase():value}for(const [low,high]of [['min_views','max_views'],['min_subscribers','max_subscribers'],['min_minutes','max_minutes']])if(filters[low]!==undefined&&filters[high]!==undefined&&filters[low]>filters[high])throw Error('El m\u00ednimo no puede superar al m\u00e1ximo.');if(filters.min_matching_publications<1||filters.min_matching_publications>filters.sample_size)throw Error('Las coincidencias m\u00ednimas deben estar entre 1 y el tama\u00f1o de la muestra.');if(filters.discovery_mode==='recent_publications'&&filters.published_within==='any')throw Error('Selecciona una fecha reciente para descubrir canales por publicaciones.');if(filters.sort_by==='matching_publication_views'&&filters.published_within==='any')throw Error('Selecciona una fecha reciente para ordenar por publicaciones coincidentes.');return filters}function restoreStudioChannelFilterValues(values){const form=$('#channel-filter-form');for(const [name,value]of values)form.elements.namedItem(name).value=value}const studioChannelFilterDialog=$('#channel-filter-dialog'),studioChannelFilterForm=$('#channel-filter-form');$('#channel-filter-open').onclick=()=>{studioChannelFilterSnapshot=[...new FormData(studioChannelFilterForm)];$('#channel-filter-error').textContent='';studioChannelFilterDialog.showModal()};function cancelStudioChannelFilters(){restoreStudioChannelFilterValues(studioChannelFilterSnapshot);studioChannelFilterDialog.close()}$('#channel-filter-close').onclick=cancelStudioChannelFilters;$('#channel-filter-cancel').onclick=cancelStudioChannelFilters;studioChannelFilterDialog.addEventListener('cancel',event=>{event.preventDefault();cancelStudioChannelFilters()});$('#channel-filter-reset').onclick=()=>studioChannelFilterForm.reset();$('#channel-recent-preset').onclick=()=>{for(const name of ['min_views','max_views','max_channel_age_days'])studioChannelFilterForm.elements.namedItem(name).value='';restoreStudioChannelFilterValues([['published_within','month'],['min_publication_views','100000'],['min_matching_publications','3'],['sample_size','20'],['sort_by','matching_publication_views'],['discovery_mode','recent_publications']])};$('#channel-young-preset').onclick=()=>{studioChannelFilterForm.elements.namedItem('min_views').value='1000000';studioChannelFilterForm.elements.namedItem('max_views').value='';studioChannelFilterForm.elements.namedItem('max_channel_age_days').value='90'};studioChannelFilterForm.onsubmit=event=>{event.preventDefault();try{studioAppliedChannelFilters=readStudioChannelFilters();studioChannelFilterDialog.close();const count=Object.entries(studioAppliedChannelFilters).filter(([key,value])=>key!=='sample_size'&&key!=='sort_by'&&key!=='discovery_mode'&&value!=='any'&&!(key==='min_matching_publications'&&value===1)&&!(['min_views','min_minutes','min_publication_views'].includes(key)&&value===0)).length;$('#channel-filter-count').textContent=count?'('+count+')':'';const root=$('#channel-results');root.replaceChildren();const message=document.createElement('div');message.className='empty-state';message.textContent='Filtros aplicados. Pulsa Consultar YouTube para buscar.';root.append(message)}catch(error){$('#channel-filter-error').textContent=error.message}};
+async function loadChannelStatus(){const [config,status]=await Promise.all([tryApi('/api/research/channels/configuration'),tryApi('/api/research/channels/status')]);const statusKnown=!!status&&!status.__error&&!config?.__error;const configured=statusKnown&&status.configured===true;const badge=$('#channel-connector'),submit=$('#channel-submit'),readiness=$('#channel-readiness');badge.textContent=config?.__error?'API de canales no disponible':status?.__error?'YouTube \u00b7 estado no disponible':configured?'YouTube \u00b7 conector configurado':'YouTube \u00b7 requiere configuraci\u00f3n';badge.classList.toggle('neutral',!configured);submit.disabled=!configured;submit.textContent=configured?'Consultar YouTube':'Requiere configuraci\u00f3n';submit.title=configured?'Consulta p\u00fablica bajo demanda':'El servidor debe confirmar la configuraci\u00f3n antes de habilitar consultas';readiness.dataset.state=configured?'ready':'blocked';readiness.textContent=configured?'Configuraci\u00f3n detectada; consulta sujeta a cuota y respuesta p\u00fablica.':statusKnown?'Configura el conector en el servidor para habilitar la consulta.':'No se pudo confirmar la configuraci\u00f3n; la consulta permanece desactivada.'}
+$('#channel-form').onsubmit=async e=>{e.preventDefault();const query=$('#channel-query').value.trim();if(!query)return;const box=$('#channel-results'),submit=$('#channel-submit'),filterButton=$('#channel-filter-open'),wasEnabled=!submit.disabled;submit.disabled=true;filterButton.disabled=true;box.replaceChildren();const pending=document.createElement('div');pending.className='empty-state';pending.textContent='Consultando YouTube con los filtros seleccionados\u2026';box.append(pending);try{const data=await req('/api/research/channels',{method:'POST',body:{query,pages:Number($('#channel-pages').value),filters:{...studioAppliedChannelFilters}}});renderChannelResults(data)}catch(err){box.replaceChildren();const card=document.createElement('article');card.className='result-card';const h=document.createElement('h3');h.textContent='Consulta no completada';const p=document.createElement('p');p.textContent=err.message;card.append(h,p);box.append(card)}finally{submit.disabled=!wasEnabled;filterButton.disabled=false}};
+function renderChannelResults(data){const root=$('#channel-results');root.replaceChildren();const meta=document.createElement('article');meta.className='result-card';const heading=document.createElement('h3');heading.textContent='Alcance de la consulta';const p=document.createElement('p');p.textContent=`Fuente: ${data.source||data.provider||'YouTube Data API'} · Consultado: ${data.retrieved_at||data.retrieved_at_utc||'fecha no devuelta'} · Resultado: ${data.result_type||'respuesta del conector'}`;meta.append(heading,p);root.append(meta);const list=Array.isArray(data.channels)?data.channels:Array.isArray(data.results)?data.results:Array.isArray(data.items)?data.items:[];if(!list.length){const pre=document.createElement('pre');pre.className='result-card';pre.textContent=JSON.stringify(data,null,2);root.append(pre);return}for(const item of list){const card=document.createElement('article');card.className='result-card';const h=document.createElement('h3');h.textContent=item.title||item.channel_title||item.name||'Canal';card.append(h);const line=document.createElement('div');line.className='result-metrics';for(const [key,label]of [['subscriber_count','Suscriptores'],['view_count','Vistas'],['video_count','Videos']]){const s=document.createElement('span');s.textContent=`${label}: ${Number.isFinite(item[key])?item[key]:'desconocido'}`;if(!Number.isFinite(item[key]))s.className='unknown-value';line.append(s)}card.append(line);const url=item.url||item.channel_url||item.custom_url;if(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=url;card.append(a)}const note=document.createElement('p');note.textContent=`Datos de la respuesta del conector · fecha ${item.retrieved_at||data.retrieved_at||'no disponible'}`;card.append(note);root.append(card)}}
+$('#manual-data-toggle').onclick=()=>{$('#manual-data-form').hidden=!$('#manual-data-form').hidden};$('#manual-data-save').onclick=()=>{try{const raw=$('#manual-channel-data').value.trim();if(!raw)throw Error('Añade la información y su procedencia');const record={added_at:new Date().toISOString(),source_type:'user_supplied_unverified',content:raw};const all=JSON.parse(localStorage.getItem('om.channel.notes')||'[]');all.push(record);localStorage.setItem('om.channel.notes',JSON.stringify(all));const d=document.createElement('div');d.className='result-card';const p=document.createElement('p');p.textContent=`Aportado por el usuario · ${record.added_at} · no verificado`;const pre=document.createElement('pre');pre.textContent=raw;d.append(p,pre);$('#manual-data-saved').replaceChildren(d);toast('Aporte guardado en este navegador, no en el expediente remoto')}catch(err){toast(err.message)}};
+const sportsActionLabels={collectible_card:'Ficha de colección',resolve_players:'Resolver nombres de jugadores',compare_players:'Comparar jugadores',ranking:'Clasificación',matches:'Partidos',match:'Partido',player:'Datos de jugador',player_history:'Historial de jugador',historical:'Datos históricos',coaches:'Entrenadores',coach_balance:'Balance de entrenador',teams:'Equipos',team:'Equipo',squad:'Plantilla',standings:'Tabla de posiciones',head_to_head:'Enfrentamiento directo',definitions:'Definiciones'};const sportsFieldLabels={competition:'Competición',edition:'Temporada',names:'Nombres de jugadores',metrics:'Métricas',phase:'Fase',entity:'Tipo de entidad',team_id:'ID de equipo',player_id:'ID de jugador',match_id:'ID de partido',coach_id:'ID de entrenador',order:'Orden',lineups:'Incluir alineaciones',team1:'ID de primer equipo',team2:'ID de segundo equipo',metric:'Métrica'};
+const competitionLabels={champions:'Liga de Campeones UEFA',women_champions:'Liga de Campeones Femenina UEFA',europa:'Liga Europa UEFA',conference:'Liga Conferencia UEFA',euro:'Eurocopa UEFA',nations:'Liga de Naciones UEFA',supercup:'Supercopa UEFA',finalissima:'Finalissima',qualifiers:'Clasificación europea'};
+async function loadSportsSchema(){if(state.sportsSchema)return;const schema=await tryApi('/api/studio/football/schema');if(schema.__error){$('#sports-connector').textContent='Cobertura: UEFA \u00b7 esquema no disponible';$('#sports-connector').classList.add('neutral');return}state.sportsSchema=schema;$('#sports-connector').textContent='Cobertura: UEFA \u00b7 bajo demanda';$('#sports-connector').classList.add('neutral');$('#sports-competition').replaceChildren(...(schema.competitions||[]).map(c=>new Option(competitionLabels[c]||'Competici\u00f3n UEFA',c)));$('#sports-action').replaceChildren(...(schema.actions||[]).map(a=>new Option(sportsActionLabels[a.name]||'Consulta deportiva',a.name)));if(schema.actions?.some(a=>a.name==='compare_players'))$('#sports-action').value='compare_players';$('#sports-action').onchange=renderSportsFields;renderSportsFields();const note=document.createElement('span');note.textContent=schema.coverage_note||'Cobertura limitada a UEFA';$('#sports-route-note').replaceChildren(note)}
+function renderSportsFields(){const root=$('#sports-fields');root.replaceChildren();const action=state.sportsSchema?.actions?.find(a=>a.name===$('#sports-action').value);if(!action)return;const properties=state.sportsSchema.parameters?.properties||{};for(const field of action.fields||[]){if(field==='competition')continue;const label=document.createElement('label');label.textContent=sportsFieldLabels[field]||'Parámetro';let input;if(field==='entity'&&action.choices?.entity){input=document.createElement('select');input.append(...action.choices.entity.map(x=>new Option(x==='player'?'Jugador':x==='team'?'Equipo':x==='players'?'Jugadores':'Equipos',x)))}else if(field==='phase'&&properties.phase?.enum){input=document.createElement('select');input.append(...properties.phase.enum.map(x=>new Option(x==='TOURNAMENT'?'Torneo':x==='QUALIFYING'?'Clasificación':'Todas las fases',x)))}else if(field==='order'&&properties.order?.enum){input=document.createElement('select');input.append(...properties.order.enum.map(x=>new Option(x==='ASC'?'Ascendente':'Descendente',x)))}else if(field==='lineups'){input=document.createElement('input');input.type='checkbox'}else if(field==='names'||field==='metrics'){input=document.createElement('textarea');input.rows=field==='names'?2:1;input.placeholder=field==='names'?'Nombre 1, Nombre 2': 'standard, all o métricas separadas por comas'}else{input=document.createElement('input');input.type=properties[field]?.type==='integer'?'number':'text';input.autocomplete='off'}input.name=field;input.dataset.fieldType=field==='names'?'names':field==='metrics'?'metrics':field==='lineups'?'boolean':properties[field]?.type||'string';input.dataset.required=(action.required||[]).includes(field)?'true':'false';label.append(input);root.append(label)}}
+$('#sports-form').onsubmit=async e=>{e.preventDefault();const action=$('#sports-action').value,inputs={competition:$('#sports-competition').value,action};for(const el of $('#sports-fields').querySelectorAll('[name]')){const type=el.dataset.fieldType;let v=type==='boolean'?el.checked:el.value.trim();if(type!=='boolean'&&!v&&el.dataset.required==='true'){toast(`Completa el campo ${el.name}`);return}if(type==='boolean'){inputs[el.name]=v;continue}if(!v)continue;if(type==='names')v=v.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);else if(type==='metrics'&&v!=='standard'&&v!=='all')v=v.split(',').map(x=>x.trim()).filter(Boolean);else if(type==='integer'){v=Number(v);if(!Number.isSafeInteger(v)){toast(`${el.name} debe ser un número entero`);return}}inputs[el.name]=v}const root=$('#sports-results');root.innerHTML='<div class="empty-state">Consultando la fuente…</div>';try{const result=await req('/api/studio/football/query',{method:'POST',body:inputs});state.lastSports=result;renderSportsResult(result);$('#sports-copy').disabled=false}catch(err){root.replaceChildren();const p=document.createElement('p');p.textContent=err.message;root.append(p)}};
+function renderSportsResult(result){const root=$('#sports-results');root.replaceChildren();if(!result.success){const card=document.createElement('article');card.className='result-card';card.innerHTML=`<h3>Consulta sin resultado</h3><p>${esc(result.error||'La fuente no devolvió datos')}</p>`;root.append(card);return}const data=result.data||{};const card=document.createElement('article');card.className='result-card';const h=document.createElement('h3');h.textContent=sportsActionLabels[$('#sports-action').value]||'Resultado oficial';const meta=document.createElement('p');meta.textContent=`Fuente: ${data.fuente||'UEFA'} · Consulta local: ${new Date().toISOString()} · Estadísticas persistidas: no`;card.append(h,meta);for(const [key,value] of Object.entries(data.alcance||{})){const p=document.createElement('p');p.textContent=`${sportsFieldLabels[key]||'Contexto'}: ${value??'desconocido'}`;card.append(p)}const rows=Array.isArray(data.registros)?data.registros:Array.isArray(data.records)?data.records:[];if(rows.length){const list=document.createElement('div');list.className='result-rows';for(const row of rows){const p=document.createElement('p');p.textContent=Object.entries(row).map(([k,v])=>`${sportsFieldLabels[k]||k}: ${v??'desconocido'}`).join(' · ');list.append(p)}card.append(list)}else{const pre=document.createElement('pre');pre.textContent=JSON.stringify(data,null,2);card.append(pre)}const note=document.createElement('p');note.textContent=result.note||'Respeta temporada, fase, fuente y contexto devueltos por la respuesta oficial.';card.append(note);root.append(card)}$('#sports-copy').onclick=async()=>{if(!state.lastSports)return;await navigator.clipboard.writeText(JSON.stringify(state.lastSports.data,null,2));toast('Comparativa copiada')};
+$('#agent-project-link').onclick=e=>{e.preventDefault();if(state.pid)setModule('video');else setModule('projects')};
+$('#subtitle-download').onclick=e=>{if(!state.pid){e.preventDefault();toast('Selecciona un proyecto editable')}};
+window.addEventListener('hashchange',()=>setModule(location.hash.slice(1)));
+initialize().then(()=>{const initial=location.hash.slice(1);if(names[initial])setModule(initial);else if(state.pid){$('#project-select').value=state.pid;openEditor(state.pid)}}).catch(e=>{console.error(e);$('#connection-label').textContent='Error de conexión'});
 
 
-def post(client, pid, request_id="a" * 32, prompt="Nubes moviéndose lentamente"):
-    return client.post(f"/api/studio/editor/{pid}/text-to-video", json={"prompt": prompt, "request_id": request_id})
+function monitorPercent(value){return Number.isFinite(value)?`${Math.round(value)}`:'—'}
+function monitorGB(value){return Number.isFinite(value)?`${(value/1073741824).toFixed(1)} GB`:'desconocido'}
+function monitorGBCompact(value){return Number.isFinite(value)?String(Math.round(value/1073741824)):'—'}
+function updateMonitorText(id,value){const node=$(`#${id}`);if(node)node.textContent=value}
+async function refreshSystemMonitor(){
+  const root=$('#system-monitor');if(!root)return;
+  const data=await tryApi('/api/studio/system-metrics');
+  if(data.__error){root.dataset.state='unavailable';root.title='El backend activo no expone las métricas locales; se muestran guiones. Sin telemetría externa.';$('#system-monitor-status').textContent='Métricas locales no disponibles en este backend';return}
+  root.dataset.state='ready';root.title='Lecturas locales del sistema operativo; ninguna telemetría sale del equipo.';
+  const cpu=data.cpu||{};updateMonitorText('system-cpu-use',monitorPercent(cpu.usage_percent));updateMonitorText('system-cpu-temp',Number.isFinite(cpu.temperature_c)?String(Math.round(cpu.temperature_c)):'—');
+  const gpu=Array.isArray(data.gpus)?data.gpus[0]:null;updateMonitorText('system-gpu-use',monitorPercent(gpu?.usage_percent));updateMonitorText('system-gpu-temp',Number.isFinite(gpu?.temperature_c)?String(Math.round(gpu.temperature_c)):'—');
+  const memory=data.memory||{};updateMonitorText('system-memory-use',monitorPercent(memory.usage_percent));
+  const memoryNode=$('#system-memory');memoryNode.title=`RAM: ${monitorGB(memory.used_bytes)} usados de ${monitorGB(memory.total_bytes)}`;
+  const disks=Array.isArray(data.disks)?data.disks:[];const diskRoot=$('#system-disks-value');diskRoot.replaceChildren();const diskColors=['#f85149','#58a6ff','#bc8cff','#3fb950','#d29922'];for(const [index,d] of disks.entries()){const name=String(d.name||'Disco').replace(/[\\/]+$/,'')||'Disco';const total=d.total_bytes,free=d.free_bytes;const used=Number.isFinite(total)&&Number.isFinite(free)?Math.max(0,total-free):null;const unit=document.createElement('span');unit.className='disk-unit';unit.style.setProperty('--disk-color',diskColors[index%diskColors.length]);const dot=document.createElement('i');dot.className='disk-dot';dot.setAttribute('aria-hidden','true');const label=document.createElement('strong');label.className='disk-label';label.textContent=`${name.replace(/:$/,'')}:`;const value=document.createElement('span');value.className='disk-value';const percent=Number.isFinite(d.usage_percent)?`${monitorPercent(d.usage_percent)}% · `:'';value.textContent=Number.isFinite(used)&&Number.isFinite(total)?`${percent}${monitorGBCompact(used)}/${monitorGBCompact(total)} GB`:'—';unit.title=`${name}: ${monitorPercent(d.usage_percent)}% ocupado; ${monitorGB(free)} libres de ${monitorGB(total)}`;unit.append(dot,label,value);diskRoot.append(unit)}if(!disks.length)diskRoot.textContent='—';
+  $('#system-disks').title=disks.length?disks.map(d=>`${d.name}: ${monitorPercent(d.usage_percent)}% ocupado; ${monitorGB(d.free_bytes)} libres de ${monitorGB(d.total_bytes)}`).join(' | '):'No se detectaron volúmenes fijos disponibles';
+  $('#system-gpu').title=gpu?`${gpu.name}: uso y temperatura del primer adaptador NVIDIA reportado por nvidia-smi`:'No hay lectura NVIDIA disponible; se muestran guiones';
+  $('#system-monitor-status').textContent=`Actualizado ${data.collected_at||'sin fecha'}`;
+}
+refreshSystemMonitor();setInterval(refreshSystemMonitor,5000);
 
-
-def wait_for(client, pid, request_id, expected):
-    for _ in range(100):
-        response = client.get(f"/api/studio/editor/{pid}/text-to-video/requests/{request_id}")
-        if response.status_code == 200 and response.json()["state"] == expected:
-            return response.json()
-        time.sleep(0.01)
-    pytest.fail(f"El trabajo no llegó a {expected}: {response.text}")
-
-
-def test_local_flow_saves_mp4_in_active_project(text_video):
-    client, pid, fake = text_video
-    response = post(client, pid)
-    assert response.status_code == 202
-    assert tuple(fake.checked)
-    completed = wait_for(client, pid, "a" * 32, "completed")
-    assert completed["profile"] == jobs.PROFILE
-    assert "relative_path" not in completed
-    assert FakeComfyUIVideo.last_inputs["operation"] == "text_to_video"
-    assert FakeComfyUIVideo.last_inputs["model_family"] == "wan2.2"
-    assert FakeComfyUIVideo.last_inputs["wan_workflow_path"] == wan_config(jobs.PROFILE)["workflow_path"]
-    assert completed["bytes"] == len(b"simulated mp4 bytes")
-    assert completed["video_url"].endswith("/video")
-    output = studio.project_path(pid) / "medios_generados" / f"wan-t2v-{'a' * 32}.mp4"
-    assert output.read_bytes() == b"simulated mp4 bytes"
-    downloaded = client.get(completed["video_url"])
-    assert downloaded.status_code == 200
-    assert downloaded.content == b"simulated mp4 bytes"
-    assert downloaded.headers["content-type"].startswith("video/mp4")
-
-
-def test_completed_receipt_is_listed_after_reopening_project(text_video):
-    client, pid, _ = text_video
-    assert post(client, pid).status_code == 202
-    completed = wait_for(client, pid, "a" * 32, "completed")
-
-    # Re-open the editable project as Studio does on project selection/reload.
-    reopened = client.get(f"/api/studio/editor/{pid}")
-    assert reopened.status_code == 200
-    assert reopened.json()["revision"] == 0
-
-    results = client.get(f"/api/studio/editor/{pid}/text-to-video/results")
-    assert results.status_code == 200
-    assert len(results.json()) == 1
-    media = results.json()[0]
-    assert media["request_id"] == "a" * 32
-    assert media["video_url"] == completed["video_url"]
-    assert media["bytes"] == len(b"simulated mp4 bytes")
-    assert "relative_path" not in media
-    assert str(studio.project_path(pid)) not in media.values()
-
-
-def test_read_only_availability_requires_wan_preflight_without_submission(text_video):
-    client, pid, fake = text_video
-    ready = client.get(f"/api/studio/editor/{pid}/text-to-video/availability")
-    assert ready.status_code == 200
-    assert ready.json() == {
-        "available": True,
-        "profile": jobs.PROFILE,
-        "workflow": "wan22-t2v-4step.json",
-        "required_models": 6,
+// Wan 2.2 T2V is enabled only when the active Studio identity and the local
+// read-only preflight agree. Receipts, not browser paths, identify outputs.
+state.textToVideo={available:false,results:[],pendingId:null,busy:false,phase:'idle',epoch:0};
+state.selectedGeneratedRequestId=null;
+const textVideoPendingKey=pid=>`openmontage.text-video.pending.${encodeURIComponent(pid)}`;
+const textVideoRoot=pid=>`/api/studio/editor/${encodeURIComponent(pid)}/text-to-video`;
+function textVideoStatus(message,error=false){const node=$('#text-to-video-status');if(node)node.textContent=message;if(node)node.dataset.state=error?'error':'ready'}
+function textVideoControls(){
+  const t=state.textToVideo,usable=!!(t?.available&&state.pid&&state.edit);
+  const mode=$('#mode-text-to-video'),prompt=$('#text-to-video-prompt'),submit=$('#text-to-video-submit'),check=$('#text-to-video-check');
+  if(mode){mode.disabled=!usable;mode.classList.toggle('unavailable',!usable);$('#text-to-video-mode-status').textContent=usable?'Wan 2.2 local · disponible':'No disponible';}
+  if(prompt)prompt.disabled=!usable||t.busy||!!t.pendingId;
+  if(submit)submit.disabled=!usable||t.busy||!!t.pendingId;
+  if(check)check.disabled=!usable||t.busy;
+}
+function clearTextVideoPreview(){
+  const video=$('#preview-video');if(video){video.pause();video.removeAttribute('src');delete video.dataset.textVideoPreview;video.load()}
+  const empty=$('#viewer-empty');if(empty)empty.hidden=false;
+}
+function showTextVideoPreview(key,url,label){
+  const video=$('#preview-video');if(!video||typeof url!=='string'||!url.startsWith('/api/studio/editor/'))return;
+  if(video.dataset.textVideoPreview!==key){video.src=url;video.dataset.textVideoPreview=key;video.load()}
+  $('#viewer-empty').hidden=true;$('#preview-status').textContent=`Vista previa · ${label||'medio del proyecto'}`;
+}
+function generatedVideoUrl(pid,requestId){return `${textVideoRoot(pid)}/requests/${encodeURIComponent(requestId)}/video`}
+function renderTextVideoResults(){
+  const results=state.pid?(state.textToVideo?.results||[]):[],root=$('#text-to-video-results'),media=$('#media-list');
+  if(!root||!media)return;
+  media.querySelectorAll('.text-video-media').forEach(node=>node.remove());
+  root.replaceChildren();
+  for(const result of results){
+    if(!/^[a-f0-9]{32}$/.test(result.request_id||''))continue;
+    const id=result.request_id,label=result.label||'Vídeo generado · Wan 2.2';
+    const item=document.createElement('div');item.className='media-result-item text-video-media';
+    const row=document.createElement('button');row.type='button';row.className='media-row media-generated'+(state.selectedGeneratedRequestId===id?' selected':'');
+    const kind=document.createElement('span');kind.className='media-kind';kind.textContent='Wan';
+    const detail=document.createElement('span');detail.className='media-label';
+    const title=document.createElement('strong');title.textContent=label;
+    const meta=document.createElement('small');meta.textContent=`MP4 · ${Number.isFinite(result.bytes)?`${Math.round(result.bytes/1048576)} MB`:'tamaño no informado'} · proyecto actual`;
+    detail.append(title,meta);row.append(kind,detail);row.onclick=()=>selectGeneratedTextVideo(id,label);row.ondblclick=()=>addGeneratedTextVideo(id);
+    const mediaActions=document.createElement('div');mediaActions.className='media-result-actions';const mediaPreview=document.createElement('button');mediaPreview.type='button';mediaPreview.className='quiet-button';mediaPreview.textContent='Vista previa';mediaPreview.onclick=()=>selectGeneratedTextVideo(id,label);const mediaAdd=document.createElement('button');mediaAdd.type='button';mediaAdd.className='quiet-button';mediaAdd.textContent='Añadir';mediaAdd.disabled=!state.edit||state.textToVideo.busy||state.busy;mediaAdd.onclick=()=>addGeneratedTextVideo(id);mediaActions.append(mediaPreview,mediaAdd);item.append(row,mediaActions);media.append(item);
+    const card=document.createElement('article');card.className='text-video-result';
+    const details=document.createElement('div');const heading=document.createElement('strong');heading.textContent=label;
+    const info=document.createElement('small');info.textContent=`Completado ${result.completed_at||'sin fecha disponible'}${result.model?` · ${result.model}`:''}`;details.append(heading,info);
+    const actions=document.createElement('div');actions.className='text-to-video-buttons';
+    const preview=document.createElement('button');preview.type='button';preview.className='quiet-button';preview.textContent='Vista previa';preview.onclick=()=>selectGeneratedTextVideo(id,label);
+    const add=document.createElement('button');add.type='button';add.className='primary-button';add.textContent='Añadir a la línea de tiempo';add.disabled=!state.edit||state.textToVideo.busy||state.busy;add.onclick=()=>addGeneratedTextVideo(id);
+    actions.append(preview,add);card.append(details,actions);root.append(card);
+  }
+  const count=media.querySelectorAll('.media-row').length;$('#media-count').textContent=`${count} elemento${count===1?'':'s'}`;
+  textVideoControls();
+}
+function selectGeneratedTextVideo(requestId,label='Vídeo generado · Wan 2.2'){
+  if(!state.pid||!state.edit)return;
+  state.selectedSource=null;state.selectedClip=null;state.selectedGeneratedRequestId=requestId;
+  showTextVideoPreview(`receipt:${state.pid}:${requestId}`,generatedVideoUrl(state.pid,requestId),label);
+  renderEditor();
+}
+async function refreshTextVideoResults(pid=state.pid,epoch=state.textToVideo.epoch){
+  const results=await tryApi(`${textVideoRoot(pid)}/results`);
+  if(epoch!==state.textToVideo.epoch||pid!==state.pid)return false;
+  if(results.__error||!Array.isArray(results)){
+    state.textToVideo.available=false;state.textToVideo.results=[];
+    textVideoStatus(`El backend no expone la recuperación de recibos (${results.__error||'respuesta no válida'}). No se habilita generación.` ,true);
+    textVideoControls();renderTextVideoResults();return false;
+  }
+  state.textToVideo.results=results;renderTextVideoResults();return true;
+}
+function loadPendingTextVideo(pid){try{return localStorage.getItem(textVideoPendingKey(pid))||null}catch{return null}}
+function savePendingTextVideo(pid,id){try{localStorage.setItem(textVideoPendingKey(pid),id);return true}catch{return false}}
+function clearPendingTextVideo(pid){try{localStorage.removeItem(textVideoPendingKey(pid))}catch{}}
+function textVideoReceiptDefinitelyMissing(message){return typeof message==='string'&&message.includes('Trabajo de texto a vídeo no encontrado')}
+function newTextVideoRequestId(){const bytes=crypto.getRandomValues(new Uint8Array(16));return [...bytes].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function sleepTextVideo(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+async function textVideoRequestStatus(pid,id){return await tryApi(`${textVideoRoot(pid)}/requests/${encodeURIComponent(id)}`)}
+async function finishTextVideoStatus(pid,id,result,epoch){
+  if(epoch!==state.textToVideo.epoch||pid!==state.pid)return;
+  const stateName=result.state||'unknown';state.textToVideo.phase=stateName;
+  if(stateName==='completed'){
+    state.textToVideo.pendingId=null;clearPendingTextVideo(pid);
+    textVideoStatus('Vídeo listo en medios generados del proyecto. Revisa la lista y selecciona Vista previa.');
+    await refreshTextVideoResults(pid,epoch);return;
+  }
+  if(['failed','error','invalid','cancelled'].includes(stateName)){
+    state.textToVideo.pendingId=null;clearPendingTextVideo(pid);
+    textVideoStatus(result.error||`El trabajo terminó: ${stateName}. Puedes revisar el estado antes de iniciar otro.`,true);
+  }else if(stateName==='interrupted'){
+    textVideoStatus(result.error||'Estado incierto. Consulta ComfyUI antes de decidir si reintentas; no se reenviará automáticamente.',true);
+  }else{textVideoStatus(`Wan 2.2: ${stateName}${result.progress?` · ${result.progress}`:''}`)}
+  textVideoControls();
+}
+async function pollTextVideo(pid,id,epoch){
+  state.textToVideo.busy=true;state.textToVideo.phase='running';textVideoControls();
+  for(let attempt=0;attempt<300;attempt++){
+    if(epoch!==state.textToVideo.epoch||pid!==state.pid)return;
+    const result=await textVideoRequestStatus(pid,id);
+    if(result.__error){state.textToVideo.busy=false;if(textVideoReceiptDefinitelyMissing(result.__error)){state.textToVideo.pendingId=null;clearPendingTextVideo(pid);state.textToVideo.phase='ready';textVideoStatus('El servidor confirmó que no existe recibo ni reserva para este ID. Ya puedes enviar una solicitud nueva.')}else{state.textToVideo.phase='uncertain';textVideoStatus(`No se pudo confirmar el recibo (${result.__error}). Se conserva la solicitud para evitar duplicarla. Consulta el estado antes de reintentar.`,true)}textVideoControls();return}
+    if(!['queued','running'].includes(result.state)){
+      state.textToVideo.busy=false;await finishTextVideoStatus(pid,id,result,epoch);textVideoControls();renderTextVideoResults();return;
     }
-    assert tuple(fake.checked)
-    assert FakeComfyUIVideo.calls == 0
-
-    fake.available = False
-    unavailable = client.get(f"/api/studio/editor/{pid}/text-to-video/availability")
-    assert unavailable.status_code == 200
-    assert unavailable.json()["available"] is False
-    assert "fuera de línea" in unavailable.json()["reason"]
-    assert FakeComfyUIVideo.calls == 0
-
-
-def test_read_only_availability_reports_missing_wan_weights(text_video):
-    client, pid, fake = text_video
-    fake.missing = ["wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"]
-    response = client.get(f"/api/studio/editor/{pid}/text-to-video/availability")
-    assert response.status_code == 200
-    assert response.json()["available"] is False
-    assert fake.missing[0] in response.json()["reason"]
-    assert FakeComfyUIVideo.calls == 0
-
-
-def test_completed_result_adds_to_timeline_without_browser_path(text_video, monkeypatch):
-    client, pid, fake = text_video
-    assert post(client, pid).status_code == 202
-    wait_for(client, pid, "a" * 32, "completed")
-    fake.available = False
-    monkeypatch.setattr(editor, "probe", lambda path: {
-        "duration": 1.0, "kind": "video", "audio": False, "width": 16, "height": 9,
-    })
-    monkeypatch.setattr(editor, "digest", lambda path: "a" * 64)
-
-    rejected = client.post(
-        f"/api/studio/editor/{pid}/text-to-video/requests/{'a' * 32}/add",
-        json={"revision": 0, "relative_path": "medios_generados/otro.mp4"},
-    )
-    assert rejected.status_code == 400
-
-    added = client.post(
-        f"/api/studio/editor/{pid}/text-to-video/requests/{'a' * 32}/add",
-        json={"revision": 0},
-    )
-    assert added.status_code == 200
-    result = added.json()
-    assert result["edit"]["edit_decisions"]["cuts"][0]["source"] == (
-        f"medios_generados/wan-t2v-{'a' * 32}.mp4"
-    )
-    assert result["edit"]["events"][-1]["operation"] == "add_generated_video"
-    assert result["edit"]["undo"]
-    assert editor.source(pid, result["source_id"]).name == f"wan-t2v-{'a' * 32}.mp4"
-    reopened = client.get(f"/api/studio/editor/{pid}")
-    assert reopened.status_code == 200
-    media = client.get(f"/api/studio/editor/{pid}/source/{result['source_id']}")
-    assert media.status_code == 200
-    assert media.content == b"simulated mp4 bytes"
-    assert client.get(f"/api/studio/editor/{pid}/text-to-video/results").json() == []
-
-
-@pytest.mark.parametrize("prompt", ["", "  ", "x" * (jobs.MAX_PROMPT_CHARS + 1)])
-def test_prompt_is_validated_before_comfyui(text_video, prompt):
-    client, pid, _ = text_video
-    response = post(client, pid, prompt=prompt)
-    assert response.status_code == 400
-    assert FakeComfyUIVideo.calls == 0
-
-
-def test_service_unavailable_is_reported_without_job(text_video):
-    client, pid, fake = text_video
-    fake.available = False
-    response = post(client, pid)
-    assert response.status_code == 503
-    assert "fuera de línea" in response.json()["detail"]
-    assert FakeComfyUIVideo.calls == 0
-    assert not (studio.project_path(pid) / "artifacts" / "text_to_video" / ("a" * 32 + ".json")).exists()
-
-
-def test_missing_wan_models_are_reported_without_submission(text_video):
-    client, pid, fake = text_video
-    fake.missing = ["wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"]
-    response = post(client, pid)
-    assert response.status_code == 503
-    assert fake.missing[0] in response.json()["detail"]
-    assert FakeComfyUIVideo.calls == 0
-
-
-def test_nonmatching_profile_workflow_is_not_sent(text_video, monkeypatch):
-    client, pid, _ = text_video
-    monkeypatch.setattr("lib.model_adapters.configuration", lambda family: {
-        **wan_config(jobs.PROFILE), "preset": jobs.PROFILE,
-        "workflow_path": str(studio.REPO_ROOT / "another-workflow.json"),
-    })
-    response = post(client, pid)
-    assert response.status_code == 503
-    assert "no coincide" in response.json()["detail"]
-    assert FakeComfyUIVideo.calls == 0
-
-
-def test_uncertain_comfyui_result_is_recoverable_without_resubmit(text_video):
-    client, pid, _ = text_video
-    FakeComfyUIVideo.mode = "uncertain"
-    first = post(client, pid)
-    assert first.status_code == 202
-    uncertain = wait_for(client, pid, "a" * 32, "uncertain")
-    assert uncertain["prompt_id"] == "comfy-prompt-123"
-    retry = post(client, pid)
-    assert retry.status_code == 202
-    assert retry.json()["reused_request"] is True
-    assert retry.json()["state"] == "uncertain"
-    assert FakeComfyUIVideo.calls == 1
-
-
-def test_tool_failure_and_unknown_request_have_clear_states(text_video):
-    client, pid, _ = text_video
-    FakeComfyUIVideo.mode = "failed"
-    response = post(client, pid)
-    assert response.status_code == 202
-    failed = wait_for(client, pid, "a" * 32, "failed")
-    assert "validation error" in failed["error"]
-    missing = client.get(f"/api/studio/editor/{pid}/text-to-video/requests/{'b' * 32}")
-    assert missing.status_code == 404
+    textVideoStatus(`Wan 2.2: ${result.state}. El trabajo sigue en ComfyUI; no vuelvas a enviarlo.`);await sleepTextVideo(1500);
+  }
+  state.textToVideo.busy=false;state.textToVideo.phase='uncertain';textVideoStatus('La espera superó el límite de consulta. El recibo se conserva; consulta su estado antes de repetir.',true);textVideoControls();
+}
+async function loadTextVideoProject(pid){
+  const epoch=++state.textToVideo.epoch;state.textToVideo.available=false;state.textToVideo.results=[];state.textToVideo.busy=false;state.selectedGeneratedRequestId=null;
+  state.textToVideo.pendingId=loadPendingTextVideo(pid);textVideoControls();renderTextVideoResults();
+  if(!pid||!state.edit){textVideoStatus('Selecciona un proyecto para comprobar el flujo local.');return}
+  if(state.identity?.restart_required!==false){textVideoStatus('El backend activo necesita activación o no confirma su identidad. No se consulta ni habilita el generador.',true);return}
+  textVideoStatus('Comprobando el preflight local de Wan 2.2…');
+  const check=await tryApi(`${textVideoRoot(pid)}/availability`);
+  if(epoch!==state.textToVideo.epoch||pid!==state.pid)return;
+  if(check.__error||check.available!==true){textVideoStatus(check.reason||check.__error||'El preflight Wan 2.2 no confirmó disponibilidad.',true);return}
+  if(!await refreshTextVideoResults(pid,epoch))return;
+  state.textToVideo.available=true;state.textToVideo.phase='ready';
+  textVideoStatus(`Disponible · perfil ${check.profile||'Wan 2.2 T2V'} · workflow ${check.workflow||'confirmado'} · ${check.required_models??6} modelos requeridos.`);
+  textVideoControls();
+  const pending=state.textToVideo.pendingId;
+  if(pending){
+    if(!/^[a-f0-9]{32}$/.test(pending)){state.textToVideo.phase='uncertain';textVideoStatus('El recibo guardado en este navegador no tiene formato válido. No se enviará otro trabajo automáticamente.',true);textVideoControls();return}
+    const result=await textVideoRequestStatus(pid,pending);
+    if(epoch!==state.textToVideo.epoch||pid!==state.pid)return;
+    if(result.__error){if(textVideoReceiptDefinitelyMissing(result.__error)){state.textToVideo.pendingId=null;clearPendingTextVideo(pid);state.textToVideo.phase='ready';textVideoStatus('El servidor confirmó que no existe recibo ni reserva para este ID. Ya puedes enviar una solicitud nueva.')}else{state.textToVideo.phase='uncertain';textVideoStatus(`No se confirmó el recibo guardado (${result.__error}); no se repetirá la solicitud.`,true)}textVideoControls();return}
+    if(['queued','running'].includes(result.state)){pollTextVideo(pid,pending,epoch);return}
+    await finishTextVideoStatus(pid,pending,result,epoch);textVideoControls();
+  }
+}
+async function addGeneratedTextVideo(requestId){
+  if(!state.pid||!state.edit||state.textToVideo.busy||state.busy)return;
+  if(!/^[a-f0-9]{32}$/.test(requestId)){toast('El identificador del recibo no es válido');return}
+  state.textToVideo.busy=true;textVideoControls();
+  try{
+    const result=await req(`${textVideoRoot(state.pid)}/requests/${encodeURIComponent(requestId)}/add`,{method:'POST',body:{revision:state.edit.revision}});
+    if(!result?.edit||!result.source_id)throw Error('El backend no devolvió el medio registrado en el proyecto');
+    state.edit=result.edit;state.selectedSource=result.source_id;state.selectedGeneratedRequestId=null;renderEditor();
+    toast('Vídeo validado y añadido al montaje del proyecto');
+    await refreshTextVideoResults(state.pid,state.textToVideo.epoch);
+  }catch(error){textVideoStatus(`No se añadió el recibo: ${error.message}`,true);await openEditor(state.pid)}
+  finally{state.textToVideo.busy=false;textVideoControls();renderTextVideoResults()}
+}
+async function submitTextVideo(event){
+  event.preventDefault();const pid=state.pid,prompt=$('#text-to-video-prompt').value.trim();
+  if(!state.textToVideo.available||!pid||!state.edit){textVideoStatus('El proyecto o el preflight local no están disponibles.',true);return}
+  if(state.textToVideo.pendingId){textVideoStatus('Hay un recibo pendiente. Consulta su estado antes de iniciar otro trabajo.',true);return}
+  if(!prompt||prompt.length>2000||prompt.includes('\0')){textVideoStatus('Escribe un prompt de 1 a 2000 caracteres.',true);return}
+  const id=newTextVideoRequestId();if(!savePendingTextVideo(pid,id)){textVideoStatus('No se pudo guardar localmente el identificador de solicitud; no se envió el prompt.',true);return}
+  state.textToVideo.pendingId=id;state.textToVideo.busy=true;state.textToVideo.phase='submitting';textVideoControls();textVideoStatus('Enviando una solicitud al ComfyUI local…');
+  const result=await tryApi(textVideoRoot(pid),{method:'POST',body:{prompt,request_id:id}});
+  state.textToVideo.busy=false;
+  if(result.__error){state.textToVideo.phase='uncertain';textVideoStatus(`No se confirmó la respuesta del servidor (${result.__error}). Se conserva el ID; consulta el recibo y no lo reenvíes.`,true);textVideoControls();return}
+  textVideoStatus(`Trabajo aceptado · ${result.state||'estado pendiente'}. Consultando el mismo recibo…`);textVideoControls();await pollTextVideo(pid,id,state.textToVideo.epoch);
+}
+$('#text-to-video-form')?.addEventListener('submit',submitTextVideo);
+$('#text-to-video-check')?.addEventListener('click',async()=>{const pid=state.pid;if(!pid)return;await loadTextVideoProject(pid)});
+$('#mode-text-to-video')?.addEventListener('click',()=>{if(!state.textToVideo.available)return;const panel=$('#text-to-video-panel');const opening=panel.hidden;panel.hidden=!opening;$('#mode-text-to-video').setAttribute('aria-pressed',String(opening));if(opening)$('#text-to-video-prompt').focus()});
+const renderEditorBeforeTextVideo=renderEditor;
+renderEditor=function(){renderEditorBeforeTextVideo();if(!state.textToVideo)return;renderTextVideoResults();if(state.selectedSource&&state.edit){const source=state.edit.edit_decisions?.sources?.[state.selectedSource];if(source?.origin==='wan_t2v_receipt')showTextVideoPreview(`source:${state.pid}:${state.selectedSource}`,`/api/studio/editor/${encodeURIComponent(state.pid)}/source/${encodeURIComponent(state.selectedSource)}`,source.original_name||'Vídeo generado');}const add=$('#timeline-add');if(add)add.disabled=!state.edit||(!state.selectedSource&&!state.selectedGeneratedRequestId)};
+const openEditorBeforeTextVideo=openEditor;
+openEditor=async function(pid){const changed=state.pid!==pid;if(changed){state.selectedSource=null;state.selectedClip=null;state.selectedGeneratedRequestId=null;clearTextVideoPreview()}await openEditorBeforeTextVideo(pid);if(state.pid===pid&&state.edit)await loadTextVideoProject(pid);el
