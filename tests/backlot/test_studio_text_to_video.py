@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -246,3 +247,16 @@ def test_tool_failure_and_unknown_request_have_clear_states(text_video):
     assert "validation error" in failed["error"]
     missing = client.get(f"/api/studio/editor/{pid}/text-to-video/requests/{'b' * 32}")
     assert missing.status_code == 404
+
+
+def test_studio_ui_keeps_project_scoped_text_to_video_contract():
+    script = Path(__file__).parents[2] / "backlot" / "ui" / "studio.js"
+    source = script.read_text(encoding="utf-8")
+    assert source.startswith("const $=s=>document.querySelector")
+    assert "state.identity?.restart_required!==false" in source
+    assert "${textVideoRoot(pid)}/availability" in source
+    assert "${textVideoRoot(pid)}/results" in source
+    assert "${textVideoRoot(state.pid)}/requests/${encodeURIComponent(requestId)}/add" in source
+    assert "body:{revision:state.edit.revision}" in source
+    assert "Se conserva la solicitud" in source
+    assert "state.selectedGeneratedRequestId" in source
