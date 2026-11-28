@@ -164,11 +164,24 @@ class VisualQA(BaseTool):
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         frames = []
-        for ts in timestamps:
+        reserved_paths = set()
+        for index, ts in enumerate(timestamps):
             ts_label = f"{ts:.1f}".replace(".", "_")
-            frame_path = str(Path(output_dir) / f"frame_{ts_label}s.jpg")
+            frame_path = Path(output_dir) / f"frame_{ts_label}s.jpg"
+            if str(frame_path) in reserved_paths:
+                frame_path = Path(output_dir) / f"frame_{ts_label}_{index:03d}s.jpg"
+            reserved_paths.add(str(frame_path))
+            if frame_path.exists() or frame_path.is_symlink():
+                frames.append({
+                    "timestamp": ts,
+                    "path": None,
+                    "error": "La captura ya existe; no se sobrescribió.",
+                    "overwritten": False,
+                })
+                continue
+            frame_path = str(frame_path)
             cmd = [
-                "ffmpeg", "-y",
+                "ffmpeg", "-nostdin", "-n",
                 "-ss", str(ts),
                 "-i", input_path,
                 "-frames:v", "1",

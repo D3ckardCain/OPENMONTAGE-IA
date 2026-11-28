@@ -71,3 +71,8 @@ La prueba focalizada inyecta un cue fuera del montaje solo en el proyecto sinté
 La acción opcional «Medir glifos» dibuja solo el cue seleccionado sobre un fotograma negro sintético del tamaño de salida, con el FFmpeg/libass local y la misma función ASS del render. Lee el buffer en memoria, devuelve su caja de píxeles frente al rectángulo seguro y elimina el archivo ASS temporal al terminar. No decodifica el vídeo, no escribe en el proyecto y no altera tiempos/texto. La respuesta incluye la revisión del EDL para descartar mediciones obsoletas.
 
 No aplica a subtítulos seleccionables/soft; exige modo quemado. La medición detecta píxeles del render, incluida la sustitución local de fuentes, pero no comprueba legibilidad, contraste contra el vídeo real, contenido semántico, cues no seleccionados, sincronía audiovisual ni aprobación humana. Una caja dentro del margen tampoco acredita que el subtítulo sea comprensible.
+
+
+## Capturas de revisión no sobrescribibles · #166
+
+`visual_qa` conserva los nombres habituales de las capturas, crea un nombre alternativo cuando dos marcas temporales redondean igual y comprueba la ruta antes de ejecutar FFmpeg. FFmpeg también recibe `-n`, de modo que una captura que aparezca por una carrera no se reemplaza. La respuesta marca el caso como no guardado y conserva el archivo previo. Las pruebas usan archivos temporales y FFmpeg simulado; no inspeccionan medios de usuario.
