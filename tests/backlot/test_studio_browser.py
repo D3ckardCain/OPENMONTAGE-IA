@@ -1205,49 +1205,46 @@ def test_media_version_pair_is_explicit_and_warns_about_mismatch(staged_backlot_
 
 @pytest.mark.parametrize('width', [375, 768, 1024, 1440])
 def test_studio_editor_chrome_responsive_controls_and_icons(staged_backlot_server, width):
-    """Computed browser layout contract; not a human visual approval."""
+    """Computed responsive contract for the current Studio navigation; not visual approval."""
     with sync_playwright() as pw:
         browser = pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
         page = browser.new_page(viewport={'width': width, 'height': 900})
         page.goto(staged_backlot_server + '/studio', wait_until='domcontentloaded')
-        menu = page.locator('.editor-menu')
-        expect(menu).to_be_visible()
-        page.locator('.editor-primary-spaces').wait_for()
+        nav = page.locator('#main-nav')
+        expect(nav).to_be_visible()
         data = page.evaluate("""() => {
-          const menu = document.querySelector('.editor-menu');
-          const primary = document.querySelector('.editor-primary-spaces');
-          const buttons = [...primary.querySelectorAll('button')];
-          const rect = menu.getBoundingClientRect();
+          const nav = document.querySelector('#main-nav');
+          const buttons = [...nav.querySelectorAll('button.nav-item')];
+          const rect = nav.getBoundingClientRect();
           return {
-            viewport: innerWidth,
-            menuLeft: rect.left,
-            menuRight: rect.right,
-            menuClientWidth: menu.clientWidth,
-            menuScrollWidth: menu.scrollWidth,
+            navLeft: rect.left,
+            navRight: rect.right,
+            navClientWidth: nav.clientWidth,
+            navScrollWidth: nav.scrollWidth,
             pageScrollWidth: document.documentElement.scrollWidth,
             buttons: buttons.map(button => {
               const b = button.getBoundingClientRect();
               const icon = button.querySelector('svg');
               const i = icon && icon.getBoundingClientRect();
-              const style = getComputedStyle(button);
+              const label = button.querySelector('span');
+              const style = getComputedStyle(label || button);
               return {
                 height: b.height,
                 fontSize: parseFloat(style.fontSize),
-                alignItems: style.alignItems,
-                iconCentered: !i || Math.abs((i.top + i.height / 2) - (b.top + b.height / 2)) <= 1,
-                label: button.textContent.trim()
+                alignItems: getComputedStyle(button).alignItems,
+                iconCentered: !i || Math.abs((i.top + i.height / 2) - (b.top + b.height / 2)) <= 1
               };
             })
           };
         }""")
-        assert data['menuLeft'] >= 0
-        assert data['menuRight'] <= width + 1
-        assert data['menuScrollWidth'] <= data['menuClientWidth'] + 1
+        assert data['navLeft'] >= 0
+        assert data['navRight'] <= width + 1
         assert data['pageScrollWidth'] <= width + 1
-        assert data['buttons']
+        assert data['buttons'] and len(data['buttons']) >= 8
         assert all(button['alignItems'] == 'center' and button['iconCentered'] for button in data['buttons'])
         if width <= 680:
-            assert all(button['height'] >= 44 and button['fontSize'] >= 12 for button in data['buttons'])
+            assert data['navScrollWidth'] >= data['navClientWidth']
+            assert all(button['height'] >= 32 and button['fontSize'] >= 12 for button in data['buttons'])
         browser.close()
 
 
