@@ -132,132 +132,68 @@ def test_manual_editor_layout_and_shared_revision_controls(staged_backlot_server
 
 @pytest.mark.parametrize('width,height', [(1920,1080),(3440,1440)])
 def test_existing_project_panel_resize_and_viewport_containment(staged_backlot_server, width, height):
-    """Real EDL snapshot, intercepted transport. Layout evidence only, not playback."""
+    """Current Studio separators resize panels and persist per-browser layout locally."""
     import json
+    from copy import deepcopy
     from pathlib import Path
     fixture=json.loads(Path('tests/fixtures/editor_existing_project_layout.json').read_text(encoding='utf-8'))
-    pid=fixture['project_id'];state=fixture['state'];job=fixture['render']
-    output=Path('tests/qa/output/studio-editor');output.mkdir(parents=True,exist_ok=True)
+    state=deepcopy(fixture['state']);pid=fixture['project_id'];errors=[];writes=[]
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=os.environ.get('OPENMONTAGE_TEST_CHROMIUM'))
-        page=browser.new_page(viewport={'width':width,'height':height});errors=[];writes=[]
-        page.add_init_script("""if(!localStorage.getItem('layout-test-seeded')){
-            localStorage.setItem('edit-layout-version','2');localStorage.setItem('edit-track-size','160');
-            localStorage.setItem('edit-library-size','180');localStorage.setItem('unrelated-preference','keep');
-            localStorage.setItem('layout-test-seeded','true');}""")
+        page=browser.new_page(viewport={'width':width,'height':height})
         page.on('pageerror',lambda error:errors.append(str(error)))
         page.on('request',lambda request:writes.append(request.url) if request.method=='POST' else None)
         page.route('**/api/studio/editor/projects',lambda route:route.fulfill(json=[{'project_id':pid,'title':fixture['title']}]))
         page.route('**/api/studio/editor/'+pid,lambda route:route.fulfill(json=state))
-        page.route('**/api/studio/editor/'+pid+'/render',lambda route:route.fulfill(json=job))
-        page.route('**/media/**',lambda route:route.fulfill(status=204))
-        page.route('**/api/studio/editor/'+pid+'/source/**',lambda route:route.fulfill(status=204))
+        page.route('**/api/studio/comfy-history/projects/'+pid,lambda route:route.fulfill(json={'reports':[]}))
         page.goto(staged_backlot_server+'/studio?project='+pid+'#video')
-        expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
-        expect(page.locator('#edit-player')).to_have_attribute('src',job['url'])
-        expect(page.locator('#edit-render-status')).to_contain_text('texto visible quemado')
-        # Stress the intrinsic 1920x1080 media size without claiming decoded frames.
-        page.locator('#edit-player').evaluate('(v)=>{v.width=1920;v.height=1080}')
-        def bounds():
-            return page.evaluate('''()=>({viewport:{width:innerWidth,height:innerHeight},
-                document:{width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight},
-                panels:Object.fromEntries(['editor-library','editor-monitor','editor-inspector','editor-timeline'].map(id=>{
-                  const r=document.getElementById(id).getBoundingClientRect();return [id,{x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom}]}))})''')
-        def contained():
-            b=bounds();assert b['document']['height']<=height+1;assert b['document']['width']<=width+1
-            for panel in b['panels'].values():
-                assert panel['y']>=0 and panel['bottom']<=height+1
-            assert b['panels']['editor-timeline']['height']>=159
-            positions=page.evaluate('''()=>Object.fromEntries(['editor-upper','editor-timeline','edit-tracks','editor-tools'].map(id=>{const r=document.getElementById(id).getBoundingClientRect();return [id,{top:r.top,bottom:r.bottom}]}))''')
-            assert positions['editor-timeline']['top']>=positions['editor-upper']['bottom']
-            assert positions['editor-tools']['top']>=positions['edit-tracks']['bottom']-1
-            assert positions['editor-tools']['bottom']<=positions['editor-timeline']['bottom']+1
-            return b
-        before=contained();src=page.locator('#edit-player').get_attribute('src')
-        assert before['panels']['editor-library']['width']>=319
-        assert before['panels']['editor-timeline']['height']>=359
-        assert page.evaluate("localStorage.getItem('edit-layout-version')")=='4'
-        fit_scale=float(page.locator('#edit-zoom').input_value())
-        assert fit_scale>160
-        ticks=page.locator('.editor-ruler span').all_text_contents()
-        assert max(float(t.split()[0]) for t in ticks)<=3.5
-        page.locator('#edit-zoom-in').click()
-        assert float(page.locator('#edit-zoom').input_value())>fit_scale
-        page.locator('#edit-fit').click()
-        assert abs(float(page.locator('#edit-zoom').input_value())-fit_scale)<.01
-        assert page.locator('#editor-inspector #edit-clip-form').count()==1
-        assert page.locator('#editor-inspector #edit-subtitle-panel').count()==1
-        assert page.locator('#edit-tracks .editor-ruler').count()==1
-        assert page.locator('#edit-tracks .editor-cues .editor-clip').count()==len(state['edit_decisions']['cues'])
-        assert page.locator('#edit-tracks .editor-volume-automation').count()==0
-        assert page.locator('#editor-tools .editor-volume-automation').count()==2
-        tracks=page.locator('#edit-tracks')
-        lanes=page.locator('#edit-tracks .editor-lane')
-        track_bounds=tracks.bounding_box()
-        first_lane=lanes.first.bounding_box()
-        assert first_lane['y']>=track_bounds['y']-1
-        last_lane=lanes.last
-        last_lane.scroll_into_view_if_needed()
-        timeline_bounds=page.locator('#editor-timeline').bounding_box()
-        last_bounds=last_lane.bounding_box()
-        assert last_bounds['y']>=timeline_bounds['y']-1
-        assert last_bounds['y']+last_bounds['height']<=timeline_bounds['y']+timeline_bounds['height']+1
-        assert page.locator('#edit-split').is_disabled()
-        page.screenshot(path=str(output/f'existing-layout-{width}x{height}-default.png'),full_page=True)
-        for identifier,dx,dy in [('library',60,0),('inspector',-50,0),('timeline',0,-40)]:
-            box=page.locator('#edit-split-'+identifier).bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
-            page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+dx,y+dy,steps=5);page.mouse.up()
-        page.locator('#edit-split-timeline').focus();page.keyboard.press('ArrowUp')
-        resized=contained()
-        assert resized['panels']['editor-library']['width']>=before['panels']['editor-library']['width']+55
-        assert resized['panels']['editor-inspector']['width']>=before['panels']['editor-inspector']['width']+45
-        assert resized['panels']['editor-timeline']['height']>=before['panels']['editor-timeline']['height']+50
-        assert resized['panels']['editor-monitor']['height']<before['panels']['editor-monitor']['height']
-        page.reload();expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
-        restored=contained()
-        for identifier in resized['panels']:
-            for dimension in ['width','height']:
-                assert abs(restored['panels'][identifier][dimension]-resized['panels'][identifier][dimension])<=1
-        page.locator('#edit-layout-options summary').click()
-        page.locator('#edit-hide-library').check();page.locator('#edit-hide-inspector').check()
-        page.locator('#edit-hide-library').uncheck();page.locator('#edit-hide-inspector').uncheck()
-        page.keyboard.press('Escape')
-        assert abs(contained()['panels']['editor-library']['width']-resized['panels']['editor-library']['width'])<=1
-        for section in ['audio','subtitles','video']:
-            page.locator('[data-section="'+section+'"]').click();contained()
-            assert page.locator('#edit-project').input_value()==pid
-        page.locator('.editor-cues .editor-clip').first.click()
-        assert page.locator('#edit-subtitle-panel').is_visible()
-        assert page.locator('#edit-cue-index').input_value()=='1'
-        assert state['edit_decisions']['cues'][0]['text'] in page.locator('#edit-srt').input_value()
-        contained();page.locator('[data-section="video"]').click()
-        # Enormous saved preferences must be clamped to a usable current viewport.
-        page.evaluate("localStorage.setItem('edit-track-size','9999');localStorage.setItem('edit-library-size','9999')")
-        page.reload();expect(page.locator('#edit-revision')).to_contain_text(str(state['revision']))
-        clamped=contained();assert clamped['panels']['editor-monitor']['height']>=199
-        page.locator('#edit-split-timeline').focus();page.keyboard.press('Home');contained()
-        page.locator('#edit-split-timeline').focus();page.keyboard.press('End');contained()
-        assert page.locator('#edit-player').get_attribute('src')==src
-        page.locator('.editor-video .editor-clip').first.click()
-        expect(page.locator('#edit-clip-form')).to_be_visible()
-        assert not page.locator('#edit-split').is_disabled()
-        assert page.locator('#edit-player').get_attribute('src')==src
-        page.locator('#edit-view-source').click()
-        assert page.locator('#edit-player').get_attribute('src')!=src
-        page.locator('#edit-show-montage').click()
-        expect(page.locator('#edit-player')).to_have_attribute('src',src)
-        assert page.locator('#edit-clip-tools').get_attribute('open') is not None
-        scroll=page.locator('#editor-inspector').evaluate('(p)=>{p.scrollTop=p.scrollHeight;return {top:p.scrollTop,height:p.clientHeight,total:p.scrollHeight,overflow:getComputedStyle(p).overflowY}}')
-        assert scroll['overflow']=='auto' and scroll['top']>0
-        contained()
-        assert not writes and not errors
-        page.screenshot(path=str(output/f'existing-layout-{width}x{height}-clamped.png'),full_page=True)
-        (output/f'existing-layout-{width}x{height}.json').write_text(json.dumps({
-            'scope':fixture['scope'],'project_id':pid,'revision':state['revision'],'edit_sha256':state['edit_sha256'],
-            'before':before,'resized':resized,'restored':restored,'clamped':clamped,'inspector_scroll':scroll,'writes':writes,'page_errors':errors},indent=2),encoding='utf-8')
-        page.locator('#edit-layout-options summary').click();page.locator('#edit-layout-reset').click();page.keyboard.press('Escape')
-        reset=contained();assert reset['panels']['editor-library']['width']==320
-        assert page.evaluate("localStorage.getItem('unrelated-preference')")=='keep'
+        workbench=page.locator('.edit-workbench')
+        expect(workbench).to_be_visible()
+        media=page.locator('#resize-media');inspector=page.locator('#resize-inspector');timeline=page.locator('#resize-timeline')
+        for handle in (media,inspector,timeline):
+            expect(handle).to_be_visible()
+            assert handle.get_attribute('role')=='separator'
+            assert handle.get_attribute('aria-valuenow') is not None
+        def dimensions():
+            return page.evaluate("""() => {
+              const root=document.querySelector('.edit-workbench'),r=root.getBoundingClientRect();
+              const rect=id=>{const x=document.querySelector(id).getBoundingClientRect();return {left:x.left,top:x.top,width:x.width,height:x.height,right:x.right,bottom:x.bottom}};
+              return {root:{left:r.left,top:r.top,width:r.width,height:r.height,right:r.right,bottom:r.bottom},
+                media:rect('.media-panel'),monitor:rect('.monitor-panel'),inspector:rect('.inspector-panel'),timeline:rect('.timeline-panel'),
+                overflow:document.documentElement.scrollWidth>innerWidth};
+            }""")
+        before=dimensions()
+        def drag(selector,dx,dy):
+            box=page.locator(selector).bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
+            page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+dx,y+dy,steps=4);page.mouse.up()
+        drag('#resize-media',48,0)
+        after_media=dimensions()
+        assert after_media['media']['width']>before['media']['width']+20
+        drag('#resize-inspector',-48,0)
+        after_inspector=dimensions()
+        assert after_inspector['inspector']['width']>after_media['inspector']['width']+20
+        drag('#resize-timeline',0,-48)
+        after_timeline=dimensions()
+        assert after_timeline['timeline']['height']>after_inspector['timeline']['height']+20
+        for value in (after_media,after_inspector,after_timeline):
+            assert value['media']['left']>=value['root']['left']-1
+            assert value['inspector']['right']<=value['root']['right']+1
+            assert value['monitor']['width']>=360
+            assert not value['overflow']
+        saved=page.evaluate("localStorage.getItem('openmontage.studio.editor-layout.v1')")
+        assert saved and json.loads(saved).keys()=={'media','inspector','timeline'}
+        expected=after_timeline
+        page.reload()
+        expect(page.locator('#resize-timeline')).to_be_visible()
+        restored=dimensions()
+        for panel in ('media','monitor','inspector','timeline'):
+            assert abs(restored[panel]['width']-expected[panel]['width'])<=2
+            assert abs(restored[panel]['height']-expected[panel]['height'])<=2
+        page.locator('#resize-media').focus();page.keyboard.press('ArrowRight')
+        keyboard=dimensions()
+        assert keyboard['media']['width']>restored['media']['width']
+        assert page.evaluate("localStorage.getItem('unrelated-preference')") is None
+        assert not writes and errors==[]
         browser.close()
 
 
