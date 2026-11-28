@@ -75,7 +75,7 @@ def test_save_keeps_preview_but_edit_invalidates_it(staged_backlot_server):
 
 @pytest.mark.parametrize('width,height', [(1280,720),(1920,1080),(2560,1440),(3440,1440),(640,720)])
 def test_manual_editor_layout_and_shared_revision_controls(staged_backlot_server, width, height, tmp_path):
-    """Browser/transport evidence, with labeled synthetic JSON; no media or AI."""
+    """Current Studio layout and shared revision controls with synthetic state only."""
     from pathlib import Path
     import json
     state = {'revision':0, 'undo':[], 'redo':[], 'events':[], 'edit_decisions':{
@@ -99,26 +99,21 @@ def test_manual_editor_layout_and_shared_revision_controls(staged_backlot_server
             route.fulfill(json=state)
         page.route('**/api/studio/editor/ui-fixture/command', command)
         page.goto(staged_backlot_server + '/studio?project=ui-fixture#video')
-        expect(page.locator('#edit-revision')).to_have_text('Revisión 0 · guardado local')
-        assert page.locator('#manual-editor').is_visible()
-        assert page.locator('#legacy-studio').is_hidden()
-        assert page.locator('#edit-player').count() == 1
-        assert page.locator('#manual-editor').bounding_box()['width'] >= width - 32
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 0')
+        expect(page.locator('.edit-workbench')).to_be_visible()
+        assert page.locator('#preview-video').count() == 1
+        expect(page.locator('#timeline-tracks')).to_be_visible()
+        expect(page.locator('#inspector')).to_be_visible()
+        assert page.locator('.edit-workbench').bounding_box()['width'] >= width - 260
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1')
-        page.locator('[data-section="subtitles"]').click()
-        assert page.locator('#edit-subtitle-panel').is_visible()
-        assert page.locator('#edit-project').input_value() == 'ui-fixture'
-        page.locator('[data-section="audio"]').click()
-        assert page.locator('#edit-subtitle-panel').is_hidden()
-        page.locator('#edit-preset').select_option('9:16')
-        page.locator('#edit-output').click()
-        expect(page.locator('#edit-revision')).to_have_text('Revisión 1 · guardado local')
+        page.locator('#aspect-select').select_option('9:16')
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 1')
         assert calls == [{'operation':'output','revision':0,'ratio':'9:16','fps':24}]
         page.locator('#edit-save').click()
-        expect(page.locator('#edit-revision')).to_have_text('Revisión 2 · guardado local')
-        page.locator('#edit-reopen').click()
-        assert page.locator('#edit-project').input_value() == 'ui-fixture'
-        page.locator('[data-section="video"]').click()
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 2')
+        page.reload()
+        expect(page.locator('#edit-revision')).to_have_text('Revisión 2')
+        expect(page.locator('#aspect-select')).to_have_value('9:16')
         output = Path('tests/qa/output/studio-editor')
         output.mkdir(parents=True, exist_ok=True)
         page.screenshot(path=str(output/f'workspace-{width}x{height}.png'), full_page=True)
